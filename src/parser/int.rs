@@ -3,7 +3,7 @@ use nom::character::complete::digit1;
 use nom::combinator::map_res;
 use nom::IResult;
 
-pub fn parse_int(input: &str) -> IResult<&str, Expression<'_>> {
+pub fn parse_int(input: &str) -> IResult<&str, Expression> {
     map_res(digit1, |n: &str| n.parse::<i64>().map(Expression::Int))(input)
 }
 

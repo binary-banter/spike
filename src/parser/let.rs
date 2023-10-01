@@ -5,7 +5,7 @@ use nom::character::complete::char;
 use nom::sequence::{delimited, pair, tuple};
 use nom::{IResult, Parser};
 
-pub fn parse_let(input: &str) -> IResult<&str, Expression<'_>> {
+pub fn parse_let(input: &str) -> IResult<&str, Expression> {
     delimited(
         char('('),
         tuple((
@@ -23,7 +23,7 @@ pub fn parse_let(input: &str) -> IResult<&str, Expression<'_>> {
         parser::trim0(char(')')),
     )
     .map(|(_, (name, binding), body)| Expression::Let {
-        name,
+        name: name.to_string(),
         binding: Box::new(binding),
         body: Box::new(body),
     })
@@ -40,9 +40,11 @@ mod tests {
         assert_eq!(
             parse_let("(let (x 42) x)").unwrap().1,
             Expression::Let {
-                name: "x",
+                name: "x".to_string(),
                 binding: Box::new(Expression::Int(42)),
-                body: Box::new(Expression::Var { name: "x" })
+                body: Box::new(Expression::Var {
+                    name: "x".to_string()
+                })
             }
         )
     }

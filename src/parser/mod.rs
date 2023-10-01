@@ -6,6 +6,7 @@ mod operation;
 mod prim;
 mod var;
 
+use crate::LVarProgram;
 use nom::character::complete::{multispace0, multispace1};
 use nom::combinator::all_consuming;
 use nom::error::{ErrorKind, ParseError};
@@ -28,28 +29,23 @@ pub enum Operation {
 }
 
 #[derive(Debug, PartialEq)]
-pub enum Expression<'input> {
+pub enum Expression {
     Int(i64),
     Var {
-        name: &'input str,
+        name: String,
     },
     Prim {
         operation: Operation,
-        arguments: Vec<Expression<'input>>,
+        arguments: Vec<Expression>,
     },
     Let {
-        name: &'input str,
-        binding: Box<Expression<'input>>,
-        body: Box<Expression<'input>>,
+        name: String,
+        binding: Box<Expression>,
+        body: Box<Expression>,
     },
 }
 
-#[derive(Debug, PartialEq)]
-pub struct LVarProgram<'input> {
-    body: Expression<'input>,
-}
-
-pub fn parse_program(input: &str) -> IResult<&str, LVarProgram<'_>> {
+pub fn parse_program(input: &str) -> IResult<&str, LVarProgram> {
     all_consuming(terminated(expression::parse_expression, multispace0))
         .map(|body| LVarProgram { body })
         .parse(input)
@@ -82,7 +78,8 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::parser::{parse_program, Expression, LVarProgram};
+    use crate::parser::{parse_program, Expression};
+    use crate::LVarProgram;
 
     #[test]
     fn int() {
