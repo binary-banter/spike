@@ -1,11 +1,7 @@
+use crate::parser::parse_program;
+
 mod parser;
 
 fn main() {
-    println!("Hello, world!");
+    parse_program("(let (x 42) x)").unwrap();
 }
-
-// (+ 3 5)
-// (+ (- 3 5) 7)
-// (read)
-// (print 5)
-// (let (x 1) (+ x 3))
