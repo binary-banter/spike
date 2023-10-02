@@ -2,11 +2,13 @@
 name = "rust_compiler_construction"
 version = "0.1.0"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+authors = ["joooooooonaaaaa", "juuuuuuuuuuuuuuuuuuliaaaaaaaaaa"]
 
 [dependencies]
 nom = "7.1.3"
 thiserror = "1.0.46"
 once_cell = "1.18.0"
 regex = "1.9.3"
+
+[dev-dependencies]
+test_each_file = "0.1.0"

@@ -1,36 +1,9 @@
 use crate::lvar::Expr;
 use crate::lvar::LVarProgram;
-use std::collections::HashMap;
-use std::hash::Hash;
-use std::ops::Index;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use crate::push_map::PushMap;
 
 static COUNT: AtomicUsize = AtomicUsize::new(0);
-
-#[derive(Default)]
-struct PushMap<K: Hash + Eq + Clone, V>(HashMap<K, V>);
-
-impl<K: Hash + Eq + Clone, V> PushMap<K, V> {
-    pub fn push<O>(&mut self, k: K, v: V, scope: impl FnOnce(&mut Self) -> O) -> O {
-        let old = self.0.insert(k.clone(), v);
-
-        let v = scope(self);
-
-        if let Some(old) = old {
-            self.0.insert(k, old);
-        }
-
-        v
-    }
-}
-
-impl<K: Hash + Eq + Clone, V> Index<&K> for PushMap<K, V> {
-    type Output = V;
-
-    fn index(&self, index: &K) -> &Self::Output {
-        &self.0[index]
-    }
-}
 
 pub fn uniquify_program(program: LVarProgram) -> LVarProgram {
     LVarProgram {
