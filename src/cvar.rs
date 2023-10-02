@@ -1,4 +1,4 @@
-use crate::lvar::Expr;
+use crate::elvar::EExpr;
 
 #[derive(Debug, PartialEq)]
 pub struct CVarProgram {
@@ -8,11 +8,11 @@ pub struct CVarProgram {
 #[derive(Debug, PartialEq)]
 pub enum Tail {
     Return {
-        expr: Expr,
+        expr: EExpr,
     },
     Seq {
         sym: String,
-        bnd: Expr,
+        bnd: EExpr,
         tail: Box<Tail>,
     },
 }

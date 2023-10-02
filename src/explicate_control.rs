@@ -1,27 +1,39 @@
+use crate::alvar::AExpr;
 use crate::cvar::{CVarProgram, Tail};
-use crate::lvar::{Expr, LVarProgram};
+use crate::elvar::EExpr;
+use crate::lvar::ALVarProgram;
 
-pub fn explicate_program(program: LVarProgram) -> CVarProgram {
+pub fn explicate_program(program: ALVarProgram) -> CVarProgram {
     CVarProgram {
         blocks: vec![("start".to_string(), explicate_tail(program.bdy))],
     }
 }
 
-fn explicate_tail(expr: Expr) -> Tail {
+fn explicate_tail(expr: AExpr) -> Tail {
     match expr {
-        Expr::Int { .. } | Expr::Var { .. } | Expr::Prim { .. } => Tail::Return { expr },
-        Expr::Let { sym, bnd, bdy } => explicate_assign(sym, *bnd, explicate_tail(*bdy)),
+        AExpr::Atom(atom) => Tail::Return {
+            expr: EExpr::Atom(atom),
+        },
+        AExpr::Prim { op, args } => Tail::Return {
+            expr: EExpr::Prim { op, args },
+        },
+        AExpr::Let { sym, bnd, bdy } => explicate_assign(sym, *bnd, explicate_tail(*bdy)),
     }
 }
 
-fn explicate_assign(sym: String, bnd: Expr, tail: Tail) -> Tail {
+fn explicate_assign(sym: String, bnd: AExpr, tail: Tail) -> Tail {
     match bnd {
-        Expr::Int { .. } | Expr::Var { .. } | Expr::Prim { .. } => Tail::Seq {
+        AExpr::Atom(atom) => Tail::Seq {
             sym,
-            bnd,
+            bnd: EExpr::Atom(atom),
             tail: Box::new(tail),
         },
-        Expr::Let {
+        AExpr::Prim { op, args } => Tail::Seq {
+            sym,
+            bnd: EExpr::Prim { op, args },
+            tail: Box::new(tail),
+        },
+        AExpr::Let {
             sym: sym_,
             bnd: bnd_,
             bdy: bdy_,

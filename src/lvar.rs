@@ -1,6 +1,13 @@
+use crate::alvar::AExpr;
+
 #[derive(Debug, PartialEq)]
 pub struct LVarProgram {
     pub bdy: Expr,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct ALVarProgram {
+    pub bdy: AExpr,
 }
 
 #[allow(unused)]

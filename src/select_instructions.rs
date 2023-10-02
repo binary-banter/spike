@@ -1,5 +1,7 @@
+use crate::alvar::Atom;
 use crate::cvar::{CVarProgram, Tail};
-use crate::lvar::{Expr, Op};
+use crate::elvar::EExpr;
+use crate::lvar::Op;
 use crate::x86var::{Arg, Block, Cmd, Instr, Reg, X86VarProgram};
 
 pub fn select_program(program: CVarProgram) -> X86VarProgram {
@@ -30,7 +32,7 @@ fn select_tail(tail: Tail, instrs: &mut Vec<Instr>) {
     }
 }
 
-fn select_assign(sym: String, expr: Expr, ret: bool) -> Vec<Instr> {
+fn select_assign(sym: String, expr: EExpr, ret: bool) -> Vec<Instr> {
     let dst = if ret {
         Arg::Reg { reg: Reg::RAX }
     } else {
@@ -39,20 +41,20 @@ fn select_assign(sym: String, expr: Expr, ret: bool) -> Vec<Instr> {
 
     match expr {
         // movq $val %dst
-        Expr::Int { val } => vec![Instr::Instr {
+        EExpr::Atom(Atom::Int { val }) => vec![Instr::Instr {
             cmd: Cmd::Movq,
             args: vec![Arg::Imm { val }, dst],
         }],
 
         // movq %sym %dst
-        Expr::Var { sym } => vec![Instr::Instr {
+        EExpr::Atom(Atom::Var { sym }) => vec![Instr::Instr {
             cmd: Cmd::Movq,
             args: vec![Arg::XVar { sym }, dst],
         }],
 
         // movq ?arg.0 %dst
         // addq ?arg.1 %dst
-        Expr::Prim { op: Op::Plus, args } => match args.as_slice() {
+        EExpr::Prim { op: Op::Plus, args } => match args.as_slice() {
             [arg0, arg1] => vec![
                 Instr::Instr {
                     cmd: Cmd::Movq,
@@ -68,7 +70,7 @@ fn select_assign(sym: String, expr: Expr, ret: bool) -> Vec<Instr> {
 
         // movq ?arg.0 %dst
         // subq ?arg.1 %dst
-        Expr::Prim {
+        EExpr::Prim {
             op: Op::Minus,
             args,
         } if args.len() == 2 => vec![
@@ -84,7 +86,7 @@ fn select_assign(sym: String, expr: Expr, ret: bool) -> Vec<Instr> {
 
         // movq ?arg.0 %dst
         // negq %dst
-        Expr::Prim {
+        EExpr::Prim {
             op: Op::Minus,
             args,
         } if args.len() == 1 => vec![
@@ -100,7 +102,7 @@ fn select_assign(sym: String, expr: Expr, ret: bool) -> Vec<Instr> {
 
         // callq _read_int
         // movq  %rax %dst
-        Expr::Prim { op: Op::Read, args } if args.is_empty() => vec![
+        EExpr::Prim { op: Op::Read, args } if args.is_empty() => vec![
             Instr::Callq {
                 lbl: "_read_int".to_string(),
                 arity: 0,
@@ -114,7 +116,7 @@ fn select_assign(sym: String, expr: Expr, ret: bool) -> Vec<Instr> {
         // movq  %arg.0 %dst
         // movq  %arg.0 %RDI
         // callq _print_int
-        Expr::Prim {
+        EExpr::Prim {
             op: Op::Print,
             args,
         } if args.len() == 1 => vec![
@@ -132,20 +134,15 @@ fn select_assign(sym: String, expr: Expr, ret: bool) -> Vec<Instr> {
             },
         ],
 
-        Expr::Prim { .. } => {
+        EExpr::Prim { .. } => {
             unreachable!("Encountered Prim with incorrect arity during select instructions pass.")
-        }
-
-        Expr::Let { .. } => {
-            unreachable!("Encountered let-binding during select instructions pass.")
         }
     }
 }
 
-fn select_atom(expr: &Expr) -> Arg {
+fn select_atom(expr: &Atom) -> Arg {
     match expr {
-        Expr::Int { val } => Arg::Imm { val: *val },
-        Expr::Var { sym } => Arg::XVar { sym: sym.clone() },
-        Expr::Prim { .. } | Expr::Let { .. } => unreachable!("Tried to select a non-atom."),
+        Atom::Int { val } => Arg::Imm { val: *val },
+        Atom::Var { sym } => Arg::XVar { sym: sym.clone() },
     }
 }

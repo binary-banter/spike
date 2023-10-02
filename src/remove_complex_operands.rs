@@ -1,29 +1,31 @@
-use crate::lvar::Expr;
+use crate::alvar::{AExpr, Atom};
 use crate::lvar::LVarProgram;
+use crate::lvar::{ALVarProgram, Expr};
 use crate::uniquify::gen_sym;
 
-pub fn rco_program(program: LVarProgram) -> LVarProgram {
-    LVarProgram {
+pub fn rco_program(program: LVarProgram) -> ALVarProgram {
+    ALVarProgram {
         bdy: rco_expr(program.bdy),
     }
 }
 
-fn rco_expr(expr: Expr) -> Expr {
+fn rco_expr(expr: Expr) -> AExpr {
     match expr {
-        Expr::Int { .. } | Expr::Var { .. } => expr,
+        Expr::Int { val } => AExpr::Atom(Atom::Int { val }),
+        Expr::Var { sym } => AExpr::Atom(Atom::Var { sym }),
         Expr::Prim { op, args } => {
             let (args, extras): (Vec<_>, Vec<_>) = args.into_iter().map(rco_atom).unzip();
 
             extras
                 .into_iter()
                 .flatten()
-                .fold(Expr::Prim { op, args }, |bdy, (sym, bnd)| Expr::Let {
+                .fold(AExpr::Prim { op, args }, |bdy, (sym, bnd)| AExpr::Let {
                     sym,
                     bnd: Box::new(bnd),
                     bdy: Box::new(bdy),
                 })
         }
-        Expr::Let { sym, bnd, bdy } => Expr::Let {
+        Expr::Let { sym, bnd, bdy } => AExpr::Let {
             sym,
             bnd: Box::new(rco_expr(*bnd)),
             bdy: Box::new(rco_expr(*bdy)),
@@ -31,13 +33,14 @@ fn rco_expr(expr: Expr) -> Expr {
     }
 }
 
-fn rco_atom(expr: Expr) -> (Expr, Option<(String, Expr)>) {
+fn rco_atom(expr: Expr) -> (Atom, Option<(String, AExpr)>) {
     match expr {
+        Expr::Int { val } => (Atom::Int { val }, None),
+        Expr::Var { sym } => (Atom::Var { sym }, None),
         Expr::Prim { .. } | Expr::Let { .. } => {
             let tmp = gen_sym("");
-            (Expr::Var { sym: tmp.clone() }, Some((tmp, rco_expr(expr))))
+            (Atom::Var { sym: tmp.clone() }, Some((tmp, rco_expr(expr))))
         }
-        _ => (expr, None),
     }
 }
 

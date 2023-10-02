@@ -4,7 +4,9 @@ use crate::remove_complex_operands::rco_program;
 use crate::select_instructions::select_program;
 use crate::uniquify::uniquify_program;
 
+mod alvar;
 mod cvar;
+mod elvar;
 mod explicate_control;
 mod lvar;
 mod parser;

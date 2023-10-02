@@ -1,17 +1,44 @@
 use crate::lvar::Expr;
 use crate::lvar::LVarProgram;
 use std::collections::HashMap;
+use std::hash::Hash;
+use std::ops::Index;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 static COUNT: AtomicUsize = AtomicUsize::new(0);
 
-pub fn uniquify_program(program: LVarProgram) -> LVarProgram {
-    LVarProgram {
-        bdy: uniquify_expression(program.bdy, &mut HashMap::new()),
+#[derive(Default)]
+struct PushMap<K: Hash + Eq + Clone, V>(HashMap<K, V>);
+
+impl<K: Hash + Eq + Clone, V> PushMap<K, V> {
+    pub fn push<O>(&mut self, k: K, v: V, scope: impl FnOnce(&mut Self) -> O) -> O {
+        let old = self.0.insert(k.clone(), v);
+
+        let v = scope(self);
+
+        if let Some(old) = old {
+            self.0.insert(k, old);
+        }
+
+        v
     }
 }
 
-fn uniquify_expression(expr: Expr, scope: &mut HashMap<String, String>) -> Expr {
+impl<K: Hash + Eq + Clone, V> Index<&K> for PushMap<K, V> {
+    type Output = V;
+
+    fn index(&self, index: &K) -> &Self::Output {
+        &self.0[index]
+    }
+}
+
+pub fn uniquify_program(program: LVarProgram) -> LVarProgram {
+    LVarProgram {
+        bdy: uniquify_expression(program.bdy, &mut PushMap::default()),
+    }
+}
+
+fn uniquify_expression(expr: Expr, scope: &mut PushMap<String, String>) -> Expr {
     match expr {
         Expr::Int { .. } => expr,
         Expr::Var { sym } => Expr::Var {
@@ -27,14 +54,9 @@ fn uniquify_expression(expr: Expr, scope: &mut HashMap<String, String>) -> Expr 
         Expr::Let { sym, bnd, bdy } => {
             let unique_bnd = uniquify_expression(*bnd, scope);
             let unique_sym = gen_sym(&sym);
-            let old_name = scope.insert(sym.clone(), unique_sym.clone());
-            let unique_bdy = uniquify_expression(*bdy, scope);
-
-            if let Some(old_name) = old_name {
-                scope.insert(sym, old_name);
-            } else {
-                scope.remove(&sym);
-            }
+            let unique_bdy = scope.push(sym, unique_sym.clone(), |scope| {
+                uniquify_expression(*bdy, scope)
+            });
 
             Expr::Let {
                 sym: unique_sym,
