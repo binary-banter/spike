@@ -1,6 +1,6 @@
-use crate::parser::Expr;
+use crate::lvar::Expr;
+use crate::lvar::LVarProgram;
 use crate::uniquify::gen_sym;
-use crate::LVarProgram;
 
 pub fn rco_program(program: LVarProgram) -> LVarProgram {
     LVarProgram {
@@ -10,7 +10,7 @@ pub fn rco_program(program: LVarProgram) -> LVarProgram {
 
 fn rco_expr(expr: Expr) -> Expr {
     match expr {
-        Expr::Int(_) | Expr::Var { .. } => expr,
+        Expr::Int { .. } | Expr::Var { .. } => expr,
         Expr::Prim { op, args } => {
             let (args, extras): (Vec<_>, Vec<_>) = args.into_iter().map(rco_atom).unzip();
 

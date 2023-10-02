@@ -6,7 +6,7 @@ mod operation;
 mod prim;
 mod var;
 
-use crate::LVarProgram;
+use crate::lvar::LVarProgram;
 use nom::character::complete::{multispace0, multispace1};
 use nom::combinator::all_consuming;
 use nom::error::{ErrorKind, ParseError};
@@ -14,36 +14,6 @@ use nom::sequence::{preceded, terminated};
 use nom::Err;
 use nom::{IResult, Parser, Slice};
 use regex::Regex;
-
-#[allow(unused)]
-pub enum Type {
-    Integer,
-}
-
-#[derive(Debug, PartialEq)]
-pub enum Operation {
-    Read,
-    Print,
-    Plus,
-    Minus,
-}
-
-#[derive(Debug, PartialEq)]
-pub enum Expr {
-    Int(i64),
-    Var {
-        sym: String,
-    },
-    Prim {
-        op: Operation,
-        args: Vec<Expr>,
-    },
-    Let {
-        sym: String,
-        bnd: Box<Expr>,
-        bdy: Box<Expr>,
-    },
-}
 
 pub fn parse_program(input: &str) -> IResult<&str, LVarProgram> {
     all_consuming(terminated(expression::parse_expression, multispace0))
@@ -78,14 +48,16 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::parser::{parse_program, Expr};
-    use crate::LVarProgram;
+    use crate::lvar::{Expr, LVarProgram};
+    use crate::parser::parse_program;
 
     #[test]
     fn int() {
         assert_eq!(
             parse_program("42").unwrap().1,
-            LVarProgram { bdy: Expr::Int(42) }
+            LVarProgram {
+                bdy: Expr::Int { val: 42 }
+            }
         )
     }
 }

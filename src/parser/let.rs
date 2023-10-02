@@ -1,4 +1,5 @@
-use crate::parser::{expression, identifier, trim0, trim1, Expr};
+use crate::lvar::Expr;
+use crate::parser::{expression, identifier, trim0, trim1};
 use nom::bytes::complete::tag;
 use nom::character::complete::char;
 use nom::sequence::{delimited, pair, tuple};
@@ -31,8 +32,8 @@ pub fn parse_let(input: &str) -> IResult<&str, Expr> {
 
 #[cfg(test)]
 mod tests {
+    use crate::lvar::Expr;
     use crate::parser::r#let::parse_let;
-    use crate::parser::Expr;
 
     #[test]
     fn simple() {
@@ -40,7 +41,7 @@ mod tests {
             parse_let("(let (x 42) x)").unwrap().1,
             Expr::Let {
                 sym: "x".to_string(),
-                bnd: Box::new(Expr::Int(42)),
+                bnd: Box::new(Expr::Int { val: 42 }),
                 bdy: Box::new(Expr::Var {
                     sym: "x".to_string()
                 })

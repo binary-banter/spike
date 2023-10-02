@@ -1,6 +1,7 @@
+use crate::lvar::Expr;
 use crate::parser::expression::parse_expression;
 use crate::parser::operation::parse_operation;
-use crate::parser::{trim0, trim1, Expr};
+use crate::parser::{trim0, trim1};
 use nom::character::complete::char;
 use nom::multi::many0;
 use nom::sequence::{delimited, pair};
@@ -22,8 +23,8 @@ pub fn parse_prim(input: &str) -> IResult<&str, Expr> {
 
 #[cfg(test)]
 mod tests {
+    use crate::lvar::{Expr, Operation};
     use crate::parser::prim::parse_prim;
-    use crate::parser::{Expr, Operation};
 
     #[test]
     fn add() {
@@ -31,7 +32,7 @@ mod tests {
             parse_prim("(+ 10 32)").unwrap().1,
             Expr::Prim {
                 op: Operation::Plus,
-                args: vec![Expr::Int(10), Expr::Int(32)]
+                args: vec![Expr::Int { val: 10 }, Expr::Int { val: 32 }]
             }
         )
     }

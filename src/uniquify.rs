@@ -1,5 +1,5 @@
-use crate::parser::Expr;
-use crate::LVarProgram;
+use crate::lvar::Expr;
+use crate::lvar::LVarProgram;
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
@@ -13,7 +13,7 @@ pub fn uniquify_program(program: LVarProgram) -> LVarProgram {
 
 fn uniquify_expression(expr: Expr, scope: &mut HashMap<String, String>) -> Expr {
     match expr {
-        Expr::Int(_) => expr,
+        Expr::Int { .. } => expr,
         Expr::Var { sym } => Expr::Var {
             sym: scope[&sym].clone(),
         },
