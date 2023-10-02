@@ -9,7 +9,7 @@ pub fn explicate_program(program: LVarProgram) -> CVarProgram {
 
 fn explicate_tail(expr: Expr) -> Tail {
     match expr {
-        Expr::Int { .. } | Expr::Var { .. } | Expr::Prim { .. } => Tail::Return(expr),
+        Expr::Int { .. } | Expr::Var { .. } | Expr::Prim { .. } => Tail::Return { expr },
         Expr::Let { sym, bnd, bdy } => explicate_assign(sym, *bnd, explicate_tail(*bdy)),
     }
 }

@@ -9,7 +9,7 @@ pub enum Type {
 }
 
 #[derive(Debug, PartialEq)]
-pub enum Operation {
+pub enum Op {
     Read,
     Print,
     Plus,
@@ -25,7 +25,7 @@ pub enum Expr {
         sym: String,
     },
     Prim {
-        op: Operation,
+        op: Op,
         args: Vec<Expr>,
     },
     Let {

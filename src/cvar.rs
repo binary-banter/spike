@@ -7,7 +7,9 @@ pub struct CVarProgram {
 
 #[derive(Debug, PartialEq)]
 pub enum Tail {
-    Return(Expr),
+    Return {
+        expr: Expr,
+    },
     Seq {
         sym: String,
         bnd: Expr,

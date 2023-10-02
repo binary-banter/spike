@@ -2,18 +2,19 @@
 
 #[derive(Debug, PartialEq)]
 pub struct X86VarProgram {
-    blocks: Vec<(String, Block)>,
+    pub(crate) blocks: Vec<(String, Block)>,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct Block {
-    instrs: Vec<Instr>,
+    pub(crate) instrs: Vec<Instr>,
 }
 
 #[derive(Debug, PartialEq)]
+#[allow(clippy::enum_variant_names)]
 pub enum Instr {
-    Instrs { cmd: Cmd, args: Vec<Arg> },
-    Callq { lbl: String },
+    Instr { cmd: Cmd, args: Vec<Arg> },
+    Callq { lbl: String, arity: usize },
     Retq,
     Jmp { lbl: String },
 }
@@ -28,7 +29,7 @@ pub enum Cmd {
     Popq,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Arg {
     Imm { val: i64 },
     Reg { reg: Reg },
@@ -36,7 +37,7 @@ pub enum Arg {
     XVar { sym: String },
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 #[allow(clippy::upper_case_acronyms)]
 pub enum Reg {
     RSP,
