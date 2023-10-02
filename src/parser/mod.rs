@@ -17,7 +17,7 @@ use regex::Regex;
 
 pub fn parse_program(input: &str) -> IResult<&str, LVarProgram> {
     all_consuming(terminated(expression::parse_expression, multispace0))
-        .map(|body| LVarProgram { bdy: body })
+        .map(|bdy| LVarProgram { bdy })
         .parse(input)
 }
 

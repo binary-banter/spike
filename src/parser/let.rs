@@ -1,5 +1,7 @@
 use crate::lvar::Expr;
-use crate::parser::{expression, identifier, trim0, trim1};
+use crate::parser::expression::parse_expression;
+use crate::parser::identifier::parse_identifier;
+use crate::parser::{trim0, trim1};
 use nom::bytes::complete::tag;
 use nom::character::complete::char;
 use nom::sequence::{delimited, pair, tuple};
@@ -12,20 +14,17 @@ pub fn parse_let(input: &str) -> IResult<&str, Expr> {
             trim0(tag("let")),
             trim1(delimited(
                 char('('),
-                pair(
-                    trim0(identifier::parse_identifier),
-                    trim1(expression::parse_expression),
-                ),
+                pair(trim0(parse_identifier), trim1(parse_expression)),
                 trim0(char(')')),
             )),
-            trim1(expression::parse_expression),
+            trim1(parse_expression),
         )),
         trim0(char(')')),
     )
-    .map(|(_, (name, binding), body)| Expr::Let {
-        sym: name.to_string(),
-        bnd: Box::new(binding),
-        bdy: Box::new(body),
+    .map(|(_, (sym, bnd), bdy)| Expr::Let {
+        sym: sym.to_string(),
+        bnd: Box::new(bnd),
+        bdy: Box::new(bdy),
     })
     .parse(input)
 }

@@ -11,12 +11,8 @@ use nom::Parser;
 pub fn parse_prim(input: &str) -> IResult<&str, Expr> {
     delimited(
         char('('),
-        pair(trim0(parse_operation), many0(trim1(parse_expression))).map(
-            |(operation, arguments)| Expr::Prim {
-                op: operation,
-                args: arguments,
-            },
-        ),
+        pair(trim0(parse_operation), many0(trim1(parse_expression)))
+            .map(|(op, args)| Expr::Prim { op, args }),
         trim0(char(')')),
     )(input)
 }

@@ -8,7 +8,9 @@ mod explicate_control;
 mod lvar;
 mod parser;
 mod remove_complex_operands;
+mod select_instructions;
 mod uniquify;
+mod x86var;
 
 fn main() {
     dbg!(explicate_program(rco_program(uniquify_program(
