@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 use crate::cvar::{CVarProgram, Tail};
 use crate::lvar::{Expr, Op};
 use crate::x86var::{Arg, Block, Cmd, Instr, Reg, X86VarProgram};
@@ -22,10 +20,12 @@ fn select_block(tail: Tail) -> Block {
 
 fn select_tail(tail: Tail, instrs: &mut Vec<Instr>) {
     match tail {
-        Tail::Return { expr } => instrs.extend(select_assign(String::default(), expr, true)),
+        Tail::Return { expr } => {
+            instrs.extend(select_assign(String::default(), expr, true).into_iter())
+        }
         Tail::Seq { sym, bnd, tail } => {
             instrs.extend(select_assign(sym, bnd, false));
-            select_tail(*tail, &mut Vec::new());
+            select_tail(*tail, instrs);
         }
     }
 }

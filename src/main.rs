@@ -1,6 +1,7 @@
 use crate::explicate_control::explicate_program;
 use crate::parser::parse_program;
 use crate::remove_complex_operands::rco_program;
+use crate::select_instructions::select_program;
 use crate::uniquify::uniquify_program;
 
 mod cvar;
@@ -13,7 +14,7 @@ mod uniquify;
 mod x86var;
 
 fn main() {
-    dbg!(explicate_program(rco_program(uniquify_program(
-        parse_program("(let (x 42) x)").unwrap().1
+    dbg!(select_program(explicate_program(rco_program(
+        uniquify_program(parse_program("(let (x (+ 1 (let (y 1) y))) x)").unwrap().1)
     ))));
 }
