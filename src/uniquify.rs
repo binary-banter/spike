@@ -27,9 +27,15 @@ fn uniquify_expression(expr: Expr, scope: &mut HashMap<String, String>) -> Expr 
         Expr::Let { sym, bnd, bdy } => {
             let unique_bnd = uniquify_expression(*bnd, scope);
             let unique_sym = gen_sym(&sym);
-            scope.insert(sym.clone(), unique_sym.clone());
+            let old_name = scope.insert(sym.clone(), unique_sym.clone());
             let unique_bdy = uniquify_expression(*bdy, scope);
-            scope.remove(&sym);
+
+            if let Some(old_name) = old_name {
+                scope.insert(sym, old_name);
+            } else {
+                scope.remove(&sym);
+            }
+
             Expr::Let {
                 sym: unique_sym,
                 bnd: Box::new(unique_bnd),
@@ -57,6 +63,15 @@ mod tests {
     fn double_let_with_shadowing() {
         dbg!(uniquify_program(
             parse_program("(let (x 1) (let (x x) 1))").unwrap().1
+        ));
+    }
+
+    #[test]
+    fn triple_let_with_shadowing() {
+        dbg!(uniquify_program(
+            parse_program("(let (x (let (x 1) (let (x x) x))) x)")
+                .unwrap()
+                .1
         ));
     }
 }

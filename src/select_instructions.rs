@@ -52,16 +52,19 @@ fn select_assign(sym: String, expr: Expr, ret: bool) -> Vec<Instr> {
 
         // movq ?arg.0 %dst
         // addq ?arg.1 %dst
-        Expr::Prim { op: Op::Plus, args } if args.len() == 2 => vec![
-            Instr::Instr {
-                cmd: Cmd::Movq,
-                args: vec![select_atom(&args[0]), dst.clone()],
-            },
-            Instr::Instr {
-                cmd: Cmd::Addq,
-                args: vec![select_atom(&args[1]), dst],
-            },
-        ],
+        Expr::Prim { op: Op::Plus, args } => match args.as_slice() {
+            [arg0, arg1] => vec![
+                Instr::Instr {
+                    cmd: Cmd::Movq,
+                    args: vec![select_atom(arg0), dst.clone()],
+                },
+                Instr::Instr {
+                    cmd: Cmd::Addq,
+                    args: vec![select_atom(arg1), dst],
+                },
+            ],
+            _ => panic!("Addition is only defined for 2 arguments."),
+        },
 
         // movq ?arg.0 %dst
         // subq ?arg.1 %dst

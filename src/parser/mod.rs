@@ -7,6 +7,7 @@ mod prim;
 mod var;
 
 use crate::lvar::LVarProgram;
+use crate::parser::expression::parse_expression;
 use nom::character::complete::{multispace0, multispace1};
 use nom::combinator::all_consuming;
 use nom::error::{ErrorKind, ParseError};
@@ -16,7 +17,7 @@ use nom::{IResult, Parser, Slice};
 use regex::Regex;
 
 pub fn parse_program(input: &str) -> IResult<&str, LVarProgram> {
-    all_consuming(terminated(expression::parse_expression, multispace0))
+    all_consuming(terminated(parse_expression, multispace0))
         .map(|bdy| LVarProgram { bdy })
         .parse(input)
 }
