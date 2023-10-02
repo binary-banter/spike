@@ -1,31 +1,30 @@
-use crate::parser;
-use crate::parser::{expression, identifier, Expression};
+use crate::parser::{expression, identifier, trim0, trim1, Expr};
 use nom::bytes::complete::tag;
 use nom::character::complete::char;
 use nom::sequence::{delimited, pair, tuple};
 use nom::{IResult, Parser};
 
-pub fn parse_let(input: &str) -> IResult<&str, Expression> {
+pub fn parse_let(input: &str) -> IResult<&str, Expr> {
     delimited(
         char('('),
         tuple((
-            parser::trim0(tag("let")),
-            parser::trim1(delimited(
+            trim0(tag("let")),
+            trim1(delimited(
                 char('('),
                 pair(
-                    parser::trim0(identifier::parse_identifier),
-                    parser::trim1(expression::parse_expression),
+                    trim0(identifier::parse_identifier),
+                    trim1(expression::parse_expression),
                 ),
-                parser::trim0(char(')')),
+                trim0(char(')')),
             )),
-            parser::trim1(expression::parse_expression),
+            trim1(expression::parse_expression),
         )),
-        parser::trim0(char(')')),
+        trim0(char(')')),
     )
-    .map(|(_, (name, binding), body)| Expression::Let {
-        name: name.to_string(),
-        binding: Box::new(binding),
-        body: Box::new(body),
+    .map(|(_, (name, binding), body)| Expr::Let {
+        sym: name.to_string(),
+        bnd: Box::new(binding),
+        bdy: Box::new(body),
     })
     .parse(input)
 }
@@ -33,17 +32,17 @@ pub fn parse_let(input: &str) -> IResult<&str, Expression> {
 #[cfg(test)]
 mod tests {
     use crate::parser::r#let::parse_let;
-    use crate::parser::Expression;
+    use crate::parser::Expr;
 
     #[test]
     fn simple() {
         assert_eq!(
             parse_let("(let (x 42) x)").unwrap().1,
-            Expression::Let {
-                name: "x".to_string(),
-                binding: Box::new(Expression::Int(42)),
-                body: Box::new(Expression::Var {
-                    name: "x".to_string()
+            Expr::Let {
+                sym: "x".to_string(),
+                bnd: Box::new(Expr::Int(42)),
+                bdy: Box::new(Expr::Var {
+                    sym: "x".to_string()
                 })
             }
         )

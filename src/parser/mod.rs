@@ -29,25 +29,25 @@ pub enum Operation {
 }
 
 #[derive(Debug, PartialEq)]
-pub enum Expression {
+pub enum Expr {
     Int(i64),
     Var {
-        name: String,
+        sym: String,
     },
     Prim {
-        operation: Operation,
-        arguments: Vec<Expression>,
+        op: Operation,
+        args: Vec<Expr>,
     },
     Let {
-        name: String,
-        binding: Box<Expression>,
-        body: Box<Expression>,
+        sym: String,
+        bnd: Box<Expr>,
+        bdy: Box<Expr>,
     },
 }
 
 pub fn parse_program(input: &str) -> IResult<&str, LVarProgram> {
     all_consuming(terminated(expression::parse_expression, multispace0))
-        .map(|body| LVarProgram { body })
+        .map(|body| LVarProgram { bdy: body })
         .parse(input)
 }
 
@@ -78,16 +78,14 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::parser::{parse_program, Expression};
+    use crate::parser::{parse_program, Expr};
     use crate::LVarProgram;
 
     #[test]
     fn int() {
         assert_eq!(
             parse_program("42").unwrap().1,
-            LVarProgram {
-                body: Expression::Int(42)
-            }
+            LVarProgram { bdy: Expr::Int(42) }
         )
     }
 }

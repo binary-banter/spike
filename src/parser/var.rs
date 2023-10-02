@@ -1,13 +1,13 @@
 use crate::parser::identifier::parse_identifier;
-use crate::parser::Expression;
+use crate::parser::Expr;
 use nom::IResult;
 
-pub fn parse_var(input: &str) -> IResult<&str, Expression> {
+pub fn parse_var(input: &str) -> IResult<&str, Expr> {
     parse_identifier(input).map(|(rest, name)| {
         (
             rest,
-            Expression::Var {
-                name: name.to_string(),
+            Expr::Var {
+                sym: name.to_string(),
             },
         )
     })
@@ -16,14 +16,14 @@ pub fn parse_var(input: &str) -> IResult<&str, Expression> {
 #[cfg(test)]
 mod tests {
     use crate::parser::var::parse_var;
-    use crate::parser::Expression;
+    use crate::parser::Expr;
 
     #[test]
     fn simple() {
         assert_eq!(
             parse_var("x").unwrap().1,
-            Expression::Var {
-                name: "x".to_string()
+            Expr::Var {
+                sym: "x".to_string()
             }
         )
     }
