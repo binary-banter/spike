@@ -49,10 +49,10 @@ mod tests {
     use crate::interpreter::lvar::interpret_lvar;
     use crate::interpreter::TestIO;
     use crate::language::lvar::Expr;
-    use crate::uniquify::uniquify_program;
     use crate::utils::split_test::split_test;
     use std::collections::HashSet;
     use test_each_file::test_each_file;
+    use crate::passes::uniquify::uniquify_program;
 
     fn unique([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);

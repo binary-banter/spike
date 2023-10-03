@@ -1,7 +1,7 @@
 use crate::language::alvar::{AExpr, ALVarProgram, Atom};
 use crate::language::lvar::Expr;
 use crate::language::lvar::LVarProgram;
-use crate::uniquify::gen_sym;
+use crate::passes::uniquify::gen_sym;
 
 pub fn rco_program(program: LVarProgram) -> ALVarProgram {
     ALVarProgram {
@@ -48,10 +48,10 @@ fn rco_atom(expr: Expr) -> (Atom, Option<(String, AExpr)>) {
 mod tests {
     use crate::interpreter::lvar::interpret_lvar;
     use crate::interpreter::TestIO;
-    use crate::remove_complex_operands::rco_program;
-    use crate::uniquify::uniquify_program;
     use crate::utils::split_test::split_test;
     use test_each_file::test_each_file;
+    use crate::passes::remove_complex_operands::rco_program;
+    use crate::passes::uniquify::uniquify_program;
 
     fn atomic([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);

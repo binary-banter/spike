@@ -1,9 +1,9 @@
 use crate::interpreter::IO;
-use crate::language::x86var::{Arg, Block, Cmd, Instr, Reg, X86VarProgram};
+use crate::language::x86var::{VarArg, Block, Cmd, Instr, Reg, X86VarProgram};
 use std::collections::HashMap;
 
 struct X86Interpreter<'program, I: IO> {
-    blocks: HashMap<&'program str, &'program Block>,
+    blocks: HashMap<&'program str, &'program Block<VarArg>>,
     io: &'program mut I,
     regs: HashMap<Reg, i64>,
     vars: HashMap<&'program str, i64>,
@@ -29,7 +29,7 @@ pub fn interpret_x86var(entry: &str, program: &X86VarProgram, io: &mut impl IO) 
 }
 
 impl<'program, I: IO> X86Interpreter<'program, I> {
-    fn interpret_block(&mut self, block: &'program Block) -> i64 {
+    fn interpret_block(&mut self, block: &'program Block<VarArg>) -> i64 {
         for instr in &block.instrs {
             match instr {
                 Instr::Instr { cmd, args } => match (cmd, args.as_slice()) {
@@ -69,25 +69,25 @@ impl<'program, I: IO> X86Interpreter<'program, I> {
         self.regs[&Reg::RAX]
     }
 
-    fn get_arg(&self, a: &'program Arg) -> i64 {
+    fn get_arg(&self, a: &'program VarArg) -> i64 {
         match a {
-            Arg::Imm { val } => *val,
-            Arg::Reg { reg } => self.regs[reg],
-            Arg::Deref { reg, off } => self.memory[&(self.regs[reg] - off)],
-            Arg::XVar { sym } => self.vars[sym.as_str()],
+            VarArg::Imm { val } => *val,
+            VarArg::Reg { reg } => self.regs[reg],
+            VarArg::Deref { reg, off } => self.memory[&(self.regs[reg] - off)],
+            VarArg::XVar { sym } => self.vars[sym.as_str()],
         }
     }
 
-    fn set_arg(&mut self, a: &'program Arg, v: i64) {
+    fn set_arg(&mut self, a: &'program VarArg, v: i64) {
         match a {
-            Arg::Imm { .. } => panic!("Tried to write to immediate, are u insane?"),
-            Arg::Reg { reg } => {
+            VarArg::Imm { .. } => panic!("Tried to write to immediate, are u insane?"),
+            VarArg::Reg { reg } => {
                 self.regs.insert(*reg, v);
             }
-            Arg::Deref { reg, off } => {
+            VarArg::Deref { reg, off } => {
                 self.memory.insert(self.regs[&reg] - off, v);
             }
-            Arg::XVar { sym } => {
+            VarArg::XVar { sym } => {
                 self.vars.insert(sym.as_str(), v);
             }
         }

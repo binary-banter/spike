@@ -2,7 +2,7 @@ use crate::language::alvar::Atom;
 use crate::language::cvar::CExpr;
 use crate::language::cvar::{CVarProgram, Tail};
 use crate::language::lvar::Op;
-use crate::language::x86var::{Arg, Block, Cmd, Instr, Reg, X86VarProgram};
+use crate::language::x86var::{VarArg, Block, Cmd, Instr, Reg, X86VarProgram};
 
 pub fn select_program(program: CVarProgram) -> X86VarProgram {
     X86VarProgram {
@@ -10,13 +10,13 @@ pub fn select_program(program: CVarProgram) -> X86VarProgram {
     }
 }
 
-fn select_block(tail: Tail) -> Block {
+fn select_block(tail: Tail) -> Block<VarArg> {
     let mut instrs = Vec::new();
     select_tail(tail, &mut instrs);
     Block { instrs }
 }
 
-fn select_tail(tail: Tail, instrs: &mut Vec<Instr>) {
+fn select_tail(tail: Tail, instrs: &mut Vec<Instr<VarArg>>) {
     match tail {
         Tail::Return { expr } => instrs.extend(select_assign(String::default(), expr, true)),
         Tail::Seq { sym, bnd, tail } => {
@@ -26,24 +26,24 @@ fn select_tail(tail: Tail, instrs: &mut Vec<Instr>) {
     }
 }
 
-fn select_assign(sym: String, expr: CExpr, ret: bool) -> Vec<Instr> {
+fn select_assign(sym: String, expr: CExpr, ret: bool) -> Vec<Instr<VarArg>> {
     let dst = if ret {
-        Arg::Reg { reg: Reg::RAX }
+        VarArg::Reg { reg: Reg::RAX }
     } else {
-        Arg::XVar { sym }
+        VarArg::XVar { sym }
     };
 
     match expr {
         // movq $val %dst
         CExpr::Atom(Atom::Int { val }) => vec![Instr::Instr {
             cmd: Cmd::Movq,
-            args: vec![Arg::Imm { val }, dst],
+            args: vec![VarArg::Imm { val }, dst],
         }],
 
         // movq %sym %dst
         CExpr::Atom(Atom::Var { sym }) => vec![Instr::Instr {
             cmd: Cmd::Movq,
-            args: vec![Arg::XVar { sym }, dst],
+            args: vec![VarArg::XVar { sym }, dst],
         }],
 
         // movq ?arg.0 %dst
@@ -103,7 +103,7 @@ fn select_assign(sym: String, expr: CExpr, ret: bool) -> Vec<Instr> {
             },
             Instr::Instr {
                 cmd: Cmd::Movq,
-                args: vec![Arg::Reg { reg: Reg::RAX }, dst],
+                args: vec![VarArg::Reg { reg: Reg::RAX }, dst],
             },
         ],
 
@@ -120,7 +120,7 @@ fn select_assign(sym: String, expr: CExpr, ret: bool) -> Vec<Instr> {
             },
             Instr::Instr {
                 cmd: Cmd::Movq,
-                args: vec![select_atom(&args[0]), Arg::Reg { reg: Reg::RDI }],
+                args: vec![select_atom(&args[0]), VarArg::Reg { reg: Reg::RDI }],
             },
             Instr::Callq {
                 lbl: "_print_int".to_string(),
@@ -134,23 +134,23 @@ fn select_assign(sym: String, expr: CExpr, ret: bool) -> Vec<Instr> {
     }
 }
 
-fn select_atom(expr: &Atom) -> Arg {
+fn select_atom(expr: &Atom) -> VarArg {
     match expr {
-        Atom::Int { val } => Arg::Imm { val: *val },
-        Atom::Var { sym } => Arg::XVar { sym: sym.clone() },
+        Atom::Int { val } => VarArg::Imm { val: *val },
+        Atom::Var { sym } => VarArg::XVar { sym: sym.clone() },
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::explicate_control::explicate_program;
     use crate::interpreter::TestIO;
-    use crate::remove_complex_operands::rco_program;
-    use crate::uniquify::uniquify_program;
     use crate::utils::split_test::split_test;
     use test_each_file::test_each_file;
     use crate::interpreter::x86var::interpret_x86var;
-    use crate::select_instructions::select_program;
+    use crate::passes::explicate_control::explicate_program;
+    use crate::passes::remove_complex_operands::rco_program;
+    use crate::passes::select_instructions::select_program;
+    use crate::passes::uniquify::uniquify_program;
 
     fn select([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);

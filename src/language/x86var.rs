@@ -1,17 +1,20 @@
+pub type X86Program = GenericX86Program<Arg>;
+pub type X86VarProgram = GenericX86Program<VarArg>;
+
 #[derive(Debug, PartialEq)]
-pub struct X86VarProgram {
-    pub blocks: Vec<(String, Block)>,
+pub struct GenericX86Program<A> {
+    pub blocks: Vec<(String, Block<A>)>,
 }
 
 #[derive(Debug, PartialEq)]
-pub struct Block {
-    pub instrs: Vec<Instr>,
+pub struct Block<A> {
+    pub instrs: Vec<Instr<A>>,
 }
 
 #[derive(Debug, PartialEq)]
 #[allow(clippy::enum_variant_names)]
-pub enum Instr {
-    Instr { cmd: Cmd, args: Vec<Arg> },
+pub enum Instr<A> {
+    Instr { cmd: Cmd, args: Vec<A> },
     Callq { lbl: String, arity: usize },
     Retq,
     Jmp { lbl: String },
@@ -28,11 +31,18 @@ pub enum Cmd {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub enum Arg {
+pub enum VarArg {
     Imm { val: i64 },
     Reg { reg: Reg },
     Deref { reg: Reg, off: i64 },
     XVar { sym: String },
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum Arg {
+    Imm { val: i64 },
+    Reg { reg: Reg },
+    Deref { reg: Reg, off: i64 },
 }
 
 #[derive(Debug, PartialEq, Clone, Copy, Eq, Hash)]
