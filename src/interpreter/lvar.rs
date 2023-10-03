@@ -44,28 +44,11 @@ fn interpret_expr(expr: &Expr, scope: &mut PushMap<String, i64>, io: &mut impl I
 mod tests {
     use crate::interpreter::lvar::interpret_lvar;
     use crate::interpreter::TestIO;
-    use crate::parser::parse_program;
+    use crate::utils::split_test::split_test;
     use test_each_file::test_each_file;
 
     fn interpret([test]: [&str; 1]) {
-        let mut test = test.split("#");
-        let input = test.next().unwrap().trim();
-        let expected_output = test.next().unwrap().trim();
-        let expected_return = test.next().unwrap().trim();
-        let program = test.next().unwrap().trim();
-
-        let program = parse_program(program).unwrap().1;
-        let input = input
-            .lines()
-            .filter(|l| !l.is_empty())
-            .map(|l| l.parse().unwrap())
-            .collect();
-        let expected_output: Vec<_> = expected_output
-            .lines()
-            .filter(|l| !l.is_empty())
-            .map(|l| l.parse().unwrap())
-            .collect();
-        let expected_return = expected_return.trim().parse().unwrap();
+        let (input, expected_output, expected_return, program) = split_test(test);
 
         let mut testio = TestIO::new(input);
         let res = interpret_lvar(&program, &mut testio);

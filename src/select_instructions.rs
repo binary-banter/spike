@@ -19,7 +19,7 @@ fn select_block(tail: Tail) -> Block {
 fn select_tail(tail: Tail, instrs: &mut Vec<Instr>) {
     match tail {
         Tail::Return { expr } => {
-            instrs.extend(select_assign(String::default(), expr, true).into_iter())
+            instrs.extend(select_assign(String::default(), expr, true))
         }
         Tail::Seq { sym, bnd, tail } => {
             instrs.extend(select_assign(sym, bnd, false));

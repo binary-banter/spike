@@ -6,14 +6,14 @@ use crate::type_checking::{type_check_program, TypeError};
 use crate::uniquify::uniquify_program;
 
 mod explicate_control;
-mod interpreter;
-mod language;
+pub mod interpreter;
+pub mod language;
 mod parser;
 mod remove_complex_operands;
 mod select_instructions;
 mod type_checking;
 mod uniquify;
-mod utils;
+pub mod utils;
 mod x86var;
 
 fn main() -> Result<(), TypeError> {

@@ -1,4 +1,4 @@
-mod lvar;
+pub mod lvar;
 mod x86var;
 
 use std::io::stdin;
@@ -26,7 +26,7 @@ impl IO for StdIO {
     }
 }
 
-struct TestIO {
+pub struct TestIO {
     inputs: IntoIter<i64>,
     outputs: Vec<i64>,
 }
@@ -37,6 +37,10 @@ impl TestIO {
             inputs: inputs.into_iter(),
             outputs: Vec::new(),
         }
+    }
+
+    pub fn outputs(&self) -> &Vec<i64> {
+        &self.outputs
     }
 }
 
