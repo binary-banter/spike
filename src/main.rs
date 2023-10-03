@@ -8,9 +8,9 @@ use crate::type_checking::{type_check_program, TypeError};
 pub mod interpreter;
 pub mod language;
 mod parser;
+pub mod passes;
 mod type_checking;
 pub mod utils;
-pub mod passes;
 
 fn main() -> Result<(), TypeError> {
     let program = parse_program("(let (x (+ 1 (let (y 1) y))) x)").unwrap().1;

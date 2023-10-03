@@ -25,16 +25,16 @@ pub enum CExpr {
 }
 
 impl From<CVarProgram> for LVarProgram {
-    fn from(val: CVarProgram) -> Self {
+    fn from(value: CVarProgram) -> Self {
         LVarProgram {
-            bdy: val.bdy.into(),
+            bdy: value.bdy.into(),
         }
     }
 }
 
 impl From<Tail> for Expr {
-    fn from(val: Tail) -> Self {
-        match val {
+    fn from(value: Tail) -> Self {
+        match value {
             Tail::Return { expr } => expr.into(),
             Tail::Seq { sym, bnd, tail } => Expr::Let {
                 sym,
@@ -46,8 +46,8 @@ impl From<Tail> for Expr {
 }
 
 impl From<CExpr> for Expr {
-    fn from(val: CExpr) -> Self {
-        match val {
+    fn from(value: CExpr) -> Self {
+        match value {
             CExpr::Atom(a) => a.into(),
             CExpr::Prim { op, args } => Expr::Prim {
                 op,

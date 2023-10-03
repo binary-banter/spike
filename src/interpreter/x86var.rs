@@ -1,5 +1,5 @@
 use crate::interpreter::IO;
-use crate::language::x86var::{VarArg, Block, Cmd, Instr, Reg, X86VarProgram};
+use crate::language::x86var::{Block, Cmd, Instr, Reg, VarArg, X86VarProgram};
 use std::collections::HashMap;
 
 struct X86Interpreter<'program, I: IO> {
@@ -57,12 +57,12 @@ impl<'program, I: IO> X86Interpreter<'program, I> {
                 Instr::Callq { lbl, arity } => match (lbl.as_str(), arity) {
                     ("_read_int", 0) => {
                         self.regs.insert(Reg::RAX, self.io.read());
-                    },
+                    }
                     ("_print_int", 1) => {
                         self.io.print(self.regs[&Reg::RDI]);
-                    },
+                    }
                     _ => todo!(),
-                }
+                },
                 Instr::Retq => todo!(),
             }
         }
@@ -73,7 +73,7 @@ impl<'program, I: IO> X86Interpreter<'program, I> {
         match a {
             VarArg::Imm { val } => *val,
             VarArg::Reg { reg } => self.regs[reg],
-            VarArg::Deref { reg, off } => self.memory[&(self.regs[reg] - off)],
+            VarArg::Deref { reg, off } => self.memory[&(self.regs[reg] + off)],
             VarArg::XVar { sym } => self.vars[sym.as_str()],
         }
     }
@@ -85,7 +85,7 @@ impl<'program, I: IO> X86Interpreter<'program, I> {
                 self.regs.insert(*reg, v);
             }
             VarArg::Deref { reg, off } => {
-                self.memory.insert(self.regs[&reg] - off, v);
+                self.memory.insert(self.regs[&reg] + off, v);
             }
             VarArg::XVar { sym } => {
                 self.vars.insert(sym.as_str(), v);
@@ -93,4 +93,3 @@ impl<'program, I: IO> X86Interpreter<'program, I> {
         }
     }
 }
-

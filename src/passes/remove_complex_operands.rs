@@ -48,10 +48,10 @@ fn rco_atom(expr: Expr) -> (Atom, Option<(String, AExpr)>) {
 mod tests {
     use crate::interpreter::lvar::interpret_lvar;
     use crate::interpreter::TestIO;
-    use crate::utils::split_test::split_test;
-    use test_each_file::test_each_file;
     use crate::passes::remove_complex_operands::rco_program;
     use crate::passes::uniquify::uniquify_program;
+    use crate::utils::split_test::split_test;
+    use test_each_file::test_each_file;
 
     fn atomic([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);

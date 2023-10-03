@@ -2,7 +2,7 @@ use crate::language::alvar::Atom;
 use crate::language::cvar::CExpr;
 use crate::language::cvar::{CVarProgram, Tail};
 use crate::language::lvar::Op;
-use crate::language::x86var::{VarArg, Block, Cmd, Instr, Reg, X86VarProgram};
+use crate::language::x86var::{Block, Cmd, Instr, Reg, VarArg, X86VarProgram};
 
 pub fn select_program(program: CVarProgram) -> X86VarProgram {
     X86VarProgram {
@@ -143,14 +143,14 @@ fn select_atom(expr: &Atom) -> VarArg {
 
 #[cfg(test)]
 mod tests {
-    use crate::interpreter::TestIO;
-    use crate::utils::split_test::split_test;
-    use test_each_file::test_each_file;
     use crate::interpreter::x86var::interpret_x86var;
+    use crate::interpreter::TestIO;
     use crate::passes::explicate_control::explicate_program;
     use crate::passes::remove_complex_operands::rco_program;
     use crate::passes::select_instructions::select_program;
     use crate::passes::uniquify::uniquify_program;
+    use crate::utils::split_test::split_test;
+    use test_each_file::test_each_file;
 
     fn select([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);

@@ -1,9 +1,12 @@
-pub type X86Program = GenericX86Program<Arg>;
-pub type X86VarProgram = GenericX86Program<VarArg>;
+#[derive(Debug, PartialEq)]
+pub struct X86Program {
+    pub blocks: Vec<(String, Block<Arg>)>,
+    pub stack_space: usize,
+}
 
 #[derive(Debug, PartialEq)]
-pub struct GenericX86Program<A> {
-    pub blocks: Vec<(String, Block<A>)>,
+pub struct X86VarProgram {
+    pub blocks: Vec<(String, Block<VarArg>)>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -64,4 +67,48 @@ pub enum Reg {
     R13,
     R14,
     R15,
+}
+
+impl From<X86Program> for X86VarProgram {
+    fn from(value: X86Program) -> Self {
+        X86VarProgram {
+            blocks: value
+                .blocks
+                .into_iter()
+                .map(|(n, b)| (n, b.into()))
+                .collect(),
+        }
+    }
+}
+
+impl From<Block<Arg>> for Block<VarArg> {
+    fn from(value: Block<Arg>) -> Self {
+        Block {
+            instrs: value.instrs.into_iter().map(From::from).collect(),
+        }
+    }
+}
+
+impl From<Instr<Arg>> for Instr<VarArg> {
+    fn from(value: Instr<Arg>) -> Self {
+        match value {
+            Instr::Instr { cmd, args } => Instr::Instr {
+                cmd,
+                args: args.into_iter().map(From::from).collect(),
+            },
+            Instr::Callq { lbl, arity } => Instr::Callq { lbl, arity },
+            Instr::Retq => Instr::Retq,
+            Instr::Jmp { lbl } => Instr::Jmp { lbl },
+        }
+    }
+}
+
+impl From<Arg> for VarArg {
+    fn from(value: Arg) -> Self {
+        match value {
+            Arg::Imm { val } => VarArg::Imm { val },
+            Arg::Reg { reg } => VarArg::Reg { reg },
+            Arg::Deref { reg, off } => VarArg::Deref { reg, off },
+        }
+    }
 }
