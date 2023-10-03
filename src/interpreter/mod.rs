@@ -1,5 +1,5 @@
 use crate::lvar::{Expr, LVarProgram, Op};
-use crate::push_map::PushMap;
+use crate::utils::push_map::PushMap;
 use std::io::stdin;
 use std::vec::IntoIter;
 
@@ -122,5 +122,5 @@ mod tests {
         assert_eq!(testio.outputs, expected_output);
     }
 
-    test_each_file! { for ["test"] in "./programs" as interpreter => interpret }
+    test_each_file! { for ["test"] in "./programs/good" as interpreter => interpret }
 }
