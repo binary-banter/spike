@@ -1,5 +1,5 @@
 pub mod lvar;
-mod x86var;
+pub mod x86var;
 
 use std::io::stdin;
 use std::vec::IntoIter;

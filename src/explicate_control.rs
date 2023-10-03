@@ -43,13 +43,13 @@ fn explicate_assign(sym: String, bnd: AExpr, tail: Tail) -> Tail {
 
 #[cfg(test)]
 mod tests {
+    use crate::explicate_control::explicate_program;
     use crate::interpreter::lvar::interpret_lvar;
     use crate::interpreter::TestIO;
     use crate::remove_complex_operands::rco_program;
     use crate::uniquify::uniquify_program;
     use crate::utils::split_test::split_test;
     use test_each_file::test_each_file;
-    use crate::explicate_control::explicate_program;
 
     fn explicated([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);

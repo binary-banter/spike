@@ -1,13 +1,11 @@
-#![allow(unused)]
-
 #[derive(Debug, PartialEq)]
 pub struct X86VarProgram {
-    pub(crate) blocks: Vec<(String, Block)>,
+    pub blocks: Vec<(String, Block)>,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct Block {
-    pub(crate) instrs: Vec<Instr>,
+    pub instrs: Vec<Instr>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -37,7 +35,7 @@ pub enum Arg {
     XVar { sym: String },
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Copy, Eq, Hash)]
 #[allow(clippy::upper_case_acronyms)]
 pub enum Reg {
     RSP,

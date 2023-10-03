@@ -2,7 +2,7 @@ use crate::language::alvar::Atom;
 use crate::language::cvar::CExpr;
 use crate::language::cvar::{CVarProgram, Tail};
 use crate::language::lvar::Op;
-use crate::x86var::{Arg, Block, Cmd, Instr, Reg, X86VarProgram};
+use crate::language::x86var::{Arg, Block, Cmd, Instr, Reg, X86VarProgram};
 
 pub fn select_program(program: CVarProgram) -> X86VarProgram {
     X86VarProgram {
@@ -139,4 +139,28 @@ fn select_atom(expr: &Atom) -> Arg {
         Atom::Int { val } => Arg::Imm { val: *val },
         Atom::Var { sym } => Arg::XVar { sym: sym.clone() },
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::explicate_control::explicate_program;
+    use crate::interpreter::TestIO;
+    use crate::remove_complex_operands::rco_program;
+    use crate::uniquify::uniquify_program;
+    use crate::utils::split_test::split_test;
+    use test_each_file::test_each_file;
+    use crate::interpreter::x86var::interpret_x86var;
+    use crate::select_instructions::select_program;
+
+    fn select([test]: [&str; 1]) {
+        let (input, expected_output, expected_return, program) = split_test(test);
+        let program = select_program(explicate_program(rco_program(uniquify_program(program))));
+        let mut io = TestIO::new(input);
+        let result = interpret_x86var("start", &program, &mut io);
+
+        assert_eq!(result, expected_return, "Incorrect program result.");
+        assert_eq!(io.outputs(), &expected_output, "Incorrect program output.");
+    }
+
+    test_each_file! { for ["test"] in "./programs/good" as select_instructions => select }
 }

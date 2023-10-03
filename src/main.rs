@@ -14,7 +14,6 @@ mod select_instructions;
 mod type_checking;
 mod uniquify;
 pub mod utils;
-mod x86var;
 
 fn main() -> Result<(), TypeError> {
     let program = parse_program("(let (x (+ 1 (let (y 1) y))) x)").unwrap().1;
