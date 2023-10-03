@@ -1,4 +1,4 @@
-use crate::lvar::Expr;
+use crate::language::lvar::Expr;
 use crate::parser::expression::parse_expression;
 use crate::parser::operation::parse_operation;
 use crate::parser::{trim0, trim1};
@@ -19,7 +19,7 @@ pub fn parse_prim(input: &str) -> IResult<&str, Expr> {
 
 #[cfg(test)]
 mod tests {
-    use crate::lvar::{Expr, Op};
+    use crate::language::lvar::{Expr, Op};
     use crate::parser::prim::parse_prim;
 
     #[test]

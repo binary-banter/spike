@@ -1,16 +1,12 @@
-use crate::alvar::Atom;
-use crate::cvar::{CVarProgram, Tail};
-use crate::elvar::EExpr;
-use crate::lvar::Op;
+use crate::language::alvar::Atom;
+use crate::language::cvar::CExpr;
+use crate::language::cvar::{CVarProgram, Tail};
+use crate::language::lvar::Op;
 use crate::x86var::{Arg, Block, Cmd, Instr, Reg, X86VarProgram};
 
 pub fn select_program(program: CVarProgram) -> X86VarProgram {
     X86VarProgram {
-        blocks: program
-            .blocks
-            .into_iter()
-            .map(|(sym, tail)| (sym, select_block(tail)))
-            .collect(),
+        blocks: vec![("start".to_string(), select_block(program.bdy))],
     }
 }
 
@@ -32,7 +28,7 @@ fn select_tail(tail: Tail, instrs: &mut Vec<Instr>) {
     }
 }
 
-fn select_assign(sym: String, expr: EExpr, ret: bool) -> Vec<Instr> {
+fn select_assign(sym: String, expr: CExpr, ret: bool) -> Vec<Instr> {
     let dst = if ret {
         Arg::Reg { reg: Reg::RAX }
     } else {
@@ -41,20 +37,20 @@ fn select_assign(sym: String, expr: EExpr, ret: bool) -> Vec<Instr> {
 
     match expr {
         // movq $val %dst
-        EExpr::Atom(Atom::Int { val }) => vec![Instr::Instr {
+        CExpr::Atom(Atom::Int { val }) => vec![Instr::Instr {
             cmd: Cmd::Movq,
             args: vec![Arg::Imm { val }, dst],
         }],
 
         // movq %sym %dst
-        EExpr::Atom(Atom::Var { sym }) => vec![Instr::Instr {
+        CExpr::Atom(Atom::Var { sym }) => vec![Instr::Instr {
             cmd: Cmd::Movq,
             args: vec![Arg::XVar { sym }, dst],
         }],
 
         // movq ?arg.0 %dst
         // addq ?arg.1 %dst
-        EExpr::Prim { op: Op::Plus, args } => match args.as_slice() {
+        CExpr::Prim { op: Op::Plus, args } => match args.as_slice() {
             [arg0, arg1] => vec![
                 Instr::Instr {
                     cmd: Cmd::Movq,
@@ -70,7 +66,7 @@ fn select_assign(sym: String, expr: EExpr, ret: bool) -> Vec<Instr> {
 
         // movq ?arg.0 %dst
         // subq ?arg.1 %dst
-        EExpr::Prim {
+        CExpr::Prim {
             op: Op::Minus,
             args,
         } if args.len() == 2 => vec![
@@ -86,7 +82,7 @@ fn select_assign(sym: String, expr: EExpr, ret: bool) -> Vec<Instr> {
 
         // movq ?arg.0 %dst
         // negq %dst
-        EExpr::Prim {
+        CExpr::Prim {
             op: Op::Minus,
             args,
         } if args.len() == 1 => vec![
@@ -102,7 +98,7 @@ fn select_assign(sym: String, expr: EExpr, ret: bool) -> Vec<Instr> {
 
         // callq _read_int
         // movq  %rax %dst
-        EExpr::Prim { op: Op::Read, args } if args.is_empty() => vec![
+        CExpr::Prim { op: Op::Read, args } if args.is_empty() => vec![
             Instr::Callq {
                 lbl: "_read_int".to_string(),
                 arity: 0,
@@ -116,7 +112,7 @@ fn select_assign(sym: String, expr: EExpr, ret: bool) -> Vec<Instr> {
         // movq  %arg.0 %dst
         // movq  %arg.0 %RDI
         // callq _print_int
-        EExpr::Prim {
+        CExpr::Prim {
             op: Op::Print,
             args,
         } if args.len() == 1 => vec![
@@ -134,7 +130,7 @@ fn select_assign(sym: String, expr: EExpr, ret: bool) -> Vec<Instr> {
             },
         ],
 
-        EExpr::Prim { .. } => {
+        CExpr::Prim { .. } => {
             unreachable!("Encountered Prim with incorrect arity during select instructions pass.")
         }
     }

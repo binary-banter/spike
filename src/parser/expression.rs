@@ -1,4 +1,4 @@
-use crate::lvar::Expr;
+use crate::language::lvar::Expr;
 use crate::parser::int::parse_int;
 use crate::parser::prim::parse_prim;
 use crate::parser::r#let::parse_let;
@@ -12,7 +12,7 @@ pub fn parse_expression(input: &str) -> IResult<&str, Expr> {
 
 #[cfg(test)]
 mod tests {
-    use crate::lvar::Expr;
+    use crate::language::lvar::Expr;
     use crate::parser::expression::parse_expression;
 
     #[test]

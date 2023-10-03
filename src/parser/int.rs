@@ -1,4 +1,4 @@
-use crate::lvar::Expr;
+use crate::language::lvar::Expr;
 use nom::character::complete::digit1;
 use nom::combinator::map_res;
 use nom::IResult;
@@ -11,7 +11,7 @@ pub fn parse_int(input: &str) -> IResult<&str, Expr> {
 
 #[cfg(test)]
 mod tests {
-    use crate::lvar::Expr;
+    use crate::language::lvar::Expr;
     use crate::parser::int::parse_int;
 
     #[test]

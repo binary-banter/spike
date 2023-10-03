@@ -1,4 +1,4 @@
-use crate::lvar::Expr;
+use crate::language::lvar::Expr;
 use crate::parser::identifier::parse_identifier;
 use nom::IResult;
 
@@ -15,7 +15,7 @@ pub fn parse_var(input: &str) -> IResult<&str, Expr> {
 
 #[cfg(test)]
 mod tests {
-    use crate::lvar::Expr;
+    use crate::language::lvar::Expr;
     use crate::parser::var::parse_var;
 
     #[test]

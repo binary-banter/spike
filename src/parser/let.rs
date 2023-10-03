@@ -1,4 +1,4 @@
-use crate::lvar::Expr;
+use crate::language::lvar::Expr;
 use crate::parser::expression::parse_expression;
 use crate::parser::identifier::parse_identifier;
 use crate::parser::{trim0, trim1};
@@ -31,7 +31,7 @@ pub fn parse_let(input: &str) -> IResult<&str, Expr> {
 
 #[cfg(test)]
 mod tests {
-    use crate::lvar::Expr;
+    use crate::language::lvar::Expr;
     use crate::parser::r#let::parse_let;
 
     #[test]

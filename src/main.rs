@@ -5,21 +5,18 @@ use crate::select_instructions::select_program;
 use crate::type_checking::{type_check_program, TypeError};
 use crate::uniquify::uniquify_program;
 
-mod alvar;
-mod cvar;
-mod elvar;
 mod explicate_control;
 mod interpreter;
-mod lvar;
+mod language;
 mod parser;
 mod remove_complex_operands;
 mod select_instructions;
-mod uniquify;
-mod x86var;
 mod type_checking;
+mod uniquify;
 mod utils;
+mod x86var;
 
-fn main() -> Result<(), TypeError>{
+fn main() -> Result<(), TypeError> {
     let program = parse_program("(let (x (+ 1 (let (y 1) y))) x)").unwrap().1;
 
     type_check_program(&program)?;

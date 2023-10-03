@@ -1,4 +1,4 @@
-use crate::lvar::Op;
+use crate::language::lvar::Op;
 use nom::branch::alt;
 use nom::bytes::complete::tag;
 use nom::IResult;
@@ -15,7 +15,7 @@ pub fn parse_operation(input: &str) -> IResult<&str, Op> {
 
 #[cfg(test)]
 mod tests {
-    use crate::lvar::Op;
+    use crate::language::lvar::Op;
     use crate::parser::operation::parse_operation;
 
     #[test]

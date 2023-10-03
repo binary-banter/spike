@@ -6,7 +6,7 @@ mod operation;
 mod prim;
 mod var;
 
-use crate::lvar::LVarProgram;
+use crate::language::lvar::LVarProgram;
 use crate::parser::expression::parse_expression;
 use nom::character::complete::{multispace0, multispace1};
 use nom::combinator::all_consuming;
@@ -49,7 +49,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::lvar::{Expr, LVarProgram};
+    use crate::language::lvar::{Expr, LVarProgram};
     use crate::parser::parse_program;
 
     #[test]
