@@ -1,7 +1,7 @@
 use crate::lvar::Expr;
 use crate::lvar::LVarProgram;
-use std::sync::atomic::{AtomicUsize, Ordering};
 use crate::push_map::PushMap;
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 static COUNT: AtomicUsize = AtomicUsize::new(0);
 

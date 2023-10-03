@@ -8,14 +8,14 @@ mod alvar;
 mod cvar;
 mod elvar;
 mod explicate_control;
+mod interpreter;
 mod lvar;
 mod parser;
+mod push_map;
 mod remove_complex_operands;
 mod select_instructions;
 mod uniquify;
 mod x86var;
-mod interpreter;
-mod push_map;
 
 fn main() {
     dbg!(select_program(explicate_program(rco_program(
