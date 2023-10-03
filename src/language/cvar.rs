@@ -24,17 +24,17 @@ pub enum CExpr {
     Prim { op: Op, args: Vec<Atom> },
 }
 
-impl Into<LVarProgram> for CVarProgram {
-    fn into(self) -> LVarProgram {
+impl From<CVarProgram> for LVarProgram {
+    fn from(val: CVarProgram) -> Self {
         LVarProgram {
-            bdy: self.bdy.into(),
+            bdy: val.bdy.into(),
         }
     }
 }
 
-impl Into<Expr> for Tail {
-    fn into(self) -> Expr {
-        match self {
+impl From<Tail> for Expr {
+    fn from(val: Tail) -> Self {
+        match val {
             Tail::Return { expr } => expr.into(),
             Tail::Seq { sym, bnd, tail } => Expr::Let {
                 sym,
@@ -45,9 +45,9 @@ impl Into<Expr> for Tail {
     }
 }
 
-impl Into<Expr> for CExpr {
-    fn into(self) -> Expr {
-        match self {
+impl From<CExpr> for Expr {
+    fn from(val: CExpr) -> Self {
+        match val {
             CExpr::Atom(a) => a.into(),
             CExpr::Prim { op, args } => Expr::Prim {
                 op,

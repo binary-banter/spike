@@ -25,17 +25,17 @@ pub enum Atom {
     Var { sym: String },
 }
 
-impl Into<LVarProgram> for ALVarProgram {
-    fn into(self) -> LVarProgram {
+impl From<ALVarProgram> for LVarProgram {
+    fn from(val: ALVarProgram) -> Self {
         LVarProgram {
-            bdy: self.bdy.into(),
+            bdy: val.bdy.into(),
         }
     }
 }
 
-impl Into<Expr> for AExpr {
-    fn into(self) -> Expr {
-        match self {
+impl From<AExpr> for Expr {
+    fn from(val: AExpr) -> Self {
+        match val {
             AExpr::Atom(a) => a.into(),
             AExpr::Prim { op, args } => Expr::Prim {
                 op,
@@ -50,9 +50,9 @@ impl Into<Expr> for AExpr {
     }
 }
 
-impl Into<Expr> for Atom {
-    fn into(self) -> Expr {
-        match self {
+impl From<Atom> for Expr {
+    fn from(val: Atom) -> Self {
+        match val {
             Atom::Int { val } => Expr::Int { val },
             Atom::Var { sym } => Expr::Var { sym },
         }
