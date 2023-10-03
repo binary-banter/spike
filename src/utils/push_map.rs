@@ -15,6 +15,10 @@ impl<K: Hash + Eq + Clone, V> PushMap<K, V> {
         self.0.contains_key(k)
     }
 
+    pub fn get(&self, k: &K) -> Option<&V> {
+        self.0.get(k)
+    }
+
     pub fn push<O>(&mut self, k: K, v: V, scope: impl FnOnce(&mut Self) -> O) -> O {
         let old = self.0.insert(k.clone(), v);
 

@@ -1,24 +1,53 @@
-use crate::lvar::{Expr, LVarProgram, Type};
+use crate::lvar::{Expr, LVarProgram, Op};
+use crate::type_checking::TypeError::*;
+use crate::utils::expect::expect;
 use crate::utils::push_map::PushMap;
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Type {
+    Integer,
+}
 
 #[derive(Debug)]
 pub enum TypeError {
     UndeclaredVar,
+    IncorrectArity,
+    TypeMismatch {
+        expect: Type,
+        got: Type,
+    }
 }
 
-pub fn type_check_program(program: &LVarProgram) -> Result<(), TypeError> {
+pub fn type_check_program(program: &LVarProgram) -> Result<Type, TypeError> {
     type_check_expr(&program.bdy, &mut PushMap::default())
 }
 
-fn type_check_expr(expr: &Expr, scope: &mut PushMap<String, Type>) -> Result<(), TypeError> {
+fn type_check_expr(expr: &Expr, scope: &mut PushMap<String, Type>) -> Result<Type, TypeError> {
     match expr {
-        Expr::Int { .. } => Ok(()),
-        Expr::Var { sym } => if scope.contains(sym) {Ok(())} else {Err(TypeError::UndeclaredVar)},
-        Expr::Prim { args, .. } => {
-            for arg in args{
-                type_check_expr(arg, scope)?;
+        Expr::Int { .. } => Ok(Type::Integer),
+        Expr::Var { sym } => scope.get(sym).cloned().ok_or(UndeclaredVar),
+        Expr::Prim { op, args } => {
+            match (op, args.as_slice()) {
+                (Op::Plus | Op::Minus, [e1, e2]) => {
+                    expect_type(e1, scope, Type::Integer)?;
+                    expect_type(e2, scope, Type::Integer)?;
+                    Ok(Type::Integer)
+                }
+                (Op::Minus, [e1]) => {
+                    expect_type(e1, scope, Type::Integer)?;
+                    Ok(Type::Integer)
+                }
+                (Op::Read, []) => {
+                    Ok(Type::Integer)
+                }
+                (Op::Print, [e1]) => {
+                    expect_type(e1, scope, Type::Integer)?;
+                    Ok(Type::Integer)
+                }
+                _  => {
+                    Err(IncorrectArity)
+                }
             }
-            Ok(())
         },
         Expr::Let { sym, bnd, bdy } => {
             type_check_expr(bnd, scope)?;
@@ -27,6 +56,14 @@ fn type_check_expr(expr: &Expr, scope: &mut PushMap<String, Type>) -> Result<(),
             })
         },
     }
+}
+
+fn expect_type(expr: &Expr, scope: &mut PushMap<String, Type>, expected: Type) -> Result<(), TypeError> {
+    let t = type_check_expr(expr, scope)?;
+    expect(matches!(t, Type::Integer), TypeMismatch {
+        got: t.clone(),
+        expect: expected,
+    })
 }
 
 #[cfg(test)]

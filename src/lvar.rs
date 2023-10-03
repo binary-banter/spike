@@ -10,11 +10,6 @@ pub struct ALVarProgram {
     pub bdy: AExpr,
 }
 
-#[allow(unused)]
-pub enum Type {
-    Integer,
-}
-
 #[derive(Debug, PartialEq)]
 pub enum Op {
     Read,
