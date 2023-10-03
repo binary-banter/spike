@@ -18,7 +18,10 @@ impl IO for StdIO {
         stdin()
             .read_line(&mut input)
             .expect("IO error or something");
-        input.trim_end().parse().expect("Provided input was not a valid i64")
+        input
+            .trim_end()
+            .parse()
+            .expect("Provided input was not a valid i64")
     }
 
     fn print(&mut self, v: i64) {

@@ -19,7 +19,7 @@ fn rco_expr(expr: Expr) -> AExpr {
             extras
                 .into_iter()
                 .flatten()
-                .fold(AExpr::Prim { op, args }, |bdy, (sym, bnd)| AExpr::Let {
+                .rfold(AExpr::Prim { op, args }, |bdy, (sym, bnd)| AExpr::Let {
                     sym,
                     bnd: Box::new(bnd),
                     bdy: Box::new(bdy),
@@ -46,21 +46,22 @@ fn rco_atom(expr: Expr) -> (Atom, Option<(String, AExpr)>) {
 
 #[cfg(test)]
 mod tests {
-    use crate::parser::parse_program;
+    use crate::interpreter::lvar::interpret_lvar;
+    use crate::interpreter::TestIO;
     use crate::remove_complex_operands::rco_program;
     use crate::uniquify::uniquify_program;
+    use crate::utils::split_test::split_test;
+    use test_each_file::test_each_file;
 
-    #[test]
-    fn simple() {
-        dbg!(rco_program(uniquify_program(
-            parse_program("(+ 10 (let (x 32) x))").unwrap().1
-        )));
+    fn atomic([test]: [&str; 1]) {
+        let (input, expected_output, expected_return, program) = split_test(test);
+        let program = rco_program(uniquify_program(program));
+        let mut io = TestIO::new(input);
+        let result = interpret_lvar(&program.into(), &mut io);
+
+        assert_eq!(result, expected_return, "Incorrect program result.");
+        assert_eq!(io.outputs(), &expected_output, "Incorrect program output.");
     }
 
-    #[test]
-    fn complex() {
-        dbg!(rco_program(uniquify_program(
-            parse_program("(let (x (+ 1 (let (y 1) y))) x)").unwrap().1
-        )));
-    }
+    test_each_file! { for ["test"] in "./programs/good" as remove_complex_operands => atomic }
 }

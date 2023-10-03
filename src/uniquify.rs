@@ -77,5 +77,5 @@ mod tests {
         }
     }
 
-    test_each_file! { for ["test"] in "./programs/good" as uniquify_unique => unique }
+    test_each_file! { for ["test"] in "./programs/good" as uniquify => unique }
 }
