@@ -1,4 +1,5 @@
 use crate::language::x86var::{Arg, Block, Cmd, Instr, Reg, X86Program};
+use crate::{addq, block, imm, jmp, movq, popq, pushq, reg, retq, subq};
 
 pub fn conclude_program(mut program: X86Program) -> X86Program {
     start(&mut program);
@@ -9,69 +10,29 @@ pub fn conclude_program(mut program: X86Program) -> X86Program {
 }
 
 fn start(program: &mut X86Program) {
-    program.blocks[0].1.instrs.extend([Instr::Jmp {
-        lbl: "conclusion".to_string(),
-    }]);
+    program.blocks[0].1.instrs.extend([jmp!("conclusion")]);
 }
 
 fn main(program: &mut X86Program) {
-    // pushq %rbp
-    // movq %rsp %rbp
-    // subq $stackSpace %rsp
-    // jmp start
     program.blocks.push((
         "main".to_string(),
-        Block {
-            instrs: vec![
-                Instr::Instr {
-                    cmd: Cmd::Pushq,
-                    args: vec![Arg::Reg { reg: Reg::RBP }],
-                },
-                Instr::Instr {
-                    cmd: Cmd::Movq,
-                    args: vec![Arg::Reg { reg: Reg::RSP }, Arg::Reg { reg: Reg::RBP }],
-                },
-                Instr::Instr {
-                    cmd: Cmd::Subq,
-                    args: vec![
-                        Arg::Imm {
-                            val: program.stack_space as i64,
-                        },
-                        Arg::Reg { reg: Reg::RSP },
-                    ],
-                },
-                Instr::Jmp {
-                    lbl: "start".to_string(),
-                },
-            ],
-        },
+        block!(
+            pushq!(reg!(RBP)),
+            movq!(reg!(RSP), reg!(RBP)),
+            subq!(imm!(program.stack_space as i64), reg!(RSP)),
+            jmp!("start")
+        ),
     ));
 }
 
 fn conclusion(program: &mut X86Program) {
-    // addq $stackSpace %rsp
-    // popq %rbp
-    // retq
     program.blocks.push((
         "conclusion".to_string(),
-        Block {
-            instrs: vec![
-                Instr::Instr {
-                    cmd: Cmd::Addq,
-                    args: vec![
-                        Arg::Imm {
-                            val: program.stack_space as i64,
-                        },
-                        Arg::Reg { reg: Reg::RSP },
-                    ],
-                },
-                Instr::Instr {
-                    cmd: Cmd::Popq,
-                    args: vec![Arg::Reg { reg: Reg::RBP }],
-                },
-                Instr::Retq,
-            ],
-        },
+        block!(
+            addq!(imm!(program.stack_space as i64), reg!(RSP)),
+            popq!(reg!(RBP)),
+            retq!()
+        ),
     ));
 }
 

@@ -112,3 +112,90 @@ impl From<Arg> for VarArg {
         }
     }
 }
+
+#[macro_export]
+macro_rules! block {
+    ($($instr:expr),*) => {
+        Block { instrs: vec![$($instr),*] }
+    };
+}
+
+#[macro_export]
+macro_rules! addq {
+    ($src:expr, $dst:expr) => {
+        Instr::Instr {
+            cmd: Cmd::Addq,
+            args: vec![$src, $dst],
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! subq {
+    ($src:expr, $dst:expr) => {
+        Instr::Instr {
+            cmd: Cmd::Subq,
+            args: vec![$src, $dst],
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! movq {
+    ($src:expr, $dst:expr) => {
+        Instr::Instr {
+            cmd: Cmd::Movq,
+            args: vec![$src, $dst],
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! pushq {
+    ($src:expr) => {
+        Instr::Instr {
+            cmd: Cmd::Pushq,
+            args: vec![$src],
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! popq {
+    ($dst:expr) => {
+        Instr::Instr {
+            cmd: Cmd::Popq,
+            args: vec![$dst],
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! jmp {
+    ($lbl:expr) => {
+        Instr::Jmp {
+            lbl: $lbl.to_string(),
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! retq {
+    () => {
+        Instr::Retq
+    };
+}
+
+#[macro_export]
+macro_rules! imm {
+    ($val:expr) => {
+        Arg::Imm { val: $val }
+    };
+}
+
+#[macro_export]
+macro_rules! reg {
+    ($reg:ident) => {
+        Arg::Reg { reg: Reg::$reg }
+    };
+}
