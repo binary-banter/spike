@@ -151,6 +151,16 @@ macro_rules! subq {
 }
 
 #[macro_export]
+macro_rules! negq {
+    ($dst:expr) => {
+        Instr::Instr {
+            cmd: Cmd::Negq,
+            args: vec![$dst],
+        }
+    };
+}
+
+#[macro_export]
 macro_rules! movq {
     ($src:expr, $dst:expr) => {
         Instr::Instr {
@@ -181,6 +191,16 @@ macro_rules! popq {
 }
 
 #[macro_export]
+macro_rules! callq {
+    ($lbl:expr, $arity:literal) => {
+        Instr::Callq {
+            lbl: $lbl.to_string(),
+            arity: $arity,
+        }
+    };
+}
+
+#[macro_export]
 macro_rules! jmp {
     ($lbl:expr) => {
         Instr::Jmp {
@@ -199,13 +219,20 @@ macro_rules! retq {
 #[macro_export]
 macro_rules! imm {
     ($val:expr) => {
-        Arg::Imm { val: $val }
+        Arg::Imm { val: $val }.into()
     };
 }
 
 #[macro_export]
 macro_rules! reg {
     ($reg:ident) => {
-        Arg::Reg { reg: Reg::$reg }
+        Arg::Reg { reg: Reg::$reg }.into()
+    };
+}
+
+#[macro_export]
+macro_rules! var {
+    ($sym:expr) => {
+        VarArg::XVar { sym: $sym }
     };
 }

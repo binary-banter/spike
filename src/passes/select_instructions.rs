@@ -1,8 +1,8 @@
 use crate::language::alvar::Atom;
-use crate::language::cvar::CExpr;
-use crate::language::cvar::{CVarProgram, Tail};
+use crate::language::cvar::{CExpr, CVarProgram, Tail};
 use crate::language::lvar::Op;
-use crate::language::x86var::{Block, Cmd, Instr, Reg, VarArg, X86VarProgram};
+use crate::language::x86var::{Arg, Block, Cmd, Instr, Reg, VarArg, X86VarProgram};
+use crate::{addq, callq, imm, movq, negq, reg, subq, var};
 
 pub fn select_program(program: CVarProgram) -> X86VarProgram {
     X86VarProgram {
@@ -34,103 +34,26 @@ fn select_assign(sym: String, expr: CExpr, ret: bool) -> Vec<Instr<VarArg>> {
     };
 
     match expr {
-        // movq $val %dst
-        CExpr::Atom(Atom::Int { val }) => vec![Instr::Instr {
-            cmd: Cmd::Movq,
-            args: vec![VarArg::Imm { val }, dst],
-        }],
-
-        // movq %sym %dst
-        CExpr::Atom(Atom::Var { sym }) => vec![Instr::Instr {
-            cmd: Cmd::Movq,
-            args: vec![VarArg::XVar { sym }, dst],
-        }],
-
-        // movq ?arg.0 %dst
-        // addq ?arg.1 %dst
-        CExpr::Prim { op: Op::Plus, args } => match args.as_slice() {
-            [arg0, arg1] => vec![
-                Instr::Instr {
-                    cmd: Cmd::Movq,
-                    args: vec![select_atom(arg0), dst.clone()],
-                },
-                Instr::Instr {
-                    cmd: Cmd::Addq,
-                    args: vec![select_atom(arg1), dst],
-                },
+        CExpr::Atom(Atom::Int { val }) => vec![movq!(imm!(val), dst)],
+        CExpr::Atom(Atom::Var { sym }) => vec![movq!(var!(sym), dst)],
+        CExpr::Prim { op, args } => match (op, args.as_slice()) {
+            (Op::Plus, [a0, a1]) => vec![
+                movq!(select_atom(a0), dst.clone()),
+                addq!(select_atom(a1), dst),
             ],
-            _ => panic!("Addition is only defined for 2 arguments."),
+            (Op::Minus, [a0, a1]) => vec![
+                movq!(select_atom(a0), dst.clone()),
+                subq!(select_atom(a1), dst),
+            ],
+            (Op::Minus, [a0]) => vec![movq!(select_atom(a0), dst.clone()), negq!(dst)],
+            (Op::Read, []) => vec![callq!("_read_int", 0), movq!(reg!(RAX), dst)],
+            (Op::Print, [a0]) => vec![
+                movq!(select_atom(a0), dst),
+                movq!(select_atom(a0), reg!(RDI)),
+                callq!("_print_int", 1),
+            ],
+            _ => panic!("Encountered Prim with incorrect arity during select instructions pass."),
         },
-
-        // movq ?arg.0 %dst
-        // subq ?arg.1 %dst
-        CExpr::Prim {
-            op: Op::Minus,
-            args,
-        } if args.len() == 2 => vec![
-            Instr::Instr {
-                cmd: Cmd::Movq,
-                args: vec![select_atom(&args[0]), dst.clone()],
-            },
-            Instr::Instr {
-                cmd: Cmd::Subq,
-                args: vec![select_atom(&args[1]), dst],
-            },
-        ],
-
-        // movq ?arg.0 %dst
-        // negq %dst
-        CExpr::Prim {
-            op: Op::Minus,
-            args,
-        } if args.len() == 1 => vec![
-            Instr::Instr {
-                cmd: Cmd::Movq,
-                args: vec![select_atom(&args[0]), dst.clone()],
-            },
-            Instr::Instr {
-                cmd: Cmd::Negq,
-                args: vec![dst],
-            },
-        ],
-
-        // callq _read_int
-        // movq  %rax %dst
-        CExpr::Prim { op: Op::Read, args } if args.is_empty() => vec![
-            Instr::Callq {
-                lbl: "_read_int".to_string(),
-                arity: 0,
-            },
-            Instr::Instr {
-                cmd: Cmd::Movq,
-                args: vec![VarArg::Reg { reg: Reg::RAX }, dst],
-            },
-        ],
-
-        // movq  %arg.0 %dst
-        // movq  %arg.0 %RDI
-        // callq _print_int
-        CExpr::Prim {
-            op: Op::Print,
-            args,
-        } if args.len() == 1 => vec![
-            Instr::Instr {
-                cmd: Cmd::Movq,
-                args: vec![select_atom(&args[0]), dst],
-            },
-            Instr::Instr {
-                cmd: Cmd::Movq,
-                args: vec![select_atom(&args[0]), VarArg::Reg { reg: Reg::RDI }],
-            },
-            Instr::Callq {
-                lbl: "_print_int".to_string(),
-                arity: 1,
-            },
-        ],
-
-        CExpr::Prim { .. } => {
-            unreachable!("Encountered Prim with incorrect arity during select instructions pass.")
-        }
     }
 }
 

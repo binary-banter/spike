@@ -1,7 +1,5 @@
-use crate::language::alvar::AExpr;
-use crate::language::alvar::ALVarProgram;
-use crate::language::cvar::CExpr;
-use crate::language::cvar::{CVarProgram, Tail};
+use crate::language::alvar::{AExpr, ALVarProgram};
+use crate::language::cvar::{CExpr, CVarProgram, Tail};
 
 pub fn explicate_program(program: ALVarProgram) -> CVarProgram {
     CVarProgram {

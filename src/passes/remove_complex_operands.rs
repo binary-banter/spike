@@ -1,6 +1,5 @@
 use crate::language::alvar::{AExpr, ALVarProgram, Atom};
-use crate::language::lvar::Expr;
-use crate::language::lvar::LVarProgram;
+use crate::language::lvar::{Expr, LVarProgram};
 use crate::passes::uniquify::gen_sym;
 
 pub fn rco_program(program: LVarProgram) -> ALVarProgram {
