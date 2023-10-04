@@ -1,4 +1,5 @@
 use crate::language::x86var::{Arg, Block, Instr, Reg, VarArg, X86Program, X86VarProgram};
+use crate::{addq, callq, jmp, movq, negq, popq, pushq, retq, subq};
 use std::collections::HashMap;
 
 pub fn assign_program(program: X86VarProgram) -> X86Program {
@@ -28,29 +29,32 @@ fn assign_block(block: Block<VarArg>, homes: &mut HashMap<String, i64>) -> Block
 
 fn assign_instruction(instr: Instr<VarArg>, homes: &mut HashMap<String, i64>) -> Instr<Arg> {
     match instr {
-        Instr::Instr { cmd, args } => Instr::Instr {
-            cmd,
-            args: args
-                .into_iter()
-                .map(|arg| match arg {
-                    VarArg::Imm { val } => Arg::Imm { val },
-                    VarArg::Reg { reg } => Arg::Reg { reg },
-                    VarArg::Deref { reg, off } => Arg::Deref { reg, off },
-                    VarArg::XVar { sym } => {
-                        if !homes.contains_key(&sym) {
-                            homes.insert(sym.clone(), -(homes.len() as i64 + 1) * 8);
-                        }
-                        Arg::Deref {
-                            reg: Reg::RBP,
-                            off: homes[&sym],
-                        }
-                    }
-                })
-                .collect(),
-        },
-        Instr::Callq { lbl, arity } => Instr::Callq { lbl, arity },
-        Instr::Retq => Instr::Retq,
-        Instr::Jmp { lbl } => Instr::Jmp { lbl },
+        Instr::Addq { src, dst } => addq!(assign_arg(src, homes), assign_arg(dst, homes)),
+        Instr::Subq { src, dst } => subq!(assign_arg(src, homes), assign_arg(dst, homes)),
+        Instr::Negq { dst } => negq!(assign_arg(dst, homes)),
+        Instr::Movq { src, dst } => movq!(assign_arg(src, homes), assign_arg(dst, homes)),
+        Instr::Pushq { src } => pushq!(assign_arg(src, homes)),
+        Instr::Popq { dst } => popq!(assign_arg(dst, homes)),
+        Instr::Callq { lbl, arity } => callq!(lbl, arity),
+        Instr::Retq => retq!(),
+        Instr::Jmp { lbl } => jmp!(lbl),
+    }
+}
+
+fn assign_arg(arg: VarArg, homes: &mut HashMap<String, i64>) -> Arg {
+    match arg {
+        VarArg::Imm { val } => Arg::Imm { val },
+        VarArg::Reg { reg } => Arg::Reg { reg },
+        VarArg::Deref { reg, off } => Arg::Deref { reg, off },
+        VarArg::XVar { sym } => {
+            if !homes.contains_key(&sym) {
+                homes.insert(sym.clone(), -(homes.len() as i64 + 1) * 8);
+            }
+            Arg::Deref {
+                reg: Reg::RBP,
+                off: homes[&sym],
+            }
+        }
     }
 }
 

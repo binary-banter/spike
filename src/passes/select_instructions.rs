@@ -1,7 +1,7 @@
 use crate::language::alvar::Atom;
 use crate::language::cvar::{CExpr, CVarProgram, Tail};
 use crate::language::lvar::Op;
-use crate::language::x86var::{Arg, Block, Cmd, Instr, Reg, VarArg, X86VarProgram};
+use crate::language::x86var::{Arg, Block, Instr, Reg, VarArg, X86VarProgram};
 use crate::{addq, callq, imm, movq, negq, reg, subq, var};
 
 pub fn select_program(program: CVarProgram) -> X86VarProgram {

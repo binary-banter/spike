@@ -1,5 +1,5 @@
-use crate::language::x86var::{Arg, Block, Cmd, Instr, Reg, X86Program};
-use crate::{instr, movq, reg};
+use crate::language::x86var::{Arg, Block, Instr, Reg, X86Program};
+use crate::{addq, movq, reg, subq};
 
 pub fn patch_program(program: X86Program) -> X86Program {
     X86Program {
@@ -12,7 +12,7 @@ pub fn patch_program(program: X86Program) -> X86Program {
     }
 }
 
-pub fn patch_block(block: Block<Arg>) -> Block<Arg> {
+fn patch_block(block: Block<Arg>) -> Block<Arg> {
     Block {
         instrs: block
             .instrs
@@ -22,18 +22,19 @@ pub fn patch_block(block: Block<Arg>) -> Block<Arg> {
     }
 }
 
-pub fn patch_instr(instr: Instr<Arg>) -> Vec<Instr<Arg>> {
+fn patch_instr(instr: Instr<Arg>) -> Vec<Instr<Arg>> {
     match instr {
-        Instr::Instr { cmd, args } => match args.as_slice() {
-            [a1 @ Arg::Deref { .. }, a2 @ Arg::Deref { .. }] => {
-                vec![
-                    movq!(a1.clone(), reg!(RAX)),
-                    instr!(cmd, reg!(RAX), a2.clone()),
-                ]
-            }
-            _ => vec![Instr::Instr { cmd, args }],
-        },
+        Instr::Addq { src, dst } => patch_args(src, dst, |src, dst| addq!(src, dst)),
+        Instr::Subq { src, dst } => patch_args(src, dst, |src, dst| subq!(src, dst)),
+        Instr::Movq { src, dst } => patch_args(src, dst, |src, dst| movq!(src, dst)),
         _ => vec![instr],
+    }
+}
+
+fn patch_args(src: Arg, dst: Arg, op: fn(Arg, Arg) -> Instr<Arg>) -> Vec<Instr<Arg>> {
+    match (&src, &dst) {
+        (Arg::Deref { .. }, Arg::Deref { .. }) => vec![movq!(src, reg!(RAX)), op(reg!(RAX), dst)],
+        _ => vec![op(src, dst)],
     }
 }
 

@@ -1,4 +1,4 @@
-use crate::language::x86var::{Arg, Block, Cmd, Instr, Reg, X86Program};
+use crate::language::x86var::{Arg, Block, Instr, Reg, X86Program};
 use crate::{addq, block, imm, jmp, movq, popq, pushq, reg, retq, subq};
 
 pub fn conclude_program(mut program: X86Program) -> X86Program {

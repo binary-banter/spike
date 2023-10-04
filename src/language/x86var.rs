@@ -17,20 +17,15 @@ pub struct Block<A> {
 #[derive(Debug, PartialEq)]
 #[allow(clippy::enum_variant_names)]
 pub enum Instr<A> {
-    Instr { cmd: Cmd, args: Vec<A> },
+    Addq { src: A, dst: A },
+    Subq { src: A, dst: A },
+    Negq { dst: A },
+    Movq { src: A, dst: A },
+    Pushq { src: A },
+    Popq { dst: A },
     Callq { lbl: String, arity: usize },
     Retq,
     Jmp { lbl: String },
-}
-
-#[derive(Debug, PartialEq)]
-pub enum Cmd {
-    Addq,
-    Subq,
-    Negq,
-    Movq,
-    Pushq,
-    Popq,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -92,10 +87,21 @@ impl From<Block<Arg>> for Block<VarArg> {
 impl From<Instr<Arg>> for Instr<VarArg> {
     fn from(value: Instr<Arg>) -> Self {
         match value {
-            Instr::Instr { cmd, args } => Instr::Instr {
-                cmd,
-                args: args.into_iter().map(From::from).collect(),
+            Instr::Addq { src, dst } => Instr::Addq {
+                src: src.into(),
+                dst: dst.into(),
             },
+            Instr::Subq { src, dst } => Instr::Subq {
+                src: src.into(),
+                dst: dst.into(),
+            },
+            Instr::Negq { dst } => Instr::Negq { dst: dst.into() },
+            Instr::Movq { src, dst } => Instr::Movq {
+                src: src.into(),
+                dst: dst.into(),
+            },
+            Instr::Pushq { src } => Instr::Pushq { src: src.into() },
+            Instr::Popq { dst } => Instr::Popq { dst: dst.into() },
             Instr::Callq { lbl, arity } => Instr::Callq { lbl, arity },
             Instr::Retq => Instr::Retq,
             Instr::Jmp { lbl } => Instr::Jmp { lbl },
@@ -121,21 +127,11 @@ macro_rules! block {
 }
 
 #[macro_export]
-macro_rules! instr {
-    ($cmd:expr, $($args:expr),*) => {
-        Instr::Instr {
-            cmd: $cmd,
-            args: vec![$($args),*],
-        }
-    };
-}
-
-#[macro_export]
 macro_rules! addq {
     ($src:expr, $dst:expr) => {
-        Instr::Instr {
-            cmd: Cmd::Addq,
-            args: vec![$src, $dst],
+        Instr::Addq {
+            src: $src,
+            dst: $dst,
         }
     };
 }
@@ -143,9 +139,9 @@ macro_rules! addq {
 #[macro_export]
 macro_rules! subq {
     ($src:expr, $dst:expr) => {
-        Instr::Instr {
-            cmd: Cmd::Subq,
-            args: vec![$src, $dst],
+        Instr::Subq {
+            src: $src,
+            dst: $dst,
         }
     };
 }
@@ -153,19 +149,16 @@ macro_rules! subq {
 #[macro_export]
 macro_rules! negq {
     ($dst:expr) => {
-        Instr::Instr {
-            cmd: Cmd::Negq,
-            args: vec![$dst],
-        }
+        Instr::Negq { dst: $dst }
     };
 }
 
 #[macro_export]
 macro_rules! movq {
     ($src:expr, $dst:expr) => {
-        Instr::Instr {
-            cmd: Cmd::Movq,
-            args: vec![$src, $dst],
+        Instr::Movq {
+            src: $src,
+            dst: $dst,
         }
     };
 }
@@ -173,26 +166,20 @@ macro_rules! movq {
 #[macro_export]
 macro_rules! pushq {
     ($src:expr) => {
-        Instr::Instr {
-            cmd: Cmd::Pushq,
-            args: vec![$src],
-        }
+        Instr::Pushq { src: $src }
     };
 }
 
 #[macro_export]
 macro_rules! popq {
     ($dst:expr) => {
-        Instr::Instr {
-            cmd: Cmd::Popq,
-            args: vec![$dst],
-        }
+        Instr::Popq { dst: $dst }
     };
 }
 
 #[macro_export]
 macro_rules! callq {
-    ($lbl:expr, $arity:literal) => {
+    ($lbl:expr, $arity:expr) => {
         Instr::Callq {
             lbl: $lbl.to_string(),
             arity: $arity,

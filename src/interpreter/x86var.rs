@@ -1,5 +1,5 @@
 use crate::interpreter::IO;
-use crate::language::x86var::{Block, Cmd, Instr, Reg, VarArg, X86VarProgram};
+use crate::language::x86var::{Block, Instr, Reg, VarArg, X86VarProgram};
 use std::collections::HashMap;
 
 struct X86Interpreter<'program, I: IO> {
@@ -32,25 +32,26 @@ impl<'program, I: IO> X86Interpreter<'program, I> {
     fn interpret_block(&mut self, block: &'program Block<VarArg>) -> i64 {
         for instr in &block.instrs {
             match instr {
-                Instr::Instr { cmd, args } => match (cmd, args.as_slice()) {
-                    (Cmd::Addq, [a1, a2]) => self.set_arg(a2, self.get_arg(a1) + self.get_arg(a2)),
-                    (Cmd::Subq, [a1, a2]) => self.set_arg(a2, self.get_arg(a2) - self.get_arg(a1)),
-                    (Cmd::Negq, [a1]) => self.set_arg(a1, -self.get_arg(a1)),
-                    (Cmd::Movq, [a1, a2]) => self.set_arg(a2, self.get_arg(a1)),
-                    (Cmd::Pushq, [a1]) => {
-                        let rsp = self.regs.get_mut(&Reg::RSP).unwrap();
-                        assert_eq!(*rsp % 8, 0, "Misaligned stack pointer.");
-                        *rsp -= 8;
-                        self.memory.insert(*rsp, self.get_arg(a1));
-                    }
-                    (Cmd::Popq, [a1]) => {
-                        let rsp = self.regs[&Reg::RSP];
-                        assert_eq!(rsp % 8, 0, "Misaligned stack pointer.");
-                        self.set_arg(a1, self.memory[&rsp]);
-                        *self.regs.get_mut(&Reg::RSP).unwrap() += 8;
-                    }
-                    (_, _) => panic!("Unsupported `Instr`."),
-                },
+                Instr::Addq { src, dst } => {
+                    self.set_arg(dst, self.get_arg(src) + self.get_arg(dst))
+                }
+                Instr::Subq { src, dst } => {
+                    self.set_arg(dst, self.get_arg(dst) - self.get_arg(src))
+                }
+                Instr::Negq { dst } => self.set_arg(dst, -self.get_arg(dst)),
+                Instr::Movq { src, dst } => self.set_arg(dst, self.get_arg(src)),
+                Instr::Pushq { src } => {
+                    let rsp = self.regs.get_mut(&Reg::RSP).unwrap();
+                    assert_eq!(*rsp % 8, 0, "Misaligned stack pointer.");
+                    *rsp -= 8;
+                    self.memory.insert(*rsp, self.get_arg(src));
+                }
+                Instr::Popq { dst } => {
+                    let rsp = self.regs[&Reg::RSP];
+                    assert_eq!(rsp % 8, 0, "Misaligned stack pointer.");
+                    self.set_arg(dst, self.memory[&rsp]);
+                    *self.regs.get_mut(&Reg::RSP).unwrap() += 8;
+                }
                 Instr::Jmp { lbl } => {
                     return self.interpret_block(self.blocks[lbl.as_str()]);
                 }
