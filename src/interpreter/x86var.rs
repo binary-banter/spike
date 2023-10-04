@@ -85,7 +85,7 @@ impl<'program, I: IO> X86Interpreter<'program, I> {
                 self.regs.insert(*reg, v);
             }
             VarArg::Deref { reg, off } => {
-                self.memory.insert(self.regs[&reg] + off, v);
+                self.memory.insert(self.regs[reg] + off, v);
             }
             VarArg::XVar { sym } => {
                 self.vars.insert(sym.as_str(), v);

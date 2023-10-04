@@ -12,7 +12,7 @@ pub fn assign_program(program: X86VarProgram) -> X86Program {
 
     X86Program {
         blocks,
-        stack_space: homes.len().div_ceil(16) * 16,
+        stack_space: (homes.len() + 15) / 16 * 16,
     }
 }
 
