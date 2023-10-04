@@ -1,4 +1,5 @@
 use crate::language::x86var::{Arg, Block, Cmd, Instr, Reg, X86Program};
+use crate::{instr, movq, reg};
 
 pub fn patch_program(program: X86Program) -> X86Program {
     X86Program {
@@ -26,14 +27,8 @@ pub fn patch_instr(instr: Instr<Arg>) -> Vec<Instr<Arg>> {
         Instr::Instr { cmd, args } => match args.as_slice() {
             [a1 @ Arg::Deref { .. }, a2 @ Arg::Deref { .. }] => {
                 vec![
-                    Instr::Instr {
-                        cmd: Cmd::Movq,
-                        args: vec![a1.clone(), Arg::Reg { reg: Reg::RAX }],
-                    },
-                    Instr::Instr {
-                        cmd,
-                        args: vec![Arg::Reg { reg: Reg::RAX }, a2.clone()],
-                    },
+                    movq!(a1.clone(), reg!(RAX)),
+                    instr!(cmd, reg!(RAX), a2.clone()),
                 ]
             }
             _ => vec![Instr::Instr { cmd, args }],

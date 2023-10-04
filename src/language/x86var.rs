@@ -121,6 +121,16 @@ macro_rules! block {
 }
 
 #[macro_export]
+macro_rules! instr {
+    ($cmd:expr, $($args:expr),*) => {
+        Instr::Instr {
+            cmd: $cmd,
+            args: vec![$($args),*],
+        }
+    };
+}
+
+#[macro_export]
 macro_rules! addq {
     ($src:expr, $dst:expr) => {
         Instr::Instr {
