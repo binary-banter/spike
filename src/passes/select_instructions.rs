@@ -27,11 +27,7 @@ fn select_tail(tail: Tail, instrs: &mut Vec<Instr<VarArg>>) {
 }
 
 fn select_assign(sym: String, expr: CExpr, ret: bool) -> Vec<Instr<VarArg>> {
-    let dst = if ret {
-        VarArg::Reg { reg: Reg::RAX }
-    } else {
-        VarArg::XVar { sym }
-    };
+    let dst = if ret { reg!(RAX) } else { var!(sym) };
 
     match expr {
         CExpr::Atom(Atom::Int { val }) => vec![movq!(imm!(val), dst)],
