@@ -1,3 +1,5 @@
+use crate::{addq, callq, jmp, movq, negq, popq, pushq, retq, subq};
+
 #[derive(Debug, PartialEq)]
 pub struct X86Program {
     pub blocks: Vec<(String, Block<Arg>)>,
@@ -15,7 +17,6 @@ pub struct Block<A> {
 }
 
 #[derive(Debug, PartialEq)]
-#[allow(clippy::enum_variant_names)]
 pub enum Instr<A> {
     Addq { src: A, dst: A },
     Subq { src: A, dst: A },
@@ -87,24 +88,15 @@ impl From<Block<Arg>> for Block<VarArg> {
 impl From<Instr<Arg>> for Instr<VarArg> {
     fn from(value: Instr<Arg>) -> Self {
         match value {
-            Instr::Addq { src, dst } => Instr::Addq {
-                src: src.into(),
-                dst: dst.into(),
-            },
-            Instr::Subq { src, dst } => Instr::Subq {
-                src: src.into(),
-                dst: dst.into(),
-            },
-            Instr::Negq { dst } => Instr::Negq { dst: dst.into() },
-            Instr::Movq { src, dst } => Instr::Movq {
-                src: src.into(),
-                dst: dst.into(),
-            },
-            Instr::Pushq { src } => Instr::Pushq { src: src.into() },
-            Instr::Popq { dst } => Instr::Popq { dst: dst.into() },
-            Instr::Callq { lbl, arity } => Instr::Callq { lbl, arity },
-            Instr::Retq => Instr::Retq,
-            Instr::Jmp { lbl } => Instr::Jmp { lbl },
+            Instr::Addq { src, dst } => addq!(src.into(), dst.into()),
+            Instr::Subq { src, dst } => subq!(src.into(), dst.into()),
+            Instr::Negq { dst } => negq!(dst.into()),
+            Instr::Movq { src, dst } => movq!(src.into(), dst.into()),
+            Instr::Pushq { src } => pushq!(src.into()),
+            Instr::Popq { dst } => popq!(dst.into()),
+            Instr::Callq { lbl, arity } => callq!(lbl, arity),
+            Instr::Retq => retq!(),
+            Instr::Jmp { lbl } => jmp!(lbl),
         }
     }
 }
@@ -119,107 +111,109 @@ impl From<Arg> for VarArg {
     }
 }
 
-#[macro_export]
-macro_rules! block {
-    ($($instr:expr),*) => {
-        Block { instrs: vec![$($instr),*] }
-    };
-}
+mod macros {
+    #[macro_export]
+    macro_rules! block {
+        ($($instr:expr),*) => {
+            Block { instrs: vec![$($instr),*] }
+        };
+    }
 
-#[macro_export]
-macro_rules! addq {
-    ($src:expr, $dst:expr) => {
-        Instr::Addq {
-            src: $src,
-            dst: $dst,
-        }
-    };
-}
+    #[macro_export]
+    macro_rules! addq {
+        ($src:expr, $dst:expr) => {
+            Instr::Addq {
+                src: $src,
+                dst: $dst,
+            }
+        };
+    }
 
-#[macro_export]
-macro_rules! subq {
-    ($src:expr, $dst:expr) => {
-        Instr::Subq {
-            src: $src,
-            dst: $dst,
-        }
-    };
-}
+    #[macro_export]
+    macro_rules! subq {
+        ($src:expr, $dst:expr) => {
+            Instr::Subq {
+                src: $src,
+                dst: $dst,
+            }
+        };
+    }
 
-#[macro_export]
-macro_rules! negq {
-    ($dst:expr) => {
-        Instr::Negq { dst: $dst }
-    };
-}
+    #[macro_export]
+    macro_rules! negq {
+        ($dst:expr) => {
+            Instr::Negq { dst: $dst }
+        };
+    }
 
-#[macro_export]
-macro_rules! movq {
-    ($src:expr, $dst:expr) => {
-        Instr::Movq {
-            src: $src,
-            dst: $dst,
-        }
-    };
-}
+    #[macro_export]
+    macro_rules! movq {
+        ($src:expr, $dst:expr) => {
+            Instr::Movq {
+                src: $src,
+                dst: $dst,
+            }
+        };
+    }
 
-#[macro_export]
-macro_rules! pushq {
-    ($src:expr) => {
-        Instr::Pushq { src: $src }
-    };
-}
+    #[macro_export]
+    macro_rules! pushq {
+        ($src:expr) => {
+            Instr::Pushq { src: $src }
+        };
+    }
 
-#[macro_export]
-macro_rules! popq {
-    ($dst:expr) => {
-        Instr::Popq { dst: $dst }
-    };
-}
+    #[macro_export]
+    macro_rules! popq {
+        ($dst:expr) => {
+            Instr::Popq { dst: $dst }
+        };
+    }
 
-#[macro_export]
-macro_rules! callq {
-    ($lbl:expr, $arity:expr) => {
-        Instr::Callq {
-            lbl: $lbl.to_string(),
-            arity: $arity,
-        }
-    };
-}
+    #[macro_export]
+    macro_rules! callq {
+        ($lbl:expr, $arity:expr) => {
+            Instr::Callq {
+                lbl: $lbl.to_string(),
+                arity: $arity,
+            }
+        };
+    }
 
-#[macro_export]
-macro_rules! jmp {
-    ($lbl:expr) => {
-        Instr::Jmp {
-            lbl: $lbl.to_string(),
-        }
-    };
-}
+    #[macro_export]
+    macro_rules! jmp {
+        ($lbl:expr) => {
+            Instr::Jmp {
+                lbl: $lbl.to_string(),
+            }
+        };
+    }
 
-#[macro_export]
-macro_rules! retq {
-    () => {
-        Instr::Retq
-    };
-}
+    #[macro_export]
+    macro_rules! retq {
+        () => {
+            Instr::Retq
+        };
+    }
 
-#[macro_export]
-macro_rules! imm {
-    ($val:expr) => {
-        Arg::Imm { val: $val }.into()
-    };
-}
+    #[macro_export]
+    macro_rules! imm {
+        ($val:expr) => {
+            Arg::Imm { val: $val }.into()
+        };
+    }
 
-#[macro_export]
-macro_rules! reg {
-    ($reg:ident) => {
-        Arg::Reg { reg: Reg::$reg }.into()
-    };
-}
+    #[macro_export]
+    macro_rules! reg {
+        ($reg:ident) => {
+            Arg::Reg { reg: Reg::$reg }.into()
+        };
+    }
 
-#[macro_export]
-macro_rules! var {
-    ($sym:expr) => {
-        VarArg::XVar { sym: $sym }
-    };
+    #[macro_export]
+    macro_rules! var {
+        ($sym:expr) => {
+            VarArg::XVar { sym: $sym }
+        };
+    }
 }
