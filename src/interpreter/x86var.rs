@@ -20,7 +20,7 @@ pub fn interpret_x86var(entry: &str, program: &X86VarProgram, io: &mut impl IO) 
     let mut state = X86Interpreter {
         blocks,
         io,
-        regs: HashMap::from([(Reg::RBP, i64::MAX), (Reg::RSP, i64::MAX)]),
+        regs: HashMap::from([(Reg::RBP, i64::MAX - 7), (Reg::RSP, i64::MAX - 7)]),
         vars: HashMap::default(),
         memory: HashMap::default(),
     };
@@ -63,7 +63,7 @@ impl<'program, I: IO> X86Interpreter<'program, I> {
                     }
                     _ => todo!(),
                 },
-                Instr::Retq => todo!(),
+                Instr::Retq => break, // todo: not quite correct
             }
         }
         self.regs[&Reg::RAX]
