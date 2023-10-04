@@ -18,17 +18,15 @@ fn select_block(tail: Tail) -> Block<VarArg> {
 
 fn select_tail(tail: Tail, instrs: &mut Vec<Instr<VarArg>>) {
     match tail {
-        Tail::Return { expr } => instrs.extend(select_assign(String::default(), expr, true)),
+        Tail::Return { expr } => instrs.extend(select_assign(reg!(RAX), expr)),
         Tail::Seq { sym, bnd, tail } => {
-            instrs.extend(select_assign(sym, bnd, false));
+            instrs.extend(select_assign(var!(sym), bnd));
             select_tail(*tail, instrs);
         }
     }
 }
 
-fn select_assign(sym: String, expr: CExpr, ret: bool) -> Vec<Instr<VarArg>> {
-    let dst = if ret { reg!(RAX) } else { var!(sym) };
-
+fn select_assign(dst: VarArg, expr: CExpr) -> Vec<Instr<VarArg>> {
     match expr {
         CExpr::Atom(Atom::Int { val }) => vec![movq!(imm!(val), dst)],
         CExpr::Atom(Atom::Var { sym }) => vec![movq!(var!(sym), dst)],
