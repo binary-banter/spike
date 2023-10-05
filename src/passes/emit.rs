@@ -8,8 +8,8 @@ pub fn emit_program(program: X86Program, w: &mut impl Write) -> std::io::Result<
 
 impl Display for X86Program {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "global\t_start")?;
-        writeln!(f, "section\t.text")?;
+        writeln!(f, ".globl main")?;
+        writeln!(f, ".text")?;
         for (name, block) in &self.blocks {
             write!(f, "{name}:\n{block}")?;
         }
@@ -29,19 +29,19 @@ impl Display for Block<Arg> {
 impl Display for Instr<Arg> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            Instr::Addq { src, dst } => writeln!(f, "\tadd qword {dst}, {src}"),
-            Instr::Subq { src, dst } => writeln!(f, "\tsub qword {dst}, {src}"),
-            Instr::Negq { dst } => writeln!(f, "\tneg qword {dst}"),
-            Instr::Movq { src, dst } => writeln!(f, "\tmov qword {dst}, {src}"),
-            Instr::Pushq { src } => writeln!(f, "\tpush qword {src}"),
-            Instr::Popq { dst } => writeln!(f, "\tpop qword {dst}"),
+            Instr::Addq { src, dst } => writeln!(f, "\taddq {dst}, {src}"),
+            Instr::Subq { src, dst } => writeln!(f, "\tsubq {dst}, {src}"),
+            Instr::Negq { dst } => writeln!(f, "\tnegq {dst}"),
+            Instr::Movq { src, dst } => writeln!(f, "\tmovq {dst}, {src}"),
+            Instr::Pushq { src } => writeln!(f, "\tpushq {src}"),
+            Instr::Popq { dst } => writeln!(f, "\tpopq {dst}"),
             Instr::Callq { lbl, .. } => writeln!(f, "\tcall {lbl}"),
             Instr::Retq => writeln!(f, "\tret"),
             Instr::Jmp { lbl } => writeln!(f, "\tjmp {lbl}"),
             Instr::Syscall { op: SysOp::Exit } => {
-                writeln!(f, "mov qword rax, 60")?;
-                writeln!(f, "mov qword rdi, 0")?;
-                writeln!(f, "syscall")
+                writeln!(f, "\tmovq %rax, 60")?;
+                writeln!(f, "\tmovq %rdi, 0")?;
+                writeln!(f, "\tsyscall")
             }
         }
     }
@@ -67,7 +67,7 @@ impl Display for Reg {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "{}",
+            "%{}",
             match self {
                 Reg::RSP => "rsp",
                 Reg::RBP => "rbp",

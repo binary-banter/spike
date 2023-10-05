@@ -57,7 +57,7 @@ mod tests {
             rco_program(uniquify_program(program)),
         ))));
         let mut io = TestIO::new(input);
-        let result = interpret_x86var("main", &program.into(), &mut io);
+        let result = interpret_x86var("core", &program.into(), &mut io);
 
         assert_eq!(result, expected_return, "Incorrect program result.");
         assert_eq!(io.outputs(), &expected_output, "Incorrect program output.");

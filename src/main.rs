@@ -26,7 +26,7 @@ fn main() -> Result<(), TypeError> {
         explicate_program(rco_program(uniquify_program(program))),
     ))));
 
-    let mut output = File::create("output.asm").unwrap();
+    let mut output = File::create("output.s").unwrap();
     emit_program(program, &mut output).unwrap();
 
     Ok(())

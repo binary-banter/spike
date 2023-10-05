@@ -2,8 +2,8 @@ use crate::language::x86var::{Arg, Block, Instr, PX86Program, Reg, SysOp, X86Pro
 use crate::{addq, block, imm, jmp, movq, popq, pushq, reg, subq, syscall};
 
 pub fn conclude_program(mut program: PX86Program) -> X86Program {
-    start(&mut program);
     main(&mut program);
+    core(&mut program);
     conclusion(&mut program);
 
     let program = X86Program {
@@ -13,23 +13,23 @@ pub fn conclude_program(mut program: PX86Program) -> X86Program {
     program
 }
 
-fn main(program: &mut PX86Program) {
+fn core(program: &mut PX86Program) {
     program
         .blocks
-        .get_mut("main")
+        .get_mut("core")
         .expect("There should be a start block.")
         .instrs
         .extend([jmp!("conclusion")]);
 }
 
-fn start(program: &mut PX86Program) {
+fn main(program: &mut PX86Program) {
     program.blocks.insert(
-        "_start".to_string(),
+        "main".to_string(),
         block!(
             pushq!(reg!(RBP)),
             movq!(reg!(RSP), reg!(RBP)),
             subq!(imm!(program.stack_space as i64), reg!(RSP)),
-            jmp!("main")
+            jmp!("core")
         ),
     );
 }
@@ -72,7 +72,7 @@ mod tests {
         ))));
 
         let mut io = TestIO::new(input);
-        let result = interpret_x86var("_start", &program.into(), &mut io);
+        let result = interpret_x86var("main", &program.into(), &mut io);
 
         assert_eq!(result, expected_return, "Incorrect program result.");
         assert_eq!(io.outputs(), &expected_output, "Incorrect program output.");
