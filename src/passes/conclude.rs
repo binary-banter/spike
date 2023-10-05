@@ -1,20 +1,29 @@
-use crate::language::x86var::{Arg, Block, Instr, Reg, X86Program};
+use crate::language::x86var::{Arg, Block, Instr, PX86Program, Reg, X86Program};
 use crate::{addq, block, imm, jmp, movq, popq, pushq, reg, retq, subq};
 
-pub fn conclude_program(mut program: X86Program) -> X86Program {
+pub fn conclude_program(mut program: PX86Program) -> X86Program {
     start(&mut program);
     main(&mut program);
     conclusion(&mut program);
 
+    let program = X86Program {
+        blocks: program.blocks,
+    };
+
     program
 }
 
-fn start(program: &mut X86Program) {
-    program.blocks[0].1.instrs.extend([jmp!("conclusion")]);
+fn start(program: &mut PX86Program) {
+    program
+        .blocks
+        .get_mut("start")
+        .expect("There should be a start block.")
+        .instrs
+        .extend([jmp!("conclusion")]);
 }
 
-fn main(program: &mut X86Program) {
-    program.blocks.push((
+fn main(program: &mut PX86Program) {
+    program.blocks.insert(
         "main".to_string(),
         block!(
             pushq!(reg!(RBP)),
@@ -22,18 +31,18 @@ fn main(program: &mut X86Program) {
             subq!(imm!(program.stack_space as i64), reg!(RSP)),
             jmp!("start")
         ),
-    ));
+    );
 }
 
-fn conclusion(program: &mut X86Program) {
-    program.blocks.push((
+fn conclusion(program: &mut PX86Program) {
+    program.blocks.insert(
         "conclusion".to_string(),
         block!(
             addq!(imm!(program.stack_space as i64), reg!(RSP)),
             popq!(reg!(RBP)),
             retq!()
         ),
-    ));
+    );
 }
 
 #[cfg(test)]

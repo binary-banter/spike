@@ -1,8 +1,8 @@
-use crate::language::x86var::{Arg, Block, Instr, Reg, X86Program};
+use crate::language::x86var::{AX86Program, Arg, Block, Instr, PX86Program, Reg};
 use crate::{addq, movq, reg, subq};
 
-pub fn patch_program(program: X86Program) -> X86Program {
-    X86Program {
+pub fn patch_program(program: AX86Program) -> PX86Program {
+    PX86Program {
         blocks: program
             .blocks
             .into_iter()

@@ -3,7 +3,7 @@ use crate::language::x86var::{Block, Instr, Reg, VarArg, X86VarProgram};
 use std::collections::HashMap;
 
 struct X86Interpreter<'program, I: IO> {
-    blocks: HashMap<&'program str, &'program Block<VarArg>>,
+    blocks: &'program HashMap<String, Block<VarArg>>,
     io: &'program mut I,
     regs: HashMap<Reg, i64>,
     vars: HashMap<&'program str, i64>,
@@ -11,21 +11,15 @@ struct X86Interpreter<'program, I: IO> {
 }
 
 pub fn interpret_x86var(entry: &str, program: &X86VarProgram, io: &mut impl IO) -> i64 {
-    let blocks = program
-        .blocks
-        .iter()
-        .map(|(name, block)| (name.as_str(), block))
-        .collect::<HashMap<_, _>>();
-
     let mut state = X86Interpreter {
-        blocks,
+        blocks: &program.blocks,
         io,
         regs: HashMap::from([(Reg::RBP, i64::MAX - 7), (Reg::RSP, i64::MAX - 7)]),
         vars: HashMap::default(),
         memory: HashMap::default(),
     };
 
-    state.interpret_block(state.blocks[entry])
+    state.interpret_block(&state.blocks[entry])
 }
 
 impl<'program, I: IO> X86Interpreter<'program, I> {
@@ -53,7 +47,7 @@ impl<'program, I: IO> X86Interpreter<'program, I> {
                     *self.regs.get_mut(&Reg::RSP).unwrap() += 8;
                 }
                 Instr::Jmp { lbl } => {
-                    return self.interpret_block(self.blocks[lbl.as_str()]);
+                    return self.interpret_block(&self.blocks[lbl.as_str()]);
                 }
                 Instr::Callq { lbl, arity } => match (lbl.as_str(), arity) {
                     ("_read_int", 0) => {

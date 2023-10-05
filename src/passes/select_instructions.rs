@@ -3,10 +3,11 @@ use crate::language::cvar::{CExpr, CVarProgram, Tail};
 use crate::language::lvar::Op;
 use crate::language::x86var::{Arg, Block, Instr, Reg, VarArg, X86VarProgram};
 use crate::{addq, callq, imm, movq, negq, reg, subq, var};
+use std::collections::HashMap;
 
 pub fn select_program(program: CVarProgram) -> X86VarProgram {
     X86VarProgram {
-        blocks: vec![("start".to_string(), select_block(program.bdy))],
+        blocks: HashMap::from([("start".to_string(), select_block(program.bdy))]),
     }
 }
 

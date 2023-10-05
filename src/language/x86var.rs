@@ -1,14 +1,26 @@
 use crate::{addq, callq, jmp, movq, negq, popq, pushq, retq, subq};
+use std::collections::HashMap;
 
 #[derive(Debug, PartialEq)]
 pub struct X86Program {
-    pub blocks: Vec<(String, Block<Arg>)>,
+    pub blocks: HashMap<String, Block<Arg>>,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct PX86Program {
+    pub blocks: HashMap<String, Block<Arg>>,
+    pub stack_space: usize,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct AX86Program {
+    pub blocks: HashMap<String, Block<Arg>>,
     pub stack_space: usize,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct X86VarProgram {
-    pub blocks: Vec<(String, Block<VarArg>)>,
+    pub blocks: HashMap<String, Block<VarArg>>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -67,6 +79,30 @@ pub enum Reg {
 
 impl From<X86Program> for X86VarProgram {
     fn from(value: X86Program) -> Self {
+        X86VarProgram {
+            blocks: value
+                .blocks
+                .into_iter()
+                .map(|(n, b)| (n, b.into()))
+                .collect(),
+        }
+    }
+}
+
+impl From<PX86Program> for X86VarProgram {
+    fn from(value: PX86Program) -> Self {
+        X86VarProgram {
+            blocks: value
+                .blocks
+                .into_iter()
+                .map(|(n, b)| (n, b.into()))
+                .collect(),
+        }
+    }
+}
+
+impl From<AX86Program> for X86VarProgram {
+    fn from(value: AX86Program) -> Self {
         X86VarProgram {
             blocks: value
                 .blocks

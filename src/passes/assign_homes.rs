@@ -1,8 +1,8 @@
-use crate::language::x86var::{Arg, Block, Instr, Reg, VarArg, X86Program, X86VarProgram};
+use crate::language::x86var::{AX86Program, Arg, Block, Instr, Reg, VarArg, X86VarProgram};
 use crate::{addq, callq, jmp, movq, negq, popq, pushq, retq, subq};
 use std::collections::HashMap;
 
-pub fn assign_program(program: X86VarProgram) -> X86Program {
+pub fn assign_program(program: X86VarProgram) -> AX86Program {
     let mut homes = HashMap::new();
 
     let blocks = program
@@ -11,7 +11,7 @@ pub fn assign_program(program: X86VarProgram) -> X86Program {
         .map(|block| (block.0, assign_block(block.1, &mut homes)))
         .collect();
 
-    X86Program {
+    AX86Program {
         blocks,
         stack_space: (homes.len() + 15) / 16 * 16,
     }
