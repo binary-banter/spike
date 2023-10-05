@@ -38,11 +38,6 @@ impl Display for Instr<Arg> {
             Instr::Callq { lbl, .. } => writeln!(f, "\tcall {lbl}"),
             Instr::Retq => writeln!(f, "\tret"),
             Instr::Jmp { lbl } => writeln!(f, "\tjmp {lbl}"),
-            Instr::Syscall { op: SysOp::Exit } => {
-                writeln!(f, "\tmovq %rax, 60")?;
-                writeln!(f, "\tmovq %rdi, 0")?;
-                writeln!(f, "\tsyscall")
-            }
         }
     }
 }

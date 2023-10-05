@@ -56,10 +56,12 @@ impl<'program, I: IO> X86Interpreter<'program, I> {
                     ("_print_int", 1) => {
                         self.io.print(self.regs[&Reg::RDI]);
                     }
+                    ("exit", 1) => {
+                        break;
+                    }
                     _ => todo!(),
                 },
                 Instr::Retq => break, // todo: not quite correct
-                Instr::Syscall { op: SysOp::Exit } => break,
             }
         }
         self.regs[&Reg::RAX]

@@ -1,5 +1,5 @@
 use crate::language::x86var::{AX86Program, Arg, Block, Instr, Reg, VarArg, X86VarProgram};
-use crate::{addq, callq, jmp, movq, negq, popq, pushq, retq, subq, syscall};
+use crate::{addq, callq, jmp, movq, negq, popq, pushq, retq, subq};
 use std::collections::HashMap;
 
 pub fn assign_program(program: X86VarProgram) -> AX86Program {
@@ -38,7 +38,6 @@ fn assign_instruction(instr: Instr<VarArg>, homes: &mut HashMap<String, i64>) ->
         Instr::Callq { lbl, arity } => callq!(lbl, arity),
         Instr::Retq => retq!(),
         Instr::Jmp { lbl } => jmp!(lbl),
-        Instr::Syscall { op } => syscall!(op),
     }
 }
 

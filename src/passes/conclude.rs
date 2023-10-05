@@ -1,5 +1,5 @@
 use crate::language::x86var::{Arg, Block, Instr, PX86Program, Reg, SysOp, X86Program};
-use crate::{addq, block, imm, jmp, movq, popq, pushq, reg, subq, syscall};
+use crate::{addq, block, callq, imm, jmp, movq, popq, pushq, reg, subq};
 
 pub fn conclude_program(mut program: PX86Program) -> X86Program {
     main(&mut program);
@@ -35,18 +35,13 @@ fn main(program: &mut PX86Program) {
 }
 
 fn conclusion(program: &mut PX86Program) {
-    // program.blocks.insert(
-    //     "loop".to_string(),
-    //     block!(
-    //         jmp!("loop")
-    //     )
-    // );
     program.blocks.insert(
         "conclusion".to_string(),
         block!(
             addq!(imm!(program.stack_space as i64), reg!(RSP)),
             popq!(reg!(RBP)),
-            syscall!(SysOp::Exit)
+            movq!(imm!(0), reg!(RDI)),
+            callq!("exit", 1)
         ),
     );
 }
