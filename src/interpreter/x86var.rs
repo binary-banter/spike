@@ -1,5 +1,5 @@
 use crate::interpreter::IO;
-use crate::language::x86var::{Block, Instr, Reg, VarArg, X86VarProgram};
+use crate::language::x86var::{Block, Instr, Reg, SysOp, VarArg, X86VarProgram};
 use std::collections::HashMap;
 
 struct X86Interpreter<'program, I: IO> {
@@ -59,6 +59,7 @@ impl<'program, I: IO> X86Interpreter<'program, I> {
                     _ => todo!(),
                 },
                 Instr::Retq => break, // todo: not quite correct
+                Instr::Syscall { op: SysOp::Exit } => break,
             }
         }
         self.regs[&Reg::RAX]

@@ -1,4 +1,4 @@
-use crate::{addq, callq, jmp, movq, negq, popq, pushq, retq, subq};
+use crate::{addq, callq, jmp, movq, negq, popq, pushq, retq, subq, syscall};
 use std::collections::HashMap;
 
 #[derive(Debug, PartialEq)]
@@ -39,6 +39,12 @@ pub enum Instr<A> {
     Callq { lbl: String, arity: usize },
     Retq,
     Jmp { lbl: String },
+    Syscall { op: SysOp },
+}
+
+#[derive(Debug, PartialEq)]
+pub enum SysOp {
+    Exit,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -133,6 +139,7 @@ impl From<Instr<Arg>> for Instr<VarArg> {
             Instr::Callq { lbl, arity } => callq!(lbl, arity),
             Instr::Retq => retq!(),
             Instr::Jmp { lbl } => jmp!(lbl),
+            Instr::Syscall { op } => syscall!(op),
         }
     }
 }
@@ -250,6 +257,13 @@ mod macros {
     macro_rules! var {
         ($sym:expr) => {
             VarArg::XVar { sym: $sym }
+        };
+    }
+
+    #[macro_export]
+    macro_rules! syscall {
+        ($op:expr) => {
+            Instr::Syscall { op: $op }
         };
     }
 }

@@ -7,7 +7,7 @@ use std::collections::HashMap;
 
 pub fn select_program(program: CVarProgram) -> X86VarProgram {
     X86VarProgram {
-        blocks: HashMap::from([("start".to_string(), select_block(program.bdy))]),
+        blocks: HashMap::from([("main".to_string(), select_block(program.bdy))]),
     }
 }
 
@@ -74,7 +74,7 @@ mod tests {
         let (input, expected_output, expected_return, program) = split_test(test);
         let program = select_program(explicate_program(rco_program(uniquify_program(program))));
         let mut io = TestIO::new(input);
-        let result = interpret_x86var("start", &program, &mut io);
+        let result = interpret_x86var("main", &program, &mut io);
 
         assert_eq!(result, expected_return, "Incorrect program result.");
         assert_eq!(io.outputs(), &expected_output, "Incorrect program output.");
