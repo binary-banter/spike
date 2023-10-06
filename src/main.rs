@@ -18,7 +18,7 @@ mod type_checking;
 pub mod utils;
 
 fn main() -> Result<(), TypeError> {
-    let program = parse_program("(print (+ 41 1))").unwrap().1; // (exit 42)
+    let program = parse_program("(print (+ 10 (read)))").unwrap().1;
 
     type_check_program(&program)?;
 

@@ -9,7 +9,8 @@ pub fn emit_program(program: X86Program, w: &mut impl Write) -> std::io::Result<
 impl Display for X86Program {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         writeln!(f, ".data")?;
-        writeln!(f, "\tformat: .asciz \"%d\\n\"")?;
+        writeln!(f, "\tformat_read_int: .asciz \"%d\"")?;
+        writeln!(f, "\tformat_print_int: .asciz \"%d\\n\"")?;
 
         writeln!(f, ".globl main")?;
         writeln!(f, ".text")?;
@@ -41,13 +42,17 @@ impl Display for Instr<Arg> {
             Instr::Callq { lbl, arity } => {
                 match (lbl.as_str(), arity){
                     ("_print_int", 1) => {
-                        writeln!(f, "\tmov %rsi, %rdi")?;
-                        writeln!(f, "\tlea %rdi, format")?;
-                        writeln!(f, "\tcall printf")
+                        writeln!(f, "\tmovq %rsi, %rdi")?;
+                        writeln!(f, "\tleaq %rdi, format_print_int")?;
+                        writeln!(f, "\tcallq printf")
                     }
                     ("_read_int", 0) => {
-                        // todo: doesn't read an integer yet.
-                        todo!()
+                        writeln!(f, "\tsubq %rsp, 16")?;
+                        writeln!(f, "\tleaq %rdi, format_read_int")?;
+                        writeln!(f, "\tmovq %rsi, %rsp")?;
+                        writeln!(f, "\tcallq scanf")?;
+                        writeln!(f, "\tpopq %rax")?;
+                        writeln!(f, "\taddq %rsp, 8")
                     }
                     (lbl, _) => writeln!(f, "\tcall {lbl}"),
                 }
