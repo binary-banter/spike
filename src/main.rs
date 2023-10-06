@@ -1,24 +1,17 @@
-use crate::parser::parse_program;
-use crate::passes::assign_homes::assign_program;
-use crate::passes::conclude::conclude_program;
-use crate::passes::emit::emit_program;
-use crate::passes::explicate_control::explicate_program;
-use crate::passes::patch_instructions::patch_program;
-use crate::passes::remove_complex_operands::rco_program;
-use crate::passes::select_instructions::select_program;
-use crate::passes::uniquify::uniquify_program;
-use crate::type_checking::{type_check_program, TypeError};
+use rust_compiler_construction::parser::parse_program;
+use rust_compiler_construction::passes::assign_homes::assign_program;
+use rust_compiler_construction::passes::conclude::conclude_program;
+use rust_compiler_construction::passes::emit::emit_program;
+use rust_compiler_construction::passes::explicate_control::explicate_program;
+use rust_compiler_construction::passes::patch_instructions::patch_program;
+use rust_compiler_construction::passes::remove_complex_operands::rco_program;
+use rust_compiler_construction::passes::select_instructions::select_program;
+use rust_compiler_construction::passes::uniquify::uniquify_program;
+use rust_compiler_construction::type_checking::{type_check_program, TypeError};
 use std::fs::File;
 
-pub mod interpreter;
-pub mod language;
-mod parser;
-pub mod passes;
-mod type_checking;
-pub mod utils;
-
 fn main() -> Result<(), TypeError> {
-    let program = parse_program("(print (+ 10 (read)))").unwrap().1;
+    let program = parse_program("(print (- (read) (read)))").unwrap().1;
 
     type_check_program(&program)?;
 

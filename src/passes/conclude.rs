@@ -1,4 +1,4 @@
-use crate::language::x86var::{Arg, Block, Instr, PX86Program, Reg, SysOp, X86Program};
+use crate::language::x86var::{Arg, Block, Instr, PX86Program, Reg, X86Program};
 use crate::{addq, block, callq, imm, jmp, movq, popq, pushq, reg, subq};
 
 pub fn conclude_program(mut program: PX86Program) -> X86Program {
@@ -6,11 +6,9 @@ pub fn conclude_program(mut program: PX86Program) -> X86Program {
     core(&mut program);
     conclusion(&mut program);
 
-    let program = X86Program {
+    X86Program {
         blocks: program.blocks,
-    };
-
-    program
+    }
 }
 
 fn core(program: &mut PX86Program) {
@@ -40,7 +38,7 @@ fn conclusion(program: &mut PX86Program) {
         block!(
             addq!(imm!(program.stack_space as i64), reg!(RSP)),
             popq!(reg!(RBP)),
-            movq!(imm!(0), reg!(RDI)),
+            movq!(reg!(RAX), reg!(RDI)),
             callq!("exit", 1)
         ),
     );

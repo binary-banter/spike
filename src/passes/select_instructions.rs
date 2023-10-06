@@ -43,9 +43,9 @@ fn select_assign(dst: VarArg, expr: CExpr) -> Vec<Instr<VarArg>> {
             (Op::Minus, [a0]) => vec![movq!(select_atom(a0), dst.clone()), negq!(dst)],
             (Op::Read, []) => vec![callq!("_read_int", 0), movq!(reg!(RAX), dst)],
             (Op::Print, [a0]) => vec![
-                movq!(select_atom(a0), dst),
                 movq!(select_atom(a0), reg!(RDI)),
                 callq!("_print_int", 1),
+                movq!(select_atom(a0), dst),
             ],
             _ => panic!("Encountered Prim with incorrect arity during select instructions pass."),
         },

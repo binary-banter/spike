@@ -1,4 +1,4 @@
-use crate::language::x86var::{Arg, Block, Instr, Reg, SysOp, X86Program};
+use crate::language::x86var::{Arg, Block, Instr, Reg, X86Program};
 use std::fmt::{Display, Formatter};
 use std::io::Write;
 
@@ -39,24 +39,22 @@ impl Display for Instr<Arg> {
             Instr::Movq { src, dst } => writeln!(f, "\tmovq {dst}, {src}"),
             Instr::Pushq { src } => writeln!(f, "\tpushq {src}"),
             Instr::Popq { dst } => writeln!(f, "\tpopq {dst}"),
-            Instr::Callq { lbl, arity } => {
-                match (lbl.as_str(), arity){
-                    ("_print_int", 1) => {
-                        writeln!(f, "\tmovq %rsi, %rdi")?;
-                        writeln!(f, "\tleaq %rdi, format_print_int")?;
-                        writeln!(f, "\tcallq printf")
-                    }
-                    ("_read_int", 0) => {
-                        writeln!(f, "\tsubq %rsp, 16")?;
-                        writeln!(f, "\tleaq %rdi, format_read_int")?;
-                        writeln!(f, "\tmovq %rsi, %rsp")?;
-                        writeln!(f, "\tcallq scanf")?;
-                        writeln!(f, "\tpopq %rax")?;
-                        writeln!(f, "\taddq %rsp, 8")
-                    }
-                    (lbl, _) => writeln!(f, "\tcall {lbl}"),
+            Instr::Callq { lbl, arity } => match (lbl.as_str(), arity) {
+                ("_print_int", 1) => {
+                    writeln!(f, "\tmovq %rsi, %rdi")?;
+                    writeln!(f, "\tleaq %rdi, format_print_int")?;
+                    writeln!(f, "\tcallq printf")
                 }
-            }
+                ("_read_int", 0) => {
+                    writeln!(f, "\tsubq %rsp, 16")?;
+                    writeln!(f, "\tleaq %rdi, format_read_int")?;
+                    writeln!(f, "\tmovq %rsi, %rsp")?;
+                    writeln!(f, "\tcallq scanf")?;
+                    writeln!(f, "\tpopq %rax")?;
+                    writeln!(f, "\taddq %rsp, 8")
+                }
+                (lbl, _) => writeln!(f, "\tcall {lbl}"),
+            },
             Instr::Retq => writeln!(f, "\tret"),
             Instr::Jmp { lbl } => writeln!(f, "\tjmp {lbl}"),
         }
