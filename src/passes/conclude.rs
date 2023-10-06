@@ -17,7 +17,7 @@ fn core(program: &mut PX86Program) {
     program
         .blocks
         .get_mut("core")
-        .expect("There should be a start block.")
+        .expect("There should be a core block.")
         .instrs
         .extend([jmp!("conclusion")]);
 }
