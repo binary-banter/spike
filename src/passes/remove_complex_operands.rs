@@ -10,7 +10,7 @@ impl<'p> ULVarProgram<'p> {
     }
 }
 
-fn rco_expr<'p>(expr: Expr< UniqueSym<'p>>) -> AExpr<'p> {
+fn rco_expr(expr: Expr< UniqueSym<'_>>) -> AExpr<'_> {
     match expr {
         Expr::Int { val } => AExpr::Atom(Atom::Int { val }),
         Expr::Var { sym } => AExpr::Atom(Atom::Var { sym }),
@@ -34,7 +34,7 @@ fn rco_expr<'p>(expr: Expr< UniqueSym<'p>>) -> AExpr<'p> {
     }
 }
 
-fn rco_atom<'p>(expr: Expr< UniqueSym<'p>>) -> (Atom<'p>, Option<(UniqueSym<'p>, AExpr<'p>)>) {
+fn rco_atom(expr: Expr< UniqueSym<'_>>) -> (Atom<'_>, Option<(UniqueSym<'_>, AExpr<'_>)>) {
     match expr {
         Expr::Int { val } => (Atom::Int { val }, None),
         Expr::Var { sym } => (Atom::Var { sym }, None),

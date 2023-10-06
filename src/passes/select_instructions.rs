@@ -13,7 +13,7 @@ impl<'p> CVarProgram<'p> {
     }
 }
 
-fn select_block<'p>(tail: Tail<'p>) -> Block<'p, VarArg<'p>> {
+fn select_block(tail: Tail<'_>) -> Block<'_, VarArg<'_>> {
     let mut instrs = Vec::new();
     select_tail(tail, &mut instrs);
     Block { instrs }
@@ -57,7 +57,7 @@ fn select_assign<'p>(dst: VarArg<'p>, expr: CExpr<'p>) -> Vec<Instr<'p, VarArg<'
 fn select_atom<'p>(expr: &Atom<'p>) -> VarArg<'p> {
     match expr {
         Atom::Int { val } => VarArg::Imm { val: *val },
-        Atom::Var { sym } => VarArg::XVar { sym: sym.clone() },
+        Atom::Var { sym } => VarArg::XVar { sym: *sym },
     }
 }
 

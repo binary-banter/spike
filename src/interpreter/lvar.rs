@@ -3,13 +3,13 @@ use crate::interpreter::IO;
 use crate::language::lvar::{Expr, GLVarProgram, Op};
 use crate::utils::push_map::PushMap;
 
-impl<'p, A: Copy + Hash + Eq> GLVarProgram<A>{
+impl<A: Copy + Hash + Eq> GLVarProgram<A>{
     pub fn interpret(&self, io: &mut impl IO) -> i64 {
         interpret_expr(&self.bdy, &mut PushMap::default(), io)
     }
 }
 
-fn interpret_expr<'p, A: Copy + Hash + Eq>(expr: &Expr< A>, scope: &mut PushMap<A, i64>, io: &mut impl IO) -> i64 {
+fn interpret_expr<A: Copy + Hash + Eq>(expr: &Expr< A>, scope: &mut PushMap<A, i64>, io: &mut impl IO) -> i64 {
     match expr {
         Expr::Int { val } => *val,
         Expr::Var { sym } => scope[sym],
@@ -38,7 +38,7 @@ fn interpret_expr<'p, A: Copy + Hash + Eq>(expr: &Expr< A>, scope: &mut PushMap<
         },
         Expr::Let { sym, bnd, bdy } => {
             let bnd = interpret_expr(bnd, scope, io);
-            scope.push(sym.clone(), bnd, |scope| interpret_expr(bdy, scope, io))
+            scope.push(*sym, bnd, |scope| interpret_expr(bdy, scope, io))
         }
     }
 }

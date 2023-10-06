@@ -6,7 +6,7 @@ use crate::parser::var::parse_var;
 use nom::branch::alt;
 use nom::IResult;
 
-pub fn parse_expression<'p>(input: &'p str) -> IResult<&'p str, Expr<&'p str>> {
+pub fn parse_expression(input: &str) -> IResult<&str, Expr<&str>> {
     alt((parse_int, parse_var, parse_prim, parse_let))(input)
 }
 

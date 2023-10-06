@@ -48,9 +48,9 @@ fn assign_arg<'p>(arg: VarArg<'p>, homes: &mut HashMap<UniqueSym<'p>, i64>) -> A
         VarArg::Reg { reg } => Arg::Reg { reg },
         VarArg::Deref { reg, off } => Arg::Deref { reg, off },
         VarArg::XVar { sym } => {
-            if !homes.contains_key(&sym) {
-                homes.insert(sym, -(homes.len() as i64 + 1) * 8);
-            }
+            let entries = homes.len();
+            homes.entry(sym).or_insert(-(entries as i64 + 1) * 8);
+            
             Arg::Deref {
                 reg: Reg::RBP,
                 off: homes[&sym],

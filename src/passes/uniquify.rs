@@ -27,7 +27,7 @@ fn uniquify_expression<'p>(expr: Expr< &'p str>, scope: &mut PushMap<&'p str, Un
         },
         Expr::Let { sym, bnd, bdy } => {
             let unique_bnd = uniquify_expression(*bnd, scope);
-            let unique_sym = gen_sym(&sym);
+            let unique_sym = gen_sym(sym);
             let unique_bdy = scope.push(sym, unique_sym, |scope| {
                 uniquify_expression(*bdy, scope)
             });
@@ -47,7 +47,7 @@ pub struct UniqueSym<'p>{
     pub id: usize
 }
 
-pub fn gen_sym<'p>(sym: &'p str) -> UniqueSym<'p> {
+pub fn gen_sym(sym: &str) -> UniqueSym<'_> {
     UniqueSym {
         sym,
         id: COUNT.fetch_add(1, Ordering::Relaxed),

@@ -8,7 +8,7 @@ use nom::sequence::{delimited, pair};
 use nom::IResult;
 use nom::Parser;
 
-pub fn parse_prim<'p>(input: &'p str) -> IResult<&'p str, Expr< &'p str>> {
+pub fn parse_prim(input: &str) -> IResult<&str, Expr< &str>> {
     delimited(
         char('('),
         pair(trim0(parse_operation), many0(trim1(parse_expression)))

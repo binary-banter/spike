@@ -42,14 +42,12 @@ fn instr_reads<'p>(instr: &Instr<'p, VarArg<'p>>) -> HashSet<LArg<'p>> {
         Instr::Addq { src, dst } | Instr::Subq { src, dst } => [src, dst]
             .into_iter()
             .cloned()
-            .map(TryFrom::try_from)
-            .flatten()
+            .flat_map(TryFrom::try_from)
             .collect(),
         Instr::Movq { src, .. } | Instr::Pushq { src } | Instr::Negq { dst: src } => [src]
             .into_iter()
             .cloned()
-            .map(TryFrom::try_from)
-            .flatten()
+            .flat_map(TryFrom::try_from)
             .collect(),
         Instr::Callq { arity, .. } => ARG_PASSING_REGS
             .iter()
@@ -66,14 +64,12 @@ fn instr_writes<'p>(instr: &Instr<'p, VarArg<'p>>) -> HashSet<LArg<'p>> {
         Instr::Addq { dst, .. } | Instr::Subq { dst, .. } => [dst]
             .into_iter()
             .cloned()
-            .map(TryFrom::try_from)
-            .flatten()
+            .flat_map(TryFrom::try_from)
             .collect(),
         Instr::Movq { dst, .. } | Instr::Popq { dst } | Instr::Negq { dst } => [dst]
             .into_iter()
             .cloned()
-            .map(TryFrom::try_from)
-            .flatten()
+            .flat_map(TryFrom::try_from)
             .collect(),
         Instr::Callq { .. } => HashSet::from([LArg::Reg { reg: Reg::RAX }]),
         Instr::Pushq { .. } | Instr::Jmp { .. } | Instr::Retq => HashSet::new(),

@@ -14,7 +14,7 @@ impl<'p> AX86Program<'p> {
     }
 }
 
-fn patch_block<'p>(block: Block<'p, Arg>) -> Block<'p, Arg> {
+fn patch_block(block: Block<'_, Arg>) -> Block<'_, Arg> {
     Block {
         instrs: block
             .instrs
@@ -24,7 +24,7 @@ fn patch_block<'p>(block: Block<'p, Arg>) -> Block<'p, Arg> {
     }
 }
 
-fn patch_instr<'p>(instr: Instr<'p, Arg>) -> Vec<Instr<'p, Arg>> {
+fn patch_instr(instr: Instr<'_, Arg>) -> Vec<Instr<'_, Arg>> {
     match instr {
         Instr::Addq { src, dst } => patch_args(src, dst, |src, dst| addq!(src, dst)),
         Instr::Subq { src, dst } => patch_args(src, dst, |src, dst| subq!(src, dst)),

@@ -7,7 +7,7 @@ use nom::character::complete::char;
 use nom::sequence::{delimited, pair, tuple};
 use nom::{IResult, Parser};
 
-pub fn parse_let<'p>(input: &'p str) -> IResult<&'p str, Expr< &'p str>> {
+pub fn parse_let(input: &str) -> IResult<&str, Expr< &str>> {
     delimited(
         char('('),
         tuple((
