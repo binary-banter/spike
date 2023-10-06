@@ -12,12 +12,13 @@ impl<'p> LVarProgram<'p> {
     }
 }
 
-fn uniquify_expression<'p>(expr: Expr< &'p str>, scope: &mut PushMap<&'p str, UniqueSym<'p>>) -> Expr< UniqueSym<'p>> {
+fn uniquify_expression<'p>(
+    expr: Expr<&'p str>,
+    scope: &mut PushMap<&'p str, UniqueSym<'p>>,
+) -> Expr<UniqueSym<'p>> {
     match expr {
-        Expr::Int { val } => Expr::Int{ val },
-        Expr::Var { sym } => Expr::Var {
-            sym: scope[&sym],
-        },
+        Expr::Int { val } => Expr::Int { val },
+        Expr::Var { sym } => Expr::Var { sym: scope[&sym] },
         Expr::Prim { op, args } => Expr::Prim {
             op,
             args: args
@@ -28,9 +29,7 @@ fn uniquify_expression<'p>(expr: Expr< &'p str>, scope: &mut PushMap<&'p str, Un
         Expr::Let { sym, bnd, bdy } => {
             let unique_bnd = uniquify_expression(*bnd, scope);
             let unique_sym = gen_sym(sym);
-            let unique_bdy = scope.push(sym, unique_sym, |scope| {
-                uniquify_expression(*bdy, scope)
-            });
+            let unique_bdy = scope.push(sym, unique_sym, |scope| uniquify_expression(*bdy, scope));
 
             Expr::Let {
                 sym: unique_sym,
@@ -42,9 +41,9 @@ fn uniquify_expression<'p>(expr: Expr< &'p str>, scope: &mut PushMap<&'p str, Un
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Hash)]
-pub struct UniqueSym<'p>{
+pub struct UniqueSym<'p> {
     pub sym: &'p str,
-    pub id: usize
+    pub id: usize,
 }
 
 pub fn gen_sym(sym: &str) -> UniqueSym<'_> {

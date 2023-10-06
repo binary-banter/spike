@@ -23,7 +23,10 @@ pub fn type_check_program(program: &LVarProgram) -> Result<Type, TypeError> {
     type_check_expr(&program.bdy, &mut PushMap::default())
 }
 
-fn type_check_expr<'p>(expr: &Expr< &'p str>, scope: &mut PushMap<&'p str, Type>) -> Result<Type, TypeError> {
+fn type_check_expr<'p>(
+    expr: &Expr<&'p str>,
+    scope: &mut PushMap<&'p str, Type>,
+) -> Result<Type, TypeError> {
     match expr {
         Expr::Int { .. } => Ok(Type::Integer),
         Expr::Var { sym } => scope.get(sym).cloned().ok_or(UndeclaredVar),
@@ -46,15 +49,13 @@ fn type_check_expr<'p>(expr: &Expr< &'p str>, scope: &mut PushMap<&'p str, Type>
         },
         Expr::Let { sym, bnd, bdy } => {
             type_check_expr(bnd, scope)?;
-            scope.push(sym, Type::Integer, |scope| {
-                type_check_expr(bdy, scope)
-            })
+            scope.push(sym, Type::Integer, |scope| type_check_expr(bdy, scope))
         }
     }
 }
 
 fn expect_type<'p>(
-    expr: &Expr< &'p str>,
+    expr: &Expr<&'p str>,
     scope: &mut PushMap<&'p str, Type>,
     expected: Type,
 ) -> Result<(), TypeError> {

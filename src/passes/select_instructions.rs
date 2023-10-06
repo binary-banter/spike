@@ -63,7 +63,6 @@ fn select_atom<'p>(expr: &Atom<'p>) -> VarArg<'p> {
 
 #[cfg(test)]
 mod tests {
-    use crate::interpreter::x86var::interpret_x86var;
     use crate::interpreter::TestIO;
     use crate::utils::split_test::split_test;
     use test_each_file::test_each_file;
@@ -76,7 +75,7 @@ mod tests {
             .explicate()
             .select();
         let mut io = TestIO::new(input);
-        let result = interpret_x86var("core", &program, &mut io);
+        let result = program.interpret("core", &mut io);
 
         assert_eq!(result, expected_return, "Incorrect program result.");
         assert_eq!(io.outputs(), &expected_output, "Incorrect program output.");

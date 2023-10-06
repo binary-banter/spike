@@ -33,7 +33,7 @@ impl<'p> From<CVarProgram<'p>> for ULVarProgram<'p> {
     }
 }
 
-impl<'p> From<Tail<'p>> for Expr< UniqueSym<'p>> {
+impl<'p> From<Tail<'p>> for Expr<UniqueSym<'p>> {
     fn from(value: Tail<'p>) -> Self {
         match value {
             Tail::Return { expr } => expr.into(),
@@ -46,7 +46,7 @@ impl<'p> From<Tail<'p>> for Expr< UniqueSym<'p>> {
     }
 }
 
-impl<'p> From<CExpr<'p>> for Expr< UniqueSym<'p>> {
+impl<'p> From<CExpr<'p>> for Expr<UniqueSym<'p>> {
     fn from(value: CExpr<'p>) -> Self {
         match value {
             CExpr::Atom(a) => a.into(),

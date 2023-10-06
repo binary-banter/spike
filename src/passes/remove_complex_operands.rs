@@ -10,7 +10,7 @@ impl<'p> ULVarProgram<'p> {
     }
 }
 
-fn rco_expr(expr: Expr< UniqueSym<'_>>) -> AExpr<'_> {
+fn rco_expr(expr: Expr<UniqueSym<'_>>) -> AExpr<'_> {
     match expr {
         Expr::Int { val } => AExpr::Atom(Atom::Int { val }),
         Expr::Var { sym } => AExpr::Atom(Atom::Var { sym }),
@@ -34,7 +34,7 @@ fn rco_expr(expr: Expr< UniqueSym<'_>>) -> AExpr<'_> {
     }
 }
 
-fn rco_atom(expr: Expr< UniqueSym<'_>>) -> (Atom<'_>, Option<(UniqueSym<'_>, AExpr<'_>)>) {
+fn rco_atom(expr: Expr<UniqueSym<'_>>) -> (Atom<'_>, Option<(UniqueSym<'_>, AExpr<'_>)>) {
     match expr {
         Expr::Int { val } => (Atom::Int { val }, None),
         Expr::Var { sym } => (Atom::Var { sym }, None),
@@ -48,9 +48,9 @@ fn rco_atom(expr: Expr< UniqueSym<'_>>) -> (Atom<'_>, Option<(UniqueSym<'_>, AEx
 #[cfg(test)]
 mod tests {
     use crate::interpreter::TestIO;
+    use crate::language::lvar::ULVarProgram;
     use crate::utils::split_test::split_test;
     use test_each_file::test_each_file;
-    use crate::language::lvar::ULVarProgram;
 
     fn atomic([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);

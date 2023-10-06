@@ -48,24 +48,24 @@ fn conclusion(program: &mut PX86Program) {
 
 #[cfg(test)]
 mod tests {
-    use crate::interpreter::x86var::interpret_x86var;
     use crate::interpreter::TestIO;
+    use crate::language::x86var::X86VarProgram;
     use crate::utils::split_test::split_test;
     use test_each_file::test_each_file;
 
     fn conclude([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);
-        let program = program
+        let program: X86VarProgram = program
             .uniquify()
             .remove_complex_operands()
             .explicate()
             .select()
             .assign_homes()
             .patch()
-            .conclude();
-
+            .conclude()
+            .into();
         let mut io = TestIO::new(input);
-        let result = interpret_x86var("main", &program.into(), &mut io);
+        let result = program.interpret("main", &mut io);
 
         assert_eq!(result, expected_return, "Incorrect program result.");
         assert_eq!(io.outputs(), &expected_output, "Incorrect program output.");

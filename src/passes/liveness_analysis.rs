@@ -15,7 +15,7 @@ impl<'p> X86VarProgram<'p> {
     }
 }
 
-fn block_liveness<'p>(block: Block<'p, VarArg<'p>>) -> LBlock <'p>{
+fn block_liveness<'p>(block: Block<'p, VarArg<'p>>) -> LBlock<'p> {
     let mut instrs = Vec::new();
     let mut live = HashSet::new();
 

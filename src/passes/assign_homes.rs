@@ -1,7 +1,7 @@
 use crate::language::x86var::{AX86Program, Arg, Block, Instr, Reg, VarArg, X86VarProgram};
+use crate::passes::uniquify::UniqueSym;
 use crate::{addq, callq, jmp, movq, negq, popq, pushq, retq, subq};
 use std::collections::HashMap;
-use crate::passes::uniquify::UniqueSym;
 
 impl<'p> X86VarProgram<'p> {
     pub fn assign_homes(self) -> AX86Program<'p> {
@@ -18,7 +18,10 @@ impl<'p> X86VarProgram<'p> {
     }
 }
 
-fn assign_block<'p>(block: Block<'p, VarArg<'p>>, homes: &mut HashMap<UniqueSym<'p>, i64>) -> Block<'p, Arg> {
+fn assign_block<'p>(
+    block: Block<'p, VarArg<'p>>,
+    homes: &mut HashMap<UniqueSym<'p>, i64>,
+) -> Block<'p, Arg> {
     Block {
         instrs: block
             .instrs
@@ -28,7 +31,10 @@ fn assign_block<'p>(block: Block<'p, VarArg<'p>>, homes: &mut HashMap<UniqueSym<
     }
 }
 
-fn assign_instruction<'p>(instr: Instr<'p, VarArg<'p>>, homes: &mut HashMap<UniqueSym<'p>, i64>) -> Instr<'p, Arg> {
+fn assign_instruction<'p>(
+    instr: Instr<'p, VarArg<'p>>,
+    homes: &mut HashMap<UniqueSym<'p>, i64>,
+) -> Instr<'p, Arg> {
     match instr {
         Instr::Addq { src, dst } => addq!(assign_arg(src, homes), assign_arg(dst, homes)),
         Instr::Subq { src, dst } => subq!(assign_arg(src, homes), assign_arg(dst, homes)),
@@ -50,7 +56,7 @@ fn assign_arg<'p>(arg: VarArg<'p>, homes: &mut HashMap<UniqueSym<'p>, i64>) -> A
         VarArg::XVar { sym } => {
             let entries = homes.len();
             homes.entry(sym).or_insert(-(entries as i64 + 1) * 8);
-            
+
             Arg::Deref {
                 reg: Reg::RBP,
                 off: homes[&sym],
@@ -61,21 +67,22 @@ fn assign_arg<'p>(arg: VarArg<'p>, homes: &mut HashMap<UniqueSym<'p>, i64>) -> A
 
 #[cfg(test)]
 mod tests {
-    use crate::interpreter::x86var::interpret_x86var;
     use crate::interpreter::TestIO;
+    use crate::language::x86var::X86VarProgram;
     use crate::utils::split_test::split_test;
     use test_each_file::test_each_file;
 
     fn assign_homes([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);
-        let program = program
+        let program: X86VarProgram = program
             .uniquify()
             .remove_complex_operands()
             .explicate()
             .select()
-            .assign_homes();
+            .assign_homes()
+            .into();
         let mut io = TestIO::new(input);
-        let result = interpret_x86var("core", &program.into(), &mut io);
+        let result = program.interpret("core", &mut io);
 
         assert_eq!(result, expected_return, "Incorrect program result.");
         assert_eq!(io.outputs(), &expected_output, "Incorrect program output.");

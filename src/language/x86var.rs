@@ -1,7 +1,7 @@
+use crate::passes::uniquify::UniqueSym;
 use crate::{addq, callq, jmp, movq, negq, popq, pushq, retq, subq};
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
-use crate::passes::uniquify::UniqueSym;
 
 #[derive(Debug, PartialEq)]
 pub struct X86Program<'p> {
@@ -267,17 +267,23 @@ mod macros {
 
     #[macro_export]
     macro_rules! retq {
-        () => { Instr::Retq };
+        () => {
+            Instr::Retq
+        };
     }
 
     #[macro_export]
     macro_rules! imm {
-        ($val:expr) => { Arg::Imm { val: $val }.into() };
+        ($val:expr) => {
+            Arg::Imm { val: $val }.into()
+        };
     }
 
     #[macro_export]
     macro_rules! reg {
-        ($reg:ident) => { Arg::Reg { reg: Reg::$reg }.into() };
+        ($reg:ident) => {
+            Arg::Reg { reg: Reg::$reg }.into()
+        };
     }
 
     #[macro_export]

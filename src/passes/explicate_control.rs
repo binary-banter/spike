@@ -45,9 +45,9 @@ fn explicate_assign<'p>(sym: UniqueSym<'p>, bnd: AExpr<'p>, tail: Tail<'p>) -> T
 #[cfg(test)]
 mod tests {
     use crate::interpreter::TestIO;
+    use crate::language::lvar::ULVarProgram;
     use crate::utils::split_test::split_test;
     use test_each_file::test_each_file;
-    use crate::language::lvar::ULVarProgram;
 
     fn explicated([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);

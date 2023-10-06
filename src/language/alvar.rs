@@ -34,7 +34,7 @@ impl<'p> From<ALVarProgram<'p>> for ULVarProgram<'p> {
     }
 }
 
-impl<'p> From<AExpr<'p>> for Expr< UniqueSym<'p>> {
+impl<'p> From<AExpr<'p>> for Expr<UniqueSym<'p>> {
     fn from(value: AExpr<'p>) -> Self {
         match value {
             AExpr::Atom(a) => a.into(),
@@ -51,7 +51,7 @@ impl<'p> From<AExpr<'p>> for Expr< UniqueSym<'p>> {
     }
 }
 
-impl<'p> From<Atom<'p>> for Expr< UniqueSym<'p>> {
+impl<'p> From<Atom<'p>> for Expr<UniqueSym<'p>> {
     fn from(value: Atom<'p>) -> Self {
         match value {
             Atom::Int { val } => Expr::Int { val },

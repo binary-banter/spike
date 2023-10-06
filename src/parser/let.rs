@@ -7,7 +7,7 @@ use nom::character::complete::char;
 use nom::sequence::{delimited, pair, tuple};
 use nom::{IResult, Parser};
 
-pub fn parse_let(input: &str) -> IResult<&str, Expr< &str>> {
+pub fn parse_let(input: &str) -> IResult<&str, Expr<&str>> {
     delimited(
         char('('),
         tuple((
@@ -41,9 +41,7 @@ mod tests {
             Expr::Let {
                 sym: "x",
                 bnd: Box::new(Expr::Int { val: 42 }),
-                bdy: Box::new(Expr::Var {
-                    sym: "x"
-                })
+                bdy: Box::new(Expr::Var { sym: "x" })
             }
         )
     }

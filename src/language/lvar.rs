@@ -8,7 +8,6 @@ pub struct GLVarProgram<A> {
     pub bdy: Expr<A>,
 }
 
-
 #[derive(Debug, PartialEq)]
 pub enum Op {
     Read,

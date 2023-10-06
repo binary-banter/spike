@@ -1,7 +1,7 @@
 use crate::interpreter::IO;
 use crate::language::x86var::{Block, Instr, Reg, VarArg, X86VarProgram};
-use std::collections::HashMap;
 use crate::passes::uniquify::UniqueSym;
+use std::collections::HashMap;
 
 struct X86Interpreter<'p, I: IO> {
     blocks: &'p HashMap<&'p str, Block<'p, VarArg<'p>>>,
@@ -11,16 +11,18 @@ struct X86Interpreter<'p, I: IO> {
     memory: HashMap<i64, i64>,
 }
 
-pub fn interpret_x86var<'p>(entry: &'p str, program: &X86VarProgram<'p>, io: &mut impl IO) -> i64 {
-    let mut state = X86Interpreter {
-        blocks: &program.blocks,
-        io,
-        regs: HashMap::from([(Reg::RBP, i64::MAX - 7), (Reg::RSP, i64::MAX - 7)]),
-        vars: HashMap::default(),
-        memory: HashMap::default(),
-    };
+impl<'p> X86VarProgram<'p> {
+    pub fn interpret(&self, entry: &'p str, io: &mut impl IO) -> i64 {
+        let mut state = X86Interpreter {
+            blocks: &self.blocks,
+            io,
+            regs: HashMap::from([(Reg::RBP, i64::MAX - 7), (Reg::RSP, i64::MAX - 7)]),
+            vars: HashMap::default(),
+            memory: HashMap::default(),
+        };
 
-    state.interpret_block(&state.blocks[&entry])
+        state.interpret_block(&state.blocks[&entry])
+    }
 }
 
 impl<'p, I: IO> X86Interpreter<'p, I> {
