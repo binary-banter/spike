@@ -35,10 +35,8 @@ pub enum Expr {
     },
 }
 
-impl From<ULVarProgram> for LVarProgram{
+impl From<ULVarProgram> for LVarProgram {
     fn from(value: ULVarProgram) -> Self {
-        LVarProgram{
-            bdy: value.bdy
-        }
+        LVarProgram { bdy: value.bdy }
     }
 }

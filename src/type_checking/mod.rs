@@ -2,16 +2,20 @@ use crate::language::lvar::{Expr, LVarProgram, Op};
 use crate::type_checking::TypeError::*;
 use crate::utils::expect::expect;
 use crate::utils::push_map::PushMap;
+use thiserror::Error;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Type {
     Integer,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Error)]
 pub enum TypeError {
+    #[error("Variable was not declared yet.")]
     UndeclaredVar,
+    #[error("Prim Op had incorrect arity.")]
     IncorrectArity,
+    #[error("Types were mismatched.")]
     TypeMismatch { expect: Type, got: Type },
 }
 
