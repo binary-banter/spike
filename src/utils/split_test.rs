@@ -19,7 +19,7 @@ pub fn split_test(test: &str) -> (Vec<i64>, Vec<i64>, i64, LVarProgram) {
         .collect::<Result<Vec<_>, _>>()
         .unwrap();
     let expected_return = expected_return.parse().unwrap();
-    let (_, program) = parse_program(program).unwrap();
+    let program = parse_program(program).unwrap();
 
     (input, expected_output, expected_return, program)
 }

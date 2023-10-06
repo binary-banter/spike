@@ -10,13 +10,49 @@ use crate::language::lvar::LVarProgram;
 use crate::parser::expression::parse_expression;
 use nom::character::complete::{multispace0, multispace1};
 use nom::combinator::all_consuming;
-use nom::error::{ErrorKind, ParseError};
+use nom::error::{Error, ErrorKind, ParseError};
 use nom::sequence::{preceded, terminated};
 use nom::Err;
 use nom::{IResult, Parser, Slice};
 use regex::Regex;
+use miette::{Diagnostic, SourceOffset, SourceSpan};
+use thiserror::Error;
 
-pub fn parse_program(input: &str) -> IResult<&str, LVarProgram> {
+#[derive(Error, Debug, Diagnostic)]
+#[error("Parse error!")]
+#[diagnostic(
+    code(oops::my::bad),
+    url(docsrs),
+    help("try doing it better next time?")
+)]
+pub struct PrettyParseError {
+    #[source_code]
+    src: String,
+
+    #[label("Failed to parse here")]
+    fail: SourceSpan
+}
+
+pub fn parse_program(src: &str) -> Result<LVarProgram, PrettyParseError> {
+    match parse_program_sub(src) {
+        Ok((_, o)) => Ok(o),
+        Err(e) => {
+            let e = match e {
+                Err::Incomplete(_) => unreachable!(),
+                Err::Error(e) => e,
+                Err::Failure(e) => e,
+            };
+
+            let offset = src.len() - e.input.len();
+            Err(PrettyParseError {
+                src: src.to_string(),
+                fail: SourceSpan::new(SourceOffset::from(offset), SourceOffset::from(1)),
+            })
+        }
+    }
+}
+
+fn parse_program_sub(input: &str) -> IResult<&str, LVarProgram> {
     all_consuming(terminated(parse_expression, multispace0))
         .map(|bdy| LVarProgram { bdy })
         .parse(input)
@@ -55,7 +91,7 @@ mod tests {
     #[test]
     fn int() {
         assert_eq!(
-            parse_program("42").unwrap().1,
+            parse_program("42").unwrap(),
             LVarProgram {
                 bdy: Expr::Int { val: 42 }
             }

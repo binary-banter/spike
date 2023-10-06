@@ -78,7 +78,7 @@ mod tests {
     fn check([test]: [&str; 1], should_fail: bool) {
         let mut test = test.split('#');
         let program = test.nth(3).unwrap().trim();
-        let program = parse_program(program).unwrap().1;
+        let program = parse_program(program).unwrap();
 
         if should_fail {
             assert!(type_check_program(&program).is_err());
