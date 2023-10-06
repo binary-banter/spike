@@ -1,10 +1,12 @@
 use crate::language::alvar::{AExpr, ALVarProgram, Atom};
-use crate::language::lvar::{Expr, LVarProgram};
+use crate::language::lvar::{Expr, ULVarProgram};
 use crate::passes::uniquify::gen_sym;
 
-pub fn rco_program(program: LVarProgram) -> ALVarProgram {
-    ALVarProgram {
-        bdy: rco_expr(program.bdy),
+impl ULVarProgram {
+    pub fn remove_complex_operands(self) -> ALVarProgram {
+        ALVarProgram {
+            bdy: rco_expr(self.bdy),
+        }
     }
 }
 
@@ -47,14 +49,12 @@ fn rco_atom(expr: Expr) -> (Atom, Option<(String, AExpr)>) {
 mod tests {
     use crate::interpreter::lvar::interpret_lvar;
     use crate::interpreter::TestIO;
-    use crate::passes::remove_complex_operands::rco_program;
-    use crate::passes::uniquify::uniquify_program;
     use crate::utils::split_test::split_test;
     use test_each_file::test_each_file;
 
     fn atomic([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);
-        let program = rco_program(uniquify_program(program));
+        let program = program.uniquify().remove_complex_operands();
         let mut io = TestIO::new(input);
         let result = interpret_lvar(&program.into(), &mut io);
 

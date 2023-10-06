@@ -4,6 +4,11 @@ pub struct LVarProgram {
 }
 
 #[derive(Debug, PartialEq)]
+pub struct ULVarProgram {
+    pub bdy: Expr,
+}
+
+#[derive(Debug, PartialEq)]
 pub enum Op {
     Read,
     Print,
@@ -28,4 +33,12 @@ pub enum Expr {
         bnd: Box<Expr>,
         bdy: Box<Expr>,
     },
+}
+
+impl From<ULVarProgram> for LVarProgram{
+    fn from(value: ULVarProgram) -> Self {
+        LVarProgram{
+            bdy: value.bdy
+        }
+    }
 }

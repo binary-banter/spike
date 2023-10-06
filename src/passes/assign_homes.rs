@@ -2,18 +2,18 @@ use crate::language::x86var::{AX86Program, Arg, Block, Instr, Reg, VarArg, X86Va
 use crate::{addq, callq, jmp, movq, negq, popq, pushq, retq, subq};
 use std::collections::HashMap;
 
-pub fn assign_program(program: X86VarProgram) -> AX86Program {
-    let mut homes = HashMap::new();
+impl X86VarProgram {
+    pub fn assign_homes(self) -> AX86Program {
+        let mut homes = HashMap::new();
 
-    let blocks = program
-        .blocks
-        .into_iter()
-        .map(|block| (block.0, assign_block(block.1, &mut homes)))
-        .collect();
-
-    AX86Program {
-        blocks,
-        stack_space: (8 * homes.len()).div_ceil(16) * 16,
+        AX86Program {
+            blocks: self
+                .blocks
+                .into_iter()
+                .map(|block| (block.0, assign_block(block.1, &mut homes)))
+                .collect(),
+            stack_space: (8 * homes.len()).div_ceil(16) * 16,
+        }
     }
 }
 
@@ -62,19 +62,17 @@ fn assign_arg(arg: VarArg, homes: &mut HashMap<String, i64>) -> Arg {
 mod tests {
     use crate::interpreter::x86var::interpret_x86var;
     use crate::interpreter::TestIO;
-    use crate::passes::assign_homes::assign_program;
-    use crate::passes::explicate_control::explicate_program;
-    use crate::passes::remove_complex_operands::rco_program;
-    use crate::passes::select_instructions::select_program;
-    use crate::passes::uniquify::uniquify_program;
     use crate::utils::split_test::split_test;
     use test_each_file::test_each_file;
 
     fn assign_homes([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);
-        let program = assign_program(select_program(explicate_program(rco_program(
-            uniquify_program(program),
-        ))));
+        let program = program
+            .uniquify()
+            .remove_complex_operands()
+            .explicate()
+            .select()
+            .assign_homes();
         let mut io = TestIO::new(input);
         let result = interpret_x86var("core", &program.into(), &mut io);
 

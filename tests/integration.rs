@@ -1,11 +1,3 @@
-use rust_compiler_construction::passes::assign_homes::assign_program;
-use rust_compiler_construction::passes::conclude::conclude_program;
-use rust_compiler_construction::passes::emit::emit_program;
-use rust_compiler_construction::passes::explicate_control::explicate_program;
-use rust_compiler_construction::passes::patch_instructions::patch_program;
-use rust_compiler_construction::passes::remove_complex_operands::rco_program;
-use rust_compiler_construction::passes::select_instructions::select_program;
-use rust_compiler_construction::passes::uniquify::uniquify_program;
 use rust_compiler_construction::utils::split_test::split_test;
 use std::fs::File;
 use std::io::{BufRead, Write};
@@ -19,13 +11,16 @@ fn integration([test]: [&str; 1]) {
     let mut asm = File::create(tempdir.path().join("output.s")).unwrap();
 
     let (input, expected_output, expected_return, program) = split_test(test);
-    emit_program(
-        conclude_program(patch_program(assign_program(select_program(
-            explicate_program(rco_program(uniquify_program(program))),
-        )))),
-        &mut asm,
-    )
-    .unwrap();
+    program
+        .uniquify()
+        .remove_complex_operands()
+        .explicate()
+        .select()
+        .assign_homes()
+        .patch()
+        .conclude()
+        .emit(&mut asm)
+        .unwrap();
 
     Command::new("gcc")
         .current_dir(&tempdir)

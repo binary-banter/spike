@@ -2,8 +2,10 @@ use crate::language::x86var::{Arg, Block, Instr, Reg, X86Program};
 use std::fmt::{Display, Formatter};
 use std::io::Write;
 
-pub fn emit_program(program: X86Program, w: &mut impl Write) -> std::io::Result<()> {
-    write!(w, "{program}")
+impl X86Program {
+    pub fn emit(self, w: &mut impl Write) -> std::io::Result<()> {
+        write!(w, "{self}")
+    }
 }
 
 impl Display for X86Program {

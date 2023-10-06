@@ -1,12 +1,14 @@
-use crate::language::lvar::{Expr, LVarProgram};
+use crate::language::lvar::{Expr, LVarProgram, ULVarProgram};
 use crate::utils::push_map::PushMap;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 static COUNT: AtomicUsize = AtomicUsize::new(0);
 
-pub fn uniquify_program(program: LVarProgram) -> LVarProgram {
-    LVarProgram {
-        bdy: uniquify_expression(program.bdy, &mut PushMap::default()),
+impl LVarProgram {
+    pub fn uniquify(self) -> ULVarProgram {
+        ULVarProgram {
+            bdy: uniquify_expression(self.bdy, &mut PushMap::default()),
+        }
     }
 }
 
@@ -48,14 +50,13 @@ mod tests {
     use crate::interpreter::lvar::interpret_lvar;
     use crate::interpreter::TestIO;
     use crate::language::lvar::Expr;
-    use crate::passes::uniquify::uniquify_program;
     use crate::utils::split_test::split_test;
     use std::collections::HashSet;
     use test_each_file::test_each_file;
 
     fn unique([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);
-        let uniquified_program = uniquify_program(program);
+        let uniquified_program = program.uniquify().into();
         let mut io = TestIO::new(input);
         let result = interpret_lvar(&uniquified_program, &mut io);
 

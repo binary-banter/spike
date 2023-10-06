@@ -1,9 +1,11 @@
 use crate::language::alvar::{AExpr, ALVarProgram};
 use crate::language::cvar::{CExpr, CVarProgram, Tail};
 
-pub fn explicate_program(program: ALVarProgram) -> CVarProgram {
-    CVarProgram {
-        bdy: explicate_tail(program.bdy),
+impl ALVarProgram {
+    pub fn explicate(self) -> CVarProgram {
+        CVarProgram {
+            bdy: explicate_tail(self.bdy),
+        }
     }
 }
 
@@ -43,15 +45,12 @@ fn explicate_assign(sym: String, bnd: AExpr, tail: Tail) -> Tail {
 mod tests {
     use crate::interpreter::lvar::interpret_lvar;
     use crate::interpreter::TestIO;
-    use crate::passes::explicate_control::explicate_program;
-    use crate::passes::remove_complex_operands::rco_program;
-    use crate::passes::uniquify::uniquify_program;
     use crate::utils::split_test::split_test;
     use test_each_file::test_each_file;
 
     fn explicated([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);
-        let program = explicate_program(rco_program(uniquify_program(program)));
+        let program = program.uniquify().remove_complex_operands().explicate();
         let mut io = TestIO::new(input);
         let result = interpret_lvar(&program.into(), &mut io);
 

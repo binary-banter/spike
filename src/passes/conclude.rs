@@ -1,13 +1,15 @@
 use crate::language::x86var::{Arg, Block, Instr, PX86Program, Reg, X86Program};
 use crate::{addq, block, callq, imm, jmp, movq, popq, pushq, reg, subq};
 
-pub fn conclude_program(mut program: PX86Program) -> X86Program {
-    main(&mut program);
-    core(&mut program);
-    conclusion(&mut program);
+impl PX86Program {
+    pub fn conclude(mut self) -> X86Program {
+        main(&mut self);
+        core(&mut self);
+        conclusion(&mut self);
 
-    X86Program {
-        blocks: program.blocks,
+        X86Program {
+            blocks: self.blocks,
+        }
     }
 }
 
@@ -48,21 +50,19 @@ fn conclusion(program: &mut PX86Program) {
 mod tests {
     use crate::interpreter::x86var::interpret_x86var;
     use crate::interpreter::TestIO;
-    use crate::passes::assign_homes::assign_program;
-    use crate::passes::conclude::conclude_program;
-    use crate::passes::explicate_control::explicate_program;
-    use crate::passes::patch_instructions::patch_program;
-    use crate::passes::remove_complex_operands::rco_program;
-    use crate::passes::select_instructions::select_program;
-    use crate::passes::uniquify::uniquify_program;
     use crate::utils::split_test::split_test;
     use test_each_file::test_each_file;
 
     fn conclude([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);
-        let program = conclude_program(patch_program(assign_program(select_program(
-            explicate_program(rco_program(uniquify_program(program))),
-        ))));
+        let program = program
+            .uniquify()
+            .remove_complex_operands()
+            .explicate()
+            .select()
+            .assign_homes()
+            .patch()
+            .conclude();
 
         let mut io = TestIO::new(input);
         let result = interpret_x86var("main", &program.into(), &mut io);
