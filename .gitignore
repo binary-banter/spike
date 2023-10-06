@@ -1,3 +1,6 @@
 /target
 .idea/
 programs/good/cc/
+output.s
+output
+a.out

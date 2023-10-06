@@ -18,7 +18,7 @@ mod type_checking;
 pub mod utils;
 
 fn main() -> Result<(), TypeError> {
-    let program = parse_program("(let (x (+ 1 (let (y 1) y))) x)").unwrap().1;
+    let program = parse_program("(print (+ 41 1))").unwrap().1; // (exit 42)
 
     type_check_program(&program)?;
 

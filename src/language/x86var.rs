@@ -61,6 +61,8 @@ pub enum Arg {
     Deref { reg: Reg, off: i64 },
 }
 
+/// caller-saved: rax rcx rdx rsi rdi r8 r9 r10 r11
+/// callee-saved: rsp rbp rbx r12 r13 r14 r15
 #[derive(Debug, PartialEq, Clone, Copy, Eq, Hash)]
 #[allow(clippy::upper_case_acronyms)]
 pub enum Reg {
