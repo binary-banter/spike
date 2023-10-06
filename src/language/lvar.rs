@@ -1,11 +1,13 @@
+use crate::passes::uniquify::UniqueSym;
+
 #[derive(Debug, PartialEq)]
 pub struct LVarProgram<'p> {
-    pub bdy: Expr<'p>,
+    pub bdy: Expr<&'p str>,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct ULVarProgram<'p> {
-    pub bdy: Expr<'p>,
+    pub bdy: Expr<UniqueSym<'p>>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -17,26 +19,20 @@ pub enum Op {
 }
 
 #[derive(Debug, PartialEq)]
-pub enum Expr<'p> {
+pub enum Expr<A> {
     Int {
         val: i64,
     },
     Var {
-        sym: &'p str,
+        sym: A,
     },
     Prim {
         op: Op,
-        args: Vec<Expr<'p>>,
+        args: Vec<Expr<A>>,
     },
     Let {
-        sym: &'p str,
-        bnd: Box<Expr<'p>>,
-        bdy: Box<Expr<'p>>,
+        sym: A,
+        bnd: Box<Expr<A>>,
+        bdy: Box<Expr<A>>,
     },
-}
-
-impl<'p> From<ULVarProgram<'p>> for LVarProgram<'p> {
-    fn from(value: ULVarProgram<'p>) -> Self {
-        LVarProgram { bdy: value.bdy }
-    }
 }

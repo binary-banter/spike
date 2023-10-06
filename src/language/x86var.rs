@@ -1,6 +1,7 @@
 use crate::{addq, callq, jmp, movq, negq, popq, pushq, retq, subq};
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
+use crate::passes::uniquify::UniqueSym;
 
 #[derive(Debug, PartialEq)]
 pub struct X86Program<'p> {
@@ -56,7 +57,7 @@ pub enum VarArg<'p> {
     Imm { val: i64 },
     Reg { reg: Reg },
     Deref { reg: Reg, off: i64 },
-    XVar { sym: &'p str },
+    XVar { sym: UniqueSym<'p> },
 }
 
 #[derive(Debug, PartialEq, Clone, Hash, Eq)]
@@ -68,7 +69,7 @@ pub enum Arg {
 
 #[derive(Debug, PartialEq, Clone, Hash, Eq)]
 pub enum LArg<'p> {
-    Var { sym: &'p str },
+    Var { sym: UniqueSym<'p> },
     Reg { reg: Reg },
 }
 

@@ -1,6 +1,6 @@
 use crate::language::alvar::{AExpr, ALVarProgram, Atom};
 use crate::language::lvar::{Expr, ULVarProgram};
-use crate::passes::uniquify::gen_sym;
+use crate::passes::uniquify::{gen_sym, UniqueSym};
 
 impl<'p> ULVarProgram<'p> {
     pub fn remove_complex_operands(self) -> ALVarProgram<'p> {
@@ -10,7 +10,7 @@ impl<'p> ULVarProgram<'p> {
     }
 }
 
-fn rco_expr<'p>(expr: Expr<'p>) -> AExpr<'p> {
+fn rco_expr<'p>(expr: Expr< UniqueSym<'p>>) -> AExpr<'p> {
     match expr {
         Expr::Int { val } => AExpr::Atom(Atom::Int { val }),
         Expr::Var { sym } => AExpr::Atom(Atom::Var { sym }),
@@ -34,7 +34,7 @@ fn rco_expr<'p>(expr: Expr<'p>) -> AExpr<'p> {
     }
 }
 
-fn rco_atom<'p>(expr: Expr<'p>) -> (Atom<'p>, Option<(&'p str, AExpr<'p>)>) {
+fn rco_atom<'p>(expr: Expr< UniqueSym<'p>>) -> (Atom<'p>, Option<(UniqueSym<'p>, AExpr<'p>)>) {
     match expr {
         Expr::Int { val } => (Atom::Int { val }, None),
         Expr::Var { sym } => (Atom::Var { sym }, None),
@@ -47,7 +47,7 @@ fn rco_atom<'p>(expr: Expr<'p>) -> (Atom<'p>, Option<(&'p str, AExpr<'p>)>) {
 
 #[cfg(test)]
 mod tests {
-    use crate::interpreter::lvar::interpret_lvar;
+    use crate::interpreter::lvar::{interpret_lvar, interpret_ulvar};
     use crate::interpreter::TestIO;
     use crate::utils::split_test::split_test;
     use test_each_file::test_each_file;
@@ -56,7 +56,7 @@ mod tests {
         let (input, expected_output, expected_return, program) = split_test(test);
         let program = program.uniquify().remove_complex_operands();
         let mut io = TestIO::new(input);
-        let result = interpret_lvar(&program.into(), &mut io);
+        let result = interpret_ulvar(&program.into(), &mut io);
 
         assert_eq!(result, expected_return, "Incorrect program result.");
         assert_eq!(io.outputs(), &expected_output, "Incorrect program output.");

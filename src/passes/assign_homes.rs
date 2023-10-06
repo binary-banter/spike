@@ -1,6 +1,7 @@
 use crate::language::x86var::{AX86Program, Arg, Block, Instr, Reg, VarArg, X86VarProgram};
 use crate::{addq, callq, jmp, movq, negq, popq, pushq, retq, subq};
 use std::collections::HashMap;
+use crate::passes::uniquify::UniqueSym;
 
 impl<'p> X86VarProgram<'p> {
     pub fn assign_homes(self) -> AX86Program<'p> {
@@ -17,7 +18,7 @@ impl<'p> X86VarProgram<'p> {
     }
 }
 
-fn assign_block<'p>(block: Block<'p, VarArg<'p>>, homes: &mut HashMap<&'p str, i64>) -> Block<'p, Arg> {
+fn assign_block<'p>(block: Block<'p, VarArg<'p>>, homes: &mut HashMap<UniqueSym<'p>, i64>) -> Block<'p, Arg> {
     Block {
         instrs: block
             .instrs
@@ -27,7 +28,7 @@ fn assign_block<'p>(block: Block<'p, VarArg<'p>>, homes: &mut HashMap<&'p str, i
     }
 }
 
-fn assign_instruction<'p>(instr: Instr<'p, VarArg<'p>>, homes: &mut HashMap<&'p str, i64>) -> Instr<'p, Arg> {
+fn assign_instruction<'p>(instr: Instr<'p, VarArg<'p>>, homes: &mut HashMap<UniqueSym<'p>, i64>) -> Instr<'p, Arg> {
     match instr {
         Instr::Addq { src, dst } => addq!(assign_arg(src, homes), assign_arg(dst, homes)),
         Instr::Subq { src, dst } => subq!(assign_arg(src, homes), assign_arg(dst, homes)),
@@ -41,14 +42,14 @@ fn assign_instruction<'p>(instr: Instr<'p, VarArg<'p>>, homes: &mut HashMap<&'p 
     }
 }
 
-fn assign_arg<'p>(arg: VarArg<'p>, homes: &mut HashMap<&'p str, i64>) -> Arg {
+fn assign_arg<'p>(arg: VarArg<'p>, homes: &mut HashMap<UniqueSym<'p>, i64>) -> Arg {
     match arg {
         VarArg::Imm { val } => Arg::Imm { val },
         VarArg::Reg { reg } => Arg::Reg { reg },
         VarArg::Deref { reg, off } => Arg::Deref { reg, off },
         VarArg::XVar { sym } => {
             if !homes.contains_key(&sym) {
-                homes.insert(sym.clone(), -(homes.len() as i64 + 1) * 8);
+                homes.insert(sym, -(homes.len() as i64 + 1) * 8);
             }
             Arg::Deref {
                 reg: Reg::RBP,

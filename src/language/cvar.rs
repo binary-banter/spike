@@ -1,5 +1,6 @@
 use crate::language::alvar::Atom;
-use crate::language::lvar::{Expr, LVarProgram, Op};
+use crate::language::lvar::{Expr, LVarProgram, Op, ULVarProgram};
+use crate::passes::uniquify::UniqueSym;
 
 #[derive(Debug, PartialEq)]
 pub struct CVarProgram<'p> {
@@ -12,7 +13,7 @@ pub enum Tail<'p> {
         expr: CExpr<'p>,
     },
     Seq {
-        sym: &'p str,
+        sym: UniqueSym<'p>,
         bnd: CExpr<'p>,
         tail: Box<Tail<'p>>,
     },
@@ -24,15 +25,15 @@ pub enum CExpr<'p> {
     Prim { op: Op, args: Vec<Atom<'p>> },
 }
 
-impl<'p> From<CVarProgram<'p>> for LVarProgram<'p> {
+impl<'p> From<CVarProgram<'p>> for ULVarProgram<'p> {
     fn from(value: CVarProgram<'p>) -> Self {
-        LVarProgram {
+        ULVarProgram {
             bdy: value.bdy.into(),
         }
     }
 }
 
-impl<'p> From<Tail<'p>> for Expr<'p> {
+impl<'p> From<Tail<'p>> for Expr< UniqueSym<'p>> {
     fn from(value: Tail<'p>) -> Self {
         match value {
             Tail::Return { expr } => expr.into(),
@@ -45,7 +46,7 @@ impl<'p> From<Tail<'p>> for Expr<'p> {
     }
 }
 
-impl<'p> From<CExpr<'p>> for Expr<'p> {
+impl<'p> From<CExpr<'p>> for Expr< UniqueSym<'p>> {
     fn from(value: CExpr<'p>) -> Self {
         match value {
             CExpr::Atom(a) => a.into(),

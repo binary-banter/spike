@@ -1,12 +1,17 @@
+use std::hash::Hash;
 use crate::interpreter::IO;
-use crate::language::lvar::{Expr, LVarProgram, Op};
+use crate::language::lvar::{Expr, LVarProgram, Op, ULVarProgram};
 use crate::utils::push_map::PushMap;
 
 pub fn interpret_lvar<'p>(program: &LVarProgram<'p>, io: &mut impl IO) -> i64 {
     interpret_expr(&program.bdy, &mut PushMap::default(), io)
 }
 
-fn interpret_expr<'p>(expr: &Expr<'p>, scope: &mut PushMap<&'p str, i64>, io: &mut impl IO) -> i64 {
+pub fn interpret_ulvar<'p>(program: &ULVarProgram<'p>, io: &mut impl IO) -> i64 {
+    interpret_expr(&program.bdy, &mut PushMap::default(), io)
+}
+
+fn interpret_expr<'p, A: Copy + Hash + Eq>(expr: &Expr< A>, scope: &mut PushMap<A, i64>, io: &mut impl IO) -> i64 {
     match expr {
         Expr::Int { val } => *val,
         Expr::Var { sym } => scope[sym],

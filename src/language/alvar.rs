@@ -1,4 +1,5 @@
-use crate::language::lvar::{Expr, LVarProgram, Op};
+use crate::language::lvar::{Expr, LVarProgram, Op, ULVarProgram};
+use crate::passes::uniquify::UniqueSym;
 
 #[derive(Debug, PartialEq)]
 pub struct ALVarProgram<'p> {
@@ -13,7 +14,7 @@ pub enum AExpr<'p> {
         args: Vec<Atom<'p>>,
     },
     Let {
-        sym: &'p str,
+        sym: UniqueSym<'p>,
         bnd: Box<AExpr<'p>>,
         bdy: Box<AExpr<'p>>,
     },
@@ -22,18 +23,18 @@ pub enum AExpr<'p> {
 #[derive(Debug, PartialEq)]
 pub enum Atom<'p> {
     Int { val: i64 },
-    Var { sym: &'p str },
+    Var { sym: UniqueSym<'p> },
 }
 
-impl<'p> From<ALVarProgram<'p>> for LVarProgram<'p> {
+impl<'p> From<ALVarProgram<'p>> for ULVarProgram<'p> {
     fn from(value: ALVarProgram<'p>) -> Self {
-        LVarProgram {
+        ULVarProgram {
             bdy: value.bdy.into(),
         }
     }
 }
 
-impl<'p> From<AExpr<'p>> for Expr<'p> {
+impl<'p> From<AExpr<'p>> for Expr< UniqueSym<'p>> {
     fn from(value: AExpr<'p>) -> Self {
         match value {
             AExpr::Atom(a) => a.into(),
@@ -50,7 +51,7 @@ impl<'p> From<AExpr<'p>> for Expr<'p> {
     }
 }
 
-impl<'p> From<Atom<'p>> for Expr<'p> {
+impl<'p> From<Atom<'p>> for Expr< UniqueSym<'p>> {
     fn from(value: Atom<'p>) -> Self {
         match value {
             Atom::Int { val } => Expr::Int { val },

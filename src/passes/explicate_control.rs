@@ -1,5 +1,6 @@
 use crate::language::alvar::{AExpr, ALVarProgram};
 use crate::language::cvar::{CExpr, CVarProgram, Tail};
+use crate::passes::uniquify::UniqueSym;
 
 impl<'p> ALVarProgram<'p> {
     pub fn explicate(self) -> CVarProgram<'p> {
@@ -21,7 +22,7 @@ fn explicate_tail(expr: AExpr) -> Tail {
     }
 }
 
-fn explicate_assign<'p>(sym: &'p str, bnd: AExpr<'p>, tail: Tail<'p>) -> Tail<'p> {
+fn explicate_assign<'p>(sym: UniqueSym<'p>, bnd: AExpr<'p>, tail: Tail<'p>) -> Tail<'p> {
     match bnd {
         AExpr::Atom(atom) => Tail::Seq {
             sym,
@@ -43,16 +44,16 @@ fn explicate_assign<'p>(sym: &'p str, bnd: AExpr<'p>, tail: Tail<'p>) -> Tail<'p
 
 #[cfg(test)]
 mod tests {
-    use crate::interpreter::lvar::interpret_lvar;
     use crate::interpreter::TestIO;
     use crate::utils::split_test::split_test;
     use test_each_file::test_each_file;
+    use crate::interpreter::lvar::interpret_ulvar;
 
     fn explicated([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);
         let program = program.uniquify().remove_complex_operands().explicate();
         let mut io = TestIO::new(input);
-        let result = interpret_lvar(&program.into(), &mut io);
+        let result = interpret_ulvar(&program.into(), &mut io);
 
         assert_eq!(result, expected_return, "Incorrect program result.");
         assert_eq!(io.outputs(), &expected_output, "Incorrect program output.");
