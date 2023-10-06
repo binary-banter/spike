@@ -47,13 +47,15 @@ mod tests {
     use crate::interpreter::TestIO;
     use crate::utils::split_test::split_test;
     use test_each_file::test_each_file;
-    use crate::interpreter::lvar::interpret_ulvar;
+    use crate::language::lvar::ULVarProgram;
 
     fn explicated([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);
         let program = program.uniquify().remove_complex_operands().explicate();
+        let program: ULVarProgram = program.into();
+
         let mut io = TestIO::new(input);
-        let result = interpret_ulvar(&program.into(), &mut io);
+        let result = program.interpret(&mut io);
 
         assert_eq!(result, expected_return, "Incorrect program result.");
         assert_eq!(io.outputs(), &expected_output, "Incorrect program output.");

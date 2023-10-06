@@ -1,14 +1,13 @@
 use crate::passes::uniquify::UniqueSym;
 
-#[derive(Debug, PartialEq)]
-pub struct LVarProgram<'p> {
-    pub bdy: Expr<&'p str>,
-}
+pub type LVarProgram<'p> = GLVarProgram<&'p str>;
+pub type ULVarProgram<'p> = GLVarProgram<UniqueSym<'p>>;
 
 #[derive(Debug, PartialEq)]
-pub struct ULVarProgram<'p> {
-    pub bdy: Expr<UniqueSym<'p>>,
+pub struct GLVarProgram<A> {
+    pub bdy: Expr<A>,
 }
+
 
 #[derive(Debug, PartialEq)]
 pub enum Op {

@@ -56,7 +56,6 @@ pub fn gen_sym<'p>(sym: &'p str) -> UniqueSym<'p> {
 
 #[cfg(test)]
 mod tests {
-    use crate::interpreter::lvar::{interpret_ulvar};
     use crate::interpreter::TestIO;
     use crate::utils::split_test::split_test;
     use test_each_file::test_each_file;
@@ -65,7 +64,7 @@ mod tests {
         let (input, expected_output, expected_return, program) = split_test(test);
         let uniquified_program = program.uniquify();
         let mut io = TestIO::new(input);
-        let result = interpret_ulvar(&uniquified_program, &mut io);
+        let result = uniquified_program.interpret(&mut io);
 
         assert_eq!(result, expected_return, "Incorrect program result.");
         assert_eq!(io.outputs(), &expected_output, "Incorrect program output.");

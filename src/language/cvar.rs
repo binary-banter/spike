@@ -1,5 +1,5 @@
 use crate::language::alvar::Atom;
-use crate::language::lvar::{Expr, LVarProgram, Op, ULVarProgram};
+use crate::language::lvar::{Expr, Op, ULVarProgram};
 use crate::passes::uniquify::UniqueSym;
 
 #[derive(Debug, PartialEq)]

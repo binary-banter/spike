@@ -46,7 +46,7 @@ fn type_check_expr<'p>(expr: &Expr< &'p str>, scope: &mut PushMap<&'p str, Type>
         },
         Expr::Let { sym, bnd, bdy } => {
             type_check_expr(bnd, scope)?;
-            scope.push(sym.clone(), Type::Integer, |scope| {
+            scope.push(sym, Type::Integer, |scope| {
                 type_check_expr(bdy, scope)
             })
         }

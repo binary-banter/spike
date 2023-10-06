@@ -1,14 +1,12 @@
 use std::hash::Hash;
 use crate::interpreter::IO;
-use crate::language::lvar::{Expr, LVarProgram, Op, ULVarProgram};
+use crate::language::lvar::{Expr, GLVarProgram, Op};
 use crate::utils::push_map::PushMap;
 
-pub fn interpret_lvar<'p>(program: &LVarProgram<'p>, io: &mut impl IO) -> i64 {
-    interpret_expr(&program.bdy, &mut PushMap::default(), io)
-}
-
-pub fn interpret_ulvar<'p>(program: &ULVarProgram<'p>, io: &mut impl IO) -> i64 {
-    interpret_expr(&program.bdy, &mut PushMap::default(), io)
+impl<'p, A: Copy + Hash + Eq> GLVarProgram<A>{
+    pub fn interpret(&self, io: &mut impl IO) -> i64 {
+        interpret_expr(&self.bdy, &mut PushMap::default(), io)
+    }
 }
 
 fn interpret_expr<'p, A: Copy + Hash + Eq>(expr: &Expr< A>, scope: &mut PushMap<A, i64>, io: &mut impl IO) -> i64 {
@@ -47,19 +45,17 @@ fn interpret_expr<'p, A: Copy + Hash + Eq>(expr: &Expr< A>, scope: &mut PushMap<
 
 #[cfg(test)]
 mod tests {
-    use crate::interpreter::lvar::interpret_lvar;
     use crate::interpreter::TestIO;
     use crate::utils::split_test::split_test;
     use test_each_file::test_each_file;
 
     fn interpret([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);
+        let mut io = TestIO::new(input);
+        let result = program.interpret(&mut io);
 
-        let mut testio = TestIO::new(input);
-        let res = interpret_lvar(&program, &mut testio);
-
-        assert_eq!(res, expected_return);
-        assert_eq!(testio.outputs, expected_output);
+        assert_eq!(result, expected_return);
+        assert_eq!(io.outputs, expected_output);
     }
 
     test_each_file! { for ["test"] in "./programs/good" as interpreter => interpret }
