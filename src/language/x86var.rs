@@ -3,60 +3,60 @@ use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 
 #[derive(Debug, PartialEq)]
-pub struct X86Program {
-    pub blocks: HashMap<String, Block<Arg>>,
+pub struct X86Program<'p> {
+    pub blocks: HashMap<&'p str, Block<'p, Arg>>,
 }
 
 #[derive(Debug, PartialEq)]
-pub struct PX86Program {
-    pub blocks: HashMap<String, Block<Arg>>,
+pub struct PX86Program<'p> {
+    pub blocks: HashMap<&'p str, Block<'p, Arg>>,
     pub stack_space: usize,
 }
 
 #[derive(Debug, PartialEq)]
-pub struct AX86Program {
-    pub blocks: HashMap<String, Block<Arg>>,
+pub struct AX86Program<'p> {
+    pub blocks: HashMap<&'p str, Block<'p, Arg>>,
     pub stack_space: usize,
 }
 
 #[derive(Debug, PartialEq)]
-pub struct X86VarProgram {
-    pub blocks: HashMap<String, Block<VarArg>>,
+pub struct X86VarProgram<'p> {
+    pub blocks: HashMap<&'p str, Block<'p, VarArg<'p>>>,
 }
 
-pub struct LX86VarProgram {
-    pub blocks: HashMap<String, LBlock>,
-}
-
-#[derive(Debug, PartialEq)]
-pub struct Block<A> {
-    pub instrs: Vec<Instr<A>>,
+pub struct LX86VarProgram<'p> {
+    pub blocks: HashMap<&'p str, LBlock<'p>>,
 }
 
 #[derive(Debug, PartialEq)]
-pub struct LBlock {
-    pub instrs: Vec<(Instr<VarArg>, HashSet<LArg>)>,
+pub struct Block<'p, A> {
+    pub instrs: Vec<Instr<'p, A>>,
 }
 
 #[derive(Debug, PartialEq)]
-pub enum Instr<A> {
+pub struct LBlock<'p> {
+    pub instrs: Vec<(Instr<'p, VarArg<'p>>, HashSet<LArg<'p>>)>,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum Instr<'p, A> {
     Addq { src: A, dst: A },
     Subq { src: A, dst: A },
     Negq { dst: A },
     Movq { src: A, dst: A },
     Pushq { src: A },
     Popq { dst: A },
-    Callq { lbl: String, arity: usize },
+    Callq { lbl: &'p str, arity: usize },
     Retq,
-    Jmp { lbl: String },
+    Jmp { lbl: &'p str },
 }
 
 #[derive(Debug, PartialEq, Clone, Hash, Eq)]
-pub enum VarArg {
+pub enum VarArg<'p> {
     Imm { val: i64 },
     Reg { reg: Reg },
     Deref { reg: Reg, off: i64 },
-    XVar { sym: String },
+    XVar { sym: &'p str },
 }
 
 #[derive(Debug, PartialEq, Clone, Hash, Eq)]
@@ -67,8 +67,8 @@ pub enum Arg {
 }
 
 #[derive(Debug, PartialEq, Clone, Hash, Eq)]
-pub enum LArg {
-    Var { sym: String },
+pub enum LArg<'p> {
+    Var { sym: &'p str },
     Reg { reg: Reg },
 }
 
@@ -118,8 +118,8 @@ pub enum Reg {
     R15,
 }
 
-impl From<X86Program> for X86VarProgram {
-    fn from(value: X86Program) -> Self {
+impl<'p> From<X86Program<'p>> for X86VarProgram<'p> {
+    fn from(value: X86Program<'p>) -> Self {
         X86VarProgram {
             blocks: value
                 .blocks
@@ -130,8 +130,8 @@ impl From<X86Program> for X86VarProgram {
     }
 }
 
-impl From<PX86Program> for X86VarProgram {
-    fn from(value: PX86Program) -> Self {
+impl<'p> From<PX86Program<'p>> for X86VarProgram<'p> {
+    fn from(value: PX86Program<'p>) -> Self {
         X86VarProgram {
             blocks: value
                 .blocks
@@ -142,8 +142,8 @@ impl From<PX86Program> for X86VarProgram {
     }
 }
 
-impl From<AX86Program> for X86VarProgram {
-    fn from(value: AX86Program) -> Self {
+impl<'p> From<AX86Program<'p>> for X86VarProgram<'p> {
+    fn from(value: AX86Program<'p>) -> Self {
         X86VarProgram {
             blocks: value
                 .blocks
@@ -154,16 +154,16 @@ impl From<AX86Program> for X86VarProgram {
     }
 }
 
-impl From<Block<Arg>> for Block<VarArg> {
-    fn from(value: Block<Arg>) -> Self {
+impl<'p> From<Block<'p, Arg>> for Block<'p, VarArg<'p>> {
+    fn from(value: Block<'p, Arg>) -> Self {
         Block {
             instrs: value.instrs.into_iter().map(From::from).collect(),
         }
     }
 }
 
-impl From<Instr<Arg>> for Instr<VarArg> {
-    fn from(value: Instr<Arg>) -> Self {
+impl<'p> From<Instr<'p, Arg>> for Instr<'p, VarArg<'p>> {
+    fn from(value: Instr<'p, Arg>) -> Self {
         match value {
             Instr::Addq { src, dst } => addq!(src.into(), dst.into()),
             Instr::Subq { src, dst } => subq!(src.into(), dst.into()),
@@ -178,7 +178,7 @@ impl From<Instr<Arg>> for Instr<VarArg> {
     }
 }
 
-impl From<Arg> for VarArg {
+impl<'p> From<Arg> for VarArg<'p> {
     fn from(value: Arg) -> Self {
         match value {
             Arg::Imm { val } => VarArg::Imm { val },
@@ -251,7 +251,7 @@ mod macros {
     macro_rules! callq {
         ($lbl:expr, $arity:expr) => {
             Instr::Callq {
-                lbl: $lbl.to_string(),
+                lbl: $lbl,
                 arity: $arity,
             }
         };
@@ -260,31 +260,23 @@ mod macros {
     #[macro_export]
     macro_rules! jmp {
         ($lbl:expr) => {
-            Instr::Jmp {
-                lbl: $lbl.to_string(),
-            }
+            Instr::Jmp { lbl: $lbl }
         };
     }
 
     #[macro_export]
     macro_rules! retq {
-        () => {
-            Instr::Retq
-        };
+        () => { Instr::Retq };
     }
 
     #[macro_export]
     macro_rules! imm {
-        ($val:expr) => {
-            Arg::Imm { val: $val }.into()
-        };
+        ($val:expr) => { Arg::Imm { val: $val }.into() };
     }
 
     #[macro_export]
     macro_rules! reg {
-        ($reg:ident) => {
-            Arg::Reg { reg: Reg::$reg }.into()
-        };
+        ($reg:ident) => { Arg::Reg { reg: Reg::$reg }.into() };
     }
 
     #[macro_export]

@@ -2,11 +2,11 @@ use crate::interpreter::IO;
 use crate::language::lvar::{Expr, LVarProgram, Op};
 use crate::utils::push_map::PushMap;
 
-pub fn interpret_lvar(program: &LVarProgram, io: &mut impl IO) -> i64 {
+pub fn interpret_lvar<'p>(program: &LVarProgram<'p>, io: &mut impl IO) -> i64 {
     interpret_expr(&program.bdy, &mut PushMap::default(), io)
 }
 
-fn interpret_expr(expr: &Expr, scope: &mut PushMap<String, i64>, io: &mut impl IO) -> i64 {
+fn interpret_expr<'p>(expr: &Expr<'p>, scope: &mut PushMap<&'p str, i64>, io: &mut impl IO) -> i64 {
     match expr {
         Expr::Int { val } => *val,
         Expr::Var { sym } => scope[sym],

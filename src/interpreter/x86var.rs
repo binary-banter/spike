@@ -2,11 +2,11 @@ use crate::interpreter::IO;
 use crate::language::x86var::{Block, Instr, Reg, VarArg, X86VarProgram};
 use std::collections::HashMap;
 
-struct X86Interpreter<'program, I: IO> {
-    blocks: &'program HashMap<String, Block<VarArg>>,
-    io: &'program mut I,
+struct X86Interpreter<'p, I: IO> {
+    blocks: &'p HashMap<&'p str, Block<'p, VarArg<'p>>>,
+    io: &'p mut I,
     regs: HashMap<Reg, i64>,
-    vars: HashMap<&'program str, i64>,
+    vars: HashMap<&'p str, i64>,
     memory: HashMap<i64, i64>,
 }
 
@@ -22,8 +22,8 @@ pub fn interpret_x86var(entry: &str, program: &X86VarProgram, io: &mut impl IO) 
     state.interpret_block(&state.blocks[entry])
 }
 
-impl<'program, I: IO> X86Interpreter<'program, I> {
-    fn interpret_block(&mut self, block: &'program Block<VarArg>) -> i64 {
+impl<'p, I: IO> X86Interpreter<'p, I> {
+    fn interpret_block(&mut self, block: &'p Block<VarArg>) -> i64 {
         for instr in &block.instrs {
             match instr {
                 Instr::Addq { src, dst } => {
@@ -47,9 +47,9 @@ impl<'program, I: IO> X86Interpreter<'program, I> {
                     *self.regs.get_mut(&Reg::RSP).unwrap() += 8;
                 }
                 Instr::Jmp { lbl } => {
-                    return self.interpret_block(&self.blocks[lbl.as_str()]);
+                    return self.interpret_block(&self.blocks[lbl]);
                 }
-                Instr::Callq { lbl, arity } => match (lbl.as_str(), arity) {
+                Instr::Callq { lbl, arity } => match (*lbl, arity) {
                     ("_read_int", 0) => {
                         self.regs.insert(Reg::RAX, self.io.read());
                     }
@@ -67,16 +67,16 @@ impl<'program, I: IO> X86Interpreter<'program, I> {
         self.regs[&Reg::RAX]
     }
 
-    fn get_arg(&self, a: &'program VarArg) -> i64 {
+    fn get_arg(&self, a: &'p VarArg) -> i64 {
         match a {
             VarArg::Imm { val } => *val,
             VarArg::Reg { reg } => self.regs[reg],
             VarArg::Deref { reg, off } => self.memory[&(self.regs[reg] + off)],
-            VarArg::XVar { sym } => self.vars[sym.as_str()],
+            VarArg::XVar { sym } => self.vars[sym],
         }
     }
 
-    fn set_arg(&mut self, a: &'program VarArg, v: i64) {
+    fn set_arg(&mut self, a: &'p VarArg, v: i64) {
         match a {
             VarArg::Imm { .. } => panic!("Tried to write to immediate, are u insane?"),
             VarArg::Reg { reg } => {
@@ -86,7 +86,7 @@ impl<'program, I: IO> X86Interpreter<'program, I> {
                 self.memory.insert(self.regs[reg] + off, v);
             }
             VarArg::XVar { sym } => {
-                self.vars.insert(sym.as_str(), v);
+                self.vars.insert(sym, v);
             }
         }
     }

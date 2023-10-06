@@ -4,19 +4,19 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 
 static COUNT: AtomicUsize = AtomicUsize::new(0);
 
-impl LVarProgram {
-    pub fn uniquify(self) -> ULVarProgram {
+impl<'p> LVarProgram<'p> {
+    pub fn uniquify(self) -> ULVarProgram<'p> {
         ULVarProgram {
             bdy: uniquify_expression(self.bdy, &mut PushMap::default()),
         }
     }
 }
 
-fn uniquify_expression(expr: Expr, scope: &mut PushMap<String, String>) -> Expr {
+fn uniquify_expression<'p>(expr: Expr<'p>, scope: &mut PushMap<&'p str, &'p str>) -> Expr<'p> {
     match expr {
         Expr::Int { .. } => expr,
         Expr::Var { sym } => Expr::Var {
-            sym: scope[&sym].clone(),
+            sym: scope[&sym],
         },
         Expr::Prim { op, args } => Expr::Prim {
             op,
@@ -41,8 +41,10 @@ fn uniquify_expression(expr: Expr, scope: &mut PushMap<String, String>) -> Expr 
     }
 }
 
-pub fn gen_sym(input: &str) -> String {
-    format!("{input}_{}", COUNT.fetch_add(1, Ordering::Relaxed))
+pub fn gen_sym(input: &str) -> &'static str {
+    todo!()
+    // (&str, usize)
+    // format!("{input}_{}", COUNT.fetch_add(1, Ordering::Relaxed))
 }
 
 #[cfg(test)]
@@ -65,12 +67,12 @@ mod tests {
         assert_unique_expr(&uniquified_program.bdy, &mut HashSet::new());
     }
 
-    fn assert_unique_expr(expr: &Expr, vars: &mut HashSet<String>) {
+    fn assert_unique_expr<'p>(expr: &Expr<'p>, vars: &mut HashSet<&'p str>) {
         match expr {
             Expr::Int { .. } | Expr::Var { .. } => {}
             Expr::Prim { args, .. } => args.iter().for_each(|arg| assert_unique_expr(arg, vars)),
             Expr::Let { sym, bnd, bdy } => {
-                assert!(vars.insert(sym.clone()));
+                assert!(vars.insert(sym));
                 assert_unique_expr(bnd, vars);
                 assert_unique_expr(bdy, vars);
             }

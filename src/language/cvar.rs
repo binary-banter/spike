@@ -2,38 +2,38 @@ use crate::language::alvar::Atom;
 use crate::language::lvar::{Expr, LVarProgram, Op};
 
 #[derive(Debug, PartialEq)]
-pub struct CVarProgram {
-    pub bdy: Tail,
+pub struct CVarProgram<'p> {
+    pub bdy: Tail<'p>,
 }
 
 #[derive(Debug, PartialEq)]
-pub enum Tail {
+pub enum Tail<'p> {
     Return {
-        expr: CExpr,
+        expr: CExpr<'p>,
     },
     Seq {
-        sym: String,
-        bnd: CExpr,
-        tail: Box<Tail>,
+        sym: &'p str,
+        bnd: CExpr<'p>,
+        tail: Box<Tail<'p>>,
     },
 }
 
 #[derive(Debug, PartialEq)]
-pub enum CExpr {
-    Atom(Atom),
-    Prim { op: Op, args: Vec<Atom> },
+pub enum CExpr<'p> {
+    Atom(Atom<'p>),
+    Prim { op: Op, args: Vec<Atom<'p>> },
 }
 
-impl From<CVarProgram> for LVarProgram {
-    fn from(value: CVarProgram) -> Self {
+impl<'p> From<CVarProgram<'p>> for LVarProgram<'p> {
+    fn from(value: CVarProgram<'p>) -> Self {
         LVarProgram {
             bdy: value.bdy.into(),
         }
     }
 }
 
-impl From<Tail> for Expr {
-    fn from(value: Tail) -> Self {
+impl<'p> From<Tail<'p>> for Expr<'p> {
+    fn from(value: Tail<'p>) -> Self {
         match value {
             Tail::Return { expr } => expr.into(),
             Tail::Seq { sym, bnd, tail } => Expr::Let {
@@ -45,8 +45,8 @@ impl From<Tail> for Expr {
     }
 }
 
-impl From<CExpr> for Expr {
-    fn from(value: CExpr) -> Self {
+impl<'p> From<CExpr<'p>> for Expr<'p> {
+    fn from(value: CExpr<'p>) -> Self {
         match value {
             CExpr::Atom(a) => a.into(),
             CExpr::Prim { op, args } => Expr::Prim {

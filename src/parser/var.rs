@@ -7,7 +7,7 @@ pub fn parse_var(input: &str) -> IResult<&str, Expr> {
         (
             rest,
             Expr::Var {
-                sym: name.to_string(),
+                sym: name,
             },
         )
     })
@@ -23,7 +23,7 @@ mod tests {
         assert_eq!(
             parse_var("x").unwrap().1,
             Expr::Var {
-                sym: "x".to_string()
+                sym: "x"
             }
         )
     }

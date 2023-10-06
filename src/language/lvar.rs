@@ -1,11 +1,11 @@
 #[derive(Debug, PartialEq)]
-pub struct LVarProgram {
-    pub bdy: Expr,
+pub struct LVarProgram<'p> {
+    pub bdy: Expr<'p>,
 }
 
 #[derive(Debug, PartialEq)]
-pub struct ULVarProgram {
-    pub bdy: Expr,
+pub struct ULVarProgram<'p> {
+    pub bdy: Expr<'p>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -17,26 +17,26 @@ pub enum Op {
 }
 
 #[derive(Debug, PartialEq)]
-pub enum Expr {
+pub enum Expr<'p> {
     Int {
         val: i64,
     },
     Var {
-        sym: String,
+        sym: &'p str,
     },
     Prim {
         op: Op,
-        args: Vec<Expr>,
+        args: Vec<Expr<'p>>,
     },
     Let {
-        sym: String,
-        bnd: Box<Expr>,
-        bdy: Box<Expr>,
+        sym: &'p str,
+        bnd: Box<Expr<'p>>,
+        bdy: Box<Expr<'p>>,
     },
 }
 
-impl From<ULVarProgram> for LVarProgram {
-    fn from(value: ULVarProgram) -> Self {
+impl<'p> From<ULVarProgram<'p>> for LVarProgram<'p> {
+    fn from(value: ULVarProgram<'p>) -> Self {
         LVarProgram { bdy: value.bdy }
     }
 }

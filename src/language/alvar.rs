@@ -1,40 +1,40 @@
 use crate::language::lvar::{Expr, LVarProgram, Op};
 
 #[derive(Debug, PartialEq)]
-pub struct ALVarProgram {
-    pub bdy: AExpr,
+pub struct ALVarProgram<'p> {
+    pub bdy: AExpr<'p>,
 }
 
 #[derive(Debug, PartialEq)]
-pub enum AExpr {
-    Atom(Atom),
+pub enum AExpr<'p> {
+    Atom(Atom<'p>),
     Prim {
         op: Op,
-        args: Vec<Atom>,
+        args: Vec<Atom<'p>>,
     },
     Let {
-        sym: String,
-        bnd: Box<AExpr>,
-        bdy: Box<AExpr>,
+        sym: &'p str,
+        bnd: Box<AExpr<'p>>,
+        bdy: Box<AExpr<'p>>,
     },
 }
 
 #[derive(Debug, PartialEq)]
-pub enum Atom {
+pub enum Atom<'p> {
     Int { val: i64 },
-    Var { sym: String },
+    Var { sym: &'p str },
 }
 
-impl From<ALVarProgram> for LVarProgram {
-    fn from(value: ALVarProgram) -> Self {
+impl<'p> From<ALVarProgram<'p>> for LVarProgram<'p> {
+    fn from(value: ALVarProgram<'p>) -> Self {
         LVarProgram {
             bdy: value.bdy.into(),
         }
     }
 }
 
-impl From<AExpr> for Expr {
-    fn from(value: AExpr) -> Self {
+impl<'p> From<AExpr<'p>> for Expr<'p> {
+    fn from(value: AExpr<'p>) -> Self {
         match value {
             AExpr::Atom(a) => a.into(),
             AExpr::Prim { op, args } => Expr::Prim {
@@ -50,8 +50,8 @@ impl From<AExpr> for Expr {
     }
 }
 
-impl From<Atom> for Expr {
-    fn from(value: Atom) -> Self {
+impl<'p> From<Atom<'p>> for Expr<'p> {
+    fn from(value: Atom<'p>) -> Self {
         match value {
             Atom::Int { val } => Expr::Int { val },
             Atom::Var { sym } => Expr::Var { sym },

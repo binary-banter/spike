@@ -22,7 +22,7 @@ pub fn parse_let(input: &str) -> IResult<&str, Expr> {
         trim0(char(')')),
     )
     .map(|(_, (sym, bnd), bdy)| Expr::Let {
-        sym: sym.to_string(),
+        sym,
         bnd: Box::new(bnd),
         bdy: Box::new(bdy),
     })
@@ -39,10 +39,10 @@ mod tests {
         assert_eq!(
             parse_let("(let (x 42) x)").unwrap().1,
             Expr::Let {
-                sym: "x".to_string(),
+                sym: "x",
                 bnd: Box::new(Expr::Int { val: 42 }),
                 bdy: Box::new(Expr::Var {
-                    sym: "x".to_string()
+                    sym: "x"
                 })
             }
         )

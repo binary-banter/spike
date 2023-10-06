@@ -2,8 +2,8 @@ use crate::language::x86var::{AX86Program, Arg, Block, Instr, Reg, VarArg, X86Va
 use crate::{addq, callq, jmp, movq, negq, popq, pushq, retq, subq};
 use std::collections::HashMap;
 
-impl X86VarProgram {
-    pub fn assign_homes(self) -> AX86Program {
+impl<'p> X86VarProgram<'p> {
+    pub fn assign_homes(self) -> AX86Program<'p> {
         let mut homes = HashMap::new();
 
         AX86Program {
@@ -17,7 +17,7 @@ impl X86VarProgram {
     }
 }
 
-fn assign_block(block: Block<VarArg>, homes: &mut HashMap<String, i64>) -> Block<Arg> {
+fn assign_block<'p>(block: Block<'p, VarArg<'p>>, homes: &mut HashMap<&'p str, i64>) -> Block<'p, Arg> {
     Block {
         instrs: block
             .instrs
@@ -27,7 +27,7 @@ fn assign_block(block: Block<VarArg>, homes: &mut HashMap<String, i64>) -> Block
     }
 }
 
-fn assign_instruction(instr: Instr<VarArg>, homes: &mut HashMap<String, i64>) -> Instr<Arg> {
+fn assign_instruction<'p>(instr: Instr<'p, VarArg<'p>>, homes: &mut HashMap<&'p str, i64>) -> Instr<'p, Arg> {
     match instr {
         Instr::Addq { src, dst } => addq!(assign_arg(src, homes), assign_arg(dst, homes)),
         Instr::Subq { src, dst } => subq!(assign_arg(src, homes), assign_arg(dst, homes)),
@@ -41,7 +41,7 @@ fn assign_instruction(instr: Instr<VarArg>, homes: &mut HashMap<String, i64>) ->
     }
 }
 
-fn assign_arg(arg: VarArg, homes: &mut HashMap<String, i64>) -> Arg {
+fn assign_arg<'p>(arg: VarArg<'p>, homes: &mut HashMap<&'p str, i64>) -> Arg {
     match arg {
         VarArg::Imm { val } => Arg::Imm { val },
         VarArg::Reg { reg } => Arg::Reg { reg },

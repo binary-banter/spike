@@ -5,21 +5,21 @@ use crate::language::x86var::{Arg, Block, Instr, Reg, VarArg, X86VarProgram};
 use crate::{addq, callq, imm, movq, negq, reg, subq, var};
 use std::collections::HashMap;
 
-impl CVarProgram {
-    pub fn select(self) -> X86VarProgram {
+impl<'p> CVarProgram<'p> {
+    pub fn select(self) -> X86VarProgram<'p> {
         X86VarProgram {
-            blocks: HashMap::from([("core".to_string(), select_block(self.bdy))]),
+            blocks: HashMap::from([("core", select_block(self.bdy))]),
         }
     }
 }
 
-fn select_block(tail: Tail) -> Block<VarArg> {
+fn select_block<'p>(tail: Tail<'p>) -> Block<'p, VarArg<'p>> {
     let mut instrs = Vec::new();
     select_tail(tail, &mut instrs);
     Block { instrs }
 }
 
-fn select_tail(tail: Tail, instrs: &mut Vec<Instr<VarArg>>) {
+fn select_tail<'p>(tail: Tail<'p>, instrs: &mut Vec<Instr<'p, VarArg<'p>>>) {
     match tail {
         Tail::Return { expr } => instrs.extend(select_assign(reg!(RAX), expr)),
         Tail::Seq { sym, bnd, tail } => {
@@ -29,7 +29,7 @@ fn select_tail(tail: Tail, instrs: &mut Vec<Instr<VarArg>>) {
     }
 }
 
-fn select_assign(dst: VarArg, expr: CExpr) -> Vec<Instr<VarArg>> {
+fn select_assign<'p>(dst: VarArg<'p>, expr: CExpr<'p>) -> Vec<Instr<'p, VarArg<'p>>> {
     match expr {
         CExpr::Atom(Atom::Int { val }) => vec![movq!(imm!(val), dst)],
         CExpr::Atom(Atom::Var { sym }) => vec![movq!(var!(sym), dst)],
@@ -54,7 +54,7 @@ fn select_assign(dst: VarArg, expr: CExpr) -> Vec<Instr<VarArg>> {
     }
 }
 
-fn select_atom(expr: &Atom) -> VarArg {
+fn select_atom<'p>(expr: &Atom<'p>) -> VarArg<'p> {
     match expr {
         Atom::Int { val } => VarArg::Imm { val: *val },
         Atom::Var { sym } => VarArg::XVar { sym: sym.clone() },

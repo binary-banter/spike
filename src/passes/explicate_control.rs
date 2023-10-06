@@ -1,8 +1,8 @@
 use crate::language::alvar::{AExpr, ALVarProgram};
 use crate::language::cvar::{CExpr, CVarProgram, Tail};
 
-impl ALVarProgram {
-    pub fn explicate(self) -> CVarProgram {
+impl<'p> ALVarProgram<'p> {
+    pub fn explicate(self) -> CVarProgram<'p> {
         CVarProgram {
             bdy: explicate_tail(self.bdy),
         }
@@ -21,7 +21,7 @@ fn explicate_tail(expr: AExpr) -> Tail {
     }
 }
 
-fn explicate_assign(sym: String, bnd: AExpr, tail: Tail) -> Tail {
+fn explicate_assign<'p>(sym: &'p str, bnd: AExpr<'p>, tail: Tail<'p>) -> Tail<'p> {
     match bnd {
         AExpr::Atom(atom) => Tail::Seq {
             sym,

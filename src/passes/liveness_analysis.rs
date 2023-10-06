@@ -1,11 +1,10 @@
 use crate::language::x86var::{
     Block, Instr, LArg, LBlock, LX86VarProgram, Reg, VarArg, X86VarProgram, ARG_PASSING_REGS,
 };
-use std::collections::{HashSet, VecDeque};
-use std::iter;
+use std::collections::HashSet;
 
-impl X86VarProgram {
-    pub fn add_liveness(self) -> LX86VarProgram {
+impl<'p> X86VarProgram<'p> {
+    pub fn add_liveness(self) -> LX86VarProgram<'p> {
         LX86VarProgram {
             blocks: self
                 .blocks
@@ -16,7 +15,7 @@ impl X86VarProgram {
     }
 }
 
-fn block_liveness(block: Block<VarArg>) -> LBlock {
+fn block_liveness<'p>(block: Block<'p, VarArg<'p>>) -> LBlock <'p>{
     let mut instrs = Vec::new();
     let mut live = HashSet::new();
 
@@ -38,7 +37,7 @@ fn block_liveness(block: Block<VarArg>) -> LBlock {
     LBlock { instrs }
 }
 
-fn instr_reads(instr: &Instr<VarArg>) -> HashSet<LArg> {
+fn instr_reads<'p>(instr: &Instr<'p, VarArg<'p>>) -> HashSet<LArg<'p>> {
     match instr {
         Instr::Addq { src, dst } | Instr::Subq { src, dst } => [src, dst]
             .into_iter()
@@ -62,7 +61,7 @@ fn instr_reads(instr: &Instr<VarArg>) -> HashSet<LArg> {
     }
 }
 
-fn instr_writes(instr: &Instr<VarArg>) -> HashSet<LArg> {
+fn instr_writes<'p>(instr: &Instr<'p, VarArg<'p>>) -> HashSet<LArg<'p>> {
     match instr {
         Instr::Addq { dst, .. } | Instr::Subq { dst, .. } => [dst]
             .into_iter()
@@ -81,15 +80,15 @@ fn instr_writes(instr: &Instr<VarArg>) -> HashSet<LArg> {
     }
 }
 
-impl TryFrom<VarArg> for LArg {
+impl<'p> TryFrom<VarArg<'p>> for LArg<'p> {
     type Error = ();
 
-    fn try_from(value: VarArg) -> Result<Self, Self::Error> {
+    fn try_from(value: VarArg<'p>) -> Result<Self, Self::Error> {
         match value {
             VarArg::Imm { .. } => Err(()),
             VarArg::Reg { reg } => Ok(LArg::Reg { reg }),
             VarArg::Deref { reg, .. } => Ok(LArg::Reg { reg }),
-            VarArg::XVar { sym } => Ok(LArg::Var { sym: sym.clone() }),
+            VarArg::XVar { sym } => Ok(LArg::Var { sym }),
         }
     }
 }

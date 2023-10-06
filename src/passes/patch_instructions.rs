@@ -1,8 +1,8 @@
 use crate::language::x86var::{AX86Program, Arg, Block, Instr, PX86Program, Reg};
 use crate::{addq, movq, reg, subq};
 
-impl AX86Program {
-    pub fn patch(self) -> PX86Program {
+impl<'p> AX86Program<'p> {
+    pub fn patch(self) -> PX86Program<'p> {
         PX86Program {
             blocks: self
                 .blocks
@@ -14,7 +14,7 @@ impl AX86Program {
     }
 }
 
-fn patch_block(block: Block<Arg>) -> Block<Arg> {
+fn patch_block<'p>(block: Block<'p, Arg>) -> Block<'p, Arg> {
     Block {
         instrs: block
             .instrs
@@ -24,7 +24,7 @@ fn patch_block(block: Block<Arg>) -> Block<Arg> {
     }
 }
 
-fn patch_instr(instr: Instr<Arg>) -> Vec<Instr<Arg>> {
+fn patch_instr<'p>(instr: Instr<'p, Arg>) -> Vec<Instr<'p, Arg>> {
     match instr {
         Instr::Addq { src, dst } => patch_args(src, dst, |src, dst| addq!(src, dst)),
         Instr::Subq { src, dst } => patch_args(src, dst, |src, dst| subq!(src, dst)),
@@ -33,7 +33,7 @@ fn patch_instr(instr: Instr<Arg>) -> Vec<Instr<Arg>> {
     }
 }
 
-fn patch_args(src: Arg, dst: Arg, op: fn(Arg, Arg) -> Instr<Arg>) -> Vec<Instr<Arg>> {
+fn patch_args<'p>(src: Arg, dst: Arg, op: fn(Arg, Arg) -> Instr<'p, Arg>) -> Vec<Instr<'p, Arg>> {
     match (&src, &dst) {
         (Arg::Deref { .. }, Arg::Deref { .. }) => vec![movq!(src, reg!(RAX)), op(reg!(RAX), dst)],
         _ => vec![op(src, dst)],

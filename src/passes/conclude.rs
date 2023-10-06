@@ -1,8 +1,8 @@
 use crate::language::x86var::{Arg, Block, Instr, PX86Program, Reg, X86Program};
 use crate::{addq, block, callq, imm, jmp, movq, popq, pushq, reg, subq};
 
-impl PX86Program {
-    pub fn conclude(mut self) -> X86Program {
+impl<'p> PX86Program<'p> {
+    pub fn conclude(mut self) -> X86Program<'p> {
         main(&mut self);
         core(&mut self);
         conclusion(&mut self);
@@ -24,7 +24,7 @@ fn core(program: &mut PX86Program) {
 
 fn main(program: &mut PX86Program) {
     program.blocks.insert(
-        "main".to_string(),
+        "main",
         block!(
             pushq!(reg!(RBP)),
             movq!(reg!(RSP), reg!(RBP)),
@@ -36,7 +36,7 @@ fn main(program: &mut PX86Program) {
 
 fn conclusion(program: &mut PX86Program) {
     program.blocks.insert(
-        "conclusion".to_string(),
+        "conclusion",
         block!(
             addq!(imm!(program.stack_space as i64), reg!(RSP)),
             popq!(reg!(RBP)),

@@ -2,13 +2,13 @@ use crate::language::x86var::{Arg, Block, Instr, Reg, X86Program};
 use std::fmt::{Display, Formatter};
 use std::io::Write;
 
-impl X86Program {
+impl<'p> X86Program<'p> {
     pub fn emit(self, w: &mut impl Write) -> std::io::Result<()> {
         write!(w, "{self}")
     }
 }
 
-impl Display for X86Program {
+impl<'p> Display for X86Program<'p> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         writeln!(f, ".data")?;
         writeln!(f, "\tformat_read_int: .asciz \"%d\"")?;
@@ -23,7 +23,7 @@ impl Display for X86Program {
     }
 }
 
-impl Display for Block<Arg> {
+impl<'p> Display for Block<'p, Arg> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         for instr in &self.instrs {
             write!(f, "{instr}")?;
@@ -32,7 +32,7 @@ impl Display for Block<Arg> {
     }
 }
 
-impl Display for Instr<Arg> {
+impl<'p> Display for Instr<'p, Arg> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             Instr::Addq { src, dst } => writeln!(f, "\taddq {dst}, {src}"),
@@ -41,7 +41,7 @@ impl Display for Instr<Arg> {
             Instr::Movq { src, dst } => writeln!(f, "\tmovq {dst}, {src}"),
             Instr::Pushq { src } => writeln!(f, "\tpushq {src}"),
             Instr::Popq { dst } => writeln!(f, "\tpopq {dst}"),
-            Instr::Callq { lbl, arity } => match (lbl.as_str(), arity) {
+            Instr::Callq { lbl, arity } => match (*lbl, arity) {
                 ("_print_int", 1) => {
                     writeln!(f, "\tmovq %rsi, %rdi")?;
                     writeln!(f, "\tleaq %rdi, format_print_int")?;
