@@ -3,6 +3,7 @@ mod push_pop;
 mod unary;
 mod special;
 
+use std::collections::HashMap;
 use push_pop::PushPopInfo;
 use unary::UnaryOpInfo;
 use crate::language::x86var::{Arg, Block, Instr, Reg, X86Program};
@@ -10,22 +11,38 @@ use crate::*;
 use crate::passes::emit::binary::{BinaryOpInfo, encode_binary_instr};
 
 impl<'p> X86Program<'p> {
-    pub fn emit(self) -> Vec<u8> {
+    pub fn emit(self) -> (usize, Vec<u8>) {
         let mut machine_code = Vec::new();
-        for (_name, block) in &self.blocks {
-            emit_block(block, &mut machine_code);
+
+        let mut jumps: HashMap<usize, &'p str> = HashMap::new();
+        let mut offsets= HashMap::new();
+
+        for (name, block) in &self.blocks {
+            offsets.insert(name, machine_code.len());
+            emit_block(block, &mut machine_code, &mut jumps);
         }
-        machine_code
+
+        dbg!(&offsets);
+
+        for (addr, block) in jumps {
+            let src = (addr + 4) as i32;
+            let target = offsets[&block] as i32;
+            let jump = target - src;
+
+            machine_code[addr .. addr + 4].copy_from_slice(&jump.to_le_bytes());
+        }
+
+        (offsets[&"main"], machine_code)
     }
 }
 
-fn emit_block(block: &Block<Arg>, machine_code: &mut Vec<u8>) {
+fn emit_block<'p>(block: &Block<'p, Arg>, machine_code: &mut Vec<u8>, jumps: &mut HashMap<usize, &'p str>) {
     for instr in &block.instrs {
-        emit_instr(instr, machine_code);
+        emit_instr(instr, machine_code, jumps);
     }
 }
 
-fn emit_instr(instr: &Instr<Arg>, machine_code: &mut Vec<u8>) {
+fn emit_instr<'p>(instr: &Instr<'p, Arg>, machine_code: &mut Vec<u8>, jumps: &mut HashMap<usize, &'p str>) {
     let v = match instr {
         Instr::Addq { src, dst } => encode_binary_instr(
             BinaryOpInfo {
@@ -91,14 +108,16 @@ fn emit_instr(instr: &Instr<Arg>, machine_code: &mut Vec<u8>) {
             ("_read_int", 0) => todo!(),
             ("exit", 1) => {
                 let mut v = vec![];
-                emit_instr(&movq!(reg!(RDI), reg!(RAX)), &mut v);
-                emit_instr(&movq!(imm!(0x3C), reg!(RDI)), &mut v);
+                emit_instr(&movq!(imm!(0x3C), reg!(RAX)), &mut v, jumps);
                 v.extend([0x0F, 0x05]);
                 v
             }
             (_lbl, _) => todo!(),
         },
-        Instr::Jmp { lbl: _ } => todo!(),
+        Instr::Jmp { lbl } => {
+            jumps.insert(machine_code.len() + 1, lbl);
+            vec![0xE9, 0x00, 0x00, 0x00, 0x00]
+        },
         Instr::Retq => {
             vec![0xC3]
         }
@@ -135,7 +154,8 @@ macro_rules! check {
         fn $name() {
             let mut output = vec![];
             use crate::passes::emit::emit_instr;
-            emit_instr(&$instr, &mut output);
+            use std::collections::HashMap;
+            emit_instr(&$instr, &mut output, &mut HashMap::new());
 
             assert_eq!(output, $expected);
         }

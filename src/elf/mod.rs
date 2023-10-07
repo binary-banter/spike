@@ -21,11 +21,11 @@ pub struct ElfFile<'a> {
 }
 
 impl<'a> ElfFile<'a> {
-    pub fn new(program: &'a [u8]) -> Self {
+    pub fn new(entry: usize, program: &'a [u8]) -> Self {
         let p_headers = vec![ProgramHeader::new(0x1000, program.len() as u64)];
 
         Self {
-            header: ElfHeader::new(0x400000, p_headers.len() as u16),
+            header: ElfHeader::new(0x400000 + entry as u64, p_headers.len() as u16),
             p_headers,
             program,
         }
