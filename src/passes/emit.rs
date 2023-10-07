@@ -1,6 +1,4 @@
 use crate::language::x86var::{Arg, Block, Instr, Reg, X86Program};
-use std::fmt::{Display, Formatter};
-use std::io::Write;
 
 impl<'p> X86Program<'p> {
     pub fn emit(self) -> Vec<u8> {
@@ -63,17 +61,17 @@ fn emit_instr(instr: &Instr<Arg>, machine_code: &mut Vec<u8>) {
             },
             dst,
         ),
-        Instr::Pushq { src } => todo!(),
-        Instr::Popq { dst } => todo!(),
+        Instr::Pushq { src: _ } => todo!(),
+        Instr::Popq { dst: _ } => todo!(),
         Instr::Callq { lbl, arity } => match (*lbl, arity) {
             ("_print_int", 1) => todo!(),
             ("_read_int", 0) => todo!(),
-            (lbl, _) => todo!(),
+            (_lbl, _) => todo!(),
         },
         Instr::Retq => {
             vec![0xC3]
         }
-        Instr::Jmp { lbl } => todo!(),
+        Instr::Jmp { lbl: _ } => todo!(),
     };
     machine_code.extend(v);
 }

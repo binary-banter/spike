@@ -10,7 +10,7 @@ enum SectionType {
     SHT_NULL = 0x00,
     /// Program data
     SHT_PROGBITS = 0x01,
-    ///	Symbol table
+    /// Symbol table
     SHT_SYMTAB = 0x02,
     /// String table
     SHT_STRTAB = 0x03,
