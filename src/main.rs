@@ -19,8 +19,10 @@ enum MainError {
     IOResult(#[from] io::Error),
 }
 
+const TEST_PROGRAM: [u8; 10] = [  0xb8, 0x3c,0x00, 0x00, 0x00,0x48,  0x31, 0xff, 0x0f, 0x05, ];
+
 fn main() -> miette::Result<()> {
-    let elf = ElfFile::new();
+    let elf = ElfFile::new(&TEST_PROGRAM);
     let mut file = File::create("output").unwrap();
     elf.emit(&mut file);
 
