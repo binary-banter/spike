@@ -1,10 +1,10 @@
-use miette::{Diagnostic};
+use miette::Diagnostic;
+use rust_compiler_construction::elf::ElfFile;
 use rust_compiler_construction::parser::{parse_program, PrettyParseError};
 use std::fs::{File, Permissions};
 use std::io;
 use std::io::{stdin, Read};
 use thiserror::Error;
-use rust_compiler_construction::elf::ElfFile;
 
 #[derive(Debug, Error, Diagnostic)]
 enum MainError {
@@ -23,8 +23,6 @@ fn main() -> miette::Result<()> {
     let elf = ElfFile::new();
     let mut file = File::create("output").unwrap();
     elf.emit(&mut file);
-
-
 
     // let mut program = String::new();
     // stdin()
