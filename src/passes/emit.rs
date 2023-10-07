@@ -235,280 +235,153 @@ fn encode_reg(reg: &Reg) -> (u8, u8) {
 #[cfg(test)]
 mod tests {
     use crate::language::x86var::{Arg, Instr, Reg};
+    use crate::*;
 
+    #[macro_export]
     macro_rules! check {
         ($name: ident, $instr: expr, $expected: expr) => {
             #[test]
             fn $name() {
                 let mut output = vec![];
-                super::emit_instr(&$instr, &mut output);
-
-                println!("Got: {output:x?}");
-                println!("Exp: {:x?}", $expected);
+                use crate::passes::emit::emit_instr;
+                emit_instr(&$instr, &mut output);
 
                 assert_eq!(output, $expected);
             }
         };
     }
 
-    check!(retq, Instr::Retq, vec![0xC3]);
+    mod retq {
+        use super::*;
+        
+        check!(retq, retq!(), vec![0xC3]);
+    }
 
-    check!(
-        add_reg_reg,
-        Instr::Addq {
-            src: Arg::Reg { reg: Reg::RSP },
-            dst: Arg::Reg { reg: Reg::RDX }
-        },
-        vec![0x48, 0x01, 0xE2]
-    );
-    check!(
-        add_imm_reg,
-        Instr::Addq {
-            src: Arg::Imm {
-                val: i32::MAX as i64
-            },
-            dst: Arg::Reg { reg: Reg::RBP }
-        },
-        vec![0x48, 0x81, 0xC5, 0xFF, 0xFF, 0xFF, 0x7F]
-    );
-    check!(
-        add_deref_reg1,
-        Instr::Addq {
-            src: Arg::Deref {
-                reg: Reg::RBX,
-                off: i32::MAX as i64
-            },
-            dst: Arg::Reg { reg: Reg::RDI }
-        },
-        vec![0x48, 0x03, 0xBB, 0xFF, 0xFF, 0xFF, 0x7F]
-    );
-    check!(
-        add_deref_reg2,
-        Instr::Addq {
-            src: Arg::Deref {
-                reg: Reg::RBX,
-                off: i32::MAX as i64
-            },
-            dst: Arg::Reg { reg: Reg::R15 }
-        },
-        vec![0x4C, 0x03, 0xBB, 0xFF, 0xFF, 0xFF, 0x7F]
-    );
-    check!(
-        add_reg_deref1,
-        Instr::Addq {
-            src: Arg::Reg { reg: Reg::RCX },
-            dst: Arg::Deref {
-                reg: Reg::R15,
-                off: i32::MAX as i64
-            }
-        },
-        vec![0x49, 0x01, 0x8F, 0xFF, 0xFF, 0xFF, 0x7F]
-    );
-    check!(
-        add_imm_deref1,
-        Instr::Addq {
-            src: Arg::Imm {
-                val: (i32::MAX - 0xFF) as i64
-            },
-            dst: Arg::Deref {
-                reg: Reg::R9,
-                off: i32::MAX as i64
-            }
-        },
-        vec![0x49, 0x81, 0x81, 0xFF, 0xFF, 0xFF, 0x7F, 0x00, 0xFF, 0xFF, 0x7F]
-    );
-    check!(
-        add_imm_deref2,
-        Instr::Addq {
-            src: Arg::Imm {
-                val: (i32::MAX - 0xFF) as i64
-            },
-            dst: Arg::Deref {
-                reg: Reg::RDX,
-                off: i32::MAX as i64
-            }
-        },
-        vec![0x48, 0x81, 0x82, 0xFF, 0xFF, 0xFF, 0x7F, 0x00, 0xFF, 0xFF, 0x7F]
-    );
+    mod add {
+        use super::*;
 
-    check!(
-        sub_reg_reg,
-        Instr::Subq {
-            src: Arg::Reg { reg: Reg::RSP },
-            dst: Arg::Reg { reg: Reg::RDX }
-        },
-        vec![0x48, 0x29, 0xE2]
-    );
-    check!(
-        sub_imm_reg,
-        Instr::Subq {
-            src: Arg::Imm {
-                val: i32::MAX as i64
-            },
-            dst: Arg::Reg { reg: Reg::RBP }
-        },
-        vec![0x48, 0x81, 0xED, 0xFF, 0xFF, 0xFF, 0x7F]
-    );
-    check!(
-        sub_deref_reg1,
-        Instr::Subq {
-            src: Arg::Deref {
-                reg: Reg::RBX,
-                off: i32::MAX as i64
-            },
-            dst: Arg::Reg { reg: Reg::RDI }
-        },
-        vec![0x48, 0x2B, 0xBB, 0xFF, 0xFF, 0xFF, 0x7F]
-    );
-    check!(
-        sub_deref_reg2,
-        Instr::Subq {
-            src: Arg::Deref {
-                reg: Reg::RBX,
-                off: i32::MAX as i64
-            },
-            dst: Arg::Reg { reg: Reg::R15 }
-        },
-        vec![0x4C, 0x2B, 0xBB, 0xFF, 0xFF, 0xFF, 0x7F]
-    );
-    check!(
-        sub_reg_deref1,
-        Instr::Subq {
-            src: Arg::Reg { reg: Reg::RCX },
-            dst: Arg::Deref {
-                reg: Reg::R15,
-                off: i32::MAX as i64
-            }
-        },
-        vec![0x49, 0x29, 0x8F, 0xFF, 0xFF, 0xFF, 0x7F]
-    );
-    check!(
-        sub_imm_deref1,
-        Instr::Subq {
-            src: Arg::Imm {
-                val: (i32::MAX - 0xFF) as i64
-            },
-            dst: Arg::Deref {
-                reg: Reg::R9,
-                off: i32::MAX as i64
-            }
-        },
-        vec![0x49, 0x81, 0xA9, 0xFF, 0xFF, 0xFF, 0x7F, 0x00, 0xFF, 0xFF, 0x7F]
-    );
-    check!(
-        sub_imm_deref2,
-        Instr::Subq {
-            src: Arg::Imm {
-                val: (i32::MAX - 0xFF) as i64
-            },
-            dst: Arg::Deref {
-                reg: Reg::RDX,
-                off: i32::MAX as i64
-            }
-        },
-        vec![0x48, 0x81, 0xAA, 0xFF, 0xFF, 0xFF, 0x7F, 0x00, 0xFF, 0xFF, 0x7F]
-    );
+        check!(
+            reg_reg,
+            addq!(reg!(RSP), reg!(RDX)),
+            vec![0x48, 0x01, 0xE2]
+        );
+        check!(
+            imm_reg,
+            addq!(imm!(i32::MAX as i64), reg!(RBP)),
+            vec![0x48, 0x81, 0xC5, 0xFF, 0xFF, 0xFF, 0x7F]
+        );
+        check!(
+            deref_reg1,
+            addq!(deref!(RBX, i32::MAX as i64), reg!(RDI)),
+            vec![0x48, 0x03, 0xBB, 0xFF, 0xFF, 0xFF, 0x7F]
+        );
+        check!(
+            deref_reg2,
+            addq!(deref!(RBX, i32::MAX as i64), reg!(R15)),
+            vec![0x4C, 0x03, 0xBB, 0xFF, 0xFF, 0xFF, 0x7F]
+        );
+        check!(
+            reg_deref1,
+            addq!(reg!(RCX), deref!(R15, i32::MAX as i64)),
+            vec![0x49, 0x01, 0x8F, 0xFF, 0xFF, 0xFF, 0x7F]
+        );
+        check!(
+            imm_deref1,
+            addq!(imm!((i32::MAX - 0xFF) as i64), deref!(R9, i32::MAX as i64)),
+            vec![0x49, 0x81, 0x81, 0xFF, 0xFF, 0xFF, 0x7F, 0x00, 0xFF, 0xFF, 0x7F]
+        );
+        check!(
+            imm_deref2,
+            addq!(imm!((i32::MAX - 0xFF) as i64), deref!(RDX, i32::MAX as i64)),
+            vec![0x48, 0x81, 0x82, 0xFF, 0xFF, 0xFF, 0x7F, 0x00, 0xFF, 0xFF, 0x7F]
+        );
+    }
 
-    check!(
-        mov_reg_reg,
-        Instr::Movq {
-            src: Arg::Reg { reg: Reg::RSP },
-            dst: Arg::Reg { reg: Reg::RDX }
-        },
-        vec![0x48, 0x89, 0xE2]
-    );
-    check!(
-        mov_imm_reg,
-        Instr::Movq {
-            src: Arg::Imm {
-                val: i32::MAX as i64
-            },
-            dst: Arg::Reg { reg: Reg::RBP }
-        },
-        vec![0x48, 0xC7, 0xC5, 0xFF, 0xFF, 0xFF, 0x7F]
-    );
-    check!(
-        mov_deref_reg1,
-        Instr::Movq {
-            src: Arg::Deref {
-                reg: Reg::RBX,
-                off: i32::MAX as i64
-            },
-            dst: Arg::Reg { reg: Reg::RDI }
-        },
-        vec![0x48, 0x8B, 0xBB, 0xFF, 0xFF, 0xFF, 0x7F]
-    );
-    check!(
-        mov_deref_reg2,
-        Instr::Movq {
-            src: Arg::Deref {
-                reg: Reg::RBX,
-                off: i32::MAX as i64
-            },
-            dst: Arg::Reg { reg: Reg::R15 }
-        },
-        vec![0x4C, 0x8B, 0xBB, 0xFF, 0xFF, 0xFF, 0x7F]
-    );
-    check!(
-        mov_reg_deref1,
-        Instr::Movq {
-            src: Arg::Reg { reg: Reg::RCX },
-            dst: Arg::Deref {
-                reg: Reg::R15,
-                off: i32::MAX as i64
-            }
-        },
-        vec![0x49, 0x89, 0x8F, 0xFF, 0xFF, 0xFF, 0x7F]
-    );
-    check!(
-        mov_imm_deref1,
-        Instr::Movq {
-            src: Arg::Imm {
-                val: (i32::MAX - 0xFF) as i64
-            },
-            dst: Arg::Deref {
-                reg: Reg::R9,
-                off: i32::MAX as i64
-            }
-        },
-        vec![0x49, 0xC7, 0x81, 0xFF, 0xFF, 0xFF, 0x7F, 0x00, 0xFF, 0xFF, 0x7F]
-    );
-    check!(
-        mov_imm_deref2,
-        Instr::Movq {
-            src: Arg::Imm {
-                val: (i32::MAX - 0xFF) as i64
-            },
-            dst: Arg::Deref {
-                reg: Reg::RDX,
-                off: i32::MAX as i64
-            }
-        },
-        vec![0x48, 0xC7, 0x82, 0xFF, 0xFF, 0xFF, 0x7F, 0x00, 0xFF, 0xFF, 0x7F]
-    );
+    mod sub {
+        use super::*;
 
-    check!(
-        neg_reg1,
-        Instr::Negq {
-            dst: Arg::Reg { reg: Reg::RSP }
-        },
-        vec![0x48, 0xF7, 0xDC]
-    );
-    check!(
-        neg_reg2,
-        Instr::Negq {
-            dst: Arg::Reg { reg: Reg::R13 }
-        },
-        vec![0x49, 0xF7, 0xDD]
-    );
-    check!(
-        neg_deref,
-        Instr::Negq {
-            dst: Arg::Deref {
-                reg: Reg::RSP,
-                off: i32::MAX as i64
-            }
-        },
-        vec![0x48, 0xF7, 0x9C, 0x24, 0xFF, 0xFF, 0xFF, 0x7F]
-    );
+        check!(
+            reg_reg,
+            subq!(reg!(RSP), reg!(RDX)),
+            vec![0x48, 0x29, 0xE2]
+        );
+        check!(
+            imm_reg,
+            subq!(imm!(i32::MAX as i64), reg!(RBP)),
+            vec![0x48, 0x81, 0xED, 0xFF, 0xFF, 0xFF, 0x7F]
+        );
+        check!(
+            deref_reg1,
+            subq!(deref!(RBX, i32::MAX as i64), reg!(RDI)),
+            vec![0x48, 0x2B, 0xBB, 0xFF, 0xFF, 0xFF, 0x7F]
+        );
+        check!(
+            deref_reg2,
+            subq!(deref!(RBX, i32::MAX as i64), reg!(R15)),
+            vec![0x4C, 0x2B, 0xBB, 0xFF, 0xFF, 0xFF, 0x7F]
+        );
+        check!(
+            reg_deref1,
+            subq!(reg!(RCX), deref!(R15, i32::MAX as i64)),
+            vec![0x49, 0x29, 0x8F, 0xFF, 0xFF, 0xFF, 0x7F]
+        );
+        check!(
+            imm_deref1,
+            subq!(imm!((i32::MAX - 0xFF) as i64), deref!(R9, i32::MAX as i64)),
+            vec![0x49, 0x81, 0xA9, 0xFF, 0xFF, 0xFF, 0x7F, 0x00, 0xFF, 0xFF, 0x7F]
+        );
+        check!(
+            imm_deref2,
+            subq!(imm!((i32::MAX - 0xFF) as i64), deref!(RDX, i32::MAX as i64)),
+            vec![0x48, 0x81, 0xAA, 0xFF, 0xFF, 0xFF, 0x7F, 0x00, 0xFF, 0xFF, 0x7F]
+        );
+    }
+
+    mod r#move {
+        use super::*;
+        
+        check!(reg_reg, movq!(reg!(RSP), reg!(RDX)), vec![0x48, 0x89, 0xE2]);
+        check!(
+            imm_reg,
+            movq!(imm!(i32::MAX as i64), reg!(RBP)),
+            vec![0x48, 0xC7, 0xC5, 0xFF, 0xFF, 0xFF, 0x7F]
+        );
+        check!(
+            deref_reg1,
+            movq!(deref!(RBX, i32::MAX as i64), reg!(RDI)),
+            vec![0x48, 0x8B, 0xBB, 0xFF, 0xFF, 0xFF, 0x7F]
+        );
+        check!(
+            deref_reg2,
+            movq!(deref!(RBX, i32::MAX as i64), reg!(R15)),
+            vec![0x4C, 0x8B, 0xBB, 0xFF, 0xFF, 0xFF, 0x7F]
+        );
+        check!(
+            reg_deref1,
+            movq!(reg!(RCX), deref!(R15, i32::MAX as i64)),
+            vec![0x49, 0x89, 0x8F, 0xFF, 0xFF, 0xFF, 0x7F]
+        );
+        check!(
+            imm_deref1,
+            movq!(imm!((i32::MAX - 0xFF) as i64), deref!(R9, i32::MAX as i64)),
+            vec![0x49, 0xC7, 0x81, 0xFF, 0xFF, 0xFF, 0x7F, 0x00, 0xFF, 0xFF, 0x7F]
+        );
+        check!(
+            imm_deref2,
+            movq!(imm!((i32::MAX - 0xFF) as i64), deref!(RDX, i32::MAX as i64)),
+            vec![0x48, 0xC7, 0x82, 0xFF, 0xFF, 0xFF, 0x7F, 0x00, 0xFF, 0xFF, 0x7F]
+        );
+    }
+
+    mod neg {
+        use super::*;
+        
+        check!(nreg1, negq!(reg!(RSP)), vec![0x48, 0xF7, 0xDC]);
+        check!(reg2, negq!(reg!(R13)), vec![0x49, 0xF7, 0xDD]);
+        check!(
+            deref,
+            negq!(deref!(RSP, i32::MAX as i64)),
+            vec![0x48, 0xF7, 0x9C, 0x24, 0xFF, 0xFF, 0xFF, 0x7F]
+        );
+    }
 }

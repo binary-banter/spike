@@ -1,7 +1,7 @@
 use miette::Diagnostic;
 use rust_compiler_construction::elf::ElfFile;
-use rust_compiler_construction::parser::{PrettyParseError};
-use std::fs::{File};
+use rust_compiler_construction::parser::PrettyParseError;
+use std::fs::File;
 use std::io;
 
 use thiserror::Error;

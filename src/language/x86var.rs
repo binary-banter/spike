@@ -292,4 +292,14 @@ mod macros {
             VarArg::XVar { sym: $sym }
         };
     }
+
+    #[macro_export]
+    macro_rules! deref {
+        ($reg:ident, $off:expr) => {
+            Arg::Deref {
+                reg: Reg::$reg,
+                off: $off,
+            }
+        };
+    }
 }
