@@ -8,14 +8,14 @@ mod var;
 
 use crate::language::lvar::LVarProgram;
 use crate::parser::expression::parse_expression;
+use miette::{Diagnostic, SourceOffset, SourceSpan};
 use nom::character::complete::{multispace0, multispace1};
 use nom::combinator::all_consuming;
-use nom::error::{Error, ErrorKind, ParseError};
+use nom::error::{ErrorKind, ParseError};
 use nom::sequence::{preceded, terminated};
 use nom::Err;
 use nom::{IResult, Parser, Slice};
 use regex::Regex;
-use miette::{Diagnostic, SourceOffset, SourceSpan};
 use thiserror::Error;
 
 #[derive(Error, Debug, Diagnostic)]
@@ -30,7 +30,7 @@ pub struct PrettyParseError {
     src: String,
 
     #[label("Failed to parse here")]
-    fail: SourceSpan
+    fail: SourceSpan,
 }
 
 pub fn parse_program(src: &str) -> Result<LVarProgram, PrettyParseError> {

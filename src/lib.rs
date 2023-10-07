@@ -1,3 +1,4 @@
+pub mod elf;
 pub mod interpreter;
 pub mod language;
 pub mod parser;
