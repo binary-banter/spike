@@ -6,6 +6,7 @@ mod special;
 use push_pop::PushPopInfo;
 use unary::UnaryOpInfo;
 use crate::language::x86var::{Arg, Block, Instr, Reg, X86Program};
+use crate::*;
 use crate::passes::emit::binary::{BinaryOpInfo, encode_binary_instr};
 
 impl<'p> X86Program<'p> {
@@ -88,12 +89,19 @@ fn emit_instr(instr: &Instr<Arg>, machine_code: &mut Vec<u8>) {
         Instr::Callq { lbl, arity } => match (*lbl, arity) {
             ("_print_int", 1) => todo!(),
             ("_read_int", 0) => todo!(),
+            ("exit", 1) => {
+                let mut v = vec![];
+                emit_instr(&movq!(reg!(RDI), reg!(RAX)), &mut v);
+                emit_instr(&movq!(imm!(0x3C), reg!(RDI)), &mut v);
+                v.extend([0x0F, 0x05]);
+                v
+            }
             (_lbl, _) => todo!(),
         },
+        Instr::Jmp { lbl: _ } => todo!(),
         Instr::Retq => {
             vec![0xC3]
         }
-        Instr::Jmp { lbl: _ } => todo!(),
     };
     machine_code.extend(v);
 }
