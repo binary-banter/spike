@@ -26,8 +26,7 @@ impl<'a> ElfFile<'a> {
         }
     }
 
-    pub fn emit(self, w: &mut impl Write) {
-
+    pub fn write(self, w: &mut impl Write) {
         w.write_all(self.header.as_bytes()).unwrap();
         for pheader in self.p_headers {
             w.write_all(pheader.as_bytes()).unwrap();

@@ -3,105 +3,228 @@ use std::fmt::{Display, Formatter};
 use std::io::Write;
 
 impl<'p> X86Program<'p> {
-    pub fn emit(self, w: &mut impl Write) -> std::io::Result<()> {
-        write!(w, "{self}")
-    }
-}
-
-impl<'p> Display for X86Program<'p> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, ".data")?;
-        writeln!(f, "\tformat_read_int: .asciz \"%d\"")?;
-        writeln!(f, "\tformat_print_int: .asciz \"%d\\n\"")?;
-
-        writeln!(f, ".globl main")?;
-        writeln!(f, ".text")?;
-        for (name, block) in &self.blocks {
-            write!(f, "{name}:\n{block}")?;
+    pub fn emit(self) -> Vec<u8> {
+        let mut machine_code = Vec::new();
+        for (_name, block) in &self.blocks {
+            emit_block(block, &mut machine_code);
         }
-        Ok(())
+        machine_code
     }
 }
 
-impl<'p> Display for Block<'p, Arg> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        for instr in &self.instrs {
-            write!(f, "{instr}")?;
+fn emit_block(block: &Block<Arg>, machine_code: &mut Vec<u8>) {
+    for instr in &block.instrs{
+        emit_instr(instr, machine_code);
+    }
+}
+
+fn emit_instr(instr: &Instr<Arg>, machine_code: &mut Vec<u8>) {
+    let v = match instr{
+        Instr::Addq { src, dst } => {
+            encode_binary_instr(BinaryOpInfo {
+                op_reg_reg: 0x01,
+                op_reg_deref: 0x01,
+                op_imm_deref: 0x81,
+                op_imm_reg: 0x81,
+                op_deref_reg: 0x03,
+                imm_as_src: 0x0,
+            }, src, dst)
+        },
+        Instr::Subq { src, dst } => {
+            encode_binary_instr(BinaryOpInfo {
+                op_reg_reg: 0x29,
+                op_imm_reg: 0x81,
+                op_deref_reg: 0x2B,
+                op_reg_deref: 0x29,
+                op_imm_deref: 0x81,
+                imm_as_src: 0x5,
+            }, src, dst)
+        },
+        Instr::Movq { src, dst } => {
+            encode_binary_instr(BinaryOpInfo {
+                op_reg_reg: 0x89,
+                op_imm_reg: 0xC7,
+                op_deref_reg: 0x8B,
+                op_reg_deref: 0x89,
+                op_imm_deref: 0xC7,
+                imm_as_src: 0x0,
+            }, src, dst)
         }
-        Ok(())
-    }
+        Instr::Negq { dst } => {
+            encode_unary_instr(UnaryOpInfo {
+                op: 0xF7,
+                imm_as_src: 0x3,
+            }, dst)
+        },
+        Instr::Pushq { src } => todo!(),
+        Instr::Popq { dst } => todo!(),
+        Instr::Callq { lbl, arity } => match (*lbl, arity) {
+            ("_print_int", 1) => todo!(),
+            ("_read_int", 0) => todo!(),
+            (lbl, _) => todo!(),
+        },
+        Instr::Retq => {
+            vec![0xC3]
+        },
+        Instr::Jmp { lbl } => todo!(),
+    };
+    machine_code.extend(v);
 }
 
-impl<'p> Display for Instr<'p, Arg> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Instr::Addq { src, dst } => writeln!(f, "\taddq {dst}, {src}"),
-            Instr::Subq { src, dst } => writeln!(f, "\tsubq {dst}, {src}"),
-            Instr::Negq { dst } => writeln!(f, "\tnegq {dst}"),
-            Instr::Movq { src, dst } => writeln!(f, "\tmovq {dst}, {src}"),
-            Instr::Pushq { src } => writeln!(f, "\tpushq {src}"),
-            Instr::Popq { dst } => writeln!(f, "\tpopq {dst}"),
-            Instr::Callq { lbl, arity } => match (*lbl, arity) {
-                ("_print_int", 1) => {
-                    writeln!(f, "\tmovq %rsi, %rdi")?;
-                    writeln!(f, "\tleaq %rdi, format_print_int")?;
-                    writeln!(f, "\tcallq printf")
-                }
-                ("_read_int", 0) => {
-                    writeln!(f, "\tsubq %rsp, 16")?;
-                    writeln!(f, "\tleaq %rdi, format_read_int")?;
-                    writeln!(f, "\tmovq %rsi, %rsp")?;
-                    writeln!(f, "\tcallq scanf")?;
-                    writeln!(f, "\tpopq %rax")?;
-                    writeln!(f, "\taddq %rsp, 8")
-                }
-                (lbl, _) => writeln!(f, "\tcall {lbl}"),
-            },
-            Instr::Retq => writeln!(f, "\tret"),
-            Instr::Jmp { lbl } => writeln!(f, "\tjmp {lbl}"),
+struct UnaryOpInfo {
+    op: u8,
+    imm_as_src: u8
+}
+
+fn encode_unary_instr(op_info: UnaryOpInfo, dst: &Arg) -> Vec<u8> {
+    match dst {
+        Arg::Reg { reg: dst } => {
+            // use: REX.W + opcode /r
+            let (d, ddd) = encode_reg(dst);
+            vec![
+                0b0100_1000 | d,
+                op_info.op,
+                0b11_000_000 | op_info.imm_as_src << 3 | ddd
+            ]
         }
-    }
-}
+        Arg::Deref { reg: dst, off } => {
+            // use: REX.W + opcode /r
+            let (d, ddd) = encode_reg(dst);
+            let off = *off as i32;
 
-impl Display for Arg {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Arg::Imm { val } => write!(f, "{val}"),
-            Arg::Reg { reg } => write!(f, "{reg}"),
-            Arg::Deref { reg, off } => {
-                if off >= &0 {
-                    write!(f, "[{reg}+{off}]")
-                } else {
-                    write!(f, "[{reg}{off}]")
-                }
+            // 10 011 100
+            let mut v = vec![
+                0b0100_1000 | d,
+                op_info.op,
+                0b11_000_000 | op_info.imm_as_src << 3 | ddd
+            ];
+
+            if matches!(dst, Reg::RSP | Reg::R12) {
+                v.push(0x24);
             }
+            v.extend(off.to_le_bytes());
+            v
+        }
+        Arg::Imm { .. } => unreachable!()
+    }
+}
+
+struct BinaryOpInfo {
+    /// Opcode in case the binary operation performs op(src: reg, dst: reg).
+    op_reg_reg: u8,
+    /// Opcode in case the binary operation performs op(src: imm, dst: reg).
+    op_imm_reg: u8,
+    /// Opcode in case the binary operation performs op(src: deref, dst: reg).
+    op_deref_reg: u8,
+    /// Opcode in case the binary operation performs op(src: deref, dst: reg).
+    op_reg_deref: u8,
+
+    op_imm_deref: u8,
+    /// Bits to use instead of the absent src
+    imm_as_src: u8,
+}
+
+fn encode_binary_instr(op_info: BinaryOpInfo, src: &Arg, dst: &Arg) -> Vec<u8> {
+    match (src, dst) {
+        (Arg::Reg {reg: src}, Arg::Reg {reg: dst}) => {
+            // use: REX.W + opcode /r
+            let (s, sss) = encode_reg(src);
+            let (d, ddd) = encode_reg(dst);
+            vec![
+                0b0100_1000 | (s << 2) | d,
+                op_info.op_reg_reg,
+                0b11_000_000 | sss << 3 | ddd
+            ]
+        },
+        (Arg::Deref {reg: src, off }, Arg::Reg {reg: dst}) => {
+            let (s, sss) = encode_reg(src);
+            let (d, ddd) = encode_reg(dst);
+            let off = *off as i32;
+
+            let mut v = vec![
+                0b0100_1000 | (s << 2) | d,
+                op_info.op_deref_reg,
+                0b10_000_000 | sss << 3 | ddd
+            ];
+            if matches!(src, Reg::RSP | Reg::R12) {
+                v.push(0x24);
+            }
+            v.extend(off.to_le_bytes());
+            v
+        }
+        (Arg::Reg {reg: src}, Arg::Deref {reg: dst, off}) => {
+            let (s, sss) = encode_reg(src);
+            let (d, ddd) = encode_reg(dst);
+            let off = *off as i32;
+
+            let mut v = vec![
+                0b0100_1000 | (s << 2) | d,
+                op_info.op_reg_deref,
+                0b10_000_000 | sss << 3 | ddd
+            ];
+            if matches!(src, Reg::RSP | Reg::R12) {
+                v.push(0x24);
+            }
+            v.extend(off.to_le_bytes());
+            v
+        }
+        (Arg::Imm { val: imm}, Arg::Reg { reg: dst}) => {
+            let (d, ddd) = encode_reg(dst);
+            let imm = *imm as i32;
+
+            let mut v = vec![
+                0b0100_0000 | d,
+                op_info.op_imm_reg,
+                0b11_000_000 | op_info.imm_as_src << 3 | ddd,
+            ];
+            v.extend(imm.to_le_bytes());
+            v
+        }
+        (Arg::Imm {val: imm}, Arg::Deref {reg: dst, off}) => {
+            let (d, ddd) = encode_reg(dst);
+            let off = *off as i32;
+            let imm = *imm as i32;
+
+            let mut v = vec![
+                0b0100_0000 | d,
+                op_info.op_imm_deref,
+                0b10_000_000 | op_info.imm_as_src << 3 | ddd,
+            ];
+            if matches!(dst, Reg::RSP | Reg::R12) {
+                v.push(0x24);
+            }
+            v.extend(off.to_le_bytes());
+            v.extend(imm.to_le_bytes());
+            v
+        }
+        (Arg::Deref{..}, Arg::Deref {..}) => {
+            unreachable!("Found binary instruction with 2 derefs.");
+        }
+        (_, Arg::Imm {..}) => {
+            unreachable!("Found immediate in destination position.");
         }
     }
 }
 
-impl Display for Reg {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "%{}",
-            match self {
-                Reg::RSP => "rsp",
-                Reg::RBP => "rbp",
-                Reg::RAX => "rax",
-                Reg::RBX => "rbx",
-                Reg::RCX => "rcx",
-                Reg::RDX => "rdx",
-                Reg::RSI => "rsi",
-                Reg::RDI => "rdi",
-                Reg::R8 => "r8",
-                Reg::R9 => "r9",
-                Reg::R10 => "r10",
-                Reg::R11 => "r11",
-                Reg::R12 => "r12",
-                Reg::R13 => "r13",
-                Reg::R14 => "r14",
-                Reg::R15 => "r15",
-            }
-        )
+
+fn encode_reg(reg: &Reg) -> (u8, u8) {
+    match reg {
+        Reg::RAX => (0,0),
+        Reg::RCX => (0,1),
+        Reg::RDX => (0,2),
+        Reg::RBX => (0,3),
+        Reg::RSP => (0,4),
+        Reg::RBP => (0,5),
+        Reg::RSI => (0,6),
+        Reg::RDI => (0, 7),
+        Reg::R8 => (1, 0),
+        Reg::R9 => (1, 1),
+        Reg::R10 => (1, 2),
+        Reg::R11 => (1, 3),
+        Reg::R12 => (1, 4),
+        Reg::R13 => (1, 5),
+        Reg::R14 => (1, 6),
+        Reg::R15 => (1, 7),
     }
 }
+
