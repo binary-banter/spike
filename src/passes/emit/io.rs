@@ -20,39 +20,39 @@ fn add_exit_block<'p>(blocks: &mut HashMap<&'p str, Block<'p, Arg>>) {
 
 //We can use: rax rcx rdx rsi rdi r8 r9 r10 r11
 fn add_print_block<'p>(blocks: &mut HashMap<&'p str, Block<'p, Arg>>) {
-    let mut instrs = vec![
+    blocks.insert("_print_int", block!(
         movq!(reg!(RDI), reg!(RAX)),
         movq!(imm!(10), reg!(RCX)),
-        pushq!(imm!(b'\n' as i64))
-    ];
+        pushq!(imm!(b'\n' as i64)),
+        jmp!("_print_int_push_loop")
+    ));
+    blocks.insert("_print_int_push_loop", block!(
+        movq!(imm!(0), reg!(RDX)),
+        divq!(reg!(RCX)),
+        addq!(imm!(b'0' as i64), reg!(RDX)),
+        pushq!(reg!(RDX)),
 
-    for _ in 0..19 {
-        instrs.extend(vec![
-            movq!(imm!(0), reg!(RDX)),
-            divq!(reg!(RCX)),
-            addq!(imm!(b'0' as i64), reg!(RDX)),
-            pushq!(reg!(RDX)),
-        ])
-    }
+        addq!(imm!(0), reg!(RAX)),
+        jcc!("_print_int_push_loop", Cnd::NE),
+        jmp!("_print_int_print_loop")
+    ));
+    blocks.insert("_print_int_print_loop", block!(
+        // Print top of stack
+        movq!(imm!(1), reg!(RAX)), // syscall 1: Write
+        movq!(imm!(1), reg!(RDI)), // STDOUT
+        movq!(reg!(RSP), reg!(RSI)),
+        movq!(imm!(1), reg!(RDX)),
+        syscall!(),
 
-    for _ in 0..20 {
-        instrs.extend(vec![
-            movq!(imm!(1), reg!(RAX)), // syscall 1: Write
-            movq!(imm!(1), reg!(RDI)), // STDOUT
-            movq!(reg!(RSP), reg!(RSI)),
-            movq!(imm!(1), reg!(RDX)),
-            syscall!(),
-            addq!(imm!(8), reg!(RSP)),
-        ])
-    }
-
-    instrs.push(retq!());
-
-
-    //9_223_372_036_854_775_807 max size
-    blocks.insert("_print_int", Block{
-        instrs,
-    });
+        // Check if we continue
+        popq!(reg!(RAX)),
+        subq!(imm!(b'\n' as i64), reg!(RAX)),
+        jcc!("_print_int_print_loop", Cnd::NE),
+        jmp!("_print_int_exit")
+    ));
+    blocks.insert("_print_int_exit", block!(
+        retq!()
+    ));
 }
 
 fn add_read_block<'p>(blocks: &mut HashMap<&'p str, Block<'p, Arg>>) {

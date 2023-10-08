@@ -46,6 +46,7 @@ pub enum Cnd {
     EQ,
     GE,
     GT,
+    NE
 }
 
 #[derive(Debug, PartialEq)]

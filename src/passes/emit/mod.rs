@@ -137,6 +137,7 @@ fn emit_instr<'p>(instr: &Instr<'p, Arg>, machine_code: &mut Vec<u8>, jumps: &mu
                 Cnd::EQ => 0x84,
                 Cnd::GE => 0x8D,
                 Cnd::GT => 0x8F,
+                Cnd::NE => 0x85,
             };
             vec![0x0F, cnd, 0x00, 0x00, 0x00, 0x00]
         },
