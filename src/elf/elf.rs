@@ -34,6 +34,7 @@ struct ElfIdentifier {
     ei_pad: [u8; 7],
 }
 
+#[allow(unused)]
 #[repr(u8)]
 #[derive(AsBytes, Copy, Clone)]
 pub enum Bitness {
@@ -41,6 +42,7 @@ pub enum Bitness {
     Bitness64 = 2,
 }
 
+#[allow(unused)]
 #[repr(u8)]
 #[derive(AsBytes, Copy, Clone)]
 pub enum Endianness {
@@ -48,6 +50,7 @@ pub enum Endianness {
     BigEndian = 2,
 }
 
+#[allow(unused)]
 #[repr(u8)]
 #[derive(AsBytes, Copy, Clone)]
 enum OSABI {
@@ -57,6 +60,7 @@ enum OSABI {
     Linux = 3,
 }
 
+#[allow(unused)]
 #[repr(u16)]
 #[derive(AsBytes, Copy, Clone)]
 enum ObjectType {
@@ -67,6 +71,7 @@ enum ObjectType {
     Core = 0x04,
 }
 
+#[allow(unused)]
 #[repr(u16)]
 #[derive(AsBytes, Copy, Clone)]
 enum Machine {

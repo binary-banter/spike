@@ -2,6 +2,7 @@ use bitflags::bitflags;
 use std::mem::size_of;
 use zerocopy::AsBytes;
 
+#[allow(unused)]
 #[allow(non_camel_case_types)]
 #[repr(u32)]
 #[derive(AsBytes)]

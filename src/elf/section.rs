@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use bitflags::bitflags;
 use std::mem::size_of;
 use zerocopy::AsBytes;

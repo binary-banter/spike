@@ -1,5 +1,4 @@
 #![allow(non_camel_case_types)]
-#![allow(unused)]
 #![allow(clippy::upper_case_acronyms)]
 
 #[allow(clippy::module_inception)]

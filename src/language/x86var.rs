@@ -41,29 +41,29 @@ pub struct LBlock<'p> {
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Cnd {
-    Above,          //87
-    AboveOrEqual,   //83
-    Below,          //82
-    BelowOrEqual,   //86
-    Carry,          //82
-    Equal,          //84
-    Greater,        //8F
-    GreaterOrEqual, //8D
-    Less,           //8C
-    LessOrEqual,    //8E
-    NotAbove,       //86
-    NotBelow,       //83
-    NotCarry,       //83
-    NotEqual,       //85
-    NotGreater,     //8E
-    NotLess,        //8D
-    NotOverflow,    //81
-    NotParity,      //8B
-    NotSign,        //89
-    Overflow,       //80
-    ParityEven,     //8A
-    ParityOdd,      //8B
-    Sign,           //88
+    Above,
+    AboveOrEqual,
+    Below,
+    BelowOrEqual,
+    Carry,
+    Equal,
+    Greater,
+    GreaterOrEqual,
+    Less,
+    LessOrEqual,
+    NotAbove,
+    NotBelow,
+    NotCarry,
+    NotEqual,
+    NotGreater,
+    NotLess,
+    NotOverflow,
+    NotParity,
+    NotSign,
+    Overflow,
+    ParityEven,
+    ParityOdd,
+    Sign,
 }
 
 #[derive(Debug, PartialEq)]
