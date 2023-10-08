@@ -1,6 +1,6 @@
 use crate::language::x86var::{AX86Program, Arg, Block, Instr, Reg, VarArg, X86VarProgram};
 use crate::passes::uniquify::UniqueSym;
-use crate::{addq, callq, jmp, movq, negq, popq, pushq, retq, subq, syscall};
+use crate::{addq, callq, divq, jmp, movq, negq, popq, pushq, retq, subq, syscall};
 use std::collections::HashMap;
 
 impl<'p> X86VarProgram<'p> {
@@ -46,6 +46,7 @@ fn assign_instruction<'p>(
         Instr::Retq => retq!(),
         Instr::Jmp { lbl } => jmp!(lbl),
         Instr::Syscall => syscall!(),
+        Instr::Divq { divisor } => divq!(assign_arg(divisor, homes)),
     }
 }
 

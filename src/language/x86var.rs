@@ -1,5 +1,5 @@
 use crate::passes::uniquify::UniqueSym;
-use crate::{addq, callq, jmp, movq, negq, popq, pushq, retq, subq, syscall};
+use crate::{addq, callq, divq, jmp, movq, negq, popq, pushq, retq, subq, syscall};
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 
@@ -43,6 +43,7 @@ pub struct LBlock<'p> {
 pub enum Instr<'p, A> {
     Addq { src: A, dst: A },
     Subq { src: A, dst: A },
+    Divq { divisor: A },
     Negq { dst: A },
     Movq { src: A, dst: A },
     Pushq { src: A },
@@ -177,6 +178,7 @@ impl<'p> From<Instr<'p, Arg>> for Instr<'p, VarArg<'p>> {
             Instr::Retq => retq!(),
             Instr::Jmp { lbl } => jmp!(lbl),
             Instr::Syscall => syscall!(),
+            Instr::Divq { divisor } => divq!(divisor.into()),
         }
     }
 }
@@ -205,6 +207,15 @@ mod macros {
             Instr::Addq {
                 src: $src,
                 dst: $dst,
+            }
+        };
+    }
+
+    #[macro_export]
+    macro_rules! divq {
+        ($divisor:expr) => {
+            Instr::Divq {
+                divisor: $divisor,
             }
         };
     }

@@ -2,6 +2,7 @@ use crate::interpreter::IO;
 use crate::language::x86var::{Block, Instr, Reg, VarArg, X86VarProgram};
 use crate::passes::uniquify::UniqueSym;
 use std::collections::HashMap;
+use crate::language::x86var::Arg;
 
 struct X86Interpreter<'p, I: IO> {
     blocks: &'p HashMap<&'p str, Block<'p, VarArg<'p>>>,
@@ -66,6 +67,15 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                 },
                 Instr::Retq => break, // todo: not quite correct
                 Instr::Syscall => unreachable!(),
+                Instr::Divq { divisor } => {
+                    let rax = self.regs[&Reg::RAX];
+                    let rdx = self.regs[&Reg::RDX];
+                    let dividend = ((rax as i128) << 64) | rdx as i128;
+                    let divisor = self.get_arg(divisor) as i128;
+
+                    self.regs.insert(Reg::RAX, (dividend / divisor) as i64);
+                    self.regs.insert(Reg::RDX, (dividend % divisor) as i64);
+                }
             }
         }
         self.regs[&Reg::RAX]

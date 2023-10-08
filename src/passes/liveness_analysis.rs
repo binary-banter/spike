@@ -2,6 +2,8 @@ use crate::language::x86var::{
     Block, Instr, LArg, LBlock, LX86VarProgram, Reg, VarArg, X86VarProgram, ARG_PASSING_REGS,
 };
 use std::collections::HashSet;
+use crate::reg;
+use crate::language::x86var::Arg;
 
 impl<'p> X86VarProgram<'p> {
     pub fn add_liveness(self) -> LX86VarProgram<'p> {
@@ -57,6 +59,10 @@ fn instr_reads<'p>(instr: &Instr<'p, VarArg<'p>>) -> HashSet<LArg<'p>> {
             .collect(),
         Instr::Popq { .. } | Instr::Jmp { .. } | Instr::Retq => HashSet::new(),
         Instr::Syscall => todo!(),
+        Instr::Divq { divisor } => [divisor, &reg!(RAX), &reg!(RDX)].into_iter()
+            .cloned()
+            .flat_map(TryFrom::try_from)
+            .collect(),
     }
 }
 
@@ -75,6 +81,7 @@ fn instr_writes<'p>(instr: &Instr<'p, VarArg<'p>>) -> HashSet<LArg<'p>> {
         Instr::Callq { .. } => HashSet::from([LArg::Reg { reg: Reg::RAX }]),
         Instr::Pushq { .. } | Instr::Jmp { .. } | Instr::Retq => HashSet::new(),
         Instr::Syscall => todo!(),
+        Instr::Divq { .. } => HashSet::from([LArg::Reg {reg: Reg::RAX}, LArg::Reg {reg:Reg::RDX}])
     }
 }
 

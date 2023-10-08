@@ -133,6 +133,20 @@ fn emit_instr<'p>(instr: &Instr<'p, Arg>, machine_code: &mut Vec<u8>, jumps: &mu
         Instr::Syscall => {
             vec![0x0F, 0x05]
         }
+        Instr::Divq { divisor } => {
+            match divisor {
+                Arg::Imm { .. } => todo!(),
+                Arg::Reg { reg: divisor } => {
+                    let (d, ddd) = encode_reg(divisor);
+                    vec![
+                        0b0100_1000 | d,
+                        0xF7,
+                        0b11_000_000 | 0b110 << 3 | ddd,
+                    ]
+                }
+                Arg::Deref { .. } => todo!(),
+            }
+        }
     };
     machine_code.extend(v);
 }
