@@ -3,10 +3,12 @@ use crate::*;
 use crate::passes::emit::Instr;
 use crate::passes::emit::Reg;
 use crate::language::x86var::{Arg, Block};
+use crate::language::x86var::Cnd;
 
 pub fn add_io_blocks<'p>(blocks: &mut HashMap<&'p str, Block<'p, Arg>>) {
     add_exit_block(blocks);
     add_print_block(blocks);
+    add_read_block(blocks);
 }
 
 fn add_exit_block<'p>(blocks: &mut HashMap<&'p str, Block<'p, Arg>>) {
@@ -54,29 +56,53 @@ fn add_print_block<'p>(blocks: &mut HashMap<&'p str, Block<'p, Arg>>) {
 }
 
 fn add_read_block<'p>(blocks: &mut HashMap<&'p str, Block<'p, Arg>>) {
-    let mut instrs = vec![];
-
-    instrs.extend(vec![
+    blocks.insert("_read_int", block!(
         pushq!(reg!(RBX)),              // save a callee-saved register
+        movq!(imm!(0), reg!(RBX)),      // zero out RBX
         subq!(imm!(8), reg!(RSP)),      // allocate some space on the stack for reading the next byte
-    ]);
-    instrs.extend(vec![
+        jmp!("_read_int_loop")
+    ));
 
+    blocks.insert("_read_int_loop", block!(
         movq!(imm!(0), reg!(RAX)),      // READ = 0
         movq!(imm!(0), reg!(RDI)),      // STDIN = 0
         movq!(reg!(RSP), reg!(RSI)),    // RSI is pointer to allocated byte
         movq!(imm!(1), reg!(RDX)),      // bytes to read = 1
         syscall!(),
 
+        movq!(deref!(RSP, 0), reg!(RAX)),
 
-    ]);
-    instrs.extend(vec![
+        // check if newline
+        movq!(reg!(RAX), reg!(RCX)),
+        subq!(imm!(b'\n' as i64), reg!(RCX)),
+        jcc!("_read_int_exit", Cnd::EQ),
+
+        movq!(imm!(66), reg!(RDI)),
+        // check if >b'9'
+        movq!(reg!(RAX), reg!(RCX)),
+        subq!(imm!(b'9' as i64), reg!(RCX)),
+        jcc!("exit", Cnd::GT),
+
+        // check if <b'0'
+        movq!(reg!(RAX), reg!(RCX)),
+        subq!(imm!(b'0' as i64), reg!(RCX)),
+        jcc!("exit", Cnd::LT),
+
+        movq!(imm!(10), reg!(RAX)),
+        mulq!(reg!(RBX)),
+        movq!(reg!(RAX), reg!(RBX)),
+
+        movq!(deref!(RSP, 0), reg!(RAX)),
+        subq!(imm!(b'0' as i64), reg!(RAX)),
+        addq!(reg!(RAX), reg!(RBX)),
+
+        jmp!("_read_int_loop")
+    ));
+
+    blocks.insert("_read_int_exit", block!(
+        movq!(reg!(RBX), reg!(RAX)),
         addq!(imm!(8), reg!(RSP)),
         popq!(reg!(RBX)),
-        retq!(),
-    ]);
-
-    blocks.insert("_read_int", Block {
-        instrs
-    });
+        retq!()
+    ));
 }

@@ -42,21 +42,21 @@ fn integration([test]: [&str; 1]) {
         .stdout(Stdio::piped())
         .spawn()
         .unwrap();
-    //TODO
-    // let mut stdin = program.stdin.take().unwrap();
-    // for num in input {
-    //     writeln!(stdin, "{num}\n").unwrap();
-    // }
+
+    let mut stdin = program.stdin.take().unwrap();
+    for num in input {
+        writeln!(stdin, "{num}").unwrap();
+    }
 
     let out = program.wait_with_output().unwrap();
     assert_eq!(
         out.status.code().unwrap() as i64 & 0xFF,
         expected_return & 0xFF
     );
-    //TODO
-    // for (got, expected) in out.stdout.lines().map(|r| r.unwrap()).zip(expected_output) {
-    //     assert_eq!(got.parse::<i64>().unwrap(), expected);
-    // }
+
+    for (got, expected) in out.stdout.lines().map(|r| r.unwrap()).zip(expected_output) {
+        assert_eq!(got.parse::<i64>().unwrap(), expected);
+    }
 }
 
 test_each_file! { for ["test"] in "./programs/good" as integration => integration }

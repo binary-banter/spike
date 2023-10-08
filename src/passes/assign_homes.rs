@@ -2,6 +2,7 @@ use crate::language::x86var::{AX86Program, Arg, Block, Instr, Reg, VarArg, X86Va
 use crate::passes::uniquify::UniqueSym;
 use crate::{addq, callq, divq, jcc, jmp, movq, mulq, negq, popq, pushq, retq, subq, syscall};
 use std::collections::HashMap;
+use crate::language::x86var::Cnd;
 
 impl<'p> X86VarProgram<'p> {
     pub fn assign_homes(self) -> AX86Program<'p> {
