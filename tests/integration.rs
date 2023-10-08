@@ -1,8 +1,8 @@
 use rust_compiler_construction::elf::ElfFile;
 use rust_compiler_construction::utils::split_test::split_test;
-use std::fs::{File, Permissions};
+use std::fs::File;
 use std::io::{BufRead, Write};
-use std::os::unix::fs::PermissionsExt;
+
 use std::process::{Command, Stdio};
 use std::thread::sleep;
 use std::time::Duration;

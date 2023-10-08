@@ -1,10 +1,10 @@
 use miette::Diagnostic;
 use rust_compiler_construction::elf::ElfFile;
 use rust_compiler_construction::parser::{parse_program, PrettyParseError};
-use std::fs::{File, Permissions};
+use std::fs::File;
 use std::io;
 use std::io::{stdin, Read};
-use std::os::unix::fs::PermissionsExt;
+
 use std::process::Command;
 
 use rust_compiler_construction::type_checking::type_check_program;

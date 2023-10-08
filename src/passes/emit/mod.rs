@@ -9,7 +9,7 @@ use crate::language::x86var::{Arg, Block, Cnd, Instr, Reg, X86Program};
 use crate::passes::emit::binary::{encode_binary_instr, BinaryOpInfo};
 use crate::passes::emit::io::add_io_blocks;
 use crate::passes::emit::mul_div::{encode_muldiv_instr, MulDivOpInfo};
-use crate::*;
+
 use push_pop::PushPopInfo;
 use std::collections::HashMap;
 use unary::UnaryOpInfo;
@@ -121,22 +121,10 @@ fn emit_instr<'p>(
                 dst,
             )
         }
-        Instr::Callq { lbl, arity } => match (*lbl, arity) {
-            // ("_print_int", 1) => {
-            //     todo!()
-            // },
-            // ("_read_int", 0) => todo!(),
-            // ("exit", 1) => {
-            //     let mut v = vec![];
-            //     emit_instr(&movq!(imm!(0x3C), reg!(RAX)), &mut v, jumps);
-            //     v.extend([0x0F, 0x05]);
-            //     v
-            // }
-            (lbl, _) => {
-                jumps.insert(machine_code.len() + 1, lbl);
-                vec![0xE8, 0x00, 0x00, 0x00, 0x00]
-            }
-        },
+        Instr::Callq { lbl, .. } => {
+            jumps.insert(machine_code.len() + 1, lbl);
+            vec![0xE8, 0x00, 0x00, 0x00, 0x00]
+        }
         Instr::Jmp { lbl } => {
             jumps.insert(machine_code.len() + 1, lbl);
             vec![0xE9, 0x00, 0x00, 0x00, 0x00]
@@ -222,8 +210,8 @@ macro_rules! check {
         #[test]
         fn $name() {
             let mut output = vec![];
-            use crate::passes::emit::emit_instr;
             use std::collections::HashMap;
+            use $crate::passes::emit::emit_instr;
             emit_instr(&$instr, &mut output, &mut HashMap::new());
 
             assert_eq!(output, $expected);

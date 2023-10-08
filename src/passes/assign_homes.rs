@@ -1,4 +1,3 @@
-use crate::language::x86var::Cnd;
 use crate::language::x86var::{AX86Program, Arg, Block, Instr, Reg, VarArg, X86VarProgram};
 use crate::passes::uniquify::UniqueSym;
 use crate::{addq, callq, divq, jcc, jmp, movq, mulq, negq, popq, pushq, retq, subq, syscall};
