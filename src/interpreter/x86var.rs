@@ -76,6 +76,16 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                     self.regs.insert(Reg::RAX, (dividend / divisor) as i64);
                     self.regs.insert(Reg::RDX, (dividend % divisor) as i64);
                 }
+                Instr::Mulq { src } => {
+                    let rax = self.regs[&Reg::RAX] as i128;
+                    let src = self.get_arg(src) as i128;
+
+                    let res = rax * src;
+
+                    self.regs.insert(Reg::RAX, (res & (-1i64 as i128)) as i64);
+                    self.regs.insert(Reg::RDX, (res >> 64) as i64);
+                }
+                Instr::Jcc { .. } => todo!(),
             }
         }
         self.regs[&Reg::RAX]

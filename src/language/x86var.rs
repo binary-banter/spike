@@ -1,5 +1,5 @@
 use crate::passes::uniquify::UniqueSym;
-use crate::{addq, callq, divq, jmp, movq, negq, popq, pushq, retq, subq, syscall};
+use crate::{addq, callq, divq, jcc, jmp, movq, mulq, negq, popq, pushq, retq, subq, syscall};
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 
@@ -40,10 +40,20 @@ pub struct LBlock<'p> {
 }
 
 #[derive(Debug, PartialEq)]
+pub enum Cnd {
+    LT,
+    LE,
+    EQ,
+    GE,
+    GT,
+}
+
+#[derive(Debug, PartialEq)]
 pub enum Instr<'p, A> {
     Addq { src: A, dst: A },
     Subq { src: A, dst: A },
     Divq { divisor: A },
+    Mulq { src: A },
     Negq { dst: A },
     Movq { src: A, dst: A },
     Pushq { src: A },
@@ -52,6 +62,8 @@ pub enum Instr<'p, A> {
     Retq,
     Syscall,
     Jmp { lbl: &'p str },
+    Jcc { lbl: &'p str, cnd: Cnd }
+
 }
 
 #[derive(Debug, PartialEq, Clone, Hash, Eq)]
@@ -179,6 +191,8 @@ impl<'p> From<Instr<'p, Arg>> for Instr<'p, VarArg<'p>> {
             Instr::Jmp { lbl } => jmp!(lbl),
             Instr::Syscall => syscall!(),
             Instr::Divq { divisor } => divq!(divisor.into()),
+            Instr::Jcc { lbl, cnd } => jcc!(lbl, cnd),
+            Instr::Mulq { src } => mulq!(src.into()),
         }
     }
 }
@@ -216,6 +230,15 @@ mod macros {
         ($divisor:expr) => {
             Instr::Divq {
                 divisor: $divisor,
+            }
+        };
+    }
+
+    #[macro_export]
+    macro_rules! mulq {
+        ($src:expr) => {
+            Instr::Mulq {
+                src: $src,
             }
         };
     }
@@ -277,6 +300,14 @@ mod macros {
             Instr::Jmp { lbl: $lbl }
         };
     }
+
+    #[macro_export]
+    macro_rules! jcc {
+        ($lbl:expr, $cnd:expr) => {
+            Instr::Jcc { lbl: $lbl, cnd: $cnd }
+        };
+    }
+
 
     #[macro_export]
     macro_rules! retq {

@@ -63,6 +63,11 @@ fn instr_reads<'p>(instr: &Instr<'p, VarArg<'p>>) -> HashSet<LArg<'p>> {
             .cloned()
             .flat_map(TryFrom::try_from)
             .collect(),
+        Instr::Jcc { .. } => HashSet::new(),
+        Instr::Mulq { src } => [src, &reg!(RAX)].into_iter()
+            .cloned()
+            .flat_map(TryFrom::try_from)
+            .collect(),
     }
 }
 
@@ -81,7 +86,8 @@ fn instr_writes<'p>(instr: &Instr<'p, VarArg<'p>>) -> HashSet<LArg<'p>> {
         Instr::Callq { .. } => HashSet::from([LArg::Reg { reg: Reg::RAX }]),
         Instr::Pushq { .. } | Instr::Jmp { .. } | Instr::Retq => HashSet::new(),
         Instr::Syscall => todo!(),
-        Instr::Divq { .. } => HashSet::from([LArg::Reg {reg: Reg::RAX}, LArg::Reg {reg:Reg::RDX}])
+        Instr::Mulq { .. } | Instr::Divq { .. } => HashSet::from([LArg::Reg {reg: Reg::RAX}, LArg::Reg {reg:Reg::RDX}]),
+        Instr::Jcc { .. } => HashSet::new(),
     }
 }
 

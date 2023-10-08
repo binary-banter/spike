@@ -3,14 +3,16 @@ mod push_pop;
 mod unary;
 mod special;
 mod io;
+mod mul_div;
 
 use std::collections::HashMap;
 use push_pop::PushPopInfo;
 use unary::UnaryOpInfo;
-use crate::language::x86var::{Arg, Block, Instr, Reg, X86Program};
+use crate::language::x86var::{Arg, Block, Cnd, Instr, Reg, X86Program};
 use crate::*;
 use crate::passes::emit::binary::{BinaryOpInfo, encode_binary_instr};
 use crate::passes::emit::io::add_io_blocks;
+use crate::passes::emit::mul_div::{encode_muldiv_instr, MulDivOpInfo};
 
 impl<'p> X86Program<'p> {
     pub fn emit(mut self) -> (usize, Vec<u8>) {
@@ -127,6 +129,17 @@ fn emit_instr<'p>(instr: &Instr<'p, Arg>, machine_code: &mut Vec<u8>, jumps: &mu
             jumps.insert(machine_code.len() + 1, lbl);
             vec![0xE9, 0x00, 0x00, 0x00, 0x00]
         },
+        Instr::Jcc { lbl, cnd } => {
+            jumps.insert(machine_code.len() + 2, lbl);
+            let cnd = match cnd {
+                Cnd::LT => 0x8C,
+                Cnd::LE => 0x8E,
+                Cnd::EQ => 0x84,
+                Cnd::GE => 0x8D,
+                Cnd::GT => 0x8F,
+            };
+            vec![0x0F, cnd, 0x00, 0x00, 0x00, 0x00]
+        },
         Instr::Retq => {
             vec![0xC3]
         }
@@ -134,18 +147,16 @@ fn emit_instr<'p>(instr: &Instr<'p, Arg>, machine_code: &mut Vec<u8>, jumps: &mu
             vec![0x0F, 0x05]
         }
         Instr::Divq { divisor } => {
-            match divisor {
-                Arg::Imm { .. } => todo!(),
-                Arg::Reg { reg: divisor } => {
-                    let (d, ddd) = encode_reg(divisor);
-                    vec![
-                        0b0100_1000 | d,
-                        0xF7,
-                        0b11_000_000 | 0b110 << 3 | ddd,
-                    ]
-                }
-                Arg::Deref { .. } => todo!(),
-            }
+            encode_muldiv_instr(MulDivOpInfo {
+                op: 0xF7,
+                imm_as_src: 0b110,
+            }, divisor)
+        }
+        Instr::Mulq { src } => {
+            encode_muldiv_instr(MulDivOpInfo {
+                op: 0xF7,
+                imm_as_src: 0b100,
+            }, src)
         }
     };
     machine_code.extend(v);

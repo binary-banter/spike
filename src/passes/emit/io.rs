@@ -36,7 +36,7 @@ fn add_print_block<'p>(blocks: &mut HashMap<&'p str, Block<'p, Arg>>) {
     for _ in 0..20 {
         instrs.extend(vec![
             movq!(imm!(1), reg!(RAX)), // syscall 1: Write
-            movq!(imm!(1), reg!(RDI)), // To stdout
+            movq!(imm!(1), reg!(RDI)), // STDOUT
             movq!(reg!(RSP), reg!(RSI)),
             movq!(imm!(1), reg!(RDX)),
             syscall!(),
@@ -50,5 +50,33 @@ fn add_print_block<'p>(blocks: &mut HashMap<&'p str, Block<'p, Arg>>) {
     //9_223_372_036_854_775_807 max size
     blocks.insert("_print_int", Block{
         instrs,
+    });
+}
+
+fn add_read_block<'p>(blocks: &mut HashMap<&'p str, Block<'p, Arg>>) {
+    let mut instrs = vec![];
+
+    instrs.extend(vec![
+        pushq!(reg!(RBX)),              // save a callee-saved register
+        subq!(imm!(8), reg!(RSP)),      // allocate some space on the stack for reading the next byte
+    ]);
+    instrs.extend(vec![
+
+        movq!(imm!(0), reg!(RAX)),      // READ = 0
+        movq!(imm!(0), reg!(RDI)),      // STDIN = 0
+        movq!(reg!(RSP), reg!(RSI)),    // RSI is pointer to allocated byte
+        movq!(imm!(1), reg!(RDX)),      // bytes to read = 1
+        syscall!(),
+
+
+    ]);
+    instrs.extend(vec![
+        addq!(imm!(8), reg!(RSP)),
+        popq!(reg!(RBX)),
+        retq!(),
+    ]);
+
+    blocks.insert("_read_int", Block {
+        instrs
     });
 }
