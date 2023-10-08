@@ -1,3 +1,8 @@
+//! This pass deals with the shadowing of variables by renaming every variable to a unique name.
+//! The names need to be globally unique, not just in their scope.
+//! This is useful because in later passes we will be changing the structure of the program,
+//! and after selecting instructions we will only have a list of X86 instructions left.
+
 use crate::language::lvar::{Expr, LVarProgram, ULVarProgram};
 use crate::utils::push_map::PushMap;
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -5,6 +10,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 static COUNT: AtomicUsize = AtomicUsize::new(0);
 
 impl<'p> LVarProgram<'p> {
+    //! See module-level documentation.
     pub fn uniquify(self) -> ULVarProgram<'p> {
         ULVarProgram {
             bdy: uniquify_expression(self.bdy, &mut PushMap::default()),

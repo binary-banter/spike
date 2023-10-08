@@ -1,9 +1,14 @@
+//! This pass compiles `X86VarProgram`s  into `AX86Program`.
+//!
+//! This pass is responsible for assigning all the program variables to locations on the stack.
+
 use crate::language::x86var::{AX86Program, Arg, Block, Instr, Reg, VarArg, X86VarProgram};
 use crate::passes::uniquify::UniqueSym;
 use crate::{addq, callq, divq, jcc, jmp, movq, mulq, negq, popq, pushq, retq, subq, syscall};
 use std::collections::HashMap;
 
 impl<'p> X86VarProgram<'p> {
+    //! See module-level documentation.
     pub fn assign_homes(self) -> AX86Program<'p> {
         let mut homes = HashMap::new();
 

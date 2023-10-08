@@ -2,6 +2,8 @@ use crate::language::lvar::{Expr, LVarProgram, Op};
 use crate::type_checking::TypeError::*;
 use crate::utils::expect::expect;
 use crate::utils::push_map::PushMap;
+use miette::Diagnostic;
+use std::fmt::{Display, Formatter};
 use thiserror::Error;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -9,13 +11,22 @@ pub enum Type {
     Integer,
 }
 
-#[derive(Debug, Error)]
+impl Display for Type {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Type::Integer => write!(f, "Integer"),
+        }
+    }
+}
+
+#[derive(Debug, Error, Diagnostic)]
+#[diagnostic()]
 pub enum TypeError {
-    #[error("Variable was not declared yet.")]
-    UndeclaredVar,
-    #[error("Prim Op had incorrect arity.")]
-    IncorrectArity,
-    #[error("Types were mismatched.")]
+    #[error("Variable '{sym}' was not declared yet.")]
+    UndeclaredVar { sym: String },
+    #[error("Operation '{op}' had incorrect arity of {arity}.")]
+    IncorrectArity { op: Op, arity: usize },
+    #[error("Types were mismatched. Expected '{expect}', but found '{got}'.")]
     TypeMismatch { expect: Type, got: Type },
 }
 
@@ -29,7 +40,9 @@ fn type_check_expr<'p>(
 ) -> Result<Type, TypeError> {
     match expr {
         Expr::Int { .. } => Ok(Type::Integer),
-        Expr::Var { sym } => scope.get(sym).cloned().ok_or(UndeclaredVar),
+        Expr::Var { sym } => scope.get(sym).cloned().ok_or(UndeclaredVar {
+            sym: sym.to_string(),
+        }),
         Expr::Prim { op, args } => match (op, args.as_slice()) {
             (Op::Plus | Op::Minus, [e1, e2]) => {
                 expect_type(e1, scope, Type::Integer)?;
@@ -45,7 +58,10 @@ fn type_check_expr<'p>(
                 expect_type(e1, scope, Type::Integer)?;
                 Ok(Type::Integer)
             }
-            _ => Err(IncorrectArity),
+            _ => Err(IncorrectArity {
+                op: *op,
+                arity: args.len(),
+            }),
         },
         Expr::Let { sym, bnd, bdy } => {
             type_check_expr(bnd, scope)?;

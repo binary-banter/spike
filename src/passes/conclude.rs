@@ -1,7 +1,13 @@
+//! This pass compiles `PX86Program`s  into `X86Program`.
+//!
+//! This pass generates the entry and exit point for the program wrapped around the body of the `PX86Program` program.
+//! Note that we will refer to the body of the `PX86Program` program as the 'core' block.
+
 use crate::language::x86var::{Block, PX86Program, Reg, X86Program};
 use crate::{addq, block, callq, imm, jmp, movq, popq, pushq, reg, subq};
 
 impl<'p> PX86Program<'p> {
+    //! See module-level documentation.
     pub fn conclude(mut self) -> X86Program<'p> {
         main(&mut self);
         core(&mut self);

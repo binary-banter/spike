@@ -1,8 +1,17 @@
+//! This pass compiles `ULVarProgram`s  into `ALVarProgram` in which the arguments of operations are atomic expressions.
+//!
+//! This is accomplished by introducing new temporary variables, assigning
+//! the complex operand to those new variables, and then using them in place
+//! of the complex operand.
+//!
+//! We consider `Int`s and `Var`s atomic.
+
 use crate::language::alvar::{AExpr, ALVarProgram, Atom};
 use crate::language::lvar::{Expr, ULVarProgram};
 use crate::passes::uniquify::{gen_sym, UniqueSym};
 
 impl<'p> ULVarProgram<'p> {
+    //! See module-level documentation.
     pub fn remove_complex_operands(self) -> ALVarProgram<'p> {
         ALVarProgram {
             bdy: rco_expr(self.bdy),

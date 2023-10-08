@@ -1,3 +1,5 @@
+//! This code will assemble the instructions into a sequence of bytes (machine code).
+
 mod binary;
 mod io;
 mod mul_div;
@@ -15,6 +17,7 @@ use std::collections::HashMap;
 use unary::UnaryOpInfo;
 
 impl<'p> X86Program<'p> {
+    //! See module-level documentation.
     pub fn emit(mut self) -> (usize, Vec<u8>) {
         add_io_blocks(&mut self.blocks);
 
@@ -27,8 +30,6 @@ impl<'p> X86Program<'p> {
             offsets.insert(name, machine_code.len());
             emit_block(block, &mut machine_code, &mut jumps);
         }
-
-        dbg!(&offsets);
 
         for (addr, block) in jumps {
             let src = (addr + 4) as i32;

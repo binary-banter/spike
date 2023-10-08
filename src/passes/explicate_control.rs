@@ -1,8 +1,14 @@
+//! This pass compiles `ALVarProgram`s  into `CLVarProgram`.
+//!
+//! This pass makes the order of execution explicit in their syntax.
+//! This is achieved by flattening the nested expressions into a sequence of statements.
+
 use crate::language::alvar::{AExpr, ALVarProgram};
 use crate::language::cvar::{CExpr, CVarProgram, Tail};
 use crate::passes::uniquify::UniqueSym;
 
 impl<'p> ALVarProgram<'p> {
+    //! See module-level documentation.
     pub fn explicate(self) -> CVarProgram<'p> {
         CVarProgram {
             bdy: explicate_tail(self.bdy),

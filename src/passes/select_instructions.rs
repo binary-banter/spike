@@ -1,3 +1,9 @@
+//! This pass begins the work of translating from `CVarProgram` to `X86`.
+//! The target language `X86VarProgram` of this pass is a variant of x86 that still uses variables.
+//!
+//! Just like a `CVarProgram` program, a `X86VarProgram` consists of a list of blocks.
+
+
 use crate::language::alvar::Atom;
 use crate::language::cvar::{CExpr, CVarProgram, Tail};
 use crate::language::lvar::Op;
@@ -6,6 +12,7 @@ use crate::{addq, callq, imm, movq, negq, reg, subq, var};
 use std::collections::HashMap;
 
 impl<'p> CVarProgram<'p> {
+    //! See module-level documentation.
     pub fn select(self) -> X86VarProgram<'p> {
         X86VarProgram {
             blocks: HashMap::from([("core", select_block(self.bdy))]),

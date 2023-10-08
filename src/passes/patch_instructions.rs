@@ -1,7 +1,12 @@
+//! This pass compiles `AX86Program`s  into `PX86Program`.
+//!
+//! This pass makes sure that no instructions use more than one argument that is dereferenced.
+
 use crate::language::x86var::{AX86Program, Arg, Block, Instr, PX86Program, Reg};
 use crate::{addq, movq, reg, subq};
 
 impl<'p> AX86Program<'p> {
+    //! See module-level documentation.
     pub fn patch(self) -> PX86Program<'p> {
         PX86Program {
             blocks: self
