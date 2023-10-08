@@ -106,11 +106,7 @@ mod tests {
     mod add {
         use super::*;
 
-        check!(
-            reg_reg,
-            addq!(reg!(RSP), reg!(RDX)),
-            vec![0x48, 0x01, 0xE2]
-        );
+        check!(reg_reg, addq!(reg!(RSP), reg!(RDX)), vec![0x48, 0x01, 0xE2]);
         check!(
             imm_reg,
             addq!(imm!(i32::MAX as i64), reg!(RBP)),
@@ -146,11 +142,7 @@ mod tests {
     mod sub {
         use super::*;
 
-        check!(
-            reg_reg,
-            subq!(reg!(RSP), reg!(RDX)),
-            vec![0x48, 0x29, 0xE2]
-        );
+        check!(reg_reg, subq!(reg!(RSP), reg!(RDX)), vec![0x48, 0x29, 0xE2]);
         check!(
             imm_reg,
             subq!(imm!(i32::MAX as i64), reg!(RBP)),

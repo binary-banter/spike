@@ -1,3 +1,4 @@
+use rust_compiler_construction::elf::ElfFile;
 use rust_compiler_construction::utils::split_test::split_test;
 use std::fs::{File, Permissions};
 use std::io::{BufRead, Write};
@@ -7,7 +8,6 @@ use std::thread::sleep;
 use std::time::Duration;
 use tempdir::TempDir;
 use test_each_file::test_each_file;
-use rust_compiler_construction::elf::ElfFile;
 
 fn integration([test]: [&str; 1]) {
     let tempdir = TempDir::new("rust-compiler-construction-integration").unwrap();
@@ -32,7 +32,14 @@ fn integration([test]: [&str; 1]) {
 
     drop(file);
 
-    Command::new("chmod").current_dir(&tempdir).arg("+x").arg("output").spawn().unwrap().wait().unwrap();
+    Command::new("chmod")
+        .current_dir(&tempdir)
+        .arg("+x")
+        .arg("output")
+        .spawn()
+        .unwrap()
+        .wait()
+        .unwrap();
 
     sleep(Duration::from_secs(1));
 

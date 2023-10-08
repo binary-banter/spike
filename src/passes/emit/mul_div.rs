@@ -24,20 +24,20 @@ pub fn encode_muldiv_instr(op_info: MulDivOpInfo, reg: &Arg) -> Vec<u8> {
 #[cfg(test)]
 mod tests {
     mod division {
-        use crate::language::x86var::{Instr};
-        use crate::*;
+        use crate::language::x86var::Instr;
         use crate::passes::emit::Arg;
         use crate::passes::emit::Reg;
+        use crate::*;
 
         check!(div1, divq!(reg!(R15)), vec![0x49, 0xF7, 0xF7]);
         check!(div2, divq!(reg!(RDX)), vec![0x48, 0xF7, 0xF2]);
     }
 
     mod multiply {
-        use crate::language::x86var::{Instr};
-        use crate::*;
+        use crate::language::x86var::Instr;
         use crate::passes::emit::Arg;
         use crate::passes::emit::Reg;
+        use crate::*;
 
         check!(mul1, mulq!(reg!(R15)), vec![0x49, 0xF7, 0xE7]);
         check!(mul2, mulq!(reg!(RDX)), vec![0x48, 0xF7, 0xE2]);

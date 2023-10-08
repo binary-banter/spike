@@ -1,18 +1,18 @@
 mod binary;
-mod push_pop;
-mod unary;
-mod special;
 mod io;
 mod mul_div;
+mod push_pop;
+mod special;
+mod unary;
 
-use std::collections::HashMap;
-use push_pop::PushPopInfo;
-use unary::UnaryOpInfo;
 use crate::language::x86var::{Arg, Block, Cnd, Instr, Reg, X86Program};
-use crate::*;
-use crate::passes::emit::binary::{BinaryOpInfo, encode_binary_instr};
+use crate::passes::emit::binary::{encode_binary_instr, BinaryOpInfo};
 use crate::passes::emit::io::add_io_blocks;
 use crate::passes::emit::mul_div::{encode_muldiv_instr, MulDivOpInfo};
+use crate::*;
+use push_pop::PushPopInfo;
+use std::collections::HashMap;
+use unary::UnaryOpInfo;
 
 impl<'p> X86Program<'p> {
     pub fn emit(mut self) -> (usize, Vec<u8>) {
@@ -21,7 +21,7 @@ impl<'p> X86Program<'p> {
         let mut machine_code = Vec::new();
 
         let mut jumps: HashMap<usize, &'p str> = HashMap::new();
-        let mut offsets= HashMap::new();
+        let mut offsets = HashMap::new();
 
         for (name, block) in &self.blocks {
             offsets.insert(name, machine_code.len());
@@ -35,20 +35,28 @@ impl<'p> X86Program<'p> {
             let target = offsets[&block] as i32;
             let jump = target - src;
 
-            machine_code[addr .. addr + 4].copy_from_slice(&jump.to_le_bytes());
+            machine_code[addr..addr + 4].copy_from_slice(&jump.to_le_bytes());
         }
 
         (offsets[&"main"], machine_code)
     }
 }
 
-fn emit_block<'p>(block: &Block<'p, Arg>, machine_code: &mut Vec<u8>, jumps: &mut HashMap<usize, &'p str>) {
+fn emit_block<'p>(
+    block: &Block<'p, Arg>,
+    machine_code: &mut Vec<u8>,
+    jumps: &mut HashMap<usize, &'p str>,
+) {
     for instr in &block.instrs {
         emit_instr(instr, machine_code, jumps);
     }
 }
 
-fn emit_instr<'p>(instr: &Instr<'p, Arg>, machine_code: &mut Vec<u8>, jumps: &mut HashMap<usize, &'p str>) {
+fn emit_instr<'p>(
+    instr: &Instr<'p, Arg>,
+    machine_code: &mut Vec<u8>,
+    jumps: &mut HashMap<usize, &'p str>,
+) {
     let v = match instr {
         Instr::Addq { src, dst } => encode_binary_instr(
             BinaryOpInfo {
@@ -93,22 +101,26 @@ fn emit_instr<'p>(instr: &Instr<'p, Arg>, machine_code: &mut Vec<u8>, jumps: &mu
             },
             dst,
         ),
-        Instr::Pushq { src } => {
-            push_pop::encode_push_pop(PushPopInfo {
+        Instr::Pushq { src } => push_pop::encode_push_pop(
+            PushPopInfo {
                 op_reg: 0x50,
                 op_deref: 0xFF,
                 op_imm: 0x68,
                 imm_as_src: 0x6,
-            }, src)
-        },
+            },
+            src,
+        ),
         Instr::Popq { dst } => {
-            push_pop::encode_push_pop(PushPopInfo {
-                op_reg: 0x58,
-                op_deref: 0x8F,
-                op_imm: 0, //Unreachable
-                imm_as_src: 0x0,
-            }, dst)
-        },
+            push_pop::encode_push_pop(
+                PushPopInfo {
+                    op_reg: 0x58,
+                    op_deref: 0x8F,
+                    op_imm: 0, //Unreachable
+                    imm_as_src: 0x0,
+                },
+                dst,
+            )
+        }
         Instr::Callq { lbl, arity } => match (*lbl, arity) {
             // ("_print_int", 1) => {
             //     todo!()
@@ -123,12 +135,12 @@ fn emit_instr<'p>(instr: &Instr<'p, Arg>, machine_code: &mut Vec<u8>, jumps: &mu
             (lbl, _) => {
                 jumps.insert(machine_code.len() + 1, lbl);
                 vec![0xE8, 0x00, 0x00, 0x00, 0x00]
-            },
+            }
         },
         Instr::Jmp { lbl } => {
             jumps.insert(machine_code.len() + 1, lbl);
             vec![0xE9, 0x00, 0x00, 0x00, 0x00]
-        },
+        }
         Instr::Jcc { lbl, cnd } => {
             jumps.insert(machine_code.len() + 2, lbl);
             let cnd = match cnd {
@@ -157,25 +169,27 @@ fn emit_instr<'p>(instr: &Instr<'p, Arg>, machine_code: &mut Vec<u8>, jumps: &mu
                 Cnd::Sign => 0x88,
             };
             vec![0x0F, cnd, 0x00, 0x00, 0x00, 0x00]
-        },
+        }
         Instr::Retq => {
             vec![0xC3]
         }
         Instr::Syscall => {
             vec![0x0F, 0x05]
         }
-        Instr::Divq { divisor } => {
-            encode_muldiv_instr(MulDivOpInfo {
+        Instr::Divq { divisor } => encode_muldiv_instr(
+            MulDivOpInfo {
                 op: 0xF7,
                 imm_as_src: 0b110,
-            }, divisor)
-        }
-        Instr::Mulq { src } => {
-            encode_muldiv_instr(MulDivOpInfo {
+            },
+            divisor,
+        ),
+        Instr::Mulq { src } => encode_muldiv_instr(
+            MulDivOpInfo {
                 op: 0xF7,
                 imm_as_src: 0b100,
-            }, src)
-        }
+            },
+            src,
+        ),
     };
     machine_code.extend(v);
 }

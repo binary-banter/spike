@@ -41,29 +41,29 @@ pub struct LBlock<'p> {
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Cnd {
-    Above, //87
-    AboveOrEqual, //83
-    Below, //82
-    BelowOrEqual, //86
-    Carry, //82
-    Equal, //84
-    Greater, //8F
+    Above,          //87
+    AboveOrEqual,   //83
+    Below,          //82
+    BelowOrEqual,   //86
+    Carry,          //82
+    Equal,          //84
+    Greater,        //8F
     GreaterOrEqual, //8D
-    Less, //8C
-    LessOrEqual, //8E
-    NotAbove, //86
-    NotBelow, //83
-    NotCarry, //83
-    NotEqual, //85
-    NotGreater, //8E
-    NotLess, //8D
-    NotOverflow, //81
-    NotParity, //8B
-    NotSign, //89
-    Overflow, //80
-    ParityEven, //8A
-    ParityOdd, //8B
-    Sign, //88
+    Less,           //8C
+    LessOrEqual,    //8E
+    NotAbove,       //86
+    NotBelow,       //83
+    NotCarry,       //83
+    NotEqual,       //85
+    NotGreater,     //8E
+    NotLess,        //8D
+    NotOverflow,    //81
+    NotParity,      //8B
+    NotSign,        //89
+    Overflow,       //80
+    ParityEven,     //8A
+    ParityOdd,      //8B
+    Sign,           //88
 }
 
 #[derive(Debug, PartialEq)]
@@ -80,8 +80,7 @@ pub enum Instr<'p, A> {
     Retq,
     Syscall,
     Jmp { lbl: &'p str },
-    Jcc { lbl: &'p str, cnd: Cnd }
-
+    Jcc { lbl: &'p str, cnd: Cnd },
 }
 
 #[derive(Debug, PartialEq, Clone, Hash, Eq)]
@@ -246,18 +245,14 @@ mod macros {
     #[macro_export]
     macro_rules! divq {
         ($divisor:expr) => {
-            Instr::Divq {
-                divisor: $divisor,
-            }
+            Instr::Divq { divisor: $divisor }
         };
     }
 
     #[macro_export]
     macro_rules! mulq {
         ($src:expr) => {
-            Instr::Mulq {
-                src: $src,
-            }
+            Instr::Mulq { src: $src }
         };
     }
 
@@ -322,10 +317,12 @@ mod macros {
     #[macro_export]
     macro_rules! jcc {
         ($lbl:expr, $cnd:expr) => {
-            Instr::Jcc { lbl: $lbl, cnd: $cnd }
+            Instr::Jcc {
+                lbl: $lbl,
+                cnd: $cnd,
+            }
         };
     }
-
 
     #[macro_export]
     macro_rules! retq {
@@ -336,7 +333,9 @@ mod macros {
 
     #[macro_export]
     macro_rules! syscall {
-        () => { Instr::Syscall};
+        () => {
+            Instr::Syscall
+        };
     }
 
     #[macro_export]
