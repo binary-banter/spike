@@ -1,4 +1,4 @@
-use crate::language::x86var::{Arg, Block, Instr, PX86Program, Reg, X86Program};
+use crate::language::x86var::{Block, PX86Program, Reg, X86Program};
 use crate::{addq, block, callq, imm, jmp, movq, popq, pushq, reg, subq};
 
 impl<'p> PX86Program<'p> {
