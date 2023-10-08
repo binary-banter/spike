@@ -1,6 +1,6 @@
 use crate::language::x86var::Cnd;
 use crate::language::x86var::{Arg, Block};
-use crate::passes::emit::Instr;
+
 use crate::passes::emit::Reg;
 use crate::*;
 use std::collections::HashMap;

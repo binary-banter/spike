@@ -235,7 +235,7 @@ mod macros {
     #[macro_export]
     macro_rules! addq {
         ($src:expr, $dst:expr) => {
-            crate::language::x86var::Instr::Addq {
+            $crate::language::x86var::Instr::Addq {
                 src: $src,
                 dst: $dst,
             }
@@ -245,21 +245,21 @@ mod macros {
     #[macro_export]
     macro_rules! divq {
         ($divisor:expr) => {
-            crate::language::x86var::Instr::Divq { divisor: $divisor }
+            $crate::language::x86var::Instr::Divq { divisor: $divisor }
         };
     }
 
     #[macro_export]
     macro_rules! mulq {
         ($src:expr) => {
-            crate::language::x86var::Instr::Mulq { src: $src }
+            $crate::language::x86var::Instr::Mulq { src: $src }
         };
     }
 
     #[macro_export]
     macro_rules! subq {
         ($src:expr, $dst:expr) => {
-            crate::language::x86var::Instr::Subq {
+            $crate::language::x86var::Instr::Subq {
                 src: $src,
                 dst: $dst,
             }
@@ -269,14 +269,14 @@ mod macros {
     #[macro_export]
     macro_rules! negq {
         ($dst:expr) => {
-            crate::language::x86var::Instr::Negq { dst: $dst }
+            $crate::language::x86var::Instr::Negq { dst: $dst }
         };
     }
 
     #[macro_export]
     macro_rules! movq {
         ($src:expr, $dst:expr) => {
-            crate::language::x86var::Instr::Movq {
+            $crate::language::x86var::Instr::Movq {
                 src: $src,
                 dst: $dst,
             }
@@ -286,21 +286,21 @@ mod macros {
     #[macro_export]
     macro_rules! pushq {
         ($src:expr) => {
-            crate::language::x86var::Instr::Pushq { src: $src }
+            $crate::language::x86var::Instr::Pushq { src: $src }
         };
     }
 
     #[macro_export]
     macro_rules! popq {
         ($dst:expr) => {
-            crate::language::x86var::Instr::Popq { dst: $dst }
+            $crate::language::x86var::Instr::Popq { dst: $dst }
         };
     }
 
     #[macro_export]
     macro_rules! callq {
         ($lbl:expr, $arity:expr) => {
-            crate::language::x86var::Instr::Callq {
+            $crate::language::x86var::Instr::Callq {
                 lbl: $lbl,
                 arity: $arity,
             }
@@ -310,14 +310,14 @@ mod macros {
     #[macro_export]
     macro_rules! jmp {
         ($lbl:expr) => {
-            crate::language::x86var::Instr::Jmp { lbl: $lbl }
+            $crate::language::x86var::Instr::Jmp { lbl: $lbl }
         };
     }
 
     #[macro_export]
     macro_rules! jcc {
         ($lbl:expr, $cnd:expr) => {
-            crate::language::x86var::Instr::Jcc {
+            $crate::language::x86var::Instr::Jcc {
                 lbl: $lbl,
                 cnd: $cnd,
             }
@@ -327,42 +327,42 @@ mod macros {
     #[macro_export]
     macro_rules! retq {
         () => {
-            crate::language::x86var::Instr::Retq
+            $crate::language::x86var::Instr::Retq
         };
     }
 
     #[macro_export]
     macro_rules! syscall {
         () => {
-            crate::language::x86var::Instr::Syscall
+            $crate::language::x86var::Instr::Syscall
         };
     }
 
     #[macro_export]
     macro_rules! imm {
         ($val:expr) => {
-            crate::language::x86var::Arg::Imm { val: $val }.into()
+            $crate::language::x86var::Arg::Imm { val: $val }.into()
         };
     }
 
     #[macro_export]
     macro_rules! reg {
         ($reg:ident) => {
-            crate::language::x86var::Arg::Reg { reg: Reg::$reg }.into()
+            $crate::language::x86var::Arg::Reg { reg: Reg::$reg }.into()
         };
     }
 
     #[macro_export]
     macro_rules! var {
         ($sym:expr) => {
-            crate::language::x86var::VarArg::XVar { sym: $sym }
+            $crate::language::x86var::VarArg::XVar { sym: $sym }
         };
     }
 
     #[macro_export]
     macro_rules! deref {
         ($reg:ident, $off:expr) => {
-            crate::language::x86var::Arg::Deref {
+            $crate::language::x86var::Arg::Deref {
                 reg: Reg::$reg,
                 off: $off,
             }

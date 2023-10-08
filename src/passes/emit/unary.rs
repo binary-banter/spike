@@ -43,7 +43,7 @@ pub fn encode_unary_instr(op_info: UnaryOpInfo, dst: &Arg) -> Vec<u8> {
 #[cfg(test)]
 mod tests {
     mod neg {
-        use crate::language::x86var::{Arg, Instr, Reg};
+        use crate::language::x86var::Reg;
         use crate::*;
 
         check!(nreg1, negq!(reg!(RSP)), vec![0x48, 0xF7, 0xDC]);

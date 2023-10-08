@@ -1,4 +1,3 @@
-use crate::language::x86var::Arg;
 use crate::language::x86var::{
     Block, Instr, LArg, LBlock, LX86VarProgram, Reg, VarArg, X86VarProgram, ARG_PASSING_REGS,
 };
