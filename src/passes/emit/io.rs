@@ -73,8 +73,27 @@ fn add_print_block<'p>(blocks: &mut HashMap<&'p str, Block<'p, Arg>>) {
 fn add_read_block<'p>(blocks: &mut HashMap<&'p str, Block<'p, Arg>>) {
     blocks.insert("_read_int", block!(
         pushq!(reg!(RBX)),              // save a callee-saved register
+        pushq!(reg!(R13)),
         movq!(imm!(0), reg!(RBX)),      // zero out RBX
         subq!(imm!(8), reg!(RSP)),      // allocate some space on the stack for reading the next byte
+
+        // read initial character
+        movq!(imm!(0), reg!(RAX)),      // READ = 0
+        movq!(imm!(0), reg!(RDI)),      // STDIN = 0
+        movq!(reg!(RSP), reg!(RSI)),    // RSI is pointer to allocated byte
+        movq!(imm!(1), reg!(RDX)),      // bytes to read = 1
+        syscall!(),
+
+        // check if first character is -
+        movq!(deref!(RSP, 0), reg!(RAX)),
+        movq!(reg!(RAX), reg!(RCX)),
+        subq!(imm!(b'-' as i64), reg!(RCX)),
+        jcc!("_read_int_is_neg", Cnd::Equal),
+
+        jmp!("_read_int_first")
+    ));
+    blocks.insert("_read_int_is_neg", block!(
+        movq!(imm!(1), reg!(R13)),
         jmp!("_read_int_loop")
     ));
 
@@ -84,7 +103,10 @@ fn add_read_block<'p>(blocks: &mut HashMap<&'p str, Block<'p, Arg>>) {
         movq!(reg!(RSP), reg!(RSI)),    // RSI is pointer to allocated byte
         movq!(imm!(1), reg!(RDX)),      // bytes to read = 1
         syscall!(),
+        jmp!("_read_int_first")
+    ));
 
+    blocks.insert("_read_int_first", block!(
         movq!(deref!(RSP, 0), reg!(RAX)),
 
         // check if newline
@@ -113,10 +135,21 @@ fn add_read_block<'p>(blocks: &mut HashMap<&'p str, Block<'p, Arg>>) {
 
         jmp!("_read_int_loop")
     ));
-
     blocks.insert("_read_int_exit", block!(
+        addq!(imm!(0), reg!(R13)),
+        jcc!("_read_int_neg", Cnd::NotEqual),
+        jmp!("_read_int_actual_exit")
+    ));
+
+    blocks.insert("_read_int_neg", block!(
+        negq!(reg!(RBX)),
+        jmp!("_read_int_actual_exit")
+    ));
+    blocks.insert("_read_int_actual_exit", block!(
         movq!(reg!(RBX), reg!(RAX)),
         addq!(imm!(8), reg!(RSP)),
+
+        popq!(reg!(R13)),
         popq!(reg!(RBX)),
         retq!()
     ));
