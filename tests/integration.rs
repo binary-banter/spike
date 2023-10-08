@@ -42,7 +42,6 @@ fn integration([test]: [&str; 1]) {
         .stdout(Stdio::piped())
         .spawn()
         .unwrap();
-
     //TODO
     // let mut stdin = program.stdin.take().unwrap();
     // for num in input {

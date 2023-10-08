@@ -2,6 +2,7 @@ mod binary;
 mod push_pop;
 mod unary;
 mod special;
+mod io;
 
 use std::collections::HashMap;
 use push_pop::PushPopInfo;
@@ -9,9 +10,12 @@ use unary::UnaryOpInfo;
 use crate::language::x86var::{Arg, Block, Instr, Reg, X86Program};
 use crate::*;
 use crate::passes::emit::binary::{BinaryOpInfo, encode_binary_instr};
+use crate::passes::emit::io::add_io_blocks;
 
 impl<'p> X86Program<'p> {
-    pub fn emit(self) -> (usize, Vec<u8>) {
+    pub fn emit(mut self) -> (usize, Vec<u8>) {
+        add_io_blocks(&mut self.blocks);
+
         let mut machine_code = Vec::new();
 
         let mut jumps: HashMap<usize, &'p str> = HashMap::new();
@@ -104,15 +108,20 @@ fn emit_instr<'p>(instr: &Instr<'p, Arg>, machine_code: &mut Vec<u8>, jumps: &mu
             }, dst)
         },
         Instr::Callq { lbl, arity } => match (*lbl, arity) {
-            ("_print_int", 1) => todo!(),
-            ("_read_int", 0) => todo!(),
-            ("exit", 1) => {
-                let mut v = vec![];
-                emit_instr(&movq!(imm!(0x3C), reg!(RAX)), &mut v, jumps);
-                v.extend([0x0F, 0x05]);
-                v
-            }
-            (_lbl, _) => todo!(),
+            // ("_print_int", 1) => {
+            //     todo!()
+            // },
+            // ("_read_int", 0) => todo!(),
+            // ("exit", 1) => {
+            //     let mut v = vec![];
+            //     emit_instr(&movq!(imm!(0x3C), reg!(RAX)), &mut v, jumps);
+            //     v.extend([0x0F, 0x05]);
+            //     v
+            // }
+            (lbl, _) => {
+                jumps.insert(machine_code.len() + 1, lbl);
+                vec![0xE8, 0x00, 0x00, 0x00, 0x00]
+            },
         },
         Instr::Jmp { lbl } => {
             jumps.insert(machine_code.len() + 1, lbl);
@@ -120,6 +129,9 @@ fn emit_instr<'p>(instr: &Instr<'p, Arg>, machine_code: &mut Vec<u8>, jumps: &mu
         },
         Instr::Retq => {
             vec![0xC3]
+        }
+        Instr::Syscall => {
+            vec![0x0F, 0x05]
         }
     };
     machine_code.extend(v);

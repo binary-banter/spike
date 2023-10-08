@@ -1,5 +1,5 @@
 use crate::passes::uniquify::UniqueSym;
-use crate::{addq, callq, jmp, movq, negq, popq, pushq, retq, subq};
+use crate::{addq, callq, jmp, movq, negq, popq, pushq, retq, subq, syscall};
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 
@@ -49,6 +49,7 @@ pub enum Instr<'p, A> {
     Popq { dst: A },
     Callq { lbl: &'p str, arity: usize },
     Retq,
+    Syscall,
     Jmp { lbl: &'p str },
 }
 
@@ -175,6 +176,7 @@ impl<'p> From<Instr<'p, Arg>> for Instr<'p, VarArg<'p>> {
             Instr::Callq { lbl, arity } => callq!(lbl, arity),
             Instr::Retq => retq!(),
             Instr::Jmp { lbl } => jmp!(lbl),
+            Instr::Syscall => syscall!(),
         }
     }
 }
@@ -270,6 +272,11 @@ mod macros {
         () => {
             Instr::Retq
         };
+    }
+
+    #[macro_export]
+    macro_rules! syscall {
+        () => { Instr::Syscall};
     }
 
     #[macro_export]

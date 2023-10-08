@@ -56,6 +56,7 @@ fn instr_reads<'p>(instr: &Instr<'p, VarArg<'p>>) -> HashSet<LArg<'p>> {
             .map(|reg| LArg::Reg { reg })
             .collect(),
         Instr::Popq { .. } | Instr::Jmp { .. } | Instr::Retq => HashSet::new(),
+        Instr::Syscall => todo!(),
     }
 }
 
@@ -73,6 +74,7 @@ fn instr_writes<'p>(instr: &Instr<'p, VarArg<'p>>) -> HashSet<LArg<'p>> {
             .collect(),
         Instr::Callq { .. } => HashSet::from([LArg::Reg { reg: Reg::RAX }]),
         Instr::Pushq { .. } | Instr::Jmp { .. } | Instr::Retq => HashSet::new(),
+        Instr::Syscall => todo!(),
     }
 }
 

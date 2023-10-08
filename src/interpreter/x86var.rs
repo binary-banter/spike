@@ -65,6 +65,7 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                     _ => todo!(),
                 },
                 Instr::Retq => break, // todo: not quite correct
+                Instr::Syscall => unreachable!(),
             }
         }
         self.regs[&Reg::RAX]
