@@ -1,7 +1,9 @@
 use crate::passes::uniquify::UniqueSym;
 use crate::{addq, callq, divq, jcc, jmp, movq, mulq, negq, popq, pushq, retq, subq, syscall};
+use petgraph::Undirected;
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
+use petgraph::prelude::GraphMap;
 
 #[derive(Debug, PartialEq)]
 pub struct X86Program<'p> {
@@ -25,9 +27,18 @@ pub struct X86VarProgram<'p> {
     pub blocks: HashMap<&'p str, Block<'p, VarArg<'p>>>,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct LX86VarProgram<'p> {
     pub blocks: HashMap<&'p str, LBlock<'p>>,
 }
+
+#[derive(Debug)]
+pub struct IX86VarProgram<'p> {
+    pub blocks: HashMap<&'p str, Block<'p, VarArg<'p>>>,
+    pub interference: InterferenceGraph<'p>,
+}
+
+pub type InterferenceGraph<'p> = GraphMap<LArg<'p>, (), Undirected>;
 
 #[derive(Debug, PartialEq)]
 pub struct Block<'p, A> {
@@ -83,7 +94,7 @@ pub enum Instr<'p, A> {
     Jcc { lbl: &'p str, cnd: Cnd },
 }
 
-#[derive(Debug, PartialEq, Clone, Hash, Eq)]
+#[derive(Debug, PartialEq, Clone, Copy, Hash, Eq)]
 pub enum VarArg<'p> {
     Imm { val: i64 },
     Reg { reg: Reg },
@@ -98,7 +109,7 @@ pub enum Arg {
     Deref { reg: Reg, off: i64 },
 }
 
-#[derive(Debug, PartialEq, Clone, Hash, Eq)]
+#[derive(Debug, PartialEq, Clone, Copy, Hash, Eq, Ord, PartialOrd)]
 pub enum LArg<'p> {
     Var { sym: UniqueSym<'p> },
     Reg { reg: Reg },
@@ -129,7 +140,7 @@ pub const ARG_PASSING_REGS: [Reg; 6] = [Reg::RDI, Reg::RSI, Reg::RDX, Reg::RCX, 
 /// caller-saved:   rax rcx rdx rsi rdi r8 r9 r10 r11
 /// callee-saved:   rsp rbp rbx r12 r13 r14 r15
 /// arg-passing:    rdi rsi rdx rcx r8 r9
-#[derive(Debug, PartialEq, Clone, Copy, Eq, Hash)]
+#[derive(Debug, PartialEq, Clone, Copy, Eq, Hash, Ord, PartialOrd)]
 #[allow(clippy::upper_case_acronyms)]
 pub enum Reg {
     RSP,
@@ -190,6 +201,14 @@ impl<'p> From<Block<'p, Arg>> for Block<'p, VarArg<'p>> {
     fn from(value: Block<'p, Arg>) -> Self {
         Block {
             instrs: value.instrs.into_iter().map(From::from).collect(),
+        }
+    }
+}
+
+impl<'p> From<LBlock<'p>> for Block<'p, VarArg<'p>> {
+    fn from(value: LBlock<'p>) -> Self {
+        Block {
+            instrs: value.instrs.into_iter().map(|(instr, _)| instr).collect(),
         }
     }
 }

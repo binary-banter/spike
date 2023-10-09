@@ -1,4 +1,5 @@
 pub mod assign_homes;
+pub mod compute_interference;
 pub mod conclude;
 pub mod emit;
 pub mod explicate_control;

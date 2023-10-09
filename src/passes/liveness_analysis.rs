@@ -1,6 +1,4 @@
-use crate::language::x86var::{
-    Block, Instr, LArg, LBlock, LX86VarProgram, Reg, VarArg, X86VarProgram, ARG_PASSING_REGS,
-};
+use crate::language::x86var::{Block, Instr, LArg, LBlock, LX86VarProgram, Reg, VarArg, X86VarProgram, ARG_PASSING_REGS, CALLER_SAVED, CALLEE_SAVED};
 use crate::reg;
 use std::collections::HashSet;
 
@@ -38,79 +36,53 @@ fn block_liveness<'p>(block: Block<'p, VarArg<'p>>) -> LBlock<'p> {
     LBlock { instrs }
 }
 
-fn instr_reads<'p>(instr: &Instr<'p, VarArg<'p>>) -> HashSet<LArg<'p>> {
+fn instr_reads<'p>(instr: &Instr<'p, VarArg<'p>>) -> impl Iterator<Item=LArg<'p>> {
+    let reads = instr_reads_vararg(instr).into_iter().map(|arg| match arg {
+        VarArg::Imm { .. } => None,
+        VarArg::Reg { reg } => Some(LArg::Reg {reg}),
+        VarArg::Deref { reg, .. } => Some(LArg::Reg {reg}),
+        VarArg::XVar { sym } => Some(LArg::Var{sym})
+    }).flatten();
+    let writes = instr_writes_vararg(instr).into_iter().map(|arg| match arg {
+        VarArg::Imm { .. } => None,
+        VarArg::Reg { .. } => None,
+        VarArg::Deref { reg, .. } => Some(LArg::Reg {reg}),
+        VarArg::XVar { .. } => None
+    }).flatten();
+
+    reads.chain(writes)
+}
+
+pub fn instr_writes<'p>(instr: &Instr<'p, VarArg<'p>>) -> impl Iterator<Item=LArg<'p>> {
+    instr_writes_vararg(instr).into_iter().map(|arg| match arg {
+        VarArg::Imm { .. } => None,
+        VarArg::Reg { reg } => Some(LArg::Reg {reg}),
+        VarArg::Deref { .. } => None,
+        VarArg::XVar { sym } => Some(LArg::Var{sym})
+    }).flatten()
+}
+
+fn instr_reads_vararg<'p>(instr: &Instr<'p, VarArg<'p>>) -> impl Iterator<Item=VarArg<'p>>{
     match instr {
-        Instr::Addq { src, dst } | Instr::Subq { src, dst } => [src, dst]
-            .into_iter()
-            .cloned()
-            .flat_map(TryFrom::try_from)
-            .collect(),
-        Instr::Movq { src, .. } | Instr::Pushq { src } | Instr::Negq { dst: src } => [src]
-            .into_iter()
-            .cloned()
-            .flat_map(TryFrom::try_from)
-            .collect(),
-        Instr::Callq { arity, .. } => ARG_PASSING_REGS
-            .iter()
-            .take(*arity)
-            .cloned()
-            .map(|reg| LArg::Reg { reg })
-            .collect(),
-        Instr::Popq { .. } | Instr::Jmp { .. } | Instr::Retq => HashSet::new(),
-        Instr::Syscall => todo!(),
-        Instr::Divq { divisor } => [divisor, &reg!(RAX), &reg!(RDX)]
-            .into_iter()
-            .cloned()
-            .flat_map(TryFrom::try_from)
-            .collect(),
-        Instr::Jcc { .. } => HashSet::new(),
-        Instr::Mulq { src } => [src, &reg!(RAX)]
-            .into_iter()
-            .cloned()
-            .flat_map(TryFrom::try_from)
-            .collect(),
-    }
+        Instr::Addq { src, dst } | Instr::Subq { src, dst } => heapless::Vec::from_iter([*src, *dst]),
+        Instr::Movq { src, .. } | Instr::Pushq { src } | Instr::Negq { dst: src } => heapless::Vec::from_iter([*src]),
+        Instr::Callq { arity, .. } => heapless::Vec::from_iter(ARG_PASSING_REGS.iter().take(*arity).map(|&reg| VarArg::Reg {reg})),
+        Instr::Popq { .. } | Instr::Jmp { .. } | Instr::Retq => heapless::Vec::<VarArg, 6>::new(),
+        Instr::Divq { divisor } => heapless::Vec::from_iter([*divisor, reg!(RAX), reg!(RDX)]),
+        Instr::Mulq { src } => heapless::Vec::from_iter([*src, reg!(RAX)]),
+        Instr::Jcc { .. } => todo!(),
+        Instr::Syscall => unreachable!("There should be no syscalls in this pass."),
+    }.into_iter()
 }
 
-fn instr_writes<'p>(instr: &Instr<'p, VarArg<'p>>) -> HashSet<LArg<'p>> {
+fn instr_writes_vararg<'p>(instr: &Instr<'p, VarArg<'p>>) -> impl Iterator<Item=VarArg<'p>> {
     match instr {
-        Instr::Addq { dst, .. } | Instr::Subq { dst, .. } => [dst]
-            .into_iter()
-            .cloned()
-            .flat_map(TryFrom::try_from)
-            .collect(),
-        Instr::Movq { dst, .. } | Instr::Popq { dst } | Instr::Negq { dst } => [dst]
-            .into_iter()
-            .cloned()
-            .flat_map(TryFrom::try_from)
-            .collect(),
-        Instr::Callq { .. } => HashSet::from([LArg::Reg { reg: Reg::RAX }]),
-        Instr::Pushq { .. } | Instr::Jmp { .. } | Instr::Retq => HashSet::new(),
-        Instr::Syscall => todo!(),
-        Instr::Mulq { .. } | Instr::Divq { .. } => {
-            HashSet::from([LArg::Reg { reg: Reg::RAX }, LArg::Reg { reg: Reg::RDX }])
-        }
-        Instr::Jcc { .. } => HashSet::new(),
-    }
+        Instr::Addq { dst, .. } | Instr::Subq { dst, .. } => heapless::Vec::from_iter([*dst]),
+        Instr::Movq { dst, .. } | Instr::Popq { dst } | Instr::Negq { dst } => heapless::Vec::from_iter([*dst]),
+        Instr::Callq { .. } => heapless::Vec::from_iter(CALLER_SAVED.iter().map(|&reg| VarArg::Reg {reg})),
+        Instr::Pushq { .. } | Instr::Jmp { .. } | Instr::Retq => heapless::Vec::<VarArg, 9>::new(),
+        Instr::Mulq { .. } | Instr::Divq { .. } => heapless::Vec::from_iter([reg!(RAX), reg!(RDX)]),
+        Instr::Jcc { .. } => todo!(),
+        Instr::Syscall => unreachable!("There should be no syscalls in this pass."),
+    }.into_iter()
 }
-
-impl<'p> TryFrom<VarArg<'p>> for LArg<'p> {
-    type Error = ();
-
-    fn try_from(value: VarArg<'p>) -> Result<Self, Self::Error> {
-        match value {
-            VarArg::Imm { .. } => Err(()),
-            VarArg::Reg { reg } => Ok(LArg::Reg { reg }),
-            VarArg::Deref { reg, .. } => Ok(LArg::Reg { reg }),
-            VarArg::XVar { sym } => Ok(LArg::Var { sym }),
-        }
-    }
-}
-
-//           case Instr(Addq() | Subq(), s1 :: s2d1 :: Nil) => after ++ argToW(s2d1) ++ argToW(s1)
-//           case Instr(Movq(), s1 :: d1 :: Nil) => after -- argToW(d1) ++ argToW(s1)
-//           case Instr(Negq(), s1d1 :: Nil) => after ++ argToW(s1d1)
-//           case Instr(Popq(), d1 :: Nil) => after -- argToW(d1)
-//           case Instr(Pushq(), s1 :: Nil) => after ++ argToW(s1)
-//           case Callq("_read_int", 0) => after -- Set(Rg(RAX()))
-//           case Callq("_print_int", 1) => after ++ Set(Rg(RDI()))

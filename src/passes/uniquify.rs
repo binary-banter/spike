@@ -46,7 +46,7 @@ fn uniquify_expression<'p>(
     }
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Debug, Hash)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Hash, Ord, PartialOrd)]
 pub struct UniqueSym<'p> {
     pub sym: &'p str,
     pub id: usize,
