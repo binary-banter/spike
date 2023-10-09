@@ -541,6 +541,7 @@ dependencies = [
  "bitflags",
  "clap",
  "heapless",
+ "itertools",
  "miette",
  "nom",
  "once_cell",

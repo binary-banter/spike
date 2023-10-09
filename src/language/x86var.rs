@@ -1,9 +1,9 @@
 use crate::passes::uniquify::UniqueSym;
 use crate::{addq, callq, divq, jcc, jmp, movq, mulq, negq, popq, pushq, retq, subq, syscall};
+use petgraph::prelude::GraphMap;
 use petgraph::Undirected;
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
-use petgraph::prelude::GraphMap;
 
 #[derive(Debug, PartialEq)]
 pub struct X86Program<'p> {
@@ -36,6 +36,12 @@ pub struct LX86VarProgram<'p> {
 pub struct IX86VarProgram<'p> {
     pub blocks: HashMap<&'p str, Block<'p, VarArg<'p>>>,
     pub interference: InterferenceGraph<'p>,
+}
+
+#[derive(Debug)]
+pub struct CX86VarProgram<'p> {
+    pub blocks: HashMap<&'p str, Block<'p, VarArg<'p>>>,
+    pub color_map: HashMap<UniqueSym<'p>, Arg>,
 }
 
 pub type InterferenceGraph<'p> = GraphMap<LArg<'p>, (), Undirected>;

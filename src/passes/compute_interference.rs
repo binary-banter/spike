@@ -21,7 +21,9 @@ impl<'p> LX86VarProgram<'p> {
                 //TODO move optimization: If instruction is a move instruction then for every in w in writes, if w != dst and v != src, add the edge (dst, w).
                 for w in instr_writes(&instr) {
                     for &l in live_after {
-                        if w == l { continue };
+                        if w == l {
+                            continue;
+                        };
                         graph.add_edge(w, l, ());
                     }
                 }
