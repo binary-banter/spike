@@ -75,7 +75,7 @@ fn color_graph(graph: InterferenceGraph) -> (HashMap<UniqueSym, Arg>, usize) {
         .max()
         .unwrap_or_default() as usize;
 
-    let stack_space = 8 * used_vars.div_ceil(16) * 16;
+    let stack_space = (8 * used_vars).div_ceil(16) * 16;
 
     let colors = node_map
         .into_iter()

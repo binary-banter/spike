@@ -77,6 +77,7 @@ fn add_read_block<'p>(blocks: &mut HashMap<&'p str, Block<'p, Arg>>) {
         block!(
             pushq!(reg!(RBX)), // save a callee-saved register
             pushq!(reg!(R13)),
+            movq!(imm!(0), reg!(R13)),
             movq!(imm!(0), reg!(RBX)), // zero out RBX
             subq!(imm!(8), reg!(RSP)), // allocate some space on the stack for reading the next byte
             // read initial character
