@@ -21,9 +21,9 @@ echo "(+ 1 2)" | cargo run && ./output ; echo $?
 ```
 Run with specified input path, without specifying an output path:
 ```sh
-echo cargo run -- example.jj && ./example ; echo $?
+cargo run -- example.jj && ./example ; echo $?
 ```
 Run with specified input path and specified output path:
 ```sh
-echo cargo run -- input.jj -o output && ./output ; echo $?
+cargo run -- input.jj -o output && ./output ; echo $?
 ```
