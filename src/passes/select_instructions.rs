@@ -3,7 +3,6 @@
 //!
 //! Just like a `CVarProgram` program, a `X86VarProgram` consists of a list of blocks.
 
-
 use crate::language::alvar::Atom;
 use crate::language::cvar::{CExpr, CVarProgram, Tail};
 use crate::language::lvar::Op;

@@ -41,7 +41,7 @@ fn type_check_expr<'p>(
     match expr {
         Expr::Int { .. } => Ok(Type::Integer),
         Expr::Var { sym } => scope.get(sym).cloned().ok_or(UndeclaredVar {
-            sym: sym.to_string(),
+            sym: (*sym).to_string(),
         }),
         Expr::Prim { op, args } => match (op, args.as_slice()) {
             (Op::Plus | Op::Minus, [e1, e2]) => {
