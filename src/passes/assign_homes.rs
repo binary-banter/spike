@@ -2,77 +2,68 @@
 //!
 //! This pass is responsible for assigning all the program variables to locations on the stack.
 
-use crate::language::x86var::{AX86Program, Arg, Block, Instr, Reg, VarArg, X86VarProgram};
+use crate::language::x86var::{
+    AX86Program, Arg, Block, CX86VarProgram, Instr, Reg, VarArg, X86VarProgram,
+};
 use crate::passes::uniquify::UniqueSym;
 use crate::{addq, callq, divq, jcc, jmp, movq, mulq, negq, popq, pushq, retq, subq, syscall};
 use std::collections::HashMap;
 
-impl<'p> X86VarProgram<'p> {
+impl<'p> CX86VarProgram<'p> {
     //! See module-level documentation.
     pub fn assign_homes(self) -> AX86Program<'p> {
-        let mut homes = HashMap::new();
-
         AX86Program {
             blocks: self
                 .blocks
                 .into_iter()
-                .map(|block| (block.0, assign_block(block.1, &mut homes)))
+                .map(|(name, block)| {
+                    (
+                        name,
+                        Block {
+                            instrs: block
+                                .instrs
+                                .into_iter()
+                                .map(|instr| assign_instr(instr, &self.color_map))
+                                .collect(),
+                        },
+                    )
+                })
                 .collect(),
-            stack_space: (8 * homes.len()).div_ceil(16) * 16,
+            stack_space: self.stack_space,
         }
     }
 }
 
-fn assign_block<'p>(
-    block: Block<'p, VarArg<'p>>,
-    homes: &mut HashMap<UniqueSym<'p>, i64>,
-) -> Block<'p, Arg> {
-    Block {
-        instrs: block
-            .instrs
-            .into_iter()
-            .map(|instr| assign_instruction(instr, homes))
-            .collect(),
-    }
-}
-
-fn assign_instruction<'p>(
-    instr: Instr<'p, VarArg<'p>>,
-    homes: &mut HashMap<UniqueSym<'p>, i64>,
+fn assign_instr<'p>(
+    instr: Instr<'p, VarArg>,
+    color_map: &HashMap<UniqueSym, Arg>,
 ) -> Instr<'p, Arg> {
+    let map = |arg: VarArg| -> Arg {
+        match arg {
+            VarArg::Imm { val } => Arg::Imm { val },
+            VarArg::Reg { reg } => Arg::Reg { reg },
+            VarArg::Deref { reg, off } => Arg::Deref { reg, off },
+            VarArg::XVar { sym } => color_map[&sym],
+        }
+    };
+
     match instr {
-        Instr::Addq { src, dst } => addq!(assign_arg(src, homes), assign_arg(dst, homes)),
-        Instr::Subq { src, dst } => subq!(assign_arg(src, homes), assign_arg(dst, homes)),
-        Instr::Negq { dst } => negq!(assign_arg(dst, homes)),
-        Instr::Movq { src, dst } => movq!(assign_arg(src, homes), assign_arg(dst, homes)),
-        Instr::Pushq { src } => pushq!(assign_arg(src, homes)),
-        Instr::Popq { dst } => popq!(assign_arg(dst, homes)),
+        Instr::Addq { src, dst } => addq!(map(src), map(dst)),
+        Instr::Subq { src, dst } => subq!(map(src), map(dst)),
+        Instr::Divq { divisor } => divq!(map(divisor)),
+        Instr::Mulq { src } => mulq!(map(src)),
+        Instr::Negq { dst } => negq!(map(dst)),
+        Instr::Movq { src, dst } => movq!(map(src), map(dst)),
+        Instr::Pushq { src } => pushq!(map(src)),
+        Instr::Popq { dst } => popq!(map(dst)),
         Instr::Callq { lbl, arity } => callq!(lbl, arity),
         Instr::Retq => retq!(),
-        Instr::Jmp { lbl } => jmp!(lbl),
         Instr::Syscall => syscall!(),
-        Instr::Divq { divisor } => divq!(assign_arg(divisor, homes)),
+        Instr::Jmp { lbl } => jmp!(lbl),
         Instr::Jcc { lbl, cnd } => jcc!(lbl, cnd),
-        Instr::Mulq { src } => mulq!(assign_arg(src, homes)),
     }
 }
 
-fn assign_arg<'p>(arg: VarArg<'p>, homes: &mut HashMap<UniqueSym<'p>, i64>) -> Arg {
-    match arg {
-        VarArg::Imm { val } => Arg::Imm { val },
-        VarArg::Reg { reg } => Arg::Reg { reg },
-        VarArg::Deref { reg, off } => Arg::Deref { reg, off },
-        VarArg::XVar { sym } => {
-            let entries = homes.len();
-            homes.entry(sym).or_insert(-(entries as i64 + 1) * 8);
-
-            Arg::Deref {
-                reg: Reg::RBP,
-                off: homes[&sym],
-            }
-        }
-    }
-}
 
 #[cfg(test)]
 mod tests {
@@ -88,6 +79,9 @@ mod tests {
             .remove_complex_operands()
             .explicate()
             .select()
+            .add_liveness()
+            .compute_interference()
+            .color_interference()
             .assign_homes()
             .into();
         let mut io = TestIO::new(input);

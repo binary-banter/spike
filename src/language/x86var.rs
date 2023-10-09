@@ -42,6 +42,7 @@ pub struct IX86VarProgram<'p> {
 pub struct CX86VarProgram<'p> {
     pub blocks: HashMap<&'p str, Block<'p, VarArg<'p>>>,
     pub color_map: HashMap<UniqueSym<'p>, Arg>,
+    pub stack_space: usize,
 }
 
 pub type InterferenceGraph<'p> = GraphMap<LArg<'p>, (), Undirected>;
@@ -108,7 +109,7 @@ pub enum VarArg<'p> {
     XVar { sym: UniqueSym<'p> },
 }
 
-#[derive(Debug, PartialEq, Clone, Hash, Eq)]
+#[derive(Debug, PartialEq, Copy, Clone, Hash, Eq)]
 pub enum Arg {
     Imm { val: i64 },
     Reg { reg: Reg },

@@ -1,18 +1,22 @@
 use crate::language::x86var::{Arg, CX86VarProgram, IX86VarProgram, InterferenceGraph, LArg, Reg};
 use crate::passes::uniquify::UniqueSym;
 use itertools::Itertools;
+use nom::combinator::map;
 use std::collections::{HashMap, HashSet};
 
 impl<'p> IX86VarProgram<'p> {
     pub fn color_interference(self) -> CX86VarProgram<'p> {
+        let (color_map, stack_space) = color_graph(self.interference);
+
         CX86VarProgram {
             blocks: self.blocks,
-            color_map: color_graph(self.interference),
+            color_map,
+            stack_space,
         }
     }
 }
 
-fn color_graph(graph: InterferenceGraph) -> HashMap<UniqueSym, Arg> {
+fn color_graph(graph: InterferenceGraph) -> (HashMap<UniqueSym, Arg>, usize) {
     let mut queue = Vec::new();
     let mut node_map = HashMap::<LArg, isize>::new();
 
@@ -64,13 +68,24 @@ fn color_graph(graph: InterferenceGraph) -> HashMap<UniqueSym, Arg> {
         });
     }
 
-    node_map
+    let used_vars = node_map
+        .values()
+        .filter(|&&n| n >= 10)
+        .map(|&n| n - 10)
+        .max()
+        .unwrap_or_default() as usize;
+
+    let stack_space = 8 * used_vars.div_ceil(16) * 16;
+
+    let colors = node_map
         .into_iter()
         .filter_map(|(node, color)| match node {
             LArg::Var { sym } => Some((sym, arg_from_color(color))),
             LArg::Reg { .. } => None,
         })
-        .collect()
+        .collect();
+
+    (colors, stack_space)
 }
 
 fn arg_from_color(i: isize) -> Arg {

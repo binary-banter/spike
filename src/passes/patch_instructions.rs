@@ -59,6 +59,9 @@ mod tests {
             .remove_complex_operands()
             .explicate()
             .select()
+            .add_liveness()
+            .compute_interference()
+            .color_interference()
             .assign_homes()
             .patch()
             .into();
