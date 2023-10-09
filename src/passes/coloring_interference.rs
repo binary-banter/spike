@@ -1,7 +1,7 @@
 use crate::language::x86var::{Arg, CX86VarProgram, IX86VarProgram, InterferenceGraph, LArg, Reg};
 use crate::passes::uniquify::UniqueSym;
 use itertools::Itertools;
-use std::collections::{BinaryHeap, HashMap, HashSet};
+use std::collections::{HashMap, HashSet};
 
 impl<'p> IX86VarProgram<'p> {
     pub fn color_interference(self) -> CX86VarProgram<'p> {
@@ -12,7 +12,7 @@ impl<'p> IX86VarProgram<'p> {
     }
 }
 
-fn color_graph(mut graph: InterferenceGraph) -> HashMap<UniqueSym, Arg> {
+fn color_graph(graph: InterferenceGraph) -> HashMap<UniqueSym, Arg> {
     let mut queue = Vec::new();
     let mut node_map = HashMap::<LArg, isize>::new();
 

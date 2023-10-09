@@ -16,10 +16,10 @@ impl<'p> LX86VarProgram<'p> {
     fn build_graph(&self) -> InterferenceGraph<'p> {
         let mut graph = InterferenceGraph::new();
 
-        for (_, block) in &self.blocks {
+        for block in self.blocks.values() {
             for (instr, live_after) in &block.instrs {
                 //TODO move optimization: If instruction is a move instruction then for every in w in writes, if w != dst and v != src, add the edge (dst, w).
-                for w in instr_writes(&instr) {
+                for w in instr_writes(instr) {
                     for &l in live_after {
                         if w == l {
                             continue;

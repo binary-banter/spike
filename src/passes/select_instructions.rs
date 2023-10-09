@@ -40,15 +40,9 @@ fn select_assign<'p>(dst: VarArg<'p>, expr: CExpr<'p>) -> Vec<Instr<'p, VarArg<'
         CExpr::Atom(Atom::Int { val }) => vec![movq!(imm!(val), dst)],
         CExpr::Atom(Atom::Var { sym }) => vec![movq!(var!(sym), dst)],
         CExpr::Prim { op, args } => match (op, args.as_slice()) {
-            (Op::Plus, [a0, a1]) => vec![
-                movq!(select_atom(a0), dst.clone()),
-                addq!(select_atom(a1), dst),
-            ],
-            (Op::Minus, [a0, a1]) => vec![
-                movq!(select_atom(a0), dst.clone()),
-                subq!(select_atom(a1), dst),
-            ],
-            (Op::Minus, [a0]) => vec![movq!(select_atom(a0), dst.clone()), negq!(dst)],
+            (Op::Plus, [a0, a1]) => vec![movq!(select_atom(a0), dst), addq!(select_atom(a1), dst)],
+            (Op::Minus, [a0, a1]) => vec![movq!(select_atom(a0), dst), subq!(select_atom(a1), dst)],
+            (Op::Minus, [a0]) => vec![movq!(select_atom(a0), dst), negq!(dst)],
             (Op::Read, []) => vec![callq!("_read_int", 0), movq!(reg!(RAX), dst)],
             (Op::Print, [a0]) => vec![
                 movq!(select_atom(a0), reg!(RDI)),

@@ -1,6 +1,6 @@
 use crate::language::x86var::{
     Block, Instr, LArg, LBlock, LX86VarProgram, Reg, VarArg, X86VarProgram, ARG_PASSING_REGS,
-    CALLEE_SAVED, CALLER_SAVED,
+    CALLER_SAVED,
 };
 use crate::reg;
 use std::collections::HashSet;
@@ -40,38 +40,29 @@ fn block_liveness<'p>(block: Block<'p, VarArg<'p>>) -> LBlock<'p> {
 }
 
 fn instr_reads<'p>(instr: &Instr<'p, VarArg<'p>>) -> impl Iterator<Item = LArg<'p>> {
-    let reads = instr_reads_vararg(instr)
-        .into_iter()
-        .map(|arg| match arg {
-            VarArg::Imm { .. } => None,
-            VarArg::Reg { reg } => Some(LArg::Reg { reg }),
-            VarArg::Deref { reg, .. } => Some(LArg::Reg { reg }),
-            VarArg::XVar { sym } => Some(LArg::Var { sym }),
-        })
-        .flatten();
-    let writes = instr_writes_vararg(instr)
-        .into_iter()
-        .map(|arg| match arg {
-            VarArg::Imm { .. } => None,
-            VarArg::Reg { .. } => None,
-            VarArg::Deref { reg, .. } => Some(LArg::Reg { reg }),
-            VarArg::XVar { .. } => None,
-        })
-        .flatten();
+    let reads = instr_reads_vararg(instr).filter_map(|arg| match arg {
+        VarArg::Imm { .. } => None,
+        VarArg::Reg { reg } => Some(LArg::Reg { reg }),
+        VarArg::Deref { reg, .. } => Some(LArg::Reg { reg }),
+        VarArg::XVar { sym } => Some(LArg::Var { sym }),
+    });
+    let writes = instr_writes_vararg(instr).filter_map(|arg| match arg {
+        VarArg::Imm { .. } => None,
+        VarArg::Reg { .. } => None,
+        VarArg::Deref { reg, .. } => Some(LArg::Reg { reg }),
+        VarArg::XVar { .. } => None,
+    });
 
     reads.chain(writes)
 }
 
 pub fn instr_writes<'p>(instr: &Instr<'p, VarArg<'p>>) -> impl Iterator<Item = LArg<'p>> {
-    instr_writes_vararg(instr)
-        .into_iter()
-        .map(|arg| match arg {
-            VarArg::Imm { .. } => None,
-            VarArg::Reg { reg } => Some(LArg::Reg { reg }),
-            VarArg::Deref { .. } => None,
-            VarArg::XVar { sym } => Some(LArg::Var { sym }),
-        })
-        .flatten()
+    instr_writes_vararg(instr).filter_map(|arg| match arg {
+        VarArg::Imm { .. } => None,
+        VarArg::Reg { reg } => Some(LArg::Reg { reg }),
+        VarArg::Deref { .. } => None,
+        VarArg::XVar { sym } => Some(LArg::Var { sym }),
+    })
 }
 
 fn instr_reads_vararg<'p>(instr: &Instr<'p, VarArg<'p>>) -> impl Iterator<Item = VarArg<'p>> {
