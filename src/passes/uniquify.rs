@@ -43,8 +43,14 @@ fn uniquify_expression<'p>(
                 bdy: Box::new(unique_bdy),
             }
         }
-        Expr::If { .. } => todo!(),
-        Expr::Bool { .. } => todo!(),
+        Expr::If { cnd, thn, els } => {
+            Expr::If {
+                cnd: Box::new(uniquify_expression(*cnd, scope)),
+                thn: Box::new(uniquify_expression(*thn, scope)),
+                els: Box::new(uniquify_expression(*els, scope)),
+            }
+        },
+        Expr::Bool { val } => Expr::Bool {val}
     }
 }
 
