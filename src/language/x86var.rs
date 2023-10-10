@@ -24,7 +24,8 @@ pub struct AX86Program<'p> {
 
 #[derive(Debug, PartialEq)]
 pub struct X86VarProgram<'p> {
-    pub blocks: HashMap<&'p str, Block<'p, VarArg<'p>>>,
+    pub blocks: HashMap<UniqueSym<'p>, Block<'p, VarArg<'p>>>,
+    pub entry: UniqueSym<'p>
 }
 
 #[derive(Debug, PartialEq)]
@@ -89,11 +90,12 @@ pub enum Instr<'p, A> {
     Movq { src: A, dst: A },
     Pushq { src: A },
     Popq { dst: A },
-    Callq { lbl: &'p str, arity: usize },
+    Callq { lbl: UniqueSym<'p> , arity: usize },
     Retq,
     Syscall,
-    Jmp { lbl: &'p str },
-    Jcc { lbl: &'p str, cnd: Cnd },
+    Compq { src: A, dst: A},
+    Jmp { lbl: UniqueSym<'p>  },
+    Jcc { lbl: UniqueSym<'p> , cnd: Cnd },
 }
 
 #[derive(Debug, PartialEq, Clone, Copy, Hash, Eq)]
@@ -281,6 +283,16 @@ mod macros {
     macro_rules! subq {
         ($src:expr, $dst:expr) => {
             $crate::language::x86var::Instr::Subq {
+                src: $src,
+                dst: $dst,
+            }
+        };
+    }
+
+    #[macro_export]
+    macro_rules! compq {
+        ($src:expr, $dst:expr) => {
+            $crate::language::x86var::Instr::Compq {
                 src: $src,
                 dst: $dst,
             }

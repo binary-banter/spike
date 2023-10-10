@@ -9,7 +9,6 @@ mod unary;
 
 use crate::language::x86var::{Arg, Block, Cnd, Instr, Reg, X86Program};
 use crate::passes::emit::binary::{encode_binary_instr, ADDQ_INFO, MOVQ_INFO, SUBQ_INFO};
-use crate::passes::emit::io::add_io_blocks;
 use crate::passes::emit::mul_div::{encode_muldiv_instr, MulDivOpInfo};
 use crate::passes::emit::push_pop::{encode_push_pop, POPQ_INFO, PUSHQ_INFO};
 use crate::passes::emit::unary::{encode_unary_instr, NEGQ_INFO};
@@ -18,8 +17,6 @@ use std::collections::HashMap;
 impl<'p> X86Program<'p> {
     //! See module-level documentation.
     pub fn emit(mut self) -> (usize, Vec<u8>) {
-        add_io_blocks(&mut self.blocks);
-
         let mut machine_code = Vec::new();
 
         let mut jumps: HashMap<usize, &'p str> = HashMap::new();

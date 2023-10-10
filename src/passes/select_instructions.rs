@@ -6,17 +6,16 @@
 use crate::language::alvar::Atom;
 use crate::language::cvar::{CExpr, CVarProgram, Tail};
 use crate::language::lvar::Op;
-use crate::language::x86var::{Block, Instr, Reg, VarArg, X86VarProgram};
-use crate::{addq, callq, imm, movq, negq, reg, subq, var};
-
+use crate::language::x86var::{Block, Cnd, Instr, Reg, VarArg, X86VarProgram};
+use crate::{addq, callq, imm, jcc, jmp, movq, negq, reg, subq, var, compq};
 
 impl<'p> CVarProgram<'p> {
     /// See module-level documentation.
     pub fn select(self) -> X86VarProgram<'p> {
-        todo!()
-        // X86VarProgram {
-        //     blocks: HashMap::from([("core", select_block(self.bdy))]),
-        // }
+        X86VarProgram {
+            blocks: self.blocks.into_iter().map(|(name,block)| (name, select_block(block))).collect(),
+            entry: self.entry,
+        }
     }
 }
 
@@ -33,8 +32,17 @@ fn select_tail<'p>(tail: Tail<'p>, instrs: &mut Vec<Instr<'p, VarArg<'p>>>) {
             instrs.extend(select_assign(var!(sym), bnd));
             select_tail(*tail, instrs);
         }
-        Tail::IfStmt { .. } => todo!(),
-        Tail::Goto { .. } => todo!(),
+        Tail::IfStmt { cnd: CExpr::Prim { op, args }, thn, els } => {
+            instrs.extend(vec![
+                compq!(select_atom(&args[1]), select_atom(&args[0])),
+                jcc!(thn, select_cmp(op)),
+                jmp!(els)
+            ])
+        },
+        Tail::IfStmt { .. } => unreachable!(),
+        Tail::Goto { lbl } => {
+            instrs.push(jmp!(lbl));
+        },
     }
 }
 
@@ -61,6 +69,18 @@ fn select_atom<'p>(expr: &Atom<'p>) -> VarArg<'p> {
     match expr {
         Atom::Val { val } => imm!(*val),
         Atom::Var { sym } => var!(*sym),
+    }
+}
+
+fn select_cmp(op: Op) -> Cnd {
+    match op {
+        Op::Greater => Cnd::Greater,
+        Op::GreaterOrEqual => Cnd::GreaterOrEqual,
+        Op::Equal => Cnd::Equal,
+        Op::LessOrEqual => Cnd::LessOrEqual,
+        Op::Less => Cnd::Less,
+        Op::NotEqual => Cnd::NotEqual,
+        _ => unreachable!(),
     }
 }
 
