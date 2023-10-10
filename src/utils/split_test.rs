@@ -1,8 +1,8 @@
-use crate::interpreter::value::Value;
+use crate::interpreter::value::Val;
 use crate::language::lvar::LVarProgram;
 use crate::parser::parse_program;
 
-pub fn split_test(test: &str) -> (Vec<Value>, Vec<Value>, Value, LVarProgram) {
+pub fn split_test(test: &str) -> (Vec<Val>, Vec<Val>, Val, LVarProgram) {
     let mut test = test.split('#');
     let input = test.next().unwrap().trim();
     let expected_output = test.next().unwrap().trim();

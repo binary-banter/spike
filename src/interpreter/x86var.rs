@@ -3,7 +3,7 @@ use crate::interpreter::IO;
 use crate::language::x86var::{Block, Instr, Reg, VarArg, X86VarProgram};
 use crate::passes::uniquify::UniqueSym;
 use std::collections::HashMap;
-use crate::interpreter::value::Value;
+use crate::interpreter::value::Val;
 
 struct X86Interpreter<'p, I: IO> {
     blocks: &'p HashMap<&'p str, Block<'p, VarArg<'p>>>,
@@ -56,13 +56,13 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                 }
                 Instr::Callq { lbl, arity } => match (*lbl, arity) {
                     ("_read_int", 0) => {
-                        let Value::Int { val } = self.io.read() else {
+                        let Val::Int { val } = self.io.read() else {
                             panic!("Got a bool in _read_int")
                         };
                         self.regs.insert(Reg::RAX, val);
                     }
                     ("_print_int", 1) => {
-                        self.io.print(Value::Int {val: self.regs[&Reg::RDI] });
+                        self.io.print(Val::Int {val: self.regs[&Reg::RDI] });
                     }
                     ("exit", 1) => {
                         break;
