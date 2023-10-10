@@ -8,6 +8,7 @@ use std::thread::sleep;
 use std::time::Duration;
 use tempdir::TempDir;
 use test_each_file::test_each_file;
+use rust_compiler_construction::interpreter::value::Value;
 
 fn integration([test]: [&str; 1]) {
     let tempdir = TempDir::new("rust-compiler-construction-integration").unwrap();
@@ -15,6 +16,7 @@ fn integration([test]: [&str; 1]) {
     let mut file = File::create(tempdir.path().join("output")).unwrap();
 
     let (input, expected_output, expected_return, program) = split_test(test);
+    let expected_return: i64 = expected_return.into();
 
     let (entry, program) = program
         .uniquify()
@@ -65,7 +67,7 @@ fn integration([test]: [&str; 1]) {
     );
 
     for (got, expected) in out.stdout.lines().map(|r| r.unwrap()).zip(expected_output) {
-        assert_eq!(got.parse::<i64>().unwrap(), expected);
+        assert_eq!(got.parse::<Value>().unwrap(), expected);
     }
 }
 

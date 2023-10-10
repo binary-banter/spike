@@ -1,20 +1,22 @@
 use crate::language::lvar::{Expr, LVarProgram, Op};
-use crate::type_checking::TypeError::{IncorrectArity, TypeMismatch, UndeclaredVar};
+use crate::type_checking::TypeError::{IncorrectArity, TypeMismatchEqual, TypeMismatchExpect, UndeclaredVar};
 use crate::utils::expect::expect;
 use crate::utils::push_map::PushMap;
 use miette::Diagnostic;
 use std::fmt::{Display, Formatter};
 use thiserror::Error;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Type {
-    Integer,
+    Int,
+    Bool,
 }
 
 impl Display for Type {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            Type::Integer => write!(f, "Integer"),
+            Type::Int => write!(f, "Int"),
+            Type::Bool => write!(f, "Bool"),
         }
     }
 }
@@ -27,7 +29,9 @@ pub enum TypeError {
     #[error("Operation '{op}' had incorrect arity of {arity}.")]
     IncorrectArity { op: Op, arity: usize },
     #[error("Types were mismatched. Expected '{expect}', but found '{got}'.")]
-    TypeMismatch { expect: Type, got: Type },
+    TypeMismatchExpect { expect: Type, got: Type },
+    #[error("Types were mismatched. Expected '{t1}' and '{t2}' to be equal.")]
+    TypeMismatchEqual { t1: Type, t2: Type },
 }
 
 pub fn type_check_program(program: &LVarProgram) -> Result<Type, TypeError> {
@@ -39,24 +43,45 @@ fn type_check_expr<'p>(
     scope: &mut PushMap<&'p str, Type>,
 ) -> Result<Type, TypeError> {
     match expr {
-        Expr::Int { .. } => Ok(Type::Integer),
+        Expr::Int { .. } => Ok(Type::Int),
+        Expr::Bool { .. } => Ok(Type::Bool),
         Expr::Var { sym } => scope.get(sym).cloned().ok_or(UndeclaredVar {
             sym: (*sym).to_string(),
         }),
         Expr::Prim { op, args } => match (op, args.as_slice()) {
             (Op::Plus | Op::Minus, [e1, e2]) => {
-                expect_type(e1, scope, Type::Integer)?;
-                expect_type(e2, scope, Type::Integer)?;
-                Ok(Type::Integer)
+                expect_type(e1, scope, Type::Int)?;
+                expect_type(e2, scope, Type::Int)?;
+                Ok(Type::Int)
             }
             (Op::Minus, [e1]) => {
-                expect_type(e1, scope, Type::Integer)?;
-                Ok(Type::Integer)
+                expect_type(e1, scope, Type::Int)?;
+                Ok(Type::Int)
             }
-            (Op::Read, []) => Ok(Type::Integer),
+            (Op::Read, []) => Ok(Type::Int),
             (Op::Print, [e1]) => {
-                expect_type(e1, scope, Type::Integer)?;
-                Ok(Type::Integer)
+                // todo: Eventually `Print` should become a function call, not an `Expr`.
+                // type_check_expr(e1, scope)
+                expect_type(e1, scope, Type::Int)?;
+                Ok(Type::Int)
+            }
+            (Op::Greater | Op::GreaterOrEqual | Op::Less | Op::LessOrEqual, [e1, e2]) => {
+                expect_type(e1, scope, Type::Int)?;
+                expect_type(e2, scope, Type::Int)?;
+                Ok(Type::Bool)
+            }
+            (Op::Equal | Op::NotEqual, [e1, e2]) => {
+                expect_type_eq(e1, e2, scope)?;
+                Ok(Type::Bool)
+            }
+            (Op::Not, [e1]) => {
+                expect_type(e1, scope, Type::Bool)?;
+                Ok(Type::Bool)
+            }
+            (Op::LAnd | Op::LOr | Op::Xor, [e1, e2]) => {
+                expect_type(e1, scope, Type::Bool)?;
+                expect_type(e2, scope, Type::Bool)?;
+                Ok(Type::Bool)
             }
             _ => Err(IncorrectArity {
                 op: *op,
@@ -64,12 +89,31 @@ fn type_check_expr<'p>(
             }),
         },
         Expr::Let { sym, bnd, bdy } => {
-            type_check_expr(bnd, scope)?;
-            scope.push(sym, Type::Integer, |scope| type_check_expr(bdy, scope))
+            let t = type_check_expr(bnd, scope)?;
+            scope.push(sym, t, |scope| type_check_expr(bdy, scope))
         }
-        Expr::If { .. } => todo!(),
-        Expr::Bool { .. } => todo!(),
+        Expr::If { cnd, thn, els } => {
+            expect_type(cnd, scope, Type::Bool)?;
+            expect_type_eq(thn, els, scope)
+        },
     }
+}
+
+fn expect_type_eq<'p>(
+    e1: &Expr<&'p str>,
+    e2: &Expr<&'p str>,
+    scope: &mut PushMap<&'p str, Type>,
+) -> Result<Type, TypeError> {
+    let t1 = type_check_expr(e1, scope)?;
+    let t2 = type_check_expr(e2, scope)?;
+    expect(
+        t1 == t2,
+        TypeMismatchEqual {
+            t1,
+            t2,
+        }
+    )?;
+    Ok(t1)
 }
 
 fn expect_type<'p>(
@@ -79,8 +123,8 @@ fn expect_type<'p>(
 ) -> Result<(), TypeError> {
     let t = type_check_expr(expr, scope)?;
     expect(
-        matches!(t, Type::Integer),
-        TypeMismatch {
+        t == expected,
+        TypeMismatchExpect {
             got: t.clone(),
             expect: expected,
         },
@@ -89,9 +133,9 @@ fn expect_type<'p>(
 
 #[cfg(test)]
 mod tests {
-    use crate::parser::parse_program;
     use crate::type_checking::type_check_program;
     use test_each_file::test_each_file;
+    use crate::parser::parse_program;
 
     fn check([test]: [&str; 1], should_fail: bool) {
         let mut test = test.split('#');
