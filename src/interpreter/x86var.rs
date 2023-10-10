@@ -1,9 +1,9 @@
 use crate::interpreter::IO;
 
+use crate::interpreter::value::Val;
 use crate::language::x86var::{Block, Instr, Reg, VarArg, X86VarProgram};
 use crate::passes::uniquify::UniqueSym;
 use std::collections::HashMap;
-use crate::interpreter::value::Val;
 
 struct X86Interpreter<'p, I: IO> {
     blocks: &'p HashMap<&'p str, Block<'p, VarArg<'p>>>,
@@ -62,7 +62,9 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                         self.regs.insert(Reg::RAX, val);
                     }
                     ("_print_int", 1) => {
-                        self.io.print(Val::Int {val: self.regs[&Reg::RDI] });
+                        self.io.print(Val::Int {
+                            val: self.regs[&Reg::RDI],
+                        });
                     }
                     ("exit", 1) => {
                         break;

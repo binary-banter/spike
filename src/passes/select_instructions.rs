@@ -11,11 +11,12 @@ use crate::{addq, callq, imm, movq, negq, reg, subq, var};
 use std::collections::HashMap;
 
 impl<'p> CVarProgram<'p> {
-    //! See module-level documentation.
+    /// See module-level documentation.
     pub fn select(self) -> X86VarProgram<'p> {
-        X86VarProgram {
-            blocks: HashMap::from([("core", select_block(self.bdy))]),
-        }
+        todo!()
+        // X86VarProgram {
+        //     blocks: HashMap::from([("core", select_block(self.bdy))]),
+        // }
     }
 }
 
@@ -32,6 +33,8 @@ fn select_tail<'p>(tail: Tail<'p>, instrs: &mut Vec<Instr<'p, VarArg<'p>>>) {
             instrs.extend(select_assign(var!(sym), bnd));
             select_tail(*tail, instrs);
         }
+        Tail::IfStmt { .. } => todo!(),
+        Tail::Goto { .. } => todo!(),
     }
 }
 

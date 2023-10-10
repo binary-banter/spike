@@ -8,7 +8,7 @@ use crate::{addq, callq, divq, jcc, jmp, movq, mulq, negq, popq, pushq, retq, su
 use std::collections::HashMap;
 
 impl<'p> CX86VarProgram<'p> {
-    //! See module-level documentation.
+    /// See module-level documentation.
     pub fn assign_homes(self) -> AX86Program<'p> {
         AX86Program {
             blocks: self

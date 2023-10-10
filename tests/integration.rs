@@ -3,12 +3,12 @@ use rust_compiler_construction::utils::split_test::split_test;
 use std::fs::File;
 use std::io::{BufRead, Write};
 
+use rust_compiler_construction::interpreter::value::Val;
 use std::process::{Command, Stdio};
 use std::thread::sleep;
 use std::time::Duration;
 use tempdir::TempDir;
 use test_each_file::test_each_file;
-use rust_compiler_construction::interpreter::value::Val;
 
 fn integration([test]: [&str; 1]) {
     let tempdir = TempDir::new("rust-compiler-construction-integration").unwrap();

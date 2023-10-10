@@ -11,7 +11,7 @@ use crate::language::lvar::{Expr, ULVarProgram};
 use crate::passes::uniquify::{gen_sym, UniqueSym};
 
 impl<'p> ULVarProgram<'p> {
-    //! See module-level documentation.
+    /// See module-level documentation.
     pub fn remove_complex_operands(self) -> ALVarProgram<'p> {
         ALVarProgram {
             bdy: rco_expr(self.bdy),
@@ -40,12 +40,10 @@ fn rco_expr(expr: Expr<UniqueSym<'_>>) -> AExpr<'_> {
             bnd: Box::new(rco_expr(*bnd)),
             bdy: Box::new(rco_expr(*bdy)),
         },
-        Expr::If { cnd, thn, els } => {
-            AExpr::If {
-                cnd: Box::new(rco_expr(*cnd)),
-                thn: Box::new(rco_expr(*thn)),
-                els: Box::new(rco_expr(*els)),
-            }
+        Expr::If { cnd, thn, els } => AExpr::If {
+            cnd: Box::new(rco_expr(*cnd)),
+            thn: Box::new(rco_expr(*thn)),
+            els: Box::new(rco_expr(*els)),
         },
     }
 }

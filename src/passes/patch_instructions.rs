@@ -6,7 +6,7 @@ use crate::language::x86var::{AX86Program, Arg, Block, Instr, PX86Program, Reg};
 use crate::{addq, movq, reg, subq};
 
 impl<'p> AX86Program<'p> {
-    //! See module-level documentation.
+    /// See module-level documentation.
     pub fn patch(self) -> PX86Program<'p> {
         PX86Program {
             blocks: self

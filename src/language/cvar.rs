@@ -1,10 +1,12 @@
 use crate::language::alvar::Atom;
 use crate::language::lvar::{Expr, Op, ULVarProgram};
 use crate::passes::uniquify::UniqueSym;
+use std::collections::HashMap;
 
 #[derive(Debug, PartialEq)]
 pub struct CVarProgram<'p> {
-    pub bdy: Tail<'p>,
+    pub blocks: HashMap<UniqueSym<'p>, Tail<'p>>,
+    pub entry: UniqueSym<'p>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -17,33 +19,20 @@ pub enum Tail<'p> {
         bnd: CExpr<'p>,
         tail: Box<Tail<'p>>,
     },
+    IfStmt {
+        cnd: CExpr<'p>,
+        thn: UniqueSym<'p>,
+        els: UniqueSym<'p>,
+    },
+    Goto {
+        lbl: UniqueSym<'p>,
+    },
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum CExpr<'p> {
     Atom(Atom<'p>),
     Prim { op: Op, args: Vec<Atom<'p>> },
-}
-
-impl<'p> From<CVarProgram<'p>> for ULVarProgram<'p> {
-    fn from(value: CVarProgram<'p>) -> Self {
-        ULVarProgram {
-            bdy: value.bdy.into(),
-        }
-    }
-}
-
-impl<'p> From<Tail<'p>> for Expr<UniqueSym<'p>> {
-    fn from(value: Tail<'p>) -> Self {
-        match value {
-            Tail::Return { expr } => expr.into(),
-            Tail::Seq { sym, bnd, tail } => Expr::Let {
-                sym,
-                bnd: Box::new(bnd.into()),
-                bdy: Box::new((*tail).into()),
-            },
-        }
-    }
 }
 
 impl<'p> From<CExpr<'p>> for Expr<UniqueSym<'p>> {

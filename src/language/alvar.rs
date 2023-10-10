@@ -26,7 +26,7 @@ pub enum AExpr<'p> {
     },
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Atom<'p> {
     Val { val: Val },
     Var { sym: UniqueSym<'p> },
@@ -53,7 +53,11 @@ impl<'p> From<AExpr<'p>> for Expr<UniqueSym<'p>> {
                 bnd: Box::new((*bnd).into()),
                 bdy: Box::new((*bdy).into()),
             },
-            AExpr::If { cnd, thn, els } => Expr::If { cnd: Box::new((*cnd).into()), thn: Box::new((*thn).into()), els: Box::new((*els).into()) }
+            AExpr::If { cnd, thn, els } => Expr::If {
+                cnd: Box::new((*cnd).into()),
+                thn: Box::new((*thn).into()),
+                els: Box::new((*els).into()),
+            },
         }
     }
 }

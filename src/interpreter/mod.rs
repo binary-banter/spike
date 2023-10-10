@@ -1,10 +1,11 @@
+pub mod cvar;
 pub mod lvar;
-pub mod x86var;
 pub mod value;
+pub mod x86var;
 
+use crate::interpreter::value::Val;
 use std::io::stdin;
 use std::vec::IntoIter;
-use crate::interpreter::value::Val;
 
 pub trait IO {
     fn read(&mut self) -> Val;

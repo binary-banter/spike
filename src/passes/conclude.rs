@@ -7,7 +7,7 @@ use crate::language::x86var::{Block, PX86Program, Reg, X86Program};
 use crate::{addq, block, callq, imm, jmp, movq, popq, pushq, reg, subq};
 
 impl<'p> PX86Program<'p> {
-    //! See module-level documentation.
+    /// See module-level documentation.
     pub fn conclude(mut self) -> X86Program<'p> {
         main(&mut self);
         core(&mut self);
