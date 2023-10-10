@@ -126,7 +126,7 @@ fn expect_type<'p>(
     expect(
         t == expected,
         TypeMismatchExpect {
-            got: t.clone(),
+            got: t,
             expect: expected,
         },
     )

@@ -23,9 +23,9 @@ impl Val {
     }
 }
 
-impl Into<i64> for Val {
-    fn into(self) -> i64 {
-        match self {
+impl From<Val> for i64 {
+    fn from(value: Val) -> Self {
+        match value {
             Val::Int { val } => val,
             Val::Bool { val } => val as i64,
         }

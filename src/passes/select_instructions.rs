@@ -8,7 +8,7 @@ use crate::language::cvar::{CExpr, CVarProgram, Tail};
 use crate::language::lvar::Op;
 use crate::language::x86var::{Block, Instr, Reg, VarArg, X86VarProgram};
 use crate::{addq, callq, imm, movq, negq, reg, subq, var};
-use std::collections::HashMap;
+
 
 impl<'p> CVarProgram<'p> {
     /// See module-level documentation.
