@@ -1,6 +1,6 @@
+use crate::language::x86var::Cnd;
 use crate::passes::uniquify::UniqueSym;
 use std::fmt::{Display, Formatter};
-use crate::language::x86var::Cnd;
 
 pub type LVarProgram<'p> = GLVarProgram<&'p str>;
 pub type ULVarProgram<'p> = GLVarProgram<UniqueSym<'p>>;
@@ -58,6 +58,9 @@ pub enum Expr<A> {
     Int {
         val: i64,
     },
+    Bool {
+        val: bool,
+    },
     Var {
         sym: A,
     },
@@ -71,8 +74,8 @@ pub enum Expr<A> {
         bdy: Box<Expr<A>>,
     },
     If {
-        cnd: Cnd,
+        cnd: Box<Expr<A>>,
         thn: Box<Expr<A>>,
         els: Box<Expr<A>>,
-    }
+    },
 }

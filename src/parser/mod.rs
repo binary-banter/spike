@@ -1,5 +1,7 @@
+mod bool;
 mod expression;
 mod identifier;
+mod r#if;
 mod int;
 mod r#let;
 mod operation;
@@ -85,16 +87,12 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::language::lvar::{Expr, LVarProgram};
-    use crate::parser::parse_program;
+    use crate::utils::split_test::split_test;
+    use test_each_file::test_each_file;
 
-    #[test]
-    fn int() {
-        assert_eq!(
-            parse_program("42").unwrap(),
-            LVarProgram {
-                bdy: Expr::Int { val: 42 }
-            }
-        )
+    fn parse([test]: [&str; 1]) {
+        split_test(test);
     }
+
+    test_each_file! { for ["test"] in "./programs/good" as parse => parse }
 }

@@ -12,18 +12,13 @@ pub fn parse_operation(input: &str) -> IResult<&str, Op> {
         tag("print").map(|_| Op::Print),
         tag("&&").map(|_| Op::LAnd),
         tag("||").map(|_| Op::LOr),
-        tag("!").map(|_| Op::Not),
         tag("^").map(|_| Op::Xor),
+        tag("<=").map(|_| Op::LessOrEqual),
+        tag("<").map(|_| Op::Less),
+        tag("==").map(|_| Op::Equal),
+        tag("!=").map(|_| Op::NotEqual),
+        tag("!").map(|_| Op::Not),
+        tag(">=").map(|_| Op::GreaterOrEqual),
+        tag(">").map(|_| Op::Greater),
     ))(input)
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::language::lvar::Op;
-    use crate::parser::operation::parse_operation;
-
-    #[test]
-    fn add() {
-        assert_eq!(parse_operation("+").unwrap().1, Op::Plus)
-    }
 }

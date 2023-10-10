@@ -68,6 +68,7 @@ fn type_check_expr<'p>(
             scope.push(sym, Type::Integer, |scope| type_check_expr(bdy, scope))
         }
         Expr::If { .. } => todo!(),
+        Expr::Bool { .. } => todo!(),
     }
 }
 

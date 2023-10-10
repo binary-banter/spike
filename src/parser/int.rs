@@ -8,14 +8,3 @@ pub fn parse_int(input: &str) -> IResult<&str, Expr<&str>> {
         n.parse::<i64>().map(|val| Expr::Int { val })
     })(input)
 }
-
-#[cfg(test)]
-mod tests {
-    use crate::language::lvar::Expr;
-    use crate::parser::int::parse_int;
-
-    #[test]
-    fn simple() {
-        assert_eq!(parse_int("42").unwrap().1, Expr::Int { val: 42 })
-    }
-}

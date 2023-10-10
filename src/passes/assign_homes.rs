@@ -71,6 +71,8 @@ mod tests {
 
     fn assign_homes([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);
+        let expected_return = expected_return.into();
+
         let program: X86VarProgram = program
             .uniquify()
             .remove_complex_operands()

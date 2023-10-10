@@ -40,7 +40,8 @@ fn rco_expr(expr: Expr<UniqueSym<'_>>) -> AExpr<'_> {
             bnd: Box::new(rco_expr(*bnd)),
             bdy: Box::new(rco_expr(*bdy)),
         },
-        Expr::If { .. } => todo!()
+        Expr::If { .. } => todo!(),
+        Expr::Bool { .. } => todo!(),
     }
 }
 
@@ -53,6 +54,7 @@ fn rco_atom(expr: Expr<UniqueSym<'_>>) -> (Atom<'_>, Option<(UniqueSym<'_>, AExp
             (Atom::Var { sym: tmp }, Some((tmp, rco_expr(expr))))
         }
         Expr::If { .. } => todo!(),
+        Expr::Bool { .. } => todo!(),
     }
 }
 

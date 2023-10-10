@@ -1,18 +1,20 @@
 pub mod lvar;
 pub mod x86var;
+pub mod value;
 
 use std::io::stdin;
 use std::vec::IntoIter;
+use crate::interpreter::value::Value;
 
 pub trait IO {
-    fn read(&mut self) -> i64;
-    fn print(&mut self, v: i64);
+    fn read(&mut self) -> Value;
+    fn print(&mut self, v: Value);
 }
 
 struct StdIO {}
 
 impl IO for StdIO {
-    fn read(&mut self) -> i64 {
+    fn read(&mut self) -> Value {
         print!("> ");
         let mut input = String::new();
         stdin()
@@ -24,37 +26,37 @@ impl IO for StdIO {
             .expect("Provided input was not a valid i64")
     }
 
-    fn print(&mut self, v: i64) {
+    fn print(&mut self, v: Value) {
         println!("{v}");
     }
 }
 
 pub struct TestIO {
-    inputs: IntoIter<i64>,
-    outputs: Vec<i64>,
+    inputs: IntoIter<Value>,
+    outputs: Vec<Value>,
 }
 
 impl TestIO {
-    pub fn new(inputs: Vec<i64>) -> Self {
+    pub fn new(inputs: Vec<Value>) -> Self {
         Self {
             inputs: inputs.into_iter(),
             outputs: Vec::new(),
         }
     }
 
-    pub fn outputs(&self) -> &Vec<i64> {
+    pub fn outputs(&self) -> &Vec<Value> {
         &self.outputs
     }
 }
 
 impl IO for TestIO {
-    fn read(&mut self) -> i64 {
+    fn read(&mut self) -> Value {
         self.inputs
             .next()
             .expect("Test tried to read more input than were available.")
     }
 
-    fn print(&mut self, v: i64) {
+    fn print(&mut self, v: Value) {
         self.outputs.push(v);
     }
 }

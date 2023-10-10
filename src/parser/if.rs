@@ -7,24 +7,21 @@ use nom::character::complete::char;
 use nom::sequence::{delimited, pair, tuple};
 use nom::{IResult, Parser};
 
-pub fn parse_let(input: &str) -> IResult<&str, Expr<&str>> {
+pub fn parse_if(input: &str) -> IResult<&str, Expr<&str>> {
     delimited(
         char('('),
         tuple((
-            trim0(tag("let")),
-            trim1(delimited(
-                char('('),
-                pair(trim0(parse_identifier), trim1(parse_expression)),
-                trim0(char(')')),
-            )),
+            trim0(tag("if")),
+            trim1(parse_expression),
+            trim1(parse_expression),
             trim1(parse_expression),
         )),
         trim0(char(')')),
     )
-    .map(|(_, (sym, bnd), bdy)| Expr::Let {
-        sym,
-        bnd: Box::new(bnd),
-        bdy: Box::new(bdy),
+    .map(|(_, cnd, thn, els)| Expr::If {
+        cnd: Box::new(cnd),
+        thn: Box::new(thn),
+        els: Box::new(els),
     })
     .parse(input)
 }

@@ -16,20 +16,3 @@ pub fn parse_prim(input: &str) -> IResult<&str, Expr<&str>> {
         trim0(char(')')),
     )(input)
 }
-
-#[cfg(test)]
-mod tests {
-    use crate::language::lvar::{Expr, Op};
-    use crate::parser::prim::parse_prim;
-
-    #[test]
-    fn add() {
-        assert_eq!(
-            parse_prim("(+ 10 32)").unwrap().1,
-            Expr::Prim {
-                op: Op::Plus,
-                args: vec![Expr::Int { val: 10 }, Expr::Int { val: 32 }]
-            }
-        )
-    }
-}
