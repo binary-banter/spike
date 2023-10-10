@@ -25,6 +25,7 @@ fn explicate_tail(expr: AExpr) -> Tail {
             expr: CExpr::Prim { op, args },
         },
         AExpr::Let { sym, bnd, bdy } => explicate_assign(sym, *bnd, explicate_tail(*bdy)),
+        AExpr::If { .. } => todo!(),
     }
 }
 
@@ -45,6 +46,7 @@ fn explicate_assign<'p>(sym: UniqueSym<'p>, bnd: AExpr<'p>, tail: Tail<'p>) -> T
             bnd: bnd_,
             bdy: bdy_,
         } => explicate_assign(sym_, *bnd_, explicate_assign(sym, *bdy_, tail)),
+        AExpr::If { .. } => todo!()
     }
 }
 

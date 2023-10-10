@@ -1,6 +1,7 @@
 use crate::language::x86var::Cnd;
 use crate::passes::uniquify::UniqueSym;
 use std::fmt::{Display, Formatter};
+use crate::interpreter::value::Val;
 
 pub type LVarProgram<'p> = GLVarProgram<&'p str>;
 pub type ULVarProgram<'p> = GLVarProgram<UniqueSym<'p>>;
@@ -55,12 +56,7 @@ impl Display for Op {
 
 #[derive(Debug, PartialEq)]
 pub enum Expr<A> {
-    Int {
-        val: i64,
-    },
-    Bool {
-        val: bool,
-    },
+    Val { val: Val },
     Var {
         sym: A,
     },

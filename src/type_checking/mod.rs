@@ -5,6 +5,7 @@ use crate::utils::push_map::PushMap;
 use miette::Diagnostic;
 use std::fmt::{Display, Formatter};
 use thiserror::Error;
+use crate::interpreter::value::Val;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Type {
@@ -43,8 +44,8 @@ fn type_check_expr<'p>(
     scope: &mut PushMap<&'p str, Type>,
 ) -> Result<Type, TypeError> {
     match expr {
-        Expr::Int { .. } => Ok(Type::Int),
-        Expr::Bool { .. } => Ok(Type::Bool),
+        Expr::Val { val: Val::Bool { .. }} => Ok(Type::Bool),
+        Expr::Val { val: Val::Int { .. }} => Ok(Type::Int),
         Expr::Var { sym } => scope.get(sym).cloned().ok_or(UndeclaredVar {
             sym: (*sym).to_string(),
         }),

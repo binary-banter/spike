@@ -362,7 +362,7 @@ mod macros {
     #[macro_export]
     macro_rules! imm {
         ($val:expr) => {
-            $crate::language::x86var::Arg::Imm { val: $val }.into()
+            $crate::language::x86var::Arg::Imm { val: $val.into() }.into()
         };
     }
 

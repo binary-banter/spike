@@ -37,7 +37,7 @@ fn select_tail<'p>(tail: Tail<'p>, instrs: &mut Vec<Instr<'p, VarArg<'p>>>) {
 
 fn select_assign<'p>(dst: VarArg<'p>, expr: CExpr<'p>) -> Vec<Instr<'p, VarArg<'p>>> {
     match expr {
-        CExpr::Atom(Atom::Int { val }) => vec![movq!(imm!(val), dst)],
+        CExpr::Atom(Atom::Val { val }) => vec![movq!(imm!(val), dst)],
         CExpr::Atom(Atom::Var { sym }) => vec![movq!(var!(sym), dst)],
         CExpr::Prim { op, args } => match (op, args.as_slice()) {
             (Op::Plus, [a0, a1]) => vec![movq!(select_atom(a0), dst), addq!(select_atom(a1), dst)],
@@ -56,8 +56,8 @@ fn select_assign<'p>(dst: VarArg<'p>, expr: CExpr<'p>) -> Vec<Instr<'p, VarArg<'
 
 fn select_atom<'p>(expr: &Atom<'p>) -> VarArg<'p> {
     match expr {
-        Atom::Int { val } => VarArg::Imm { val: *val },
-        Atom::Var { sym } => VarArg::XVar { sym: *sym },
+        Atom::Val { val } => imm!(*val),
+        Atom::Var { sym } => var!(*sym),
     }
 }
 

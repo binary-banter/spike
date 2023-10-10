@@ -16,7 +16,7 @@ fn interpret_expr<A: Copy + Hash + Eq>(
     io: &mut impl IO,
 ) -> Val {
     match expr {
-        Expr::Int { val } => Val::Int { val: *val},
+        Expr::Val { val } => *val,
         Expr::Var { sym } => scope[sym],
         Expr::Prim { op, args } => match (op, args.as_slice()) {
             (Op::Read, []) => io.read(),
@@ -101,7 +101,6 @@ fn interpret_expr<A: Copy + Hash + Eq>(
                 interpret_expr(els, scope, io)
             }
         }
-        Expr::Bool { val } => Val::Bool {val: *val},
     }
 }
 

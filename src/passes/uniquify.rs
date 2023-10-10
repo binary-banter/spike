@@ -23,7 +23,7 @@ fn uniquify_expression<'p>(
     scope: &mut PushMap<&'p str, UniqueSym<'p>>,
 ) -> Expr<UniqueSym<'p>> {
     match expr {
-        Expr::Int { val } => Expr::Int { val },
+        Expr::Val { val } => Expr::Val { val },
         Expr::Var { sym } => Expr::Var { sym: scope[&sym] },
         Expr::Prim { op, args } => Expr::Prim {
             op,
@@ -50,7 +50,6 @@ fn uniquify_expression<'p>(
                 els: Box::new(uniquify_expression(*els, scope)),
             }
         },
-        Expr::Bool { val } => Expr::Bool {val}
     }
 }
 
