@@ -10,6 +10,10 @@ pub fn parse_operation(input: &str) -> IResult<&str, Op> {
         tag("-").map(|_| Op::Minus),
         tag("read").map(|_| Op::Read),
         tag("print").map(|_| Op::Print),
+        tag("&&").map(|_| Op::LAnd),
+        tag("||").map(|_| Op::LOr),
+        tag("!").map(|_| Op::Not),
+        tag("^").map(|_| Op::Xor),
     ))(input)
 }
 

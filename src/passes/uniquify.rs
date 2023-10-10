@@ -43,6 +43,7 @@ fn uniquify_expression<'p>(
                 bdy: Box::new(unique_bdy),
             }
         }
+        Expr::If { .. } => todo!()
     }
 }
 

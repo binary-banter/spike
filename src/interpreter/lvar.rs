@@ -44,6 +44,9 @@ fn interpret_expr<A: Copy + Hash + Eq>(
             let bnd = interpret_expr(bnd, scope, io);
             scope.push(*sym, bnd, |scope| interpret_expr(bdy, scope, io))
         }
+        Expr::If { cnd, thn, els } => {
+            todo!()
+        }
     }
 }
 

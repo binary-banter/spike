@@ -1,5 +1,6 @@
 use crate::passes::uniquify::UniqueSym;
 use std::fmt::{Display, Formatter};
+use crate::language::x86var::Cnd;
 
 pub type LVarProgram<'p> = GLVarProgram<&'p str>;
 pub type ULVarProgram<'p> = GLVarProgram<UniqueSym<'p>>;
@@ -15,6 +16,16 @@ pub enum Op {
     Print,
     Plus,
     Minus,
+    LAnd,
+    LOr,
+    Not,
+    Xor,
+    Greater,
+    GreaterOrEqual,
+    Equal,
+    LessOrEqual,
+    Less,
+    NotEqual,
 }
 
 impl Display for Op {
@@ -27,6 +38,16 @@ impl Display for Op {
                 Op::Print => "print",
                 Op::Plus => "plus",
                 Op::Minus => "minus",
+                Op::LAnd => "logical and",
+                Op::LOr => "logical or",
+                Op::Not => "not",
+                Op::Xor => "xor",
+                Op::Greater => "greater",
+                Op::GreaterOrEqual => "greater or equal",
+                Op::Equal => "equal",
+                Op::LessOrEqual => "less or equal",
+                Op::Less => "less",
+                Op::NotEqual => "not equal",
             }
         )
     }
@@ -49,4 +70,9 @@ pub enum Expr<A> {
         bnd: Box<Expr<A>>,
         bdy: Box<Expr<A>>,
     },
+    If {
+        cnd: Cnd,
+        thn: Box<Expr<A>>,
+        els: Box<Expr<A>>,
+    }
 }
