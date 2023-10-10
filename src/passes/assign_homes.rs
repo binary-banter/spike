@@ -2,9 +2,7 @@
 //!
 //! This pass is responsible for assigning all the program variables to locations on the stack.
 
-use crate::language::x86var::{
-    AX86Program, Arg, Block, CX86VarProgram, Instr, Reg, VarArg, X86VarProgram,
-};
+use crate::language::x86var::{AX86Program, Arg, Block, CX86VarProgram, Instr, VarArg};
 use crate::passes::uniquify::UniqueSym;
 use crate::{addq, callq, divq, jcc, jmp, movq, mulq, negq, popq, pushq, retq, subq, syscall};
 use std::collections::HashMap;
@@ -63,7 +61,6 @@ fn assign_instr<'p>(
         Instr::Jcc { lbl, cnd } => jcc!(lbl, cnd),
     }
 }
-
 
 #[cfg(test)]
 mod tests {

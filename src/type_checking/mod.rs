@@ -1,5 +1,5 @@
 use crate::language::lvar::{Expr, LVarProgram, Op};
-use crate::type_checking::TypeError::*;
+use crate::type_checking::TypeError::{IncorrectArity, TypeMismatch, UndeclaredVar};
 use crate::utils::expect::expect;
 use crate::utils::push_map::PushMap;
 use miette::Diagnostic;

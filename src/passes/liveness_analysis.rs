@@ -42,15 +42,12 @@ fn block_liveness<'p>(block: Block<'p, VarArg<'p>>) -> LBlock<'p> {
 fn instr_reads<'p>(instr: &Instr<'p, VarArg<'p>>) -> impl Iterator<Item = LArg<'p>> {
     let reads = instr_reads_vararg(instr).filter_map(|arg| match arg {
         VarArg::Imm { .. } => None,
-        VarArg::Reg { reg } => Some(LArg::Reg { reg }),
-        VarArg::Deref { reg, .. } => Some(LArg::Reg { reg }),
+        VarArg::Reg { reg } | VarArg::Deref { reg, .. } => Some(LArg::Reg { reg }),
         VarArg::XVar { sym } => Some(LArg::Var { sym }),
     });
     let writes = instr_writes_vararg(instr).filter_map(|arg| match arg {
-        VarArg::Imm { .. } => None,
-        VarArg::Reg { .. } => None,
+        VarArg::Imm { .. } | VarArg::Reg { .. } | VarArg::XVar { .. } => None,
         VarArg::Deref { reg, .. } => Some(LArg::Reg { reg }),
-        VarArg::XVar { .. } => None,
     });
 
     reads.chain(writes)
@@ -58,9 +55,8 @@ fn instr_reads<'p>(instr: &Instr<'p, VarArg<'p>>) -> impl Iterator<Item = LArg<'
 
 pub fn instr_writes<'p>(instr: &Instr<'p, VarArg<'p>>) -> impl Iterator<Item = LArg<'p>> {
     instr_writes_vararg(instr).filter_map(|arg| match arg {
-        VarArg::Imm { .. } => None,
+        VarArg::Imm { .. } | VarArg::Deref { .. } => None,
         VarArg::Reg { reg } => Some(LArg::Reg { reg }),
-        VarArg::Deref { .. } => None,
         VarArg::XVar { sym } => Some(LArg::Var { sym }),
     })
 }

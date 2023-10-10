@@ -17,6 +17,33 @@ pub struct BinaryOpInfo {
     pub imm_as_src: u8,
 }
 
+pub const ADDQ_INFO: BinaryOpInfo = BinaryOpInfo {
+    op_reg_reg: 0x01,
+    op_reg_deref: 0x01,
+    op_imm_deref: 0x81,
+    op_imm_reg: 0x81,
+    op_deref_reg: 0x03,
+    imm_as_src: 0x0,
+};
+
+pub const SUBQ_INFO: BinaryOpInfo = BinaryOpInfo {
+    op_reg_reg: 0x29,
+    op_imm_reg: 0x81,
+    op_deref_reg: 0x2B,
+    op_reg_deref: 0x29,
+    op_imm_deref: 0x81,
+    imm_as_src: 0x5,
+};
+
+pub const MOVQ_INFO: BinaryOpInfo = BinaryOpInfo {
+    op_reg_reg: 0x89,
+    op_imm_reg: 0xC7,
+    op_deref_reg: 0x8B,
+    op_reg_deref: 0x89,
+    op_imm_deref: 0xC7,
+    imm_as_src: 0x0,
+};
+
 pub fn encode_binary_instr(op_info: BinaryOpInfo, src: &Arg, dst: &Arg) -> Vec<u8> {
     match (src, dst) {
         (Arg::Reg { reg: src }, Arg::Reg { reg: dst }) => {

@@ -1,8 +1,9 @@
-use crate::language::x86var::Cnd;
-use crate::language::x86var::{Arg, Block};
-
+use crate::language::x86var::{Arg, Block, Cnd};
 use crate::passes::emit::Reg;
-use crate::*;
+use crate::{
+    addq, block, deref, divq, imm, jcc, jmp, movq, mulq, negq, popq, pushq, reg, retq, subq,
+    syscall,
+};
 use std::collections::HashMap;
 
 pub fn add_io_blocks<'p>(blocks: &mut HashMap<&'p str, Block<'p, Arg>>) {
@@ -21,7 +22,7 @@ fn add_print_block<'p>(blocks: &mut HashMap<&'p str, Block<'p, Arg>>) {
         "_print_int",
         block!(
             movq!(imm!(10), reg!(RCX)),
-            pushq!(imm!(b'\n' as i64)),
+            pushq!(imm!(i64::from(b'\n'))),
             movq!(reg!(RDI), reg!(RAX)),
             addq!(imm!(0), reg!(RAX)),
             movq!(imm!(0), reg!(RSI)),
@@ -42,13 +43,13 @@ fn add_print_block<'p>(blocks: &mut HashMap<&'p str, Block<'p, Arg>>) {
         block!(
             movq!(imm!(0), reg!(RDX)),
             divq!(reg!(RCX)),
-            addq!(imm!(b'0' as i64), reg!(RDX)),
+            addq!(imm!(i64::from(b'0')), reg!(RDX)),
             pushq!(reg!(RDX)),
             addq!(imm!(0), reg!(RAX)),
             jcc!("_print_int_push_loop", Cnd::NotEqual),
             addq!(imm!(0), reg!(RSI)),
             jcc!("_print_int_print_loop", Cnd::Equal),
-            pushq!(imm!(b'-' as i64)),
+            pushq!(imm!(i64::from(b'-'))),
             jmp!("_print_int_print_loop")
         ),
     );
@@ -63,7 +64,7 @@ fn add_print_block<'p>(blocks: &mut HashMap<&'p str, Block<'p, Arg>>) {
             syscall!(),
             // Check if we continue
             popq!(reg!(RAX)),
-            subq!(imm!(b'\n' as i64), reg!(RAX)),
+            subq!(imm!(i64::from(b'\n')), reg!(RAX)),
             jcc!("_print_int_print_loop", Cnd::NotEqual),
             jmp!("_print_int_exit")
         ),
@@ -89,7 +90,7 @@ fn add_read_block<'p>(blocks: &mut HashMap<&'p str, Block<'p, Arg>>) {
             // check if first character is -
             movq!(deref!(RSP, 0), reg!(RAX)),
             movq!(reg!(RAX), reg!(RCX)),
-            subq!(imm!(b'-' as i64), reg!(RCX)),
+            subq!(imm!(i64::from(b'-')), reg!(RCX)),
             jcc!("_read_int_is_neg", Cnd::Equal),
             jmp!("_read_int_first")
         ),
@@ -117,22 +118,22 @@ fn add_read_block<'p>(blocks: &mut HashMap<&'p str, Block<'p, Arg>>) {
             movq!(deref!(RSP, 0), reg!(RAX)),
             // check if newline
             movq!(reg!(RAX), reg!(RCX)),
-            subq!(imm!(b'\n' as i64), reg!(RCX)),
+            subq!(imm!(i64::from(b'\n')), reg!(RCX)),
             jcc!("_read_int_exit", Cnd::Equal),
             movq!(imm!(66), reg!(RDI)),
             // check if >b'9'
             movq!(reg!(RAX), reg!(RCX)),
-            subq!(imm!(b'9' as i64), reg!(RCX)),
+            subq!(imm!(i64::from(b'9')), reg!(RCX)),
             jcc!("exit", Cnd::Greater),
             // check if <b'0'
             movq!(reg!(RAX), reg!(RCX)),
-            subq!(imm!(b'0' as i64), reg!(RCX)),
+            subq!(imm!(i64::from(b'0')), reg!(RCX)),
             jcc!("exit", Cnd::Less),
             movq!(imm!(10), reg!(RAX)),
             mulq!(reg!(RBX)),
             movq!(reg!(RAX), reg!(RBX)),
             movq!(deref!(RSP, 0), reg!(RAX)),
-            subq!(imm!(b'0' as i64), reg!(RAX)),
+            subq!(imm!(i64::from(b'0')), reg!(RAX)),
             addq!(reg!(RAX), reg!(RBX)),
             jmp!("_read_int_loop")
         ),

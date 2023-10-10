@@ -8,6 +8,20 @@ pub struct PushPopInfo {
     pub imm_as_src: u8,
 }
 
+pub const PUSHQ_INFO: PushPopInfo = PushPopInfo {
+    op_reg: 0x50,
+    op_deref: 0xFF,
+    op_imm: 0x68,
+    imm_as_src: 0x6,
+};
+
+pub const POPQ_INFO: PushPopInfo = PushPopInfo {
+    op_reg: 0x58,
+    op_deref: 0x8F,
+    op_imm: 0, //Unreachable
+    imm_as_src: 0x0,
+};
+
 pub fn encode_push_pop(op_info: PushPopInfo, reg: &Arg) -> Vec<u8> {
     match reg {
         Arg::Imm { val } => {

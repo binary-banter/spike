@@ -2,11 +2,11 @@
 #![allow(clippy::upper_case_acronyms)]
 
 #[allow(clippy::module_inception)]
-mod elf;
+mod header;
 mod program;
 mod section;
 
-use elf::ElfHeader;
+use header::ElfHeader;
 use program::ProgramHeader;
 use std::io::Write;
 use std::mem::size_of;
@@ -24,7 +24,7 @@ impl<'a> ElfFile<'a> {
         let p_headers = vec![ProgramHeader::new(0x1000, program.len() as u64)];
 
         Self {
-            header: ElfHeader::new(0x400000 + entry as u64, p_headers.len() as u16),
+            header: ElfHeader::new(0x0040_0000 + entry as u64, p_headers.len() as u16),
             p_headers,
             program,
         }

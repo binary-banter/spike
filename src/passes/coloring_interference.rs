@@ -1,7 +1,6 @@
 use crate::language::x86var::{Arg, CX86VarProgram, IX86VarProgram, InterferenceGraph, LArg, Reg};
 use crate::passes::uniquify::UniqueSym;
 use itertools::Itertools;
-use nom::combinator::map;
 use std::collections::{HashMap, HashSet};
 
 impl<'p> IX86VarProgram<'p> {
@@ -54,15 +53,17 @@ fn color_graph(graph: InterferenceGraph) -> (HashMap<UniqueSym, Arg>, usize) {
             .neighbors(node)
             .filter_map(|nb| node_map.get(&nb))
             .collect::<HashSet<_>>();
+
         let chosen_color = (0..)
             .find(|i| !used_colors.contains(i))
             .expect("there are infinite numbers, lol");
+
         node_map.insert(node, chosen_color);
 
         queue.sort_by_key(|node| {
             graph
                 .neighbors(*node)
-                .flat_map(|nb| node_map.get(&nb))
+                .filter_map(|nb| node_map.get(&nb))
                 .unique()
                 .count()
         });

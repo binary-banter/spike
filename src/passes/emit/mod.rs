@@ -8,13 +8,12 @@ mod special;
 mod unary;
 
 use crate::language::x86var::{Arg, Block, Cnd, Instr, Reg, X86Program};
-use crate::passes::emit::binary::{encode_binary_instr, BinaryOpInfo};
+use crate::passes::emit::binary::{encode_binary_instr, ADDQ_INFO, MOVQ_INFO, SUBQ_INFO};
 use crate::passes::emit::io::add_io_blocks;
 use crate::passes::emit::mul_div::{encode_muldiv_instr, MulDivOpInfo};
-
-use push_pop::PushPopInfo;
+use crate::passes::emit::push_pop::{encode_push_pop, POPQ_INFO, PUSHQ_INFO};
+use crate::passes::emit::unary::{encode_unary_instr, NEGQ_INFO};
 use std::collections::HashMap;
-use unary::UnaryOpInfo;
 
 impl<'p> X86Program<'p> {
     //! See module-level documentation.
@@ -59,69 +58,12 @@ fn emit_instr<'p>(
     jumps: &mut HashMap<usize, &'p str>,
 ) {
     let v = match instr {
-        Instr::Addq { src, dst } => encode_binary_instr(
-            BinaryOpInfo {
-                op_reg_reg: 0x01,
-                op_reg_deref: 0x01,
-                op_imm_deref: 0x81,
-                op_imm_reg: 0x81,
-                op_deref_reg: 0x03,
-                imm_as_src: 0x0,
-            },
-            src,
-            dst,
-        ),
-        Instr::Subq { src, dst } => encode_binary_instr(
-            BinaryOpInfo {
-                op_reg_reg: 0x29,
-                op_imm_reg: 0x81,
-                op_deref_reg: 0x2B,
-                op_reg_deref: 0x29,
-                op_imm_deref: 0x81,
-                imm_as_src: 0x5,
-            },
-            src,
-            dst,
-        ),
-        Instr::Movq { src, dst } => encode_binary_instr(
-            BinaryOpInfo {
-                op_reg_reg: 0x89,
-                op_imm_reg: 0xC7,
-                op_deref_reg: 0x8B,
-                op_reg_deref: 0x89,
-                op_imm_deref: 0xC7,
-                imm_as_src: 0x0,
-            },
-            src,
-            dst,
-        ),
-        Instr::Negq { dst } => unary::encode_unary_instr(
-            UnaryOpInfo {
-                op: 0xF7,
-                imm_as_src: 0x3,
-            },
-            dst,
-        ),
-        Instr::Pushq { src } => push_pop::encode_push_pop(
-            PushPopInfo {
-                op_reg: 0x50,
-                op_deref: 0xFF,
-                op_imm: 0x68,
-                imm_as_src: 0x6,
-            },
-            src,
-        ),
-        Instr::Popq { dst } => {
-            push_pop::encode_push_pop(
-                PushPopInfo {
-                    op_reg: 0x58,
-                    op_deref: 0x8F,
-                    op_imm: 0, //Unreachable
-                    imm_as_src: 0x0,
-                },
-                dst,
-            )
-        }
+        Instr::Addq { src, dst } => encode_binary_instr(ADDQ_INFO, src, dst),
+        Instr::Subq { src, dst } => encode_binary_instr(SUBQ_INFO, src, dst),
+        Instr::Movq { src, dst } => encode_binary_instr(MOVQ_INFO, src, dst),
+        Instr::Negq { dst } => encode_unary_instr(NEGQ_INFO, dst),
+        Instr::Pushq { src } => encode_push_pop(PUSHQ_INFO, src),
+        Instr::Popq { dst } => encode_push_pop(POPQ_INFO, dst),
         Instr::Callq { lbl, .. } => {
             jumps.insert(machine_code.len() + 1, lbl);
             vec![0xE8, 0x00, 0x00, 0x00, 0x00]
@@ -132,39 +74,10 @@ fn emit_instr<'p>(
         }
         Instr::Jcc { lbl, cnd } => {
             jumps.insert(machine_code.len() + 2, lbl);
-            let cnd = match cnd {
-                Cnd::Above => 0x87,
-                Cnd::AboveOrEqual => 0x83,
-                Cnd::Below => 0x82,
-                Cnd::BelowOrEqual => 0x86,
-                Cnd::Carry => 0x82,
-                Cnd::Equal => 0x84,
-                Cnd::Greater => 0x8F,
-                Cnd::GreaterOrEqual => 0x8D,
-                Cnd::Less => 0x8C,
-                Cnd::LessOrEqual => 0x8E,
-                Cnd::NotAbove => 0x86,
-                Cnd::NotBelow => 0x83,
-                Cnd::NotCarry => 0x83,
-                Cnd::NotEqual => 0x85,
-                Cnd::NotGreater => 0x8E,
-                Cnd::NotLess => 0x8D,
-                Cnd::NotOverflow => 0x81,
-                Cnd::NotParity => 0x8B,
-                Cnd::NotSign => 0x89,
-                Cnd::Overflow => 0x80,
-                Cnd::ParityEven => 0x8A,
-                Cnd::ParityOdd => 0x8B,
-                Cnd::Sign => 0x88,
-            };
-            vec![0x0F, cnd, 0x00, 0x00, 0x00, 0x00]
+            vec![0x0F, encode_cnd(cnd), 0x00, 0x00, 0x00, 0x00]
         }
-        Instr::Retq => {
-            vec![0xC3]
-        }
-        Instr::Syscall => {
-            vec![0x0F, 0x05]
-        }
+        Instr::Retq => vec![0xC3],
+        Instr::Syscall => vec![0x0F, 0x05],
         Instr::Divq { divisor } => encode_muldiv_instr(
             MulDivOpInfo {
                 op: 0xF7,
@@ -201,6 +114,27 @@ fn encode_reg(reg: &Reg) -> (u8, u8) {
         Reg::R13 => (1, 5),
         Reg::R14 => (1, 6),
         Reg::R15 => (1, 7),
+    }
+}
+
+fn encode_cnd(cnd: &Cnd) -> u8 {
+    match cnd {
+        Cnd::Above => 0x87,
+        Cnd::AboveOrEqual | Cnd::NotBelow | Cnd::NotCarry => 0x83,
+        Cnd::Below | Cnd::Carry => 0x82,
+        Cnd::BelowOrEqual | Cnd::NotAbove => 0x86,
+        Cnd::Equal => 0x84,
+        Cnd::Greater => 0x8F,
+        Cnd::GreaterOrEqual | Cnd::NotLess => 0x8D,
+        Cnd::Less => 0x8C,
+        Cnd::LessOrEqual | Cnd::NotGreater => 0x8E,
+        Cnd::NotEqual => 0x85,
+        Cnd::NotOverflow => 0x81,
+        Cnd::NotParity | Cnd::ParityOdd => 0x8B,
+        Cnd::NotSign => 0x89,
+        Cnd::Overflow => 0x80,
+        Cnd::ParityEven => 0x8A,
+        Cnd::Sign => 0x88,
     }
 }
 

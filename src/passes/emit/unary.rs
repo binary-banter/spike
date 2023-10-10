@@ -7,6 +7,11 @@ pub struct UnaryOpInfo {
     pub imm_as_src: u8,
 }
 
+pub const NEGQ_INFO: UnaryOpInfo = UnaryOpInfo {
+    op: 0xF7,
+    imm_as_src: 0x3,
+};
+
 pub fn encode_unary_instr(op_info: UnaryOpInfo, dst: &Arg) -> Vec<u8> {
     match dst {
         Arg::Reg { reg: dst } => {
