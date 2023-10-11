@@ -7,6 +7,5 @@ pub mod explicate_control;
 pub mod liveness_analysis;
 pub mod patch_instructions;
 pub mod remove_complex_operands;
-pub mod select_instructions;
 pub mod uniquify;
-pub mod select_instructions_io;
+pub mod select;

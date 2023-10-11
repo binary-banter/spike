@@ -1,49 +1,65 @@
 use crate::passes::uniquify::UniqueSym;
-use crate::{addq, callq, divq, jcc, jmp, movq, mulq, negq, popq, pushq, retq, subq, syscall};
+use crate::{
+    addq, callq, cmpq, divq, jcc, jmp, movq, mulq, negq, popq, pushq, retq, subq, syscall,
+};
 use petgraph::prelude::GraphMap;
 use petgraph::Undirected;
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
+use crate::passes::select::io::Std;
 
 #[derive(Debug, PartialEq)]
 pub struct X86Program<'p> {
-    pub blocks: HashMap<&'p str, Block<'p, Arg>>,
+    pub blocks: HashMap<UniqueSym<'p>, Block<'p, Arg>>,
+    pub entry: UniqueSym<'p>,
+    pub std: Std<'p>,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct PX86Program<'p> {
-    pub blocks: HashMap<&'p str, Block<'p, Arg>>,
+    pub blocks: HashMap<UniqueSym<'p>, Block<'p, Arg>>,
+    pub entry: UniqueSym<'p>,
     pub stack_space: usize,
+    pub std: Std<'p>,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct AX86Program<'p> {
-    pub blocks: HashMap<&'p str, Block<'p, Arg>>,
+    pub blocks: HashMap<UniqueSym<'p>, Block<'p, Arg>>,
+    pub entry: UniqueSym<'p>,
     pub stack_space: usize,
+    pub std: Std<'p>,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct X86VarProgram<'p> {
     pub blocks: HashMap<UniqueSym<'p>, Block<'p, VarArg<'p>>>,
-    pub entry: UniqueSym<'p>
+    pub entry: UniqueSym<'p>,
+    pub std: Std<'p>,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct LX86VarProgram<'p> {
-    pub blocks: HashMap<&'p str, LBlock<'p>>,
+    pub blocks: HashMap<UniqueSym<'p>, LBlock<'p>>,
+    pub entry: UniqueSym<'p>,
+    pub std: Std<'p>,
 }
 
 #[derive(Debug)]
 pub struct IX86VarProgram<'p> {
-    pub blocks: HashMap<&'p str, Block<'p, VarArg<'p>>>,
+    pub blocks: HashMap<UniqueSym<'p>, Block<'p, VarArg<'p>>>,
+    pub entry: UniqueSym<'p>,
     pub interference: InterferenceGraph<'p>,
+    pub std: Std<'p>,
 }
 
 #[derive(Debug)]
 pub struct CX86VarProgram<'p> {
-    pub blocks: HashMap<&'p str, Block<'p, VarArg<'p>>>,
+    pub blocks: HashMap<UniqueSym<'p>, Block<'p, VarArg<'p>>>,
+    pub entry: UniqueSym<'p>,
     pub color_map: HashMap<UniqueSym<'p>, Arg>,
     pub stack_space: usize,
+    pub std: Std<'p>,
 }
 
 pub type InterferenceGraph<'p> = GraphMap<LArg<'p>, (), Undirected>;
@@ -90,12 +106,12 @@ pub enum Instr<'p, A> {
     Movq { src: A, dst: A },
     Pushq { src: A },
     Popq { dst: A },
-    Callq { lbl: UniqueSym<'p> , arity: usize },
+    Callq { lbl: UniqueSym<'p>, arity: usize },
     Retq,
     Syscall,
-    Compq { src: A, dst: A},
-    Jmp { lbl: UniqueSym<'p>  },
-    Jcc { lbl: UniqueSym<'p> , cnd: Cnd },
+    Cmpq { src: A, dst: A },
+    Jmp { lbl: UniqueSym<'p> },
+    Jcc { lbl: UniqueSym<'p>, cnd: Cnd },
 }
 
 #[derive(Debug, PartialEq, Clone, Copy, Hash, Eq)]
@@ -173,6 +189,8 @@ impl<'p> From<X86Program<'p>> for X86VarProgram<'p> {
                 .into_iter()
                 .map(|(n, b)| (n, b.into()))
                 .collect(),
+            entry: value.entry,
+            std: value.std,
         }
     }
 }
@@ -185,6 +203,8 @@ impl<'p> From<PX86Program<'p>> for X86VarProgram<'p> {
                 .into_iter()
                 .map(|(n, b)| (n, b.into()))
                 .collect(),
+            entry: value.entry,
+            std: value.std,
         }
     }
 }
@@ -197,6 +217,8 @@ impl<'p> From<AX86Program<'p>> for X86VarProgram<'p> {
                 .into_iter()
                 .map(|(n, b)| (n, b.into()))
                 .collect(),
+            entry: value.entry,
+            std: value.std,
         }
     }
 }
@@ -233,6 +255,7 @@ impl<'p> From<Instr<'p, Arg>> for Instr<'p, VarArg<'p>> {
             Instr::Divq { divisor } => divq!(divisor.into()),
             Instr::Jcc { lbl, cnd } => jcc!(lbl, cnd),
             Instr::Mulq { src } => mulq!(src.into()),
+            Instr::Cmpq { src, dst } => cmpq!(src.into(), dst.into()),
         }
     }
 }
@@ -290,9 +313,9 @@ mod macros {
     }
 
     #[macro_export]
-    macro_rules! compq {
+    macro_rules! cmpq {
         ($src:expr, $dst:expr) => {
-            $crate::language::x86var::Instr::Compq {
+            $crate::language::x86var::Instr::Cmpq {
                 src: $src,
                 dst: $dst,
             }
@@ -381,7 +404,7 @@ mod macros {
     #[macro_export]
     macro_rules! reg {
         ($reg:ident) => {
-            $crate::language::x86var::Arg::Reg { reg: Reg::$reg }.into()
+            $crate::language::x86var::Arg::Reg { reg: $crate::language::x86var::Reg::$reg }.into()
         };
     }
 
@@ -399,6 +422,7 @@ mod macros {
                 reg: Reg::$reg,
                 off: $off,
             }
+            .into()
         };
     }
 }

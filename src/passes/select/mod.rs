@@ -3,50 +3,68 @@
 //!
 //! Just like a `CVarProgram` program, a `X86VarProgram` consists of a list of blocks.
 
+pub mod io;
+
+use std::collections::HashMap;
 use crate::language::alvar::Atom;
 use crate::language::cvar::{CExpr, CVarProgram, Tail};
 use crate::language::lvar::Op;
-use crate::language::x86var::{Block, Cnd, Instr, Reg, VarArg, X86VarProgram};
-use crate::{addq, callq, imm, jcc, jmp, movq, negq, reg, subq, var, compq};
+use crate::language::x86var::{Block, Cnd, Instr, VarArg, X86VarProgram};
+use crate::*;
+use crate::passes::select::io::Std;
 
 impl<'p> CVarProgram<'p> {
     /// See module-level documentation.
     pub fn select(self) -> X86VarProgram<'p> {
+        let mut blocks = HashMap::new();
+        let std = Std::new(&mut blocks);
+
+        blocks.extend(
+            self.blocks
+                .into_iter()
+                .map(|(name, block)| (name, select_block(block, &std))),
+        );
+
         X86VarProgram {
-            blocks: self.blocks.into_iter().map(|(name,block)| (name, select_block(block))).collect(),
+            blocks,
             entry: self.entry,
+            std
         }
     }
 }
 
-fn select_block(tail: Tail<'_>) -> Block<'_, VarArg<'_>> {
+fn select_block<'p>(tail: Tail<'p>, std: &Std<'p>) -> Block<'p, VarArg<'p>> {
     let mut instrs = Vec::new();
-    select_tail(tail, &mut instrs);
+    select_tail(tail, &mut instrs, std);
     Block { instrs }
 }
 
-fn select_tail<'p>(tail: Tail<'p>, instrs: &mut Vec<Instr<'p, VarArg<'p>>>) {
+fn select_tail<'p>(tail: Tail<'p>, instrs: &mut Vec<Instr<'p, VarArg<'p>>>, std: &Std<'p>) {
     match tail {
-        Tail::Return { expr } => instrs.extend(select_assign(reg!(RAX), expr)),
+        Tail::Return { expr } => instrs.extend(select_assign(reg!(RAX), expr, std)),
         Tail::Seq { sym, bnd, tail } => {
-            instrs.extend(select_assign(var!(sym), bnd));
-            select_tail(*tail, instrs);
+            instrs.extend(select_assign(var!(sym), bnd, std));
+            select_tail(*tail, instrs, std);
         }
-        Tail::IfStmt { cnd: CExpr::Prim { op, args }, thn, els } => {
-            instrs.extend(vec![
-                compq!(select_atom(&args[1]), select_atom(&args[0])),
+        Tail::IfStmt { cnd, thn, els } => match cnd {
+            CExpr::Prim { op, args } => instrs.extend(vec![
+                cmpq!(select_atom(&args[1]), select_atom(&args[0])),
                 jcc!(thn, select_cmp(op)),
-                jmp!(els)
-            ])
+                jmp!(els),
+            ]),
+            _ => unreachable!(),
         },
-        Tail::IfStmt { .. } => unreachable!(),
         Tail::Goto { lbl } => {
             instrs.push(jmp!(lbl));
-        },
+        }
     }
 }
 
-fn select_assign<'p>(dst: VarArg<'p>, expr: CExpr<'p>) -> Vec<Instr<'p, VarArg<'p>>> {
+fn select_assign<'p>(
+    dst: VarArg<'p>,
+    expr: CExpr<'p>,
+    std: &Std<'p>,
+) -> Vec<Instr<'p, VarArg<'p>>> {
     match expr {
         CExpr::Atom(Atom::Val { val }) => vec![movq!(imm!(val), dst)],
         CExpr::Atom(Atom::Var { sym }) => vec![movq!(var!(sym), dst)],
@@ -54,12 +72,24 @@ fn select_assign<'p>(dst: VarArg<'p>, expr: CExpr<'p>) -> Vec<Instr<'p, VarArg<'
             (Op::Plus, [a0, a1]) => vec![movq!(select_atom(a0), dst), addq!(select_atom(a1), dst)],
             (Op::Minus, [a0, a1]) => vec![movq!(select_atom(a0), dst), subq!(select_atom(a1), dst)],
             (Op::Minus, [a0]) => vec![movq!(select_atom(a0), dst), negq!(dst)],
-            (Op::Read, []) => vec![callq!("_read_int", 0), movq!(reg!(RAX), dst)],
+            (Op::Read, []) => {
+                vec![callq!(std.read_int, 0), movq!(reg!(RAX), dst)]
+            }
             (Op::Print, [a0]) => vec![
                 movq!(select_atom(a0), reg!(RDI)),
-                callq!("_print_int", 1),
+                callq!(std.print_int, 1),
                 movq!(select_atom(a0), dst),
             ],
+            (Op::LAnd, [a0, a1]) => todo!(),
+            (Op::LOr, [a0, a1]) => todo!(),
+            (Op::Not, [a0, a1]) => todo!(),
+            (Op::Xor, [a0, a1]) => todo!(),
+            (Op::Greater, [a0, a1]) => todo!(),
+            (Op::GreaterOrEqual, [a0, a1]) => todo!(),
+            (Op::Equal, [a0, a1]) => todo!(),
+            (Op::LessOrEqual, [a0, a1]) => todo!(),
+            (Op::Less, [a0, a1]) => todo!(),
+            (Op::NotEqual, [a0, a1]) => todo!(),
             _ => panic!("Encountered Prim with incorrect arity during select instructions pass."),
         },
     }
@@ -89,18 +119,24 @@ mod tests {
     use crate::interpreter::TestIO;
     use crate::utils::split_test::split_test;
     use test_each_file::test_each_file;
+    use crate::{callq, movq, reg};
 
     fn select([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);
         let expected_return = expected_return.into();
 
-        let program = program
+        let mut program = program
             .uniquify()
             .remove_complex_operands()
             .explicate()
             .select();
+
+        let entry = &mut program.blocks.get_mut(&program.entry).unwrap().instrs;
+        entry.push(movq!(reg!(RAX), reg!(RDI)));
+        entry.push(callq!(program.std.exit, 1));
+
         let mut io = TestIO::new(input);
-        let result = program.interpret("core", &mut io);
+        let result = program.interpret(&mut io);
 
         assert_eq!(result, expected_return, "Incorrect program result.");
         assert_eq!(io.outputs(), &expected_output, "Incorrect program output.");
