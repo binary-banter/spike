@@ -94,6 +94,7 @@ fn emit_instr<'p>(
         Instr::Orq { .. } => todo!(),
         Instr::Xorq { .. } => todo!(),
         Instr::Notq { .. } => todo!(),
+        Instr::Setcc { .. } => todo!(),
     };
     machine_code.extend(v);
 }
@@ -125,12 +126,12 @@ fn encode_cnd(cnd: &Cnd) -> u8 {
         Cnd::AboveOrEqual | Cnd::NotCarry => 0x83,
         Cnd::Below | Cnd::Carry => 0x82,
         Cnd::BelowOrEqual => 0x86,
-        Cnd::Equal => 0x84,
-        Cnd::Greater => 0x8F,
-        Cnd::GreaterOrEqual => 0x8D,
-        Cnd::Less => 0x8C,
-        Cnd::LessOrEqual => 0x8E,
-        Cnd::NotEqual => 0x85,
+        Cnd::EQ => 0x84,
+        Cnd::GT => 0x8F,
+        Cnd::GE => 0x8D,
+        Cnd::LT => 0x8C,
+        Cnd::LE => 0x8E,
+        Cnd::NE => 0x85,
         Cnd::NotOverflow => 0x81,
         Cnd::ParityOdd => 0x8B,
         Cnd::NotSign => 0x89,

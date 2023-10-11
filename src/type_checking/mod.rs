@@ -72,12 +72,12 @@ fn type_check_expr<'p>(
                 expect_type(e1, scope, Type::Int)?;
                 Ok(Type::Int)
             }
-            (Op::Greater | Op::GreaterOrEqual | Op::Less | Op::LessOrEqual, [e1, e2]) => {
+            (Op::GT | Op::GE | Op::LT | Op::LE, [e1, e2]) => {
                 expect_type(e1, scope, Type::Int)?;
                 expect_type(e2, scope, Type::Int)?;
                 Ok(Type::Bool)
             }
-            (Op::Equal | Op::NotEqual, [e1, e2]) => {
+            (Op::EQ | Op::NE, [e1, e2]) => {
                 expect_type_eq(e1, e2, scope)?;
                 Ok(Type::Bool)
             }

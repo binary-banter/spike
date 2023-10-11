@@ -68,9 +68,9 @@ fn add_print_block<'p>(blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg>>) -
             addq!(imm!(i64::from(b'0')), reg!(RDX)),
             pushq!(reg!(RDX)),
             cmpq!(imm!(0), reg!(RAX)),
-            jcc!(print_int_push_loop, Cnd::NotEqual),
+            jcc!(print_int_push_loop, Cnd::NE),
             cmpq!(imm!(0), reg!(RSI)),
-            jcc!(print_int_print_loop, Cnd::Equal),
+            jcc!(print_int_print_loop, Cnd::EQ),
             pushq!(imm!(i64::from(b'-'))),
             jmp!(print_int_print_loop)
         ),
@@ -87,7 +87,7 @@ fn add_print_block<'p>(blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg>>) -
             // Check if we continue
             popq!(reg!(RAX)),
             cmpq!(imm!(i64::from(b'\n')), reg!(RAX)),
-            jcc!(print_int_print_loop, Cnd::NotEqual),
+            jcc!(print_int_print_loop, Cnd::NE),
             jmp!(print_int_exit)
         ),
     );
@@ -126,7 +126,7 @@ fn add_read_block<'p>(
             movq!(deref!(RSP, 0), reg!(RAX)),
             movq!(reg!(RAX), reg!(RCX)),
             cmpq!(imm!(i64::from(b'-')), reg!(RCX)),
-            jcc!(read_int_is_neg, Cnd::Equal),
+            jcc!(read_int_is_neg, Cnd::EQ),
             jmp!(read_int_first)
         ),
     );
@@ -154,16 +154,16 @@ fn add_read_block<'p>(
             // check if newline
             movq!(reg!(RAX), reg!(RCX)),
             cmpq!(imm!(i64::from(b'\n')), reg!(RCX)),
-            jcc!(read_int_exit, Cnd::Equal),
+            jcc!(read_int_exit, Cnd::EQ),
             movq!(imm!(66), reg!(RDI)),
             // check if >b'9'
             movq!(reg!(RAX), reg!(RCX)),
             cmpq!(imm!(i64::from(b'9')), reg!(RCX)),
-            jcc!(exit, Cnd::Greater),
+            jcc!(exit, Cnd::GT),
             // check if <b'0'
             movq!(reg!(RAX), reg!(RCX)),
             cmpq!(imm!(i64::from(b'0')), reg!(RCX)),
-            jcc!(exit, Cnd::Less),
+            jcc!(exit, Cnd::LT),
             movq!(imm!(10), reg!(RAX)),
             mulq!(reg!(RBX)),
             movq!(reg!(RAX), reg!(RBX)),
@@ -177,7 +177,7 @@ fn add_read_block<'p>(
         read_int_exit,
         block!(
             cmpq!(imm!(0), reg!(R13)),
-            jcc!(read_int_neg, Cnd::NotEqual),
+            jcc!(read_int_neg, Cnd::NE),
             jmp!(read_int_actual_exit)
         ),
     );

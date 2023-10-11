@@ -1,9 +1,6 @@
 use crate::passes::select::io::Std;
 use crate::passes::uniquify::UniqueSym;
-use crate::{
-    addq, andq, callq, cmpq, divq, jcc, jmp, movq, mulq, negq, notq, orq, popq, pushq, retq, subq,
-    syscall, xorq,
-};
+use crate::{addq, andq, callq, cmpq, divq, jcc, jmp, movq, mulq, negq, notq, orq, popq, pushq, retq, setcc, subq, syscall, xorq};
 use petgraph::prelude::GraphMap;
 use petgraph::Undirected;
 use std::collections::{HashMap, HashSet};
@@ -82,13 +79,13 @@ pub enum Cnd {
     Below,
     BelowOrEqual,
     Carry,
-    Equal,
-    Greater,
-    GreaterOrEqual,
-    Less,
-    LessOrEqual,
+    EQ,
+    GT,
+    GE,
+    LT,
+    LE,
     NotCarry,
-    NotEqual,
+    NE,
     NotOverflow,
     NotSign,
     Overflow,
@@ -117,6 +114,7 @@ pub enum Instr<'p, A> {
     Orq { src: A, dst: A },
     Xorq { src: A, dst: A },
     Notq { dst: A },
+    Setcc { cnd: Cnd }, //TODO allow setting other byteregs
 }
 
 #[derive(Debug, PartialEq, Clone, Copy, Hash, Eq)]
@@ -265,6 +263,7 @@ impl<'p> From<Instr<'p, Arg>> for Instr<'p, VarArg<'p>> {
             Instr::Orq { src, dst } => orq!(src.into(), dst.into()),
             Instr::Xorq { src, dst } => xorq!(src.into(), dst.into()),
             Instr::Notq { dst } => notq!(dst.into()),
+            Instr::Setcc { cnd } => setcc!(cnd),
         }
     }
 }
@@ -412,6 +411,13 @@ mod macros {
     macro_rules! jmp {
         ($lbl:expr) => {
             $crate::language::x86var::Instr::Jmp { lbl: $lbl }
+        };
+    }
+
+    #[macro_export]
+    macro_rules! setcc {
+        ($cnd:expr) => {
+            $crate::language::x86var::Instr::Setcc{ cnd: $cnd }
         };
     }
 

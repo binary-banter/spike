@@ -66,6 +66,7 @@ fn assign_instr<'p>(
         Instr::Orq { .. } => todo!(),
         Instr::Xorq { .. } => todo!(),
         Instr::Notq { .. } => todo!(),
+        Instr::Setcc { .. } => todo!(),
     }
 }
 

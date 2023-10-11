@@ -145,30 +145,7 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                     self.regs.insert(Reg::RDX, (res >> 64) as i64);
                 }
                 Instr::Jcc { lbl, cnd } => {
-                    let jmp = match cnd {
-                        Cnd::Above => !self.status.carry && !self.status.zero,
-                        Cnd::AboveOrEqual | Cnd::NotCarry => !self.status.carry,
-                        Cnd::Below | Cnd::Carry => self.status.carry,
-                        Cnd::BelowOrEqual => self.status.carry || self.status.zero,
-                        Cnd::Equal => self.status.zero,
-                        Cnd::Greater => {
-                            !self.status.zero && self.status.sign == self.status.overflow
-                        }
-                        Cnd::GreaterOrEqual => self.status.sign == self.status.overflow,
-                        Cnd::Less => self.status.sign != self.status.overflow,
-                        Cnd::LessOrEqual => {
-                            self.status.zero || self.status.sign != self.status.overflow
-                        }
-                        Cnd::NotEqual => !self.status.zero,
-                        Cnd::NotOverflow => !self.status.overflow,
-                        Cnd::NotSign => self.status.sign,
-                        Cnd::Overflow => self.status.overflow,
-                        Cnd::ParityEven => self.status.parity_even,
-                        Cnd::ParityOdd => !self.status.parity_even,
-                        Cnd::Sign => self.status.sign,
-                    };
-
-                    if jmp {
+                    if self.evaluate_cnd(*cnd) {
                         return self.interpret_block(*lbl, 0);
                     }
                 }
@@ -197,9 +174,35 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                     self.set_arg(dst, self.get_arg(src) ^ self.get_arg(dst))
                 }
                 Instr::Notq { dst } => self.set_arg(dst, !self.get_arg(dst)),
+                Instr::Setcc { cnd } => {
+                    let rax = self.regs[&Reg::RAX];
+                    let cnd = self.evaluate_cnd(*cnd) as i64;
+                    self.regs.insert(Reg::RAX, rax & !0xFF | cnd);
+                }
             }
         }
         panic!("A block ran out of instructions.");
+    }
+
+    fn evaluate_cnd(&self, cnd: Cnd) -> bool {
+        match cnd {
+            Cnd::Above => !self.status.carry && !self.status.zero,
+            Cnd::AboveOrEqual | Cnd::NotCarry => !self.status.carry,
+            Cnd::Below | Cnd::Carry => self.status.carry,
+            Cnd::BelowOrEqual => self.status.carry || self.status.zero,
+            Cnd::EQ => self.status.zero,
+            Cnd::GT => !self.status.zero && self.status.sign == self.status.overflow,
+            Cnd::GE => self.status.sign == self.status.overflow,
+            Cnd::LT => self.status.sign != self.status.overflow,
+            Cnd::LE =>  self.status.zero || self.status.sign != self.status.overflow,
+            Cnd::NE => !self.status.zero,
+            Cnd::NotOverflow => !self.status.overflow,
+            Cnd::NotSign => self.status.sign,
+            Cnd::Overflow => self.status.overflow,
+            Cnd::ParityEven => self.status.parity_even,
+            Cnd::ParityOdd => !self.status.parity_even,
+            Cnd::Sign => self.status.sign,
+        }
     }
 
     fn get_arg(&self, a: &'p VarArg) -> i64 {

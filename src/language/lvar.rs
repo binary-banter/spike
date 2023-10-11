@@ -21,12 +21,12 @@ pub enum Op {
     LOr,
     Not,
     Xor,
-    Greater,
-    GreaterOrEqual,
-    Equal,
-    LessOrEqual,
-    Less,
-    NotEqual,
+    GT,
+    GE,
+    EQ,
+    LE,
+    LT,
+    NE,
 }
 
 impl Display for Op {
@@ -43,12 +43,12 @@ impl Display for Op {
                 Op::LOr => "logical or",
                 Op::Not => "not",
                 Op::Xor => "xor",
-                Op::Greater => "greater",
-                Op::GreaterOrEqual => "greater or equal",
-                Op::Equal => "equal",
-                Op::LessOrEqual => "less or equal",
-                Op::Less => "less",
-                Op::NotEqual => "not equal",
+                Op::GT => "greater",
+                Op::GE => "greater or equal",
+                Op::EQ => "equal",
+                Op::LE => "less or equal",
+                Op::LT => "less",
+                Op::NE => "not equal",
             }
         )
     }

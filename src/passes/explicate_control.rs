@@ -101,7 +101,7 @@ fn explicate_pred<'p>(
     match cnd {
         AExpr::Atom(Atom::Var { sym }) => Tail::IfStmt {
             cnd: CExpr::Prim {
-                op: Op::Equal,
+                op: Op::EQ,
                 args: vec![
                     Atom::Var { sym },
                     Atom::Val {
@@ -134,12 +134,12 @@ fn explicate_pred<'p>(
 
         AExpr::Prim {
             op:
-                op @ (Op::Equal
-                | Op::NotEqual
-                | Op::Greater
-                | Op::GreaterOrEqual
-                | Op::Less
-                | Op::LessOrEqual),
+                op @ (Op::EQ
+                | Op::NE
+                | Op::GT
+                | Op::GE
+                | Op::LT
+                | Op::LE),
             args,
         } => Tail::IfStmt {
             cnd: CExpr::Prim { op, args },

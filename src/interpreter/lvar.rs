@@ -39,32 +39,32 @@ pub fn interpret_expr<A: Copy + Hash + Eq>(
                 let e1 = interpret_expr(e1, scope, io).int();
                 Val::Int { val: -e1 }
             }
-            (Op::Greater, [e1, e2]) => {
+            (Op::GT, [e1, e2]) => {
                 let e1 = interpret_expr(e1, scope, io).int();
                 let e2 = interpret_expr(e2, scope, io).int();
                 Val::Bool { val: e1 > e2 }
             }
-            (Op::GreaterOrEqual, [e1, e2]) => {
+            (Op::GE, [e1, e2]) => {
                 let e1 = interpret_expr(e1, scope, io).int();
                 let e2 = interpret_expr(e2, scope, io).int();
                 Val::Bool { val: e1 >= e2 }
             }
-            (Op::Less, [e1, e2]) => {
+            (Op::LT, [e1, e2]) => {
                 let e1 = interpret_expr(e1, scope, io).int();
                 let e2 = interpret_expr(e2, scope, io).int();
                 Val::Bool { val: e1 < e2 }
             }
-            (Op::LessOrEqual, [e1, e2]) => {
+            (Op::LE, [e1, e2]) => {
                 let e1 = interpret_expr(e1, scope, io).int();
                 let e2 = interpret_expr(e2, scope, io).int();
                 Val::Bool { val: e1 <= e2 }
             }
-            (Op::Equal, [e1, e2]) => {
+            (Op::EQ, [e1, e2]) => {
                 let e1 = interpret_expr(e1, scope, io);
                 let e2 = interpret_expr(e2, scope, io);
                 Val::Bool { val: e1 == e2 }
             }
-            (Op::NotEqual, [e1, e2]) => {
+            (Op::NE, [e1, e2]) => {
                 let e1 = interpret_expr(e1, scope, io);
                 let e2 = interpret_expr(e2, scope, io);
                 Val::Bool { val: e1 != e2 }

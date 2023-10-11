@@ -87,6 +87,7 @@ fn instr_reads_vararg<'p>(instr: &Instr<'p, VarArg<'p>>) -> impl Iterator<Item =
         Instr::Orq { .. } => todo!(),
         Instr::Xorq { .. } => todo!(),
         Instr::Notq { .. } => todo!(),
+        Instr::Setcc { .. } => todo!(),
     }
     .into_iter()
 }
@@ -109,6 +110,7 @@ fn instr_writes_vararg<'p>(instr: &Instr<'p, VarArg<'p>>) -> impl Iterator<Item 
         Instr::Orq { .. } => todo!(),
         Instr::Xorq { .. } => todo!(),
         Instr::Notq { .. } => todo!(),
+        Instr::Setcc { .. } => todo!(),
     }
     .into_iter()
 }

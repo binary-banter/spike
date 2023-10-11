@@ -41,7 +41,10 @@ fn select_block<'p>(tail: Tail<'p>, std: &Std<'p>) -> Block<'p, VarArg<'p>> {
 
 fn select_tail<'p>(tail: Tail<'p>, instrs: &mut Vec<Instr<'p, VarArg<'p>>>, std: &Std<'p>) {
     match tail {
-        Tail::Return { expr } => instrs.extend(select_assign(reg!(RAX), expr, std)),
+        Tail::Return { expr } => {
+            instrs.extend(select_assign(reg!(RDI), expr, std));
+            instrs.push(jmp!(std.exit));
+        },
         Tail::Seq { sym, bnd, tail } => {
             instrs.extend(select_assign(var!(sym), bnd, std));
             select_tail(*tail, instrs, std);
@@ -84,12 +87,12 @@ fn select_assign<'p>(
             (Op::LOr, [a0, a1]) => vec![movq!(select_atom(a0), dst), orq!(select_atom(a1), dst)],
             (Op::Not, [a0]) => vec![movq!(select_atom(a0), dst), xorq!(imm!(1), dst)],
             (Op::Xor, [a0, a1]) => vec![movq!(select_atom(a0), dst), xorq!(select_atom(a1), dst)],
-            (Op::Greater, [a0, a1]) => todo!(),
-            (Op::GreaterOrEqual, [a0, a1]) => todo!(),
-            (Op::Equal, [a0, a1]) => todo!(),
-            (Op::LessOrEqual, [a0, a1]) => todo!(),
-            (Op::Less, [a0, a1]) => todo!(),
-            (Op::NotEqual, [a0, a1]) => todo!(),
+            (op @ (Op::GT | Op::GE | Op::EQ | Op::LE | Op::LT | Op::NE), [a0, a1]) => vec![
+                cmpq!(select_atom(a1), select_atom(a0)),
+                movq!(imm!(0), reg!(RAX)),
+                setcc!(select_cmp(op)),
+                movq!(reg!(RAX), dst),
+            ],
             _ => panic!("Encountered Prim with incorrect arity during select instructions pass."),
         },
     }
@@ -104,12 +107,12 @@ fn select_atom<'p>(expr: &Atom<'p>) -> VarArg<'p> {
 
 fn select_cmp(op: Op) -> Cnd {
     match op {
-        Op::Greater => Cnd::Greater,
-        Op::GreaterOrEqual => Cnd::GreaterOrEqual,
-        Op::Equal => Cnd::Equal,
-        Op::LessOrEqual => Cnd::LessOrEqual,
-        Op::Less => Cnd::Less,
-        Op::NotEqual => Cnd::NotEqual,
+        Op::GT => Cnd::GT,
+        Op::GE => Cnd::GE,
+        Op::EQ => Cnd::EQ,
+        Op::LE => Cnd::LE,
+        Op::LT => Cnd::LT,
+        Op::NE => Cnd::NE,
         _ => unreachable!(),
     }
 }
@@ -118,7 +121,6 @@ fn select_cmp(op: Op) -> Cnd {
 mod tests {
     use crate::interpreter::TestIO;
     use crate::utils::split_test::split_test;
-    use crate::{callq, movq, reg};
     use test_each_file::test_each_file;
 
     fn select([test]: [&str; 1]) {
@@ -130,10 +132,6 @@ mod tests {
             .remove_complex_operands()
             .explicate()
             .select();
-
-        let entry = &mut program.blocks.get_mut(&program.entry).unwrap().instrs;
-        entry.push(movq!(reg!(RAX), reg!(RDI)));
-        entry.push(callq!(program.std.exit, 1));
 
         let mut io = TestIO::new(input);
         let result = program.interpret(&mut io);
