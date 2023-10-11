@@ -133,13 +133,7 @@ fn explicate_pred<'p>(
         },
 
         AExpr::Prim {
-            op:
-                op @ (Op::EQ
-                | Op::NE
-                | Op::GT
-                | Op::GE
-                | Op::LT
-                | Op::LE),
+            op: op @ (Op::EQ | Op::NE | Op::GT | Op::GE | Op::LT | Op::LE),
             args,
         } => Tail::IfStmt {
             cnd: CExpr::Prim { op, args },

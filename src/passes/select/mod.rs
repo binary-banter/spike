@@ -44,7 +44,7 @@ fn select_tail<'p>(tail: Tail<'p>, instrs: &mut Vec<Instr<'p, VarArg<'p>>>, std:
         Tail::Return { expr } => {
             instrs.extend(select_assign(reg!(RDI), expr, std));
             instrs.push(jmp!(std.exit));
-        },
+        }
         Tail::Seq { sym, bnd, tail } => {
             instrs.extend(select_assign(var!(sym), bnd, std));
             select_tail(*tail, instrs, std);
@@ -127,7 +127,7 @@ mod tests {
         let (input, expected_output, expected_return, program) = split_test(test);
         let expected_return = expected_return.into();
 
-        let mut program = program
+        let program = program
             .uniquify()
             .remove_complex_operands()
             .explicate()

@@ -194,7 +194,7 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
             Cnd::GT => !self.status.zero && self.status.sign == self.status.overflow,
             Cnd::GE => self.status.sign == self.status.overflow,
             Cnd::LT => self.status.sign != self.status.overflow,
-            Cnd::LE =>  self.status.zero || self.status.sign != self.status.overflow,
+            Cnd::LE => self.status.zero || self.status.sign != self.status.overflow,
             Cnd::NE => !self.status.zero,
             Cnd::NotOverflow => !self.status.overflow,
             Cnd::NotSign => self.status.sign,

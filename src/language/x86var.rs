@@ -1,6 +1,9 @@
 use crate::passes::select::io::Std;
 use crate::passes::uniquify::UniqueSym;
-use crate::{addq, andq, callq, cmpq, divq, jcc, jmp, movq, mulq, negq, notq, orq, popq, pushq, retq, setcc, subq, syscall, xorq};
+use crate::{
+    addq, andq, callq, cmpq, divq, jcc, jmp, movq, mulq, negq, notq, orq, popq, pushq, retq, setcc,
+    subq, syscall, xorq,
+};
 use petgraph::prelude::GraphMap;
 use petgraph::Undirected;
 use std::collections::{HashMap, HashSet};
@@ -417,7 +420,7 @@ mod macros {
     #[macro_export]
     macro_rules! setcc {
         ($cnd:expr) => {
-            $crate::language::x86var::Instr::Setcc{ cnd: $cnd }
+            $crate::language::x86var::Instr::Setcc { cnd: $cnd }
         };
     }
 
