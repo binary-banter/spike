@@ -2,11 +2,11 @@
 //!
 //! This pass makes sure that no instructions use more than one argument that is dereferenced.
 
-use crate::language::x86var::{AX86Program, Arg, Block, Instr, PX86Program, Reg};
+use crate::language::x86var::{AX86Program, Arg, Block, Instr, PX86Program};
 use crate::{addq, movq, reg, subq};
 
 impl<'p> AX86Program<'p> {
-    //! See module-level documentation.
+    /// See module-level documentation.
     pub fn patch(self) -> PX86Program<'p> {
         PX86Program {
             blocks: self
@@ -14,7 +14,9 @@ impl<'p> AX86Program<'p> {
                 .into_iter()
                 .map(|(lbl, block)| (lbl, patch_block(block)))
                 .collect(),
+            entry: self.entry,
             stack_space: self.stack_space,
+            std: self.std,
         }
     }
 }
@@ -68,7 +70,7 @@ mod tests {
             .patch()
             .into();
         let mut io = TestIO::new(input);
-        let result = program.interpret("core", &mut io);
+        let result = program.interpret(&mut io);
 
         assert_eq!(result, expected_return, "Incorrect program result.");
         assert_eq!(io.outputs(), &expected_output, "Incorrect program output.");

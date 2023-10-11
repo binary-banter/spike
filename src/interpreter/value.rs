@@ -3,8 +3,8 @@ use std::str::FromStr;
 
 #[derive(Eq, PartialEq, Copy, Clone, Debug)]
 pub enum Val {
-    Int{ val: i64},
-    Bool{ val: bool },
+    Int { val: i64 },
+    Bool { val: bool },
 }
 
 impl Val {
@@ -23,9 +23,9 @@ impl Val {
     }
 }
 
-impl Into<i64> for Val {
-    fn into(self) -> i64 {
-        match self {
+impl From<Val> for i64 {
+    fn from(value: Val) -> Self {
+        match value {
             Val::Int { val } => val,
             Val::Bool { val } => val as i64,
         }
@@ -37,9 +37,11 @@ impl FromStr for Val {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(match s {
-            "f" => Val::Bool{ val: false},
-            "t" => Val::Bool{ val: true},
-            s => Val::Int { val: s.parse().map_err(|_| ())? }
+            "f" => Val::Bool { val: false },
+            "t" => Val::Bool { val: true },
+            s => Val::Int {
+                val: s.parse().map_err(|_| ())?,
+            },
         })
     }
 }
@@ -48,7 +50,13 @@ impl Display for Val {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             Val::Int { val } => write!(f, "{val}"),
-            Val::Bool { val } => if *val {write!(f, "t")} else {write!(f, "f")},
+            Val::Bool { val } => {
+                if *val {
+                    write!(f, "t")
+                } else {
+                    write!(f, "f")
+                }
+            }
         }
     }
 }

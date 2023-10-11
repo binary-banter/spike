@@ -1,4 +1,5 @@
-use crate::language::x86var::Cnd;
+use crate::interpreter::value::Val;
+
 use crate::passes::uniquify::UniqueSym;
 use std::fmt::{Display, Formatter};
 
@@ -20,12 +21,12 @@ pub enum Op {
     LOr,
     Not,
     Xor,
-    Greater,
-    GreaterOrEqual,
-    Equal,
-    LessOrEqual,
-    Less,
-    NotEqual,
+    GT,
+    GE,
+    EQ,
+    LE,
+    LT,
+    NE,
 }
 
 impl Display for Op {
@@ -42,12 +43,12 @@ impl Display for Op {
                 Op::LOr => "logical or",
                 Op::Not => "not",
                 Op::Xor => "xor",
-                Op::Greater => "greater",
-                Op::GreaterOrEqual => "greater or equal",
-                Op::Equal => "equal",
-                Op::LessOrEqual => "less or equal",
-                Op::Less => "less",
-                Op::NotEqual => "not equal",
+                Op::GT => "greater",
+                Op::GE => "greater or equal",
+                Op::EQ => "equal",
+                Op::LE => "less or equal",
+                Op::LT => "less",
+                Op::NE => "not equal",
             }
         )
     }
@@ -55,11 +56,8 @@ impl Display for Op {
 
 #[derive(Debug, PartialEq)]
 pub enum Expr<A> {
-    Int {
-        val: i64,
-    },
-    Bool {
-        val: bool,
+    Val {
+        val: Val,
     },
     Var {
         sym: A,

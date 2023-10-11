@@ -9,8 +9,10 @@ impl<'p> IX86VarProgram<'p> {
 
         CX86VarProgram {
             blocks: self.blocks,
+            entry: self.entry,
             color_map,
             stack_space,
+            std: self.std,
         }
     }
 }

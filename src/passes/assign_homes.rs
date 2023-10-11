@@ -8,7 +8,7 @@ use crate::{addq, callq, divq, jcc, jmp, movq, mulq, negq, popq, pushq, retq, su
 use std::collections::HashMap;
 
 impl<'p> CX86VarProgram<'p> {
-    //! See module-level documentation.
+    /// See module-level documentation.
     pub fn assign_homes(self) -> AX86Program<'p> {
         AX86Program {
             blocks: self
@@ -27,7 +27,9 @@ impl<'p> CX86VarProgram<'p> {
                     )
                 })
                 .collect(),
+            entry: self.entry,
             stack_space: self.stack_space,
+            std: self.std,
         }
     }
 }
@@ -59,6 +61,12 @@ fn assign_instr<'p>(
         Instr::Syscall => syscall!(),
         Instr::Jmp { lbl } => jmp!(lbl),
         Instr::Jcc { lbl, cnd } => jcc!(lbl, cnd),
+        Instr::Cmpq { .. } => todo!(),
+        Instr::Andq { .. } => todo!(),
+        Instr::Orq { .. } => todo!(),
+        Instr::Xorq { .. } => todo!(),
+        Instr::Notq { .. } => todo!(),
+        Instr::Setcc { .. } => todo!(),
     }
 }
 
@@ -84,7 +92,7 @@ mod tests {
             .assign_homes()
             .into();
         let mut io = TestIO::new(input);
-        let result = program.interpret("core", &mut io);
+        let result = program.interpret(&mut io);
 
         assert_eq!(result, expected_return, "Incorrect program result.");
         assert_eq!(io.outputs(), &expected_output, "Incorrect program output.");

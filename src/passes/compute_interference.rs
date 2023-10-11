@@ -10,6 +10,8 @@ impl<'p> LX86VarProgram<'p> {
                 .into_iter()
                 .map(|(name, block)| (name, block.into()))
                 .collect(),
+            entry: self.entry,
+            std: self.std,
         }
     }
 

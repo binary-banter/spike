@@ -1,10 +1,10 @@
 use crate::language::lvar::Expr;
 use crate::parser::expression::parse_expression;
-use crate::parser::identifier::parse_identifier;
+
 use crate::parser::{trim0, trim1};
 use nom::bytes::complete::tag;
 use nom::character::complete::char;
-use nom::sequence::{delimited, pair, tuple};
+use nom::sequence::{delimited, tuple};
 use nom::{IResult, Parser};
 
 pub fn parse_if(input: &str) -> IResult<&str, Expr<&str>> {

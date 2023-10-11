@@ -10,7 +10,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 static COUNT: AtomicUsize = AtomicUsize::new(0);
 
 impl<'p> LVarProgram<'p> {
-    //! See module-level documentation.
+    /// See module-level documentation.
     pub fn uniquify(self) -> ULVarProgram<'p> {
         ULVarProgram {
             bdy: uniquify_expression(self.bdy, &mut PushMap::default()),
@@ -23,7 +23,7 @@ fn uniquify_expression<'p>(
     scope: &mut PushMap<&'p str, UniqueSym<'p>>,
 ) -> Expr<UniqueSym<'p>> {
     match expr {
-        Expr::Int { val } => Expr::Int { val },
+        Expr::Val { val } => Expr::Val { val },
         Expr::Var { sym } => Expr::Var { sym: scope[&sym] },
         Expr::Prim { op, args } => Expr::Prim {
             op,
@@ -43,8 +43,11 @@ fn uniquify_expression<'p>(
                 bdy: Box::new(unique_bdy),
             }
         }
-        Expr::If { .. } => todo!(),
-        Expr::Bool { .. } => todo!(),
+        Expr::If { cnd, thn, els } => Expr::If {
+            cnd: Box::new(uniquify_expression(*cnd, scope)),
+            thn: Box::new(uniquify_expression(*thn, scope)),
+            els: Box::new(uniquify_expression(*els, scope)),
+        },
     }
 }
 

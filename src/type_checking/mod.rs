@@ -1,5 +1,8 @@
+use crate::interpreter::value::Val;
 use crate::language::lvar::{Expr, LVarProgram, Op};
-use crate::type_checking::TypeError::{IncorrectArity, TypeMismatchEqual, TypeMismatchExpect, UndeclaredVar};
+use crate::type_checking::TypeError::{
+    IncorrectArity, TypeMismatchEqual, TypeMismatchExpect, UndeclaredVar,
+};
 use crate::utils::expect::expect;
 use crate::utils::push_map::PushMap;
 use miette::Diagnostic;
@@ -43,8 +46,12 @@ fn type_check_expr<'p>(
     scope: &mut PushMap<&'p str, Type>,
 ) -> Result<Type, TypeError> {
     match expr {
-        Expr::Int { .. } => Ok(Type::Int),
-        Expr::Bool { .. } => Ok(Type::Bool),
+        Expr::Val {
+            val: Val::Bool { .. },
+        } => Ok(Type::Bool),
+        Expr::Val {
+            val: Val::Int { .. },
+        } => Ok(Type::Int),
         Expr::Var { sym } => scope.get(sym).cloned().ok_or(UndeclaredVar {
             sym: (*sym).to_string(),
         }),
@@ -65,12 +72,12 @@ fn type_check_expr<'p>(
                 expect_type(e1, scope, Type::Int)?;
                 Ok(Type::Int)
             }
-            (Op::Greater | Op::GreaterOrEqual | Op::Less | Op::LessOrEqual, [e1, e2]) => {
+            (Op::GT | Op::GE | Op::LT | Op::LE, [e1, e2]) => {
                 expect_type(e1, scope, Type::Int)?;
                 expect_type(e2, scope, Type::Int)?;
                 Ok(Type::Bool)
             }
-            (Op::Equal | Op::NotEqual, [e1, e2]) => {
+            (Op::EQ | Op::NE, [e1, e2]) => {
                 expect_type_eq(e1, e2, scope)?;
                 Ok(Type::Bool)
             }
@@ -95,7 +102,7 @@ fn type_check_expr<'p>(
         Expr::If { cnd, thn, els } => {
             expect_type(cnd, scope, Type::Bool)?;
             expect_type_eq(thn, els, scope)
-        },
+        }
     }
 }
 
@@ -106,13 +113,7 @@ fn expect_type_eq<'p>(
 ) -> Result<Type, TypeError> {
     let t1 = type_check_expr(e1, scope)?;
     let t2 = type_check_expr(e2, scope)?;
-    expect(
-        t1 == t2,
-        TypeMismatchEqual {
-            t1,
-            t2,
-        }
-    )?;
+    expect(t1 == t2, TypeMismatchEqual { t1, t2 })?;
     Ok(t1)
 }
 
@@ -125,7 +126,7 @@ fn expect_type<'p>(
     expect(
         t == expected,
         TypeMismatchExpect {
-            got: t.clone(),
+            got: t,
             expect: expected,
         },
     )
@@ -133,9 +134,9 @@ fn expect_type<'p>(
 
 #[cfg(test)]
 mod tests {
+    use crate::parser::parse_program;
     use crate::type_checking::type_check_program;
     use test_each_file::test_each_file;
-    use crate::parser::parse_program;
 
     fn check([test]: [&str; 1], should_fail: bool) {
         let mut test = test.split('#');

@@ -13,12 +13,12 @@ pub fn parse_operation(input: &str) -> IResult<&str, Op> {
         tag("&&").map(|_| Op::LAnd),
         tag("||").map(|_| Op::LOr),
         tag("^").map(|_| Op::Xor),
-        tag("<=").map(|_| Op::LessOrEqual),
-        tag("<").map(|_| Op::Less),
-        tag("==").map(|_| Op::Equal),
-        tag("!=").map(|_| Op::NotEqual),
+        tag("<=").map(|_| Op::LE),
+        tag("<").map(|_| Op::LT),
+        tag("==").map(|_| Op::EQ),
+        tag("!=").map(|_| Op::NE),
         tag("!").map(|_| Op::Not),
-        tag(">=").map(|_| Op::GreaterOrEqual),
-        tag(">").map(|_| Op::Greater),
+        tag(">=").map(|_| Op::GE),
+        tag(">").map(|_| Op::GT),
     ))(input)
 }

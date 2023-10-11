@@ -1,5 +1,5 @@
 use crate::language::x86var::{
-    Block, Instr, LArg, LBlock, LX86VarProgram, Reg, VarArg, X86VarProgram, ARG_PASSING_REGS,
+    Block, Instr, LArg, LBlock, LX86VarProgram, VarArg, X86VarProgram, ARG_PASSING_REGS,
     CALLER_SAVED,
 };
 use crate::reg;
@@ -13,6 +13,8 @@ impl<'p> X86VarProgram<'p> {
                 .into_iter()
                 .map(|(name, block)| (name, block_liveness(block)))
                 .collect(),
+            entry: self.entry,
+            std: self.std,
         }
     }
 }
@@ -79,7 +81,13 @@ fn instr_reads_vararg<'p>(instr: &Instr<'p, VarArg<'p>>) -> impl Iterator<Item =
         Instr::Divq { divisor } => heapless::Vec::from_iter([*divisor, reg!(RAX), reg!(RDX)]),
         Instr::Mulq { src } => heapless::Vec::from_iter([*src, reg!(RAX)]),
         Instr::Jcc { .. } => todo!(),
-        Instr::Syscall => unreachable!("There should be no syscalls in this pass."),
+        Instr::Syscall => todo!(),
+        Instr::Cmpq { .. } => todo!(),
+        Instr::Andq { .. } => todo!(),
+        Instr::Orq { .. } => todo!(),
+        Instr::Xorq { .. } => todo!(),
+        Instr::Notq { .. } => todo!(),
+        Instr::Setcc { .. } => todo!(),
     }
     .into_iter()
 }
@@ -96,7 +104,13 @@ fn instr_writes_vararg<'p>(instr: &Instr<'p, VarArg<'p>>) -> impl Iterator<Item 
         Instr::Pushq { .. } | Instr::Jmp { .. } | Instr::Retq => heapless::Vec::<VarArg, 9>::new(),
         Instr::Mulq { .. } | Instr::Divq { .. } => heapless::Vec::from_iter([reg!(RAX), reg!(RDX)]),
         Instr::Jcc { .. } => todo!(),
-        Instr::Syscall => unreachable!("There should be no syscalls in this pass."),
+        Instr::Syscall => todo!(),
+        Instr::Cmpq { .. } => todo!(),
+        Instr::Andq { .. } => todo!(),
+        Instr::Orq { .. } => todo!(),
+        Instr::Xorq { .. } => todo!(),
+        Instr::Notq { .. } => todo!(),
+        Instr::Setcc { .. } => todo!(),
     }
     .into_iter()
 }

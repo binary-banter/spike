@@ -11,7 +11,7 @@ use crate::language::lvar::{Expr, ULVarProgram};
 use crate::passes::uniquify::{gen_sym, UniqueSym};
 
 impl<'p> ULVarProgram<'p> {
-    //! See module-level documentation.
+    /// See module-level documentation.
     pub fn remove_complex_operands(self) -> ALVarProgram<'p> {
         ALVarProgram {
             bdy: rco_expr(self.bdy),
@@ -21,7 +21,7 @@ impl<'p> ULVarProgram<'p> {
 
 fn rco_expr(expr: Expr<UniqueSym<'_>>) -> AExpr<'_> {
     match expr {
-        Expr::Int { val } => AExpr::Atom(Atom::Int { val }),
+        Expr::Val { val } => AExpr::Atom(Atom::Val { val }),
         Expr::Var { sym } => AExpr::Atom(Atom::Var { sym }),
         Expr::Prim { op, args } => {
             let (args, extras): (Vec<_>, Vec<_>) = args.into_iter().map(rco_atom).unzip();
@@ -40,21 +40,22 @@ fn rco_expr(expr: Expr<UniqueSym<'_>>) -> AExpr<'_> {
             bnd: Box::new(rco_expr(*bnd)),
             bdy: Box::new(rco_expr(*bdy)),
         },
-        Expr::If { .. } => todo!(),
-        Expr::Bool { .. } => todo!(),
+        Expr::If { cnd, thn, els } => AExpr::If {
+            cnd: Box::new(rco_expr(*cnd)),
+            thn: Box::new(rco_expr(*thn)),
+            els: Box::new(rco_expr(*els)),
+        },
     }
 }
 
 fn rco_atom(expr: Expr<UniqueSym<'_>>) -> (Atom<'_>, Option<(UniqueSym<'_>, AExpr<'_>)>) {
     match expr {
-        Expr::Int { val } => (Atom::Int { val }, None),
+        Expr::Val { val } => (Atom::Val { val }, None),
         Expr::Var { sym } => (Atom::Var { sym }, None),
-        Expr::Prim { .. } | Expr::Let { .. } => {
+        Expr::Prim { .. } | Expr::Let { .. } | Expr::If { .. } => {
             let tmp = gen_sym("");
             (Atom::Var { sym: tmp }, Some((tmp, rco_expr(expr))))
         }
-        Expr::If { .. } => todo!(),
-        Expr::Bool { .. } => todo!(),
     }
 }
 

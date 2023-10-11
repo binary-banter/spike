@@ -1,3 +1,4 @@
+use crate::interpreter::value::Val;
 use crate::language::lvar::{Expr, Op, ULVarProgram};
 use crate::passes::uniquify::UniqueSym;
 
@@ -18,11 +19,16 @@ pub enum AExpr<'p> {
         bnd: Box<AExpr<'p>>,
         bdy: Box<AExpr<'p>>,
     },
+    If {
+        cnd: Box<AExpr<'p>>,
+        thn: Box<AExpr<'p>>,
+        els: Box<AExpr<'p>>,
+    },
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Atom<'p> {
-    Int { val: i64 },
+    Val { val: Val },
     Var { sym: UniqueSym<'p> },
 }
 
@@ -47,6 +53,11 @@ impl<'p> From<AExpr<'p>> for Expr<UniqueSym<'p>> {
                 bnd: Box::new((*bnd).into()),
                 bdy: Box::new((*bdy).into()),
             },
+            AExpr::If { cnd, thn, els } => Expr::If {
+                cnd: Box::new((*cnd).into()),
+                thn: Box::new((*thn).into()),
+                els: Box::new((*els).into()),
+            },
         }
     }
 }
@@ -54,7 +65,7 @@ impl<'p> From<AExpr<'p>> for Expr<UniqueSym<'p>> {
 impl<'p> From<Atom<'p>> for Expr<UniqueSym<'p>> {
     fn from(value: Atom<'p>) -> Self {
         match value {
-            Atom::Int { val } => Expr::Int { val },
+            Atom::Val { val } => Expr::Val { val },
             Atom::Var { sym } => Expr::Var { sym },
         }
     }

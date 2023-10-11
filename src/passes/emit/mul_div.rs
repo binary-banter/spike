@@ -24,8 +24,6 @@ pub fn encode_muldiv_instr(op_info: MulDivOpInfo, reg: &Arg) -> Vec<u8> {
 #[cfg(test)]
 mod tests {
     mod division {
-
-        use crate::passes::emit::Reg;
         use crate::*;
 
         check!(div1, divq!(reg!(R15)), vec![0x49, 0xF7, 0xF7]);
@@ -33,8 +31,6 @@ mod tests {
     }
 
     mod multiply {
-
-        use crate::passes::emit::Reg;
         use crate::*;
 
         check!(mul1, mulq!(reg!(R15)), vec![0x49, 0xF7, 0xE7]);

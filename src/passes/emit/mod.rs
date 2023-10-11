@@ -1,7 +1,6 @@
 //! This code will assemble the instructions into a sequence of bytes (machine code).
 
 mod binary;
-mod io;
 mod mul_div;
 mod push_pop;
 mod special;
@@ -9,20 +8,18 @@ mod unary;
 
 use crate::language::x86var::{Arg, Block, Cnd, Instr, Reg, X86Program};
 use crate::passes::emit::binary::{encode_binary_instr, ADDQ_INFO, MOVQ_INFO, SUBQ_INFO};
-use crate::passes::emit::io::add_io_blocks;
 use crate::passes::emit::mul_div::{encode_muldiv_instr, MulDivOpInfo};
 use crate::passes::emit::push_pop::{encode_push_pop, POPQ_INFO, PUSHQ_INFO};
 use crate::passes::emit::unary::{encode_unary_instr, NEGQ_INFO};
+use crate::passes::uniquify::UniqueSym;
 use std::collections::HashMap;
 
 impl<'p> X86Program<'p> {
     //! See module-level documentation.
-    pub fn emit(mut self) -> (usize, Vec<u8>) {
-        add_io_blocks(&mut self.blocks);
-
+    pub fn emit(self) -> (usize, Vec<u8>) {
         let mut machine_code = Vec::new();
 
-        let mut jumps: HashMap<usize, &'p str> = HashMap::new();
+        let mut jumps = HashMap::new();
         let mut offsets = HashMap::new();
 
         for (name, block) in &self.blocks {
@@ -38,14 +35,14 @@ impl<'p> X86Program<'p> {
             machine_code[addr..addr + 4].copy_from_slice(&jump.to_le_bytes());
         }
 
-        (offsets[&"main"], machine_code)
+        (offsets[&self.entry], machine_code)
     }
 }
 
 fn emit_block<'p>(
     block: &Block<'p, Arg>,
     machine_code: &mut Vec<u8>,
-    jumps: &mut HashMap<usize, &'p str>,
+    jumps: &mut HashMap<usize, UniqueSym<'p>>,
 ) {
     for instr in &block.instrs {
         emit_instr(instr, machine_code, jumps);
@@ -55,7 +52,7 @@ fn emit_block<'p>(
 fn emit_instr<'p>(
     instr: &Instr<'p, Arg>,
     machine_code: &mut Vec<u8>,
-    jumps: &mut HashMap<usize, &'p str>,
+    jumps: &mut HashMap<usize, UniqueSym<'p>>,
 ) {
     let v = match instr {
         Instr::Addq { src, dst } => encode_binary_instr(ADDQ_INFO, src, dst),
@@ -65,15 +62,15 @@ fn emit_instr<'p>(
         Instr::Pushq { src } => encode_push_pop(PUSHQ_INFO, src),
         Instr::Popq { dst } => encode_push_pop(POPQ_INFO, dst),
         Instr::Callq { lbl, .. } => {
-            jumps.insert(machine_code.len() + 1, lbl);
+            jumps.insert(machine_code.len() + 1, *lbl);
             vec![0xE8, 0x00, 0x00, 0x00, 0x00]
         }
         Instr::Jmp { lbl } => {
-            jumps.insert(machine_code.len() + 1, lbl);
+            jumps.insert(machine_code.len() + 1, *lbl);
             vec![0xE9, 0x00, 0x00, 0x00, 0x00]
         }
         Instr::Jcc { lbl, cnd } => {
-            jumps.insert(machine_code.len() + 2, lbl);
+            jumps.insert(machine_code.len() + 2, *lbl);
             vec![0x0F, encode_cnd(cnd), 0x00, 0x00, 0x00, 0x00]
         }
         Instr::Retq => vec![0xC3],
@@ -92,6 +89,12 @@ fn emit_instr<'p>(
             },
             src,
         ),
+        Instr::Cmpq { .. } => todo!(),
+        Instr::Andq { .. } => todo!(),
+        Instr::Orq { .. } => todo!(),
+        Instr::Xorq { .. } => todo!(),
+        Instr::Notq { .. } => todo!(),
+        Instr::Setcc { .. } => todo!(),
     };
     machine_code.extend(v);
 }
@@ -123,12 +126,12 @@ fn encode_cnd(cnd: &Cnd) -> u8 {
         Cnd::AboveOrEqual | Cnd::NotCarry => 0x83,
         Cnd::Below | Cnd::Carry => 0x82,
         Cnd::BelowOrEqual => 0x86,
-        Cnd::Equal => 0x84,
-        Cnd::Greater => 0x8F,
-        Cnd::GreaterOrEqual => 0x8D,
-        Cnd::Less => 0x8C,
-        Cnd::LessOrEqual => 0x8E,
-        Cnd::NotEqual => 0x85,
+        Cnd::EQ => 0x84,
+        Cnd::GT => 0x8F,
+        Cnd::GE => 0x8D,
+        Cnd::LT => 0x8C,
+        Cnd::LE => 0x8E,
+        Cnd::NE => 0x85,
         Cnd::NotOverflow => 0x81,
         Cnd::ParityOdd => 0x8B,
         Cnd::NotSign => 0x89,

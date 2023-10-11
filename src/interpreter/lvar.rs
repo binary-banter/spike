@@ -1,8 +1,8 @@
+use crate::interpreter::value::Val;
 use crate::interpreter::IO;
 use crate::language::lvar::{Expr, GLVarProgram, Op};
 use crate::utils::push_map::PushMap;
 use std::hash::Hash;
-use crate::interpreter::value::Val;
 
 impl<A: Copy + Hash + Eq> GLVarProgram<A> {
     pub fn interpret(&self, io: &mut impl IO) -> Val {
@@ -10,13 +10,13 @@ impl<A: Copy + Hash + Eq> GLVarProgram<A> {
     }
 }
 
-fn interpret_expr<A: Copy + Hash + Eq>(
+pub fn interpret_expr<A: Copy + Hash + Eq>(
     expr: &Expr<A>,
     scope: &mut PushMap<A, Val>,
     io: &mut impl IO,
 ) -> Val {
     match expr {
-        Expr::Int { val } => Val::Int { val: *val},
+        Expr::Val { val } => *val,
         Expr::Var { sym } => scope[sym],
         Expr::Prim { op, args } => match (op, args.as_slice()) {
             (Op::Read, []) => io.read(),
@@ -28,59 +28,63 @@ fn interpret_expr<A: Copy + Hash + Eq>(
             (Op::Plus, [e1, e2]) => {
                 let e1 = interpret_expr(e1, scope, io).int();
                 let e2 = interpret_expr(e2, scope, io).int();
-                Val::Int {val : e1 + e2 }
+                Val::Int { val: e1 + e2 }
             }
             (Op::Minus, [e1, e2]) => {
                 let e1 = interpret_expr(e1, scope, io).int();
                 let e2 = interpret_expr(e2, scope, io).int();
-                Val::Int {val :e1 - e2 }
+                Val::Int { val: e1 - e2 }
             }
             (Op::Minus, [e1]) => {
                 let e1 = interpret_expr(e1, scope, io).int();
-                Val::Int {val :-e1}
+                Val::Int { val: -e1 }
             }
-            (Op::Greater , [e1, e2]) => {
+            (Op::GT, [e1, e2]) => {
                 let e1 = interpret_expr(e1, scope, io).int();
                 let e2 = interpret_expr(e2, scope, io).int();
-                Val::Bool{val: e1 > e2}
+                Val::Bool { val: e1 > e2 }
             }
-            ( Op::GreaterOrEqual , [e1, e2]) => {
+            (Op::GE, [e1, e2]) => {
                 let e1 = interpret_expr(e1, scope, io).int();
                 let e2 = interpret_expr(e2, scope, io).int();
-                Val::Bool{val: e1 >= e2}
+                Val::Bool { val: e1 >= e2 }
             }
-            (Op::Less , [e1, e2]) => {
+            (Op::LT, [e1, e2]) => {
                 let e1 = interpret_expr(e1, scope, io).int();
                 let e2 = interpret_expr(e2, scope, io).int();
-                Val::Bool{val: e1 < e2}
+                Val::Bool { val: e1 < e2 }
             }
-            (Op::LessOrEqual, [e1, e2]) => {
+            (Op::LE, [e1, e2]) => {
                 let e1 = interpret_expr(e1, scope, io).int();
                 let e2 = interpret_expr(e2, scope, io).int();
-                Val::Bool{val: e1 <= e2}
+                Val::Bool { val: e1 <= e2 }
             }
-            (Op::Equal, [e1, e2]) => {
+            (Op::EQ, [e1, e2]) => {
                 let e1 = interpret_expr(e1, scope, io);
                 let e2 = interpret_expr(e2, scope, io);
-                Val::Bool{val: e1 == e2}
+                Val::Bool { val: e1 == e2 }
             }
-            (Op::NotEqual, [e1, e2]) => {
+            (Op::NE, [e1, e2]) => {
                 let e1 = interpret_expr(e1, scope, io);
                 let e2 = interpret_expr(e2, scope, io);
-                Val::Bool{val: e1 != e2}
+                Val::Bool { val: e1 != e2 }
             }
             (Op::Not, [e1]) => {
                 let e1 = interpret_expr(e1, scope, io).bool();
-                Val::Bool{val: !e1}
+                Val::Bool { val: !e1 }
             }
             (Op::LAnd, [e1, e2]) => {
                 let e1 = interpret_expr(e1, scope, io).bool();
-                if !e1 { return Val::Bool { val: false } }
+                if !e1 {
+                    return Val::Bool { val: false };
+                }
                 interpret_expr(e2, scope, io)
             }
             (Op::LOr, [e1, e2]) => {
                 let e1 = interpret_expr(e1, scope, io).bool();
-                if e1 { return Val::Bool { val: true } }
+                if e1 {
+                    return Val::Bool { val: true };
+                }
                 interpret_expr(e2, scope, io)
             }
             (Op::Xor, [e1, e2]) => {
@@ -101,7 +105,6 @@ fn interpret_expr<A: Copy + Hash + Eq>(
                 interpret_expr(els, scope, io)
             }
         }
-        Expr::Bool { val } => Val::Bool {val: *val},
     }
 }
 
