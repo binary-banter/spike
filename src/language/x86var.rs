@@ -1,10 +1,13 @@
+use crate::passes::select::io::Std;
 use crate::passes::uniquify::UniqueSym;
-use crate::{addq, andq, callq, cmpq, divq, jcc, jmp, movq, mulq, negq, notq, orq, popq, pushq, retq, subq, syscall, xorq};
+use crate::{
+    addq, andq, callq, cmpq, divq, jcc, jmp, movq, mulq, negq, notq, orq, popq, pushq, retq, subq,
+    syscall, xorq,
+};
 use petgraph::prelude::GraphMap;
 use petgraph::Undirected;
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
-use crate::passes::select::io::Std;
 
 #[derive(Debug, PartialEq)]
 pub struct X86Program<'p> {
@@ -446,7 +449,10 @@ mod macros {
     #[macro_export]
     macro_rules! reg {
         ($reg:ident) => {
-            $crate::language::x86var::Arg::Reg { reg: $crate::language::x86var::Reg::$reg }.into()
+            $crate::language::x86var::Arg::Reg {
+                reg: $crate::language::x86var::Reg::$reg,
+            }
+            .into()
         };
     }
 

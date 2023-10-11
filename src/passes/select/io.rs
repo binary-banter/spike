@@ -2,8 +2,8 @@ use crate::language::x86var::Reg;
 use crate::language::x86var::{Block, Cnd, VarArg};
 use crate::passes::uniquify::{gen_sym, UniqueSym};
 use crate::{
-    addq, block, deref, divq, imm, jcc, jmp, movq, mulq, negq, popq, pushq, reg, retq, subq,
-    syscall, cmpq
+    addq, block, cmpq, deref, divq, imm, jcc, jmp, movq, mulq, negq, popq, pushq, reg, retq, subq,
+    syscall,
 };
 use std::collections::HashMap;
 

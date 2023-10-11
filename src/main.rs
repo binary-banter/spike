@@ -71,23 +71,23 @@ fn main() -> miette::Result<()> {
 
     type_check_program(&program)?;
 
-    // let program = program
-    //     .uniquify()
-    //     .remove_complex_operands()
-    //     .explicate()
-    //     .select()
-    //     .add_liveness()
-    //     .compute_interference()
-    //     .color_interference()
-    //     .assign_homes()
-    //     .patch()
-    //     .conclude();
-    //
-    // let (entry, program) = program.emit();
-    //
-    // let elf = ElfFile::new(entry, &program);
-    // let mut file = File::create(output).unwrap();
-    // elf.write(&mut file);
+    let program = program
+        .uniquify()
+        .remove_complex_operands()
+        .explicate()
+        .select()
+        .add_liveness()
+        .compute_interference()
+        .color_interference()
+        .assign_homes()
+        .patch()
+        .conclude();
+
+    let (entry, program) = program.emit();
+
+    let elf = ElfFile::new(entry, &program);
+    let mut file = File::create(output).unwrap();
+    elf.write(&mut file);
 
     Ok(())
 }

@@ -1,12 +1,14 @@
-use crate::interpreter::IO;
-use crate::language::x86var::{Block, CALLEE_SAVED, CALLER_SAVED, Cnd, Instr, Reg, VarArg, X86VarProgram};
-use crate::passes::uniquify::UniqueSym;
-use std::collections::HashMap;
-use nom::AsBytes;
 use crate::interpreter::value::Val;
+use crate::interpreter::IO;
+use crate::language::x86var::{
+    Block, Cnd, Instr, Reg, VarArg, X86VarProgram, CALLEE_SAVED, CALLER_SAVED,
+};
+use crate::passes::uniquify::UniqueSym;
+use nom::AsBytes;
+use std::collections::HashMap;
 
 #[derive(Default)]
-struct Status{
+struct Status {
     /// CF
     carry: bool,
     /// PF
@@ -33,10 +35,10 @@ struct X86Interpreter<'p, I: IO> {
 
 impl<'p> X86VarProgram<'p> {
     pub fn interpret(&self, io: &mut impl IO) -> i64 {
-        let block_ids = self.blocks.iter().map(|(sym, block)| (sym.id, *sym)).collect();
+        let block_ids = self.blocks.keys().map(|sym| (sym.id, *sym)).collect();
 
         let mut regs = HashMap::new();
-        for reg in CALLEE_SAVED.into_iter().chain(CALLER_SAVED.into_iter()){
+        for reg in CALLEE_SAVED.into_iter().chain(CALLER_SAVED.into_iter()) {
             regs.insert(reg, 0);
         }
         regs.insert(Reg::RBP, i64::MAX - 7);
@@ -71,7 +73,6 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
     }
 
     fn interpret_block(&mut self, block_name: UniqueSym<'p>, offset: usize) -> i64 {
-
         let block = &self.blocks[&block_name];
 
         for (instr_id, instr) in block.instrs.iter().enumerate().skip(offset) {
@@ -100,7 +101,7 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                     return self.interpret_block(*lbl, 0);
                 }
                 Instr::Callq { lbl, .. } => {
-                    let ret_addr = self.instr_to_addr(block_name, instr_id +1);
+                    let ret_addr = self.instr_to_addr(block_name, instr_id + 1);
 
                     let rsp = self.regs.get_mut(&Reg::RSP).unwrap();
                     assert_eq!(*rsp % 8, 0, "Misaligned stack pointer.");
@@ -116,16 +117,14 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                     *self.regs.get_mut(&Reg::RSP).unwrap() += 8;
 
                     return self.interpret_addr(addr);
-                },
-                Instr::Syscall => {
-                    match self.regs[&Reg::RAX] {
-                        0x00 => self.syscall_read(),
-                        0x01 => self.syscall_write(),
-                        0x3C => {
-                            return self.regs[&Reg::RDI];
-                        }
-                        _ => unreachable!(),
+                }
+                Instr::Syscall => match self.regs[&Reg::RAX] {
+                    0x00 => self.syscall_read(),
+                    0x01 => self.syscall_write(),
+                    0x3C => {
+                        return self.regs[&Reg::RDI];
                     }
+                    _ => unreachable!(),
                 },
                 Instr::Divq { divisor } => {
                     let rax = self.regs[&Reg::RAX];
@@ -152,10 +151,14 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                         Cnd::Below | Cnd::Carry => self.status.carry,
                         Cnd::BelowOrEqual => self.status.carry || self.status.zero,
                         Cnd::Equal => self.status.zero,
-                        Cnd::Greater => !self.status.zero && self.status.sign == self.status.overflow,
+                        Cnd::Greater => {
+                            !self.status.zero && self.status.sign == self.status.overflow
+                        }
                         Cnd::GreaterOrEqual => self.status.sign == self.status.overflow,
                         Cnd::Less => self.status.sign != self.status.overflow,
-                        Cnd::LessOrEqual => self.status.zero || self.status.sign != self.status.overflow,
+                        Cnd::LessOrEqual => {
+                            self.status.zero || self.status.sign != self.status.overflow
+                        }
                         Cnd::NotEqual => !self.status.zero,
                         Cnd::NotOverflow => !self.status.overflow,
                         Cnd::NotSign => self.status.sign,
@@ -168,7 +171,7 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                     if jmp {
                         return self.interpret_block(*lbl, 0);
                     }
-                },
+                }
                 Instr::Cmpq { src, dst } => {
                     let src = self.get_arg(src);
                     let dst = self.get_arg(dst);
@@ -185,19 +188,15 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                         sign: res < 0,
                         overflow,
                     }
-                },
+                }
                 Instr::Andq { src, dst } => {
                     self.set_arg(dst, self.get_arg(src) & self.get_arg(dst))
                 }
-                Instr::Orq { src, dst } => {
-                    self.set_arg(dst, self.get_arg(src) | self.get_arg(dst))
-                }
+                Instr::Orq { src, dst } => self.set_arg(dst, self.get_arg(src) | self.get_arg(dst)),
                 Instr::Xorq { src, dst } => {
                     self.set_arg(dst, self.get_arg(src) ^ self.get_arg(dst))
                 }
-                Instr::Notq { dst } => {
-                    self.set_arg(dst, !self.get_arg(dst))
-                }
+                Instr::Notq { dst } => self.set_arg(dst, !self.get_arg(dst)),
             }
         }
         panic!("A block ran out of instructions.");
@@ -248,12 +247,18 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
         assert_eq!(file, 1, "Only writing to stdout is supported right now.");
         let buffer = self.regs[&Reg::RSI];
         let buffer_len = self.regs[&Reg::RDX];
-        assert_eq!(buffer_len, 1, "Only writing 1 byte at a time is supported right now.");
+        assert_eq!(
+            buffer_len, 1,
+            "Only writing 1 byte at a time is supported right now."
+        );
 
         let val = *self.memory.get(&buffer).unwrap();
         match val as u8 {
             b'\n' => {
-                let val = std::str::from_utf8(self.write_buffer.as_bytes()).unwrap().parse().unwrap();
+                let val = std::str::from_utf8(self.write_buffer.as_bytes())
+                    .unwrap()
+                    .parse()
+                    .unwrap();
                 self.io.print(Val::Int { val });
                 self.write_buffer.clear();
             }

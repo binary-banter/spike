@@ -5,13 +5,13 @@
 
 pub mod io;
 
-use std::collections::HashMap;
 use crate::language::alvar::Atom;
 use crate::language::cvar::{CExpr, CVarProgram, Tail};
 use crate::language::lvar::Op;
 use crate::language::x86var::{Block, Cnd, Instr, VarArg, X86VarProgram};
-use crate::*;
 use crate::passes::select::io::Std;
+use crate::*;
+use std::collections::HashMap;
 
 impl<'p> CVarProgram<'p> {
     /// See module-level documentation.
@@ -28,7 +28,7 @@ impl<'p> CVarProgram<'p> {
         X86VarProgram {
             blocks,
             entry: self.entry,
-            std
+            std,
         }
     }
 }
@@ -118,8 +118,8 @@ fn select_cmp(op: Op) -> Cnd {
 mod tests {
     use crate::interpreter::TestIO;
     use crate::utils::split_test::split_test;
-    use test_each_file::test_each_file;
     use crate::{callq, movq, reg};
+    use test_each_file::test_each_file;
 
     fn select([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);
