@@ -186,6 +186,18 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                         overflow,
                     }
                 },
+                Instr::Andq { src, dst } => {
+                    self.set_arg(dst, self.get_arg(src) & self.get_arg(dst))
+                }
+                Instr::Orq { src, dst } => {
+                    self.set_arg(dst, self.get_arg(src) | self.get_arg(dst))
+                }
+                Instr::Xorq { src, dst } => {
+                    self.set_arg(dst, self.get_arg(src) ^ self.get_arg(dst))
+                }
+                Instr::Notq { dst } => {
+                    self.set_arg(dst, !self.get_arg(dst))
+                }
             }
         }
         panic!("A block ran out of instructions.");

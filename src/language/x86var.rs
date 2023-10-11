@@ -1,7 +1,5 @@
 use crate::passes::uniquify::UniqueSym;
-use crate::{
-    addq, callq, cmpq, divq, jcc, jmp, movq, mulq, negq, popq, pushq, retq, subq, syscall,
-};
+use crate::{addq, andq, callq, cmpq, divq, jcc, jmp, movq, mulq, negq, notq, orq, popq, pushq, retq, subq, syscall, xorq};
 use petgraph::prelude::GraphMap;
 use petgraph::Undirected;
 use std::collections::{HashMap, HashSet};
@@ -112,6 +110,10 @@ pub enum Instr<'p, A> {
     Cmpq { src: A, dst: A },
     Jmp { lbl: UniqueSym<'p> },
     Jcc { lbl: UniqueSym<'p>, cnd: Cnd },
+    Andq { src: A, dst: A },
+    Orq { src: A, dst: A },
+    Xorq { src: A, dst: A },
+    Notq { dst: A },
 }
 
 #[derive(Debug, PartialEq, Clone, Copy, Hash, Eq)]
@@ -256,6 +258,10 @@ impl<'p> From<Instr<'p, Arg>> for Instr<'p, VarArg<'p>> {
             Instr::Jcc { lbl, cnd } => jcc!(lbl, cnd),
             Instr::Mulq { src } => mulq!(src.into()),
             Instr::Cmpq { src, dst } => cmpq!(src.into(), dst.into()),
+            Instr::Andq { src, dst } => andq!(src.into(), dst.into()),
+            Instr::Orq { src, dst } => orq!(src.into(), dst.into()),
+            Instr::Xorq { src, dst } => xorq!(src.into(), dst.into()),
+            Instr::Notq { dst } => notq!(dst.into()),
         }
     }
 }
@@ -319,6 +325,42 @@ mod macros {
                 src: $src,
                 dst: $dst,
             }
+        };
+    }
+    #[macro_export]
+    macro_rules! andq {
+        ($src:expr, $dst:expr) => {
+            $crate::language::x86var::Instr::Andq {
+                src: $src,
+                dst: $dst,
+            }
+        };
+    }
+
+    #[macro_export]
+    macro_rules! orq {
+        ($src:expr, $dst:expr) => {
+            $crate::language::x86var::Instr::Orq {
+                src: $src,
+                dst: $dst,
+            }
+        };
+    }
+
+    #[macro_export]
+    macro_rules! xorq {
+        ($src:expr, $dst:expr) => {
+            $crate::language::x86var::Instr::Xorq {
+                src: $src,
+                dst: $dst,
+            }
+        };
+    }
+
+    #[macro_export]
+    macro_rules! notq {
+        ($dst:expr) => {
+            $crate::language::x86var::Instr::Notq { dst: $dst }
         };
     }
 
