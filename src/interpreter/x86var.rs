@@ -41,8 +41,10 @@ impl<'p> X86VarProgram<'p> {
         for reg in CALLEE_SAVED.into_iter().chain(CALLER_SAVED.into_iter()) {
             regs.insert(reg, 0);
         }
+
+        // We give 0x1000 stack space to test programs - this might not be enough (you weirdos)!
         regs.insert(Reg::RBP, i64::MAX - 7);
-        regs.insert(Reg::RSP, i64::MAX - 7);
+        regs.insert(Reg::RSP, (i64::MAX - 7) - 0x1000);
 
         let mut state = X86Interpreter {
             blocks: &self.blocks,
