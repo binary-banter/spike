@@ -141,9 +141,9 @@ pub enum LArg<'p> {
     Reg { reg: Reg },
 }
 
-impl<'p> Into<VarArg<'p>> for LArg<'p> {
-    fn into(self) -> VarArg<'p> {
-        match self {
+impl<'p> From<LArg<'p>> for VarArg<'p> {
+    fn from(val: LArg<'p>) -> Self {
+        match val {
             LArg::Var { sym } => VarArg::XVar { sym },
             LArg::Reg { reg } => VarArg::Reg { reg },
         }

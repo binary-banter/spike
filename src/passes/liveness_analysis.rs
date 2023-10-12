@@ -3,9 +3,9 @@ use crate::language::x86var::{
     CALLER_SAVED, SYSCALL_REGS,
 };
 use crate::passes::uniquify::UniqueSym;
-use petgraph::algo::toposort;
-use petgraph::graphmap::GraphMap;
-use petgraph::Directed;
+
+
+
 use std::collections::{HashMap, HashSet};
 
 impl<'p> X86VarProgram<'p> {
@@ -26,7 +26,7 @@ impl<'p> X86VarProgram<'p> {
                 let (new_liveness, before) = block_liveness(block, &before_map);
                 before_map.insert(*sym, before);
 
-                match liveness.get(&sym) {
+                match liveness.get(sym) {
                     None => {
                         liveness.insert(*sym, new_liveness);
                         changed = true
@@ -78,7 +78,7 @@ fn block_liveness<'p>(
     for instr in block.instrs.iter().rev() {
         let last_live = live.clone();
 
-        handle_instr(&instr, before_map, |arg, op| match (arg, op) {
+        handle_instr(instr, before_map, |arg, op| match (arg, op) {
             (VarArg::Imm { .. }, _) => {}
             (VarArg::Reg { reg }, ReadWriteOp::Read) => {
                 live.insert(LArg::Reg { reg: *reg });
@@ -172,12 +172,12 @@ pub fn handle_instr<'p>(
         Instr::Mulq { src } => {
             arg(&VarArg::Reg { reg: Reg::RDX }, W);
             arg(&VarArg::Reg { reg: Reg::RAX }, RW);
-            arg(&src, R);
+            arg(src, R);
         }
         Instr::Divq { divisor } => {
             arg(&VarArg::Reg { reg: Reg::RDX }, RW);
             arg(&VarArg::Reg { reg: Reg::RAX }, RW);
-            arg(&divisor, R);
+            arg(divisor, R);
         }
         Instr::Jmp { lbl } | Instr::Jcc { lbl, .. } => {
             for larg in before_map.get(lbl).unwrap_or(&HashSet::new()) {
