@@ -74,7 +74,7 @@ fn emit_instr<'p>(
             vec![0x0F, encode_cnd(cnd), 0x00, 0x00, 0x00, 0x00]
         }
         Instr::Retq => vec![0xC3],
-        Instr::Syscall => vec![0x0F, 0x05],
+        Instr::Syscall { .. } => vec![0x0F, 0x05],
         Instr::Divq { divisor } => encode_muldiv_instr(
             MulDivOpInfo {
                 op: 0xF7,

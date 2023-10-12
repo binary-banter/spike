@@ -118,7 +118,7 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
 
                     return self.interpret_addr(addr);
                 }
-                Instr::Syscall => match self.regs[&Reg::RAX] {
+                Instr::Syscall { .. } => match self.regs[&Reg::RAX] {
                     0x00 => self.syscall_read(),
                     0x01 => self.syscall_write(),
                     0x3C => {

@@ -4,7 +4,10 @@
 
 use crate::language::x86var::{AX86Program, Arg, Block, CX86VarProgram, Instr, VarArg};
 use crate::passes::uniquify::UniqueSym;
-use crate::{addq, callq, divq, jcc, jmp, movq, mulq, negq, popq, pushq, retq, subq, syscall};
+use crate::{
+    addq, andq, callq, cmpq, divq, jcc, jmp, movq, mulq, negq, notq, orq, popq, pushq, retq, setcc,
+    subq, syscall, xorq,
+};
 use std::collections::HashMap;
 
 impl<'p> CX86VarProgram<'p> {
@@ -58,15 +61,15 @@ fn assign_instr<'p>(
         Instr::Popq { dst } => popq!(map(dst)),
         Instr::Callq { lbl, arity } => callq!(lbl, arity),
         Instr::Retq => retq!(),
-        Instr::Syscall => syscall!(),
+        Instr::Syscall { arity } => syscall!(arity),
         Instr::Jmp { lbl } => jmp!(lbl),
         Instr::Jcc { lbl, cnd } => jcc!(lbl, cnd),
-        Instr::Cmpq { .. } => todo!(),
-        Instr::Andq { .. } => todo!(),
-        Instr::Orq { .. } => todo!(),
-        Instr::Xorq { .. } => todo!(),
-        Instr::Notq { .. } => todo!(),
-        Instr::Setcc { .. } => todo!(),
+        Instr::Cmpq { src, dst } => cmpq!(map(src), map(dst)),
+        Instr::Andq { src, dst } => andq!(map(src), map(dst)),
+        Instr::Orq { src, dst } => orq!(map(src), map(dst)),
+        Instr::Xorq { src, dst } => xorq!(map(src), map(dst)),
+        Instr::Notq { dst } => notq!(map(dst)),
+        Instr::Setcc { cnd } => setcc!(cnd),
     }
 }
 

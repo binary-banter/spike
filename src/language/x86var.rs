@@ -109,7 +109,7 @@ pub enum Instr<'p, A> {
     Popq { dst: A },
     Callq { lbl: UniqueSym<'p>, arity: usize },
     Retq,
-    Syscall,
+    Syscall { arity: usize },
     Cmpq { src: A, dst: A },
     Jmp { lbl: UniqueSym<'p> },
     Jcc { lbl: UniqueSym<'p>, cnd: Cnd },
@@ -141,6 +141,15 @@ pub enum LArg<'p> {
     Reg { reg: Reg },
 }
 
+impl<'p> Into<VarArg<'p>> for LArg<'p> {
+    fn into(self) -> VarArg<'p> {
+        match self {
+            LArg::Var { sym } => VarArg::XVar { sym },
+            LArg::Reg { reg } => VarArg::Reg { reg },
+        }
+    }
+}
+
 pub const CALLER_SAVED: [Reg; 9] = [
     Reg::RAX,
     Reg::RCX,
@@ -162,6 +171,15 @@ pub const CALLEE_SAVED: [Reg; 7] = [
     Reg::R15,
 ];
 pub const ARG_PASSING_REGS: [Reg; 6] = [Reg::RDI, Reg::RSI, Reg::RDX, Reg::RCX, Reg::R8, Reg::R9];
+pub const SYSCALL_REGS: [Reg; 7] = [
+    Reg::RAX,
+    Reg::RDI,
+    Reg::RSI,
+    Reg::RDX,
+    Reg::RCX,
+    Reg::R8,
+    Reg::R9,
+];
 
 /// caller-saved:   rax rcx rdx rsi rdi r8 r9 r10 r11
 /// callee-saved:   rsp rbp rbx r12 r13 r14 r15
@@ -257,7 +275,7 @@ impl<'p> From<Instr<'p, Arg>> for Instr<'p, VarArg<'p>> {
             Instr::Callq { lbl, arity } => callq!(lbl, arity),
             Instr::Retq => retq!(),
             Instr::Jmp { lbl } => jmp!(lbl),
-            Instr::Syscall => syscall!(),
+            Instr::Syscall { arity } => syscall!(arity),
             Instr::Divq { divisor } => divq!(divisor.into()),
             Instr::Jcc { lbl, cnd } => jcc!(lbl, cnd),
             Instr::Mulq { src } => mulq!(src.into()),
@@ -443,8 +461,8 @@ mod macros {
 
     #[macro_export]
     macro_rules! syscall {
-        () => {
-            $crate::language::x86var::Instr::Syscall
+        ($arity:expr) => {
+            $crate::language::x86var::Instr::Syscall { arity: $arity }
         };
     }
 

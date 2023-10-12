@@ -28,7 +28,7 @@ impl<'p> Std<'p> {
 
 fn add_exit_block<'p>(blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg>>) -> UniqueSym<'p> {
     let entry = gen_sym("exit");
-    blocks.insert(entry, block!(movq!(imm!(0x3C), reg!(RAX)), syscall!()));
+    blocks.insert(entry, block!(movq!(imm!(0x3C), reg!(RAX)), syscall!(2)));
     entry
 }
 
@@ -83,7 +83,7 @@ fn add_print_block<'p>(blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg>>) -
             movq!(imm!(1), reg!(RDI)), // STDOUT
             movq!(reg!(RSP), reg!(RSI)),
             movq!(imm!(1), reg!(RDX)),
-            syscall!(),
+            syscall!(4),
             // Check if we continue
             popq!(reg!(RAX)),
             cmpq!(imm!(i64::from(b'\n')), reg!(RAX)),
@@ -121,7 +121,7 @@ fn add_read_block<'p>(
             movq!(imm!(0), reg!(RDI)),   // STDIN = 0
             movq!(reg!(RSP), reg!(RSI)), // RSI is pointer to allocated byte
             movq!(imm!(1), reg!(RDX)),   // bytes to read = 1
-            syscall!(),
+            syscall!(4),
             // check if first character is -
             movq!(deref!(RSP, 0), reg!(RAX)),
             movq!(reg!(RAX), reg!(RCX)),
@@ -142,7 +142,7 @@ fn add_read_block<'p>(
             movq!(imm!(0), reg!(RDI)),   // STDIN = 0
             movq!(reg!(RSP), reg!(RSI)), // RSI is pointer to allocated byte
             movq!(imm!(1), reg!(RDX)),   // bytes to read = 1
-            syscall!(),
+            syscall!(4),
             jmp!(read_int_first)
         ),
     );
