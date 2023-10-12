@@ -7,7 +7,9 @@ mod special;
 mod unary;
 
 use crate::language::x86var::{Arg, Block, Cnd, Instr, Reg, X86Program};
-use crate::passes::emit::binary::{encode_binary_instr, ADDQ_INFO, MOVQ_INFO, SUBQ_INFO};
+use crate::passes::emit::binary::{
+    encode_binary_instr, ADDQ_INFO, CMPQ_INFO, MOVQ_INFO, SUBQ_INFO,
+};
 use crate::passes::emit::mul_div::{encode_muldiv_instr, MulDivOpInfo};
 use crate::passes::emit::push_pop::{encode_push_pop, POPQ_INFO, PUSHQ_INFO};
 use crate::passes::emit::unary::{encode_unary_instr, NEGQ_INFO};
@@ -89,7 +91,7 @@ fn emit_instr<'p>(
             },
             src,
         ),
-        Instr::Cmpq { .. } => todo!(),
+        Instr::Cmpq { src, dst } => encode_binary_instr(CMPQ_INFO, src, dst),
         Instr::Andq { .. } => todo!(),
         Instr::Orq { .. } => todo!(),
         Instr::Xorq { .. } => todo!(),

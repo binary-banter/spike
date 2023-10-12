@@ -4,8 +4,6 @@ use crate::language::x86var::{
 };
 use crate::passes::uniquify::UniqueSym;
 
-
-
 use std::collections::{HashMap, HashSet};
 
 impl<'p> X86VarProgram<'p> {
