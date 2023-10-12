@@ -97,7 +97,7 @@ pub enum Cnd {
     Sign,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Instr<'p, A> {
     Addq { src: A, dst: A },
     Subq { src: A, dst: A },

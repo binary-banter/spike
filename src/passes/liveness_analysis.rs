@@ -7,47 +7,52 @@ use crate::passes::uniquify::UniqueSym;
 
 impl<'p> X86VarProgram<'p> {
     pub fn add_liveness(self) -> LX86VarProgram<'p> {
-        let graph = create_graph(self.blocks);
+        let graph = create_graph(&self.blocks);
 
-        for block in toposort(&graph, None).expect("Block graph has no cycles") {
-            // we have cycles, so we are very, very sad :(.
-            // time to die
-            /*
-              o_
-             |
-            / \
-          ----
-              \
-              |
-              |
-              \-~~~~~~ [photo of shark here] ~~~~~~~~~~
+        // maps block names to what is live before the block
+        let mut before_map = HashMap::<UniqueSym, HashSet<LArg>>::new();
+        // maps block names to blocks with liveness info added
+        let mut liveness = HashMap::<UniqueSym, LBlock>::new();
 
-             */
+        let mut changed = true;
+
+        while changed {
+            changed = false;
+
+            for (sym, block) in &self.blocks{
+                let (new_liveness, before) = block_liveness(block, &before_map);
+                before_map.insert(*sym, before);
+
+                match liveness.get(&sym) {
+                    None => {
+                        liveness.insert(*sym, new_liveness);
+                        changed = true
+                    },
+                    Some(old_liveness) => if *old_liveness != new_liveness {
+                        liveness.insert(*sym, new_liveness);
+                        changed = true
+                    }
+                }
+            }
         }
 
-        todo!();
-
         LX86VarProgram {
-            blocks: self
-                .blocks
-                .into_iter()
-                .map(|(name, block)| (name, block_liveness(block, &before_map)))
-                .collect(),
+            blocks: liveness,
             entry: self.entry,
             std: self.std,
         }
     }
 }
 
-fn create_graph<'p>(blocks: HashMap<UniqueSym<'p>, Block<'p, VarArg<'p>>>) -> GraphMap<UniqueSym<'p>, (), Directed> {
+fn create_graph<'p>(blocks: &HashMap<UniqueSym<'p>, Block<'p, VarArg<'p>>>) -> GraphMap<UniqueSym<'p>, (), Directed> {
     let mut graph = GraphMap::default();
 
     for (src, block) in blocks{
-        graph.add_node(src);
-        for instr in block.instrs {
+        graph.add_node(*src);
+        for instr in &block.instrs {
             match instr {
                 Instr::Jmp { lbl } | Instr::Jcc { lbl, .. } => {
-                    graph.add_edge(src, lbl, ());
+                    graph.add_edge(*src, *lbl, ());
                 }
                 _ => {}
             }
@@ -57,11 +62,11 @@ fn create_graph<'p>(blocks: HashMap<UniqueSym<'p>, Block<'p, VarArg<'p>>>) -> Gr
     graph
 }
 
-fn block_liveness<'p>(block: Block<'p, VarArg<'p>>, before_map: &HashMap<UniqueSym<'p>, HashSet<LArg<'p>>>) -> LBlock<'p> {
+fn block_liveness<'p>(block: &Block<'p, VarArg<'p>>, before_map: &HashMap<UniqueSym<'p>, HashSet<LArg<'p>>>) -> (LBlock<'p>, HashSet<LArg<'p>>) {
     let mut instrs = Vec::new();
     let mut live = HashSet::new();
 
-    for instr in block.instrs.into_iter().rev() {
+    for instr in block.instrs.iter().rev() {
         let last_live = live.clone();
 
         handle_instr(&instr, before_map, |arg, op| {
@@ -86,11 +91,11 @@ fn block_liveness<'p>(block: Block<'p, VarArg<'p>>, before_map: &HashMap<UniqueS
             }
         });
 
-        instrs.push((instr, last_live));
+        instrs.push((instr.clone(), last_live));
     }
 
     instrs.reverse();
-    LBlock { instrs }
+    (LBlock { instrs }, live)
 }
 
 enum ReadWriteOp {
