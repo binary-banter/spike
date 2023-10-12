@@ -1,10 +1,32 @@
 use crate::language::x86var::{Block, Instr, LArg, LBlock, LX86VarProgram, VarArg, X86VarProgram, ARG_PASSING_REGS, CALLER_SAVED, SYSCALL_REGS, Reg};
 use std::collections::{HashMap, HashSet};
+use petgraph::algo::toposort;
+use petgraph::Directed;
+use petgraph::graphmap::GraphMap;
 use crate::passes::uniquify::UniqueSym;
 
 impl<'p> X86VarProgram<'p> {
     pub fn add_liveness(self) -> LX86VarProgram<'p> {
-        let mut before_map = HashMap::new(); //TODO
+        let graph = create_graph(self.blocks);
+
+        for block in toposort(&graph, None).expect("Block graph has no cycles") {
+            // we have cycles, so we are very, very sad :(.
+            // time to die
+            /*
+              o_
+             |
+            / \
+          ----
+              \
+              |
+              |
+              \-~~~~~~ [photo of shark here] ~~~~~~~~~~
+
+             */
+        }
+
+        todo!();
+
         LX86VarProgram {
             blocks: self
                 .blocks
@@ -15,6 +37,24 @@ impl<'p> X86VarProgram<'p> {
             std: self.std,
         }
     }
+}
+
+fn create_graph<'p>(blocks: HashMap<UniqueSym<'p>, Block<'p, VarArg<'p>>>) -> GraphMap<UniqueSym<'p>, (), Directed> {
+    let mut graph = GraphMap::default();
+
+    for (src, block) in blocks{
+        graph.add_node(src);
+        for instr in block.instrs {
+            match instr {
+                Instr::Jmp { lbl } | Instr::Jcc { lbl, .. } => {
+                    graph.add_edge(src, lbl, ());
+                }
+                _ => {}
+            }
+        }
+    }
+
+    graph
 }
 
 fn block_liveness<'p>(block: Block<'p, VarArg<'p>>, before_map: &HashMap<UniqueSym<'p>, HashSet<LArg<'p>>>) -> LBlock<'p> {
