@@ -12,6 +12,7 @@ use crate::passes::emit::binary::{
 };
 use crate::passes::emit::mul_div::{encode_muldiv_instr, MulDivOpInfo};
 use crate::passes::emit::push_pop::{encode_push_pop, POPQ_INFO, PUSHQ_INFO};
+use crate::passes::emit::special::encode_setcc;
 use crate::passes::emit::unary::{encode_unary_instr, NEGQ_INFO};
 use crate::passes::uniquify::UniqueSym;
 use std::collections::HashMap;
@@ -68,7 +69,7 @@ fn emit_instr<'p>(
         Instr::Orq { src, dst } => encode_binary_instr(ORQ_INFO, src, dst),
         Instr::Xorq { src, dst } => encode_binary_instr(XORQ_INFO, src, dst),
         Instr::Notq { .. } => todo!(),
-        Instr::Setcc { .. } => todo!(),
+        Instr::Setcc { cnd } => encode_setcc(cnd),
         Instr::Callq { lbl, .. } => {
             jumps.insert(machine_code.len() + 1, *lbl);
             vec![0xE8, 0x00, 0x00, 0x00, 0x00]
