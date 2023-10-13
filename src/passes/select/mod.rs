@@ -88,7 +88,8 @@ fn select_assign<'p>(
             (Op::Not, [a0]) => vec![movq!(select_atom(a0), dst), xorq!(imm!(1), dst)],
             (Op::Xor, [a0, a1]) => vec![movq!(select_atom(a0), dst), xorq!(select_atom(a1), dst)],
             (op @ (Op::GT | Op::GE | Op::EQ | Op::LE | Op::LT | Op::NE), [a0, a1]) => vec![
-                cmpq!(select_atom(a1), select_atom(a0)),
+                movq!(select_atom(a0), reg!(RAX)),
+                cmpq!(select_atom(a1), reg!(RAX)),
                 movq!(imm!(0), reg!(RAX)),
                 setcc!(select_cmp(op)),
                 movq!(reg!(RAX), dst),
