@@ -8,6 +8,7 @@ pub fn parse_operation(input: &str) -> IResult<&str, Op> {
     alt((
         tag("+").map(|_| Op::Plus),
         tag("-").map(|_| Op::Minus),
+        tag("*").map(|_| Op::Mul),
         tag("read").map(|_| Op::Read),
         tag("print").map(|_| Op::Print),
         tag("&&").map(|_| Op::LAnd),

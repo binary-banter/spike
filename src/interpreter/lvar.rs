@@ -30,14 +30,19 @@ pub fn interpret_expr<A: Copy + Hash + Eq>(
                 let e2 = interpret_expr(e2, scope, io).int();
                 Val::Int { val: e1 + e2 }
             }
+            (Op::Minus, [e1]) => {
+                let e1 = interpret_expr(e1, scope, io).int();
+                Val::Int { val: -e1 }
+            }
             (Op::Minus, [e1, e2]) => {
                 let e1 = interpret_expr(e1, scope, io).int();
                 let e2 = interpret_expr(e2, scope, io).int();
                 Val::Int { val: e1 - e2 }
             }
-            (Op::Minus, [e1]) => {
+            (Op::Mul, [e1, e2]) => {
                 let e1 = interpret_expr(e1, scope, io).int();
-                Val::Int { val: -e1 }
+                let e2 = interpret_expr(e2, scope, io).int();
+                Val::Int { val: e1 * e2 }
             }
             (Op::GT, [e1, e2]) => {
                 let e1 = interpret_expr(e1, scope, io).int();

@@ -75,6 +75,12 @@ fn select_assign<'p>(
             (Op::Plus, [a0, a1]) => vec![movq!(select_atom(a0), dst), addq!(select_atom(a1), dst)],
             (Op::Minus, [a0, a1]) => vec![movq!(select_atom(a0), dst), subq!(select_atom(a1), dst)],
             (Op::Minus, [a0]) => vec![movq!(select_atom(a0), dst), negq!(dst)],
+            (Op::Mul, [a0, a1]) => vec![
+                movq!(select_atom(a1), reg!(RAX)),
+                movq!(select_atom(a0), reg!(RBX)),
+                mulq!(reg!(RBX)),
+                movq!(reg!(RAX), dst),
+            ],
             (Op::Read, []) => {
                 vec![callq!(std.read_int, 0), movq!(reg!(RAX), dst)]
             }
