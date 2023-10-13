@@ -8,7 +8,7 @@ mod unary;
 
 use crate::language::x86var::{Arg, Block, Cnd, Instr, Reg, X86Program};
 use crate::passes::emit::binary::{
-    encode_binary_instr, ADDQ_INFO, CMPQ_INFO, MOVQ_INFO, SUBQ_INFO,
+    encode_binary_instr, ADDQ_INFO, ANDQ_INFO, CMPQ_INFO, MOVQ_INFO, ORQ_INFO, SUBQ_INFO, XORQ_INFO,
 };
 use crate::passes::emit::mul_div::{encode_muldiv_instr, MulDivOpInfo};
 use crate::passes::emit::push_pop::{encode_push_pop, POPQ_INFO, PUSHQ_INFO};
@@ -63,6 +63,12 @@ fn emit_instr<'p>(
         Instr::Negq { dst } => encode_unary_instr(NEGQ_INFO, dst),
         Instr::Pushq { src } => encode_push_pop(PUSHQ_INFO, src),
         Instr::Popq { dst } => encode_push_pop(POPQ_INFO, dst),
+        Instr::Cmpq { src, dst } => encode_binary_instr(CMPQ_INFO, src, dst),
+        Instr::Andq { src, dst } => encode_binary_instr(ANDQ_INFO, src, dst),
+        Instr::Orq { src, dst } => encode_binary_instr(ORQ_INFO, src, dst),
+        Instr::Xorq { src, dst } => encode_binary_instr(XORQ_INFO, src, dst),
+        Instr::Notq { .. } => todo!(),
+        Instr::Setcc { .. } => todo!(),
         Instr::Callq { lbl, .. } => {
             jumps.insert(machine_code.len() + 1, *lbl);
             vec![0xE8, 0x00, 0x00, 0x00, 0x00]
@@ -91,12 +97,6 @@ fn emit_instr<'p>(
             },
             src,
         ),
-        Instr::Cmpq { src, dst } => encode_binary_instr(CMPQ_INFO, src, dst),
-        Instr::Andq { .. } => todo!(),
-        Instr::Orq { .. } => todo!(),
-        Instr::Xorq { .. } => todo!(),
-        Instr::Notq { .. } => todo!(),
-        Instr::Setcc { .. } => todo!(),
     };
     machine_code.extend(v);
 }

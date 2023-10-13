@@ -3,54 +3,63 @@ use crate::passes::emit::encode_reg;
 use crate::passes::emit::Reg;
 
 pub struct BinaryOpInfo {
-    /// Opcode in case the binary operation performs op(src: reg, dst: reg).
-    pub op_reg_reg: u8,
-    /// Opcode in case the binary operation performs op(src: imm, dst: reg).
-    pub op_imm_reg: u8,
-    /// Opcode in case the binary operation performs op(src: deref, dst: reg).
-    pub op_deref_reg: u8,
-    /// Opcode in case the binary operation performs op(src: reg, dst: deref).
-    pub op_reg_deref: u8,
-    /// Opcode in case the binary operation performs op(src: imm, dst: deref).
-    pub op_imm_deref: u8,
-    /// Bits to use instead of the absent src
-    pub imm_as_src: u8,
+    /// Opcode when src = Reg and dst = Reg | Deref.
+    pub r_rm: u8,
+    /// Opcode when src = Reg | Deref and dst = Reg.
+    pub rm_r: u8,
+    /// Opcode when src = Imm and dst = Reg | Deref.
+    pub i_rm: u8,
+    /// Padding to use instead of the src operand when src = Imm.
+    pub pad: u8,
 }
 
 pub const ADDQ_INFO: BinaryOpInfo = BinaryOpInfo {
-    op_reg_reg: 0x01,
-    op_reg_deref: 0x01,
-    op_imm_deref: 0x81,
-    op_imm_reg: 0x81,
-    op_deref_reg: 0x03,
-    imm_as_src: 0x00,
+    r_rm: 0x01,
+    rm_r: 0x03,
+    i_rm: 0x81,
+    pad: 0x00,
 };
 
 pub const SUBQ_INFO: BinaryOpInfo = BinaryOpInfo {
-    op_reg_reg: 0x29,
-    op_imm_reg: 0x81,
-    op_deref_reg: 0x2B,
-    op_reg_deref: 0x29,
-    op_imm_deref: 0x81,
-    imm_as_src: 0x05,
-};
-
-pub const MOVQ_INFO: BinaryOpInfo = BinaryOpInfo {
-    op_reg_reg: 0x89,
-    op_imm_reg: 0xC7,
-    op_deref_reg: 0x8B,
-    op_reg_deref: 0x89,
-    op_imm_deref: 0xC7,
-    imm_as_src: 0x00,
+    r_rm: 0x29,
+    rm_r: 0x2B,
+    i_rm: 0x81,
+    pad: 0x05,
 };
 
 pub const CMPQ_INFO: BinaryOpInfo = BinaryOpInfo {
-    op_reg_reg: 0x39,
-    op_reg_deref: 0x39,
-    op_imm_deref: 0x81,
-    op_imm_reg: 0x81,
-    op_deref_reg: 0x3B,
-    imm_as_src: 0x07,
+    r_rm: 0x39,
+    rm_r: 0x3B,
+    i_rm: 0x81,
+    pad: 0x07,
+};
+
+pub const ANDQ_INFO: BinaryOpInfo = BinaryOpInfo {
+    r_rm: 0x21,
+    rm_r: 0x23,
+    i_rm: 0x81,
+    pad: 0x04,
+};
+
+pub const ORQ_INFO: BinaryOpInfo = BinaryOpInfo {
+    r_rm: 0x09,
+    rm_r: 0x0B,
+    i_rm: 0x81,
+    pad: 0x01,
+};
+
+pub const XORQ_INFO: BinaryOpInfo = BinaryOpInfo {
+    r_rm: 0x31,
+    rm_r: 0x33,
+    i_rm: 0x81,
+    pad: 0x06,
+};
+
+pub const MOVQ_INFO: BinaryOpInfo = BinaryOpInfo {
+    r_rm: 0x89,
+    rm_r: 0x8B,
+    i_rm: 0xC7,
+    pad: 0x00,
 };
 
 pub fn encode_binary_instr(op_info: BinaryOpInfo, src: &Arg, dst: &Arg) -> Vec<u8> {
@@ -60,7 +69,7 @@ pub fn encode_binary_instr(op_info: BinaryOpInfo, src: &Arg, dst: &Arg) -> Vec<u
             let (d, ddd) = encode_reg(dst);
             vec![
                 0b0100_1000 | (s << 2) | d,
-                op_info.op_reg_reg,
+                op_info.r_rm,
                 0b11_000_000 | sss << 3 | ddd,
             ]
         }
@@ -71,7 +80,7 @@ pub fn encode_binary_instr(op_info: BinaryOpInfo, src: &Arg, dst: &Arg) -> Vec<u
 
             let mut v = vec![
                 0b0100_1000 | (d << 2) | s,
-                op_info.op_deref_reg,
+                op_info.rm_r,
                 0b10_000_000 | ddd << 3 | sss,
             ];
             if matches!(src, Reg::RSP | Reg::R12) {
@@ -87,7 +96,7 @@ pub fn encode_binary_instr(op_info: BinaryOpInfo, src: &Arg, dst: &Arg) -> Vec<u
 
             let mut v = vec![
                 0b0100_1000 | (s << 2) | d,
-                op_info.op_reg_deref,
+                op_info.r_rm,
                 0b10_000_000 | sss << 3 | ddd,
             ];
             if matches!(src, Reg::RSP | Reg::R12) {
@@ -102,8 +111,8 @@ pub fn encode_binary_instr(op_info: BinaryOpInfo, src: &Arg, dst: &Arg) -> Vec<u
 
             let mut v = vec![
                 0b0100_1000 | d,
-                op_info.op_imm_reg,
-                0b11_000_000 | op_info.imm_as_src << 3 | ddd,
+                op_info.i_rm,
+                0b11_000_000 | op_info.pad << 3 | ddd,
             ];
             v.extend(imm.to_le_bytes());
             v
@@ -115,8 +124,8 @@ pub fn encode_binary_instr(op_info: BinaryOpInfo, src: &Arg, dst: &Arg) -> Vec<u
 
             let mut v = vec![
                 0b0100_1000 | d,
-                op_info.op_imm_deref,
-                0b10_000_000 | op_info.imm_as_src << 3 | ddd,
+                op_info.i_rm,
+                0b10_000_000 | op_info.pad << 3 | ddd,
             ];
             if matches!(dst, Reg::RSP | Reg::R12) {
                 v.push(0x24);
