@@ -51,7 +51,8 @@ fn select_tail<'p>(tail: Tail<'p>, instrs: &mut Vec<Instr<'p, VarArg<'p>>>, std:
         }
         Tail::IfStmt { cnd, thn, els } => match cnd {
             CExpr::Prim { op, args } => instrs.extend(vec![
-                cmpq!(select_atom(&args[1]), select_atom(&args[0])),
+                movq!(select_atom(&args[0]), reg!(RAX)),
+                cmpq!(select_atom(&args[1]), reg!(RAX)),
                 jcc!(thn, select_cmp(op)),
                 jmp!(els),
             ]),
