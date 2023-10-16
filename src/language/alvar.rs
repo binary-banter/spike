@@ -1,9 +1,10 @@
 use crate::interpreter::value::Val;
-use crate::language::lvar::{Expr, Op, ULVarProgram};
+use crate::language::lvar::{Def, Expr, Op, ULVarProgram};
 use crate::passes::uniquify::UniqueSym;
 
 #[derive(Debug, PartialEq)]
 pub struct ALVarProgram<'p> {
+    pub defs: Vec<Def<Atom<'p>>>,
     pub bdy: AExpr<'p>,
 }
 
@@ -35,6 +36,7 @@ pub enum Atom<'p> {
 impl<'p> From<ALVarProgram<'p>> for ULVarProgram<'p> {
     fn from(value: ALVarProgram<'p>) -> Self {
         ULVarProgram {
+            defs: todo!(),
             bdy: value.bdy.into(),
         }
     }

@@ -13,6 +13,7 @@ impl<'p> LVarProgram<'p> {
     /// See module-level documentation.
     pub fn uniquify(self) -> ULVarProgram<'p> {
         ULVarProgram {
+            defs: todo!(),
             bdy: uniquify_expression(self.bdy, &mut PushMap::default()),
         }
     }

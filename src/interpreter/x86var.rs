@@ -152,7 +152,10 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                     }
                 }
                 Instr::Cmpq { src, dst } => {
-                    assert!(!matches!(dst, VarArg::Imm {..}), "Destination cannot be an immediate.");
+                    assert!(
+                        !matches!(dst, VarArg::Imm { .. }),
+                        "Destination cannot be an immediate."
+                    );
 
                     let src = self.get_arg(src);
                     let dst = self.get_arg(dst);

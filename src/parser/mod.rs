@@ -1,20 +1,25 @@
 mod bool;
+mod def;
 mod expression;
+mod r#fn;
 mod identifier;
 mod r#if;
 mod int;
 mod r#let;
 mod operation;
 mod prim;
+mod r#type;
 mod var;
 
 use crate::language::lvar::LVarProgram;
+use crate::parser::def::parse_def;
 use crate::parser::expression::parse_expression;
 use miette::{Diagnostic, SourceOffset, SourceSpan};
 use nom::character::complete::{multispace0, multispace1};
 use nom::combinator::all_consuming;
 use nom::error::{ErrorKind, ParseError};
-use nom::sequence::{preceded, terminated};
+use nom::multi::many0;
+use nom::sequence::{pair, preceded, terminated};
 use nom::Err;
 use nom::{IResult, Parser, Slice};
 use regex::Regex;
@@ -55,9 +60,12 @@ pub fn parse_program(src: &str) -> Result<LVarProgram, PrettyParseError> {
 }
 
 fn parse_program_sub(input: &str) -> IResult<&str, LVarProgram> {
-    all_consuming(terminated(parse_expression, multispace0))
-        .map(|bdy| LVarProgram { bdy })
-        .parse(input)
+    all_consuming(pair(
+        many0(parse_def),
+        terminated(trim0(parse_expression), multispace0),
+    ))
+    .map(|(defs, bdy)| LVarProgram { defs, bdy })
+    .parse(input)
 }
 
 fn trim0<'a, O, E: ParseError<&'a str>>(

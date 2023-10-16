@@ -1,6 +1,7 @@
 use crate::interpreter::value::Val;
 
 use crate::passes::uniquify::UniqueSym;
+use crate::type_checking::Type;
 use std::fmt::{Display, Formatter};
 
 pub type LVarProgram<'p> = GLVarProgram<&'p str>;
@@ -8,6 +9,7 @@ pub type ULVarProgram<'p> = GLVarProgram<UniqueSym<'p>>;
 
 #[derive(Debug, PartialEq)]
 pub struct GLVarProgram<A> {
+    pub defs: Vec<Def<A>>,
     pub bdy: Expr<A>,
 }
 
@@ -54,6 +56,16 @@ impl Display for Op {
             }
         )
     }
+}
+
+#[derive(Debug, PartialEq)]
+pub enum Def<A> {
+    Fn {
+        sym: A,
+        args: Vec<(A, Type)>,
+        typ: Type,
+        bdy: Box<Expr<A>>,
+    },
 }
 
 #[derive(Debug, PartialEq)]

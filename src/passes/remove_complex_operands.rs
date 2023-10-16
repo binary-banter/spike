@@ -14,6 +14,7 @@ impl<'p> ULVarProgram<'p> {
     /// See module-level documentation.
     pub fn remove_complex_operands(self) -> ALVarProgram<'p> {
         ALVarProgram {
+            defs: todo!(),
             bdy: rco_expr(self.bdy),
         }
     }
