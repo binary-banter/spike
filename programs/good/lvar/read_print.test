@@ -4,4 +4,6 @@
 #
 42
 #
-(print (read))
+fn main() -> Int {
+    (print (read))
+}

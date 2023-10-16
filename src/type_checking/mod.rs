@@ -1,18 +1,22 @@
 use crate::interpreter::value::Val;
-use crate::language::lvar::{Expr, LVarProgram, Op};
+use crate::language::lvar::{Def, Expr, LVarProgram, Op, SLVarProgram};
 use crate::type_checking::TypeError::{
-    IncorrectArity, TypeMismatchEqual, TypeMismatchExpect, UndeclaredVar,
+    ArgCountMismatch, DuplicateArg, DuplicateFunction, IncorrectArity, TypeMismatchEqual,
+    TypeMismatchExpect, TypeMismatchExpectFn, UndeclaredVar,
 };
 use crate::utils::expect::expect;
 use crate::utils::push_map::PushMap;
+use itertools::Itertools;
 use miette::Diagnostic;
+use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
 use thiserror::Error;
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Type {
     Int,
     Bool,
+    Fn { typ: Box<Type>, args: Vec<Type> },
 }
 
 impl Display for Type {
@@ -20,6 +24,7 @@ impl Display for Type {
         match self {
             Type::Int => write!(f, "Int"),
             Type::Bool => write!(f, "Bool"),
+            Type::Fn { typ, args } => write!(f, "fn({}) -> {}", args.iter().format(", "), typ),
         }
     }
 }
@@ -33,12 +38,63 @@ pub enum TypeError {
     IncorrectArity { op: Op, arity: usize },
     #[error("Types were mismatched. Expected '{expect}', but found '{got}'.")]
     TypeMismatchExpect { expect: Type, got: Type },
+    #[error("Types were mismatched. Expected function, but found '{got}'.")]
+    TypeMismatchExpectFn { got: Type },
     #[error("Types were mismatched. Expected '{t1}' and '{t2}' to be equal.")]
     TypeMismatchEqual { t1: Type, t2: Type },
+    #[error("There are multiple functions named `{sym}`.")]
+    DuplicateFunction { sym: String },
+    #[error("Function `{sym}` has duplicate argument names.")]
+    DuplicateArg { sym: String },
+    #[error("Function `{expected}` has {expected} arguments, but found {got} arguments.")]
+    ArgCountMismatch { expected: usize, got: usize },
 }
 
-pub fn type_check_program(program: &LVarProgram) -> Result<Type, TypeError> {
-    type_check_expr(&program.bdy, &mut PushMap::default())
+pub fn type_check_program(program: &SLVarProgram<&str>) -> Result<(), TypeError> {
+    let mut scope = uncover_fns(program)?;
+
+    for def in &program.defs {
+        match def {
+            Def::Fn { args, bdy, typ, .. } => {
+                scope.push_iter(args.iter().cloned(), |scope| {
+                    expect_type(bdy, scope, typ.clone())
+                })?;
+            }
+        }
+    }
+
+    Ok(())
+}
+
+fn uncover_fns<'p>(program: &SLVarProgram<&'p str>) -> Result<PushMap<&'p str, Type>, TypeError> {
+    let mut globals = HashMap::new();
+
+    for def in &program.defs {
+        match def {
+            Def::Fn { sym, args, typ, .. } => {
+                let signature = Type::Fn {
+                    typ: Box::new(typ.clone()),
+                    args: args.iter().map(|(_, t)| t.clone()).collect(),
+                };
+                expect(
+                    globals.insert(*sym, signature).is_none(),
+                    DuplicateFunction {
+                        sym: sym.to_string(),
+                    },
+                )?;
+
+                let mut arg_syms = HashSet::new();
+                expect(
+                    args.iter().all(|(sym, _)| arg_syms.insert(sym)),
+                    DuplicateArg {
+                        sym: sym.to_string(),
+                    },
+                )?;
+            }
+        }
+    }
+
+    Ok(PushMap::from(globals))
 }
 
 fn type_check_expr<'p>(
@@ -103,7 +159,30 @@ fn type_check_expr<'p>(
             expect_type(cnd, scope, Type::Bool)?;
             expect_type_eq(thn, els, scope)
         }
-        Expr::Apply { .. } => todo!(),
+        Expr::Apply { sym, args } => match scope[sym].clone() {
+            Type::Fn {
+                typ,
+                args: expected_types,
+            } => {
+                if expected_types.len() != args.len() {
+                    return Err(ArgCountMismatch {
+                        expected: expected_types.len(),
+                        got: args.len(),
+                    });
+                }
+
+                for (arg, arg_typ) in args.iter().zip(expected_types.iter()) {
+                    expect_type(arg, scope, arg_typ.clone())?;
+                }
+
+                Ok(*typ)
+            }
+            _ => {
+                return Err(TypeMismatchExpectFn {
+                    got: scope[sym].clone(),
+                })
+            }
+        },
     }
 }
 
@@ -114,7 +193,7 @@ fn expect_type_eq<'p>(
 ) -> Result<Type, TypeError> {
     let t1 = type_check_expr(e1, scope)?;
     let t2 = type_check_expr(e2, scope)?;
-    expect(t1 == t2, TypeMismatchEqual { t1, t2 })?;
+    expect(t1 == t2, TypeMismatchEqual { t1: t1.clone(), t2 })?;
     Ok(t1)
 }
 
@@ -145,9 +224,9 @@ mod tests {
         let program = parse_program(program).unwrap();
 
         if should_fail {
-            assert!(type_check_program(&program).is_err());
+            type_check_program(&program).unwrap_err();
         } else {
-            assert!(type_check_program(&program).is_ok());
+            type_check_program(&program).unwrap();
         }
     }
 

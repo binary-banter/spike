@@ -183,7 +183,7 @@ mod tests {
 
     fn explicated([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);
-        let program = program.shrink().uniquify().remove_complex_operands().explicate();
+        let program = program.uniquify().remove_complex_operands().explicate();
 
         let mut io = TestIO::new(input);
         let result = program.interpret(&mut io);

@@ -1,5 +1,5 @@
 use crate::interpreter::value::Val;
-use crate::language::lvar::{Def, Expr, Op, SVarProgram};
+use crate::language::lvar::{Def, Expr, LVarProgram, Op};
 use crate::passes::uniquify::UniqueSym;
 
 #[derive(Debug, PartialEq)]
@@ -33,7 +33,7 @@ pub enum Atom<'p> {
     Var { sym: UniqueSym<'p> },
 }
 
-impl<'p> From<ALVarProgram<'p>> for SVarProgram<'p> {
+impl<'p> From<ALVarProgram<'p>> for LVarProgram<'p> {
     fn from(value: ALVarProgram<'p>) -> Self {
         todo!()
         // ULVarProgram {

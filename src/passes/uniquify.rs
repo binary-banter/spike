@@ -3,7 +3,7 @@
 //! This is useful because in later passes we will be changing the structure of the program,
 //! and after selecting instructions we will only have a list of X86 instructions left.
 
-use crate::language::lvar::{Def, Expr, LVarProgram, SLVarProgram, SVarProgram};
+use crate::language::lvar::{Def, Expr, LVarProgram, SLVarProgram};
 use crate::utils::push_map::PushMap;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
@@ -11,7 +11,7 @@ static COUNT: AtomicUsize = AtomicUsize::new(0);
 
 impl<'p> SLVarProgram<&'p str> {
     /// See module-level documentation.
-    pub fn uniquify(self) -> SVarProgram<'p> {
+    pub fn uniquify(self) -> LVarProgram<'p> {
         // SLVarProgram {
         //     defs: todo!(),
         //     bdy: uniquify_expression(self.bdy, &mut PushMap::default()),
@@ -80,7 +80,7 @@ mod tests {
 
     fn unique([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);
-        let uniquified_program = program.shrink().uniquify();
+        let uniquified_program = program.uniquify();
         let mut io = TestIO::new(input);
         let result = uniquified_program.interpret(&mut io);
 

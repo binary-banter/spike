@@ -7,10 +7,10 @@
 //! We consider `Int`s and `Var`s atomic.
 
 use crate::language::alvar::{AExpr, ALVarProgram, Atom};
-use crate::language::lvar::{Expr, SVarProgram};
+use crate::language::lvar::{Expr, LVarProgram};
 use crate::passes::uniquify::{gen_sym, UniqueSym};
 
-impl<'p> SVarProgram<'p> {
+impl<'p> LVarProgram<'p> {
     /// See module-level documentation.
     pub fn remove_complex_operands(self) -> ALVarProgram<'p> {
         todo!()
@@ -66,13 +66,13 @@ fn rco_atom(expr: Expr<UniqueSym<'_>>) -> (Atom<'_>, Option<(UniqueSym<'_>, AExp
 #[cfg(test)]
 mod tests {
     use crate::interpreter::TestIO;
+    use crate::language::lvar::SLVarProgram;
     use crate::utils::split_test::split_test;
     use test_each_file::test_each_file;
-    use crate::language::lvar::SLVarProgram;
 
     fn atomic([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);
-        let program: SLVarProgram<_> = program.shrink().uniquify().remove_complex_operands().into();
+        let program: SLVarProgram<_> = program.uniquify().remove_complex_operands().into();
         let mut io = TestIO::new(input);
         let result = program.interpret(&mut io);
 

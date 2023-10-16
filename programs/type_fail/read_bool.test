@@ -1,2 +1,4 @@
 ###
-(+ (read) t)
+fn main() -> Int {
+    (+ (read) t)
+}

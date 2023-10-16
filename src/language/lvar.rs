@@ -4,15 +4,8 @@ use crate::passes::uniquify::UniqueSym;
 use crate::type_checking::Type;
 use std::fmt::{Display, Formatter};
 
-pub type LVarProgram<'p> = GLVarProgram<&'p str>;
-pub type SVarProgram<'p> = SLVarProgram<&'p str>;
-pub type USVarProgram<'p> = SLVarProgram<UniqueSym<'p>>;
-
-#[derive(Debug, PartialEq)]
-pub struct GLVarProgram<A> {
-    pub defs: Vec<Def<A>>,
-    pub bdy: Expr<A>,
-}
+pub type LVarProgram<'p> = SLVarProgram<&'p str>;
+pub type UVarProgram<'p> = SLVarProgram<UniqueSym<'p>>;
 
 #[derive(Debug, PartialEq)]
 pub struct SLVarProgram<A> {
@@ -100,5 +93,5 @@ pub enum Expr<A> {
     Apply {
         sym: A,
         args: Vec<Expr<A>>,
-    }
+    },
 }

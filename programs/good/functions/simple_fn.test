@@ -4,4 +4,7 @@
 fn add(x: Int, y: Int) -> Int {
     (+ x y)
 }
-(+ 40 2)
+
+fn main() -> Int {
+    (+ 40 2)
+}

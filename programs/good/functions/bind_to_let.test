@@ -6,5 +6,5 @@ fn add(x: Int, y: Int) -> Int {
 }
 
 fn main() -> Int {
-    add(40, 2)
+    (let (add2 add) add(40, 2))
 }

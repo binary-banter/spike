@@ -1,4 +1,6 @@
 ##
 42
 #
-(if (let (x t) x) 42 13)
+fn main() -> Int {
+    (if (let (x t) x) 42 13)
+}

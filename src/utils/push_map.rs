@@ -10,6 +10,12 @@ impl<K: Hash + Eq + Clone, V> Default for PushMap<K, V> {
     }
 }
 
+impl<K: Hash + Eq + Clone, V> From<HashMap<K, V>> for PushMap<K, V> {
+    fn from(value: HashMap<K, V>) -> Self {
+        PushMap(value)
+    }
+}
+
 impl<K: Hash + Eq + Clone, V> PushMap<K, V> {
     pub fn contains(&self, k: &K) -> bool {
         self.0.contains_key(k)
@@ -22,7 +28,7 @@ impl<K: Hash + Eq + Clone, V> PushMap<K, V> {
     pub fn push<O>(&mut self, k: K, v: V, scope: impl FnOnce(&mut Self) -> O) -> O {
         let old = self.0.insert(k.clone(), v);
 
-        let v = scope(self);
+        let o = scope(self);
 
         if let Some(old) = old {
             self.0.insert(k, old);
@@ -30,7 +36,29 @@ impl<K: Hash + Eq + Clone, V> PushMap<K, V> {
             self.0.remove(&k);
         }
 
-        v
+        o
+    }
+
+    pub fn push_iter<O>(
+        &mut self,
+        iterator: impl Iterator<Item = (K, V)>,
+        scope: impl FnOnce(&mut Self) -> O,
+    ) -> O {
+        let old = iterator
+            .map(|(k, v)| (k.clone(), self.0.insert(k, v)))
+            .collect::<Vec<_>>();
+
+        let o = scope(self);
+
+        for (k, old) in old {
+            if let Some(old) = old {
+                self.0.insert(k, old);
+            } else {
+                self.0.remove(&k);
+            }
+        }
+
+        o
     }
 }
 

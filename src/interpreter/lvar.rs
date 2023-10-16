@@ -1,6 +1,6 @@
 use crate::interpreter::value::Val;
 use crate::interpreter::IO;
-use crate::language::lvar::{Expr, GLVarProgram, Op, SLVarProgram};
+use crate::language::lvar::{Expr, Op, SLVarProgram};
 use crate::utils::push_map::PushMap;
 use std::hash::Hash;
 
@@ -124,7 +124,7 @@ mod tests {
     fn interpret([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);
         let mut io = TestIO::new(input);
-        let result = program.shrink().interpret(&mut io);
+        let result = program.interpret(&mut io);
 
         assert_eq!(result, expected_return);
         assert_eq!(io.outputs, expected_output);

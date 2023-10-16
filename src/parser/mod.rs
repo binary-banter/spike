@@ -1,3 +1,4 @@
+mod apply;
 mod bool;
 mod def;
 mod expression;
@@ -10,7 +11,6 @@ mod operation;
 mod prim;
 mod r#type;
 mod var;
-mod apply;
 
 use crate::language::lvar::LVarProgram;
 use crate::parser::def::parse_def;
@@ -61,12 +61,12 @@ pub fn parse_program(src: &str) -> Result<LVarProgram, PrettyParseError> {
 }
 
 fn parse_program_sub(input: &str) -> IResult<&str, LVarProgram> {
-    all_consuming(pair(
-        many0(parse_def),
-        terminated(trim0(parse_expression), multispace0),
-    ))
-    .map(|(defs, bdy)| LVarProgram { defs, bdy })
-    .parse(input)
+    all_consuming(terminated(many0(parse_def), multispace0))
+        .map(|defs| LVarProgram {
+            defs,
+            entry: "main",
+        })
+        .parse(input)
 }
 
 fn trim0<'a, O, E: ParseError<&'a str>>(

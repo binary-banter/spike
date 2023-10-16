@@ -1,4 +1,6 @@
 ##
 t
 #
-(|| f t)
+fn main() -> Bool {
+    (|| f t)
+}

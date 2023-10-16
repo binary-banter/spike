@@ -72,7 +72,6 @@ fn main() -> miette::Result<()> {
     type_check_program(&program)?;
 
     let program = program
-        .shrink()
         .uniquify()
         .remove_complex_operands()
         .explicate()

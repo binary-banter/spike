@@ -1,2 +1,4 @@
 ###
-(if 1 t f)
+fn main() -> Int {
+    (if 1 t f)
+}

@@ -1,2 +1,4 @@
 ###
-(+ (let (x 3) x) x)
+fn main() -> Int {
+    (+ (let (x 3) x) x)
+}
