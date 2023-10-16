@@ -5,12 +5,19 @@ use crate::type_checking::Type;
 use std::fmt::{Display, Formatter};
 
 pub type LVarProgram<'p> = GLVarProgram<&'p str>;
-pub type ULVarProgram<'p> = GLVarProgram<UniqueSym<'p>>;
+pub type SVarProgram<'p> = SLVarProgram<&'p str>;
+pub type USVarProgram<'p> = SLVarProgram<UniqueSym<'p>>;
 
 #[derive(Debug, PartialEq)]
 pub struct GLVarProgram<A> {
     pub defs: Vec<Def<A>>,
     pub bdy: Expr<A>,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct SLVarProgram<A> {
+    pub defs: Vec<Def<A>>,
+    pub entry: A,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -64,7 +71,7 @@ pub enum Def<A> {
         sym: A,
         args: Vec<(A, Type)>,
         typ: Type,
-        bdy: Box<Expr<A>>,
+        bdy: Expr<A>,
     },
 }
 
@@ -90,4 +97,8 @@ pub enum Expr<A> {
         thn: Box<Expr<A>>,
         els: Box<Expr<A>>,
     },
+    Apply {
+        sym: A,
+        args: Vec<Expr<A>>,
+    }
 }

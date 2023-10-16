@@ -9,3 +9,4 @@ pub mod patch_instructions;
 pub mod remove_complex_operands;
 pub mod select;
 pub mod uniquify;
+pub mod shrink;

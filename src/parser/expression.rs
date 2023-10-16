@@ -7,9 +7,10 @@ use crate::parser::r#let::parse_let;
 use crate::parser::var::parse_var;
 use nom::branch::alt;
 use nom::IResult;
+use crate::parser::apply::parse_apply;
 
 pub fn parse_expression(input: &str) -> IResult<&str, Expr<&str>> {
     alt((
-        parse_bool, parse_int, parse_var, parse_prim, parse_let, parse_if,
+        parse_apply, parse_bool, parse_int, parse_var, parse_prim, parse_let, parse_if,
     ))(input)
 }

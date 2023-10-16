@@ -103,6 +103,7 @@ fn type_check_expr<'p>(
             expect_type(cnd, scope, Type::Bool)?;
             expect_type_eq(thn, els, scope)
         }
+        Expr::Apply { .. } => todo!(),
     }
 }
 

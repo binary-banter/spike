@@ -10,6 +10,7 @@ mod operation;
 mod prim;
 mod r#type;
 mod var;
+mod apply;
 
 use crate::language::lvar::LVarProgram;
 use crate::parser::def::parse_def;

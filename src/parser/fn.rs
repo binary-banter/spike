@@ -33,7 +33,7 @@ pub fn parse_fn(input: &str) -> IResult<&str, Def<&str>> {
         sym,
         args,
         typ,
-        bdy: Box::new(bdy),
+        bdy,
     })
     .parse(input)
 }

@@ -7,16 +7,17 @@
 //! We consider `Int`s and `Var`s atomic.
 
 use crate::language::alvar::{AExpr, ALVarProgram, Atom};
-use crate::language::lvar::{Expr, ULVarProgram};
+use crate::language::lvar::{Expr, SVarProgram};
 use crate::passes::uniquify::{gen_sym, UniqueSym};
 
-impl<'p> ULVarProgram<'p> {
+impl<'p> SVarProgram<'p> {
     /// See module-level documentation.
     pub fn remove_complex_operands(self) -> ALVarProgram<'p> {
-        ALVarProgram {
-            defs: todo!(),
-            bdy: rco_expr(self.bdy),
-        }
+        todo!()
+        // ALVarProgram {
+        //     defs: todo!(),
+        //     bdy: rco_expr(self.bdy),
+        // }
     }
 }
 
@@ -46,6 +47,7 @@ fn rco_expr(expr: Expr<UniqueSym<'_>>) -> AExpr<'_> {
             thn: Box::new(rco_expr(*thn)),
             els: Box::new(rco_expr(*els)),
         },
+        Expr::Apply { .. } => todo!(),
     }
 }
 
@@ -57,19 +59,20 @@ fn rco_atom(expr: Expr<UniqueSym<'_>>) -> (Atom<'_>, Option<(UniqueSym<'_>, AExp
             let tmp = gen_sym("");
             (Atom::Var { sym: tmp }, Some((tmp, rco_expr(expr))))
         }
+        Expr::Apply { .. } => todo!(),
     }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::interpreter::TestIO;
-    use crate::language::lvar::ULVarProgram;
     use crate::utils::split_test::split_test;
     use test_each_file::test_each_file;
+    use crate::language::lvar::SLVarProgram;
 
     fn atomic([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);
-        let program: ULVarProgram = program.uniquify().remove_complex_operands().into();
+        let program: SLVarProgram<_> = program.shrink().uniquify().remove_complex_operands().into();
         let mut io = TestIO::new(input);
         let result = program.interpret(&mut io);
 

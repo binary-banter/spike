@@ -85,6 +85,7 @@ mod tests {
         let expected_return = expected_return.into();
 
         let program: X86VarProgram = program
+            .shrink()
             .uniquify()
             .remove_complex_operands()
             .explicate()
