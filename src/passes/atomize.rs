@@ -13,6 +13,10 @@ use crate::passes::uniquify::{gen_sym, UniqueSym};
 impl<'p> PrgUniquified<'p> {
     /// See module-level documentation.
     pub fn atomize(self) -> PrgAtomized<'p> {
+        // PrgAtomized {
+        //     defs: self.defs
+        //     entry: self.entry,
+        // }
         todo!()
         // ALVarProgram {
         //     defs: todo!(),

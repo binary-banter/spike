@@ -5,6 +5,7 @@ use crate::passes::type_check::Type;
 use crate::passes::uniquify::UniqueSym;
 use std::fmt::{Display, Formatter};
 use std::hash::Hash;
+use crate::language::rlvar::{PrgRevealed, RDef, RExpr};
 
 #[derive(Debug, PartialEq)]
 pub struct PrgParsed<'p> {

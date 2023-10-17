@@ -1,12 +1,22 @@
-use crate::interpreter::value::Val;
-use crate::language::lvar::{Def, Expr, Lit, Op, PrgGenericVar, PrgParsed};
+use std::collections::HashMap;
+use crate::language::lvar::{Expr, Lit, Op, PrgGenericVar};
 use crate::passes::uniquify::UniqueSym;
-use std::hash::Hash;
+use crate::passes::type_check::Type;
 
 #[derive(Debug, PartialEq)]
 pub struct PrgAtomized<'p> {
-    // pub defs: Vec<Def<>>,
-    pub bdy: AExpr<'p>,
+    pub defs: HashMap<UniqueSym<'p>, ADef<'p>>,
+    pub entry: UniqueSym<'p>,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum ADef<'p> {
+    Fn {
+        sym: UniqueSym<'p>,
+        prms: Vec<(UniqueSym<'p>, Type)>,
+        typ: Type,
+        bdy: AExpr<'p>,
+    },
 }
 
 #[derive(Debug, PartialEq)]
@@ -25,6 +35,10 @@ pub enum AExpr<'p> {
         cnd: Box<AExpr<'p>>,
         thn: Box<AExpr<'p>>,
         els: Box<AExpr<'p>>,
+    },
+    Apply {
+        fun: Box<AExpr<'p>>,
+        args: Vec<AExpr<'p>>,
     },
 }
 
@@ -61,6 +75,10 @@ impl<'p> From<AExpr<'p>> for Expr<UniqueSym<'p>> {
                 cnd: Box::new((*cnd).into()),
                 thn: Box::new((*thn).into()),
                 els: Box::new((*els).into()),
+            },
+            AExpr::Apply { fun, args } => Expr::Apply {
+                    fun: Box::new((*fun).into()),
+                args: args.into_iter().map(Into::into).collect(),
             },
         }
     }

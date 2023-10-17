@@ -10,3 +10,4 @@ pub mod patch_instructions;
 pub mod select;
 pub mod type_check;
 pub mod uniquify;
+pub mod reveal_functions;

@@ -13,11 +13,12 @@ use std::collections::HashMap;
 impl<'p> PrgAtomized<'p> {
     /// See module-level documentation.
     pub fn explicate(self) -> PrgExplicated<'p> {
-        let mut blocks = HashMap::new();
-        let entry = gen_sym("core");
-        let entry_block = explicate_tail(self.bdy, &mut blocks);
-        blocks.insert(entry, entry_block);
-        PrgExplicated { blocks, entry }
+        todo!()
+        // let mut blocks = HashMap::new();
+        // let entry = gen_sym("core");
+        // let entry_block = explicate_tail(self.bdy, &mut blocks);
+        // blocks.insert(entry, entry_block);
+        // PrgExplicated { blocks, entry }
     }
 }
 
@@ -38,6 +39,7 @@ fn explicate_tail<'p>(expr: AExpr<'p>, blocks: &mut HashMap<UniqueSym<'p>, Tail<
             explicate_tail(*els, blocks),
             blocks,
         ),
+        AExpr::Apply { .. } => todo!()
     }
 }
 
@@ -83,6 +85,7 @@ fn explicate_assign<'p>(
                 blocks,
             )
         }
+        AExpr::Apply { .. } => todo!(),
     }
 }
 
@@ -172,6 +175,8 @@ fn explicate_pred<'p>(
                 blocks,
             )
         }
+
+        AExpr::Apply {.. }=> todo!(),
     }
 }
 

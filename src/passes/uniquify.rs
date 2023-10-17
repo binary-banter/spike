@@ -5,7 +5,6 @@
 
 use crate::language::lvar::{Def, Expr, PrgTypeChecked, PrgUniquified};
 use crate::utils::push_map::PushMap;
-use std::fmt::Display;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 static COUNT: AtomicUsize = AtomicUsize::new(0);
@@ -26,7 +25,7 @@ fn uniquify_def<'p>(def: Def<&'p str>, scope: &mut PushMap<&'p str, UniqueSym<'p
     match def {
         Def::Fn { sym, prms, typ, bdy } => {
             scope.push_iter(prms.iter().map(|(sym, _)| (*sym, gen_sym(*sym))), |scope| {
-                let prms = prms.clone().into_iter().map(|(p, t)| (scope[&p], t)).collect();
+                let prms = prms.iter().cloned().map(|(p, t)| (scope[&p], t)).collect();
                 let bdy = uniquify_expression(bdy, scope);
                 Def::Fn {
                     sym: scope[&sym],

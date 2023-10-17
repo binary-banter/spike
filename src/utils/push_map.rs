@@ -43,6 +43,20 @@ impl<K: Hash + Eq + Clone, V> PushMap<K, V> {
         o
     }
 
+    pub fn remove<O>(&mut self, k: K, scope: impl FnOnce(&mut Self) -> O) -> O {
+        let old = self.0.remove(&k);
+
+        let o = scope(self);
+
+        if let Some(old) = old {
+            self.0.insert(k, old);
+        } else {
+            self.0.remove(&k);
+        }
+
+        o
+    }
+
     pub fn push_iter<O>(
         &mut self,
         iterator: impl Iterator<Item = (K, V)>,
