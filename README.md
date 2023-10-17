@@ -27,16 +27,3 @@ Run with specified input path and specified output path:
 ```sh
 cargo run -- input.jj -o output && ./output ; echo $?
 ```
-
-PrgParsed
-PrgTypeChecked
-PrgUniquified
-PrgAtomized
-PrgExplicated
-X86Selected
-X86WithInterference
-X86Colored
-X86Assigned
-X86Patched
-X86Concluded
-X86Emitted (binary)
