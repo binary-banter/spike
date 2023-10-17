@@ -1,4 +1,4 @@
-use crate::type_checking::Type;
+use crate::passes::type_check::Type;
 use nom::branch::alt;
 use nom::bytes::complete::tag;
 use nom::IResult;

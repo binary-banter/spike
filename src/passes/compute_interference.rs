@@ -1,10 +1,10 @@
-use crate::language::x86var::{IX86VarProgram, InterferenceGraph, LArg, LX86VarProgram, VarArg};
+use crate::language::x86var::{X86WithInterference, InterferenceGraph, LArg, LX86VarProgram, VarArg};
 use crate::passes::liveness_analysis::{handle_instr, ReadWriteOp};
 use std::collections::HashMap;
 
 impl<'p> LX86VarProgram<'p> {
-    pub fn compute_interference(self) -> IX86VarProgram<'p> {
-        IX86VarProgram {
+    pub fn compute_interference(self) -> X86WithInterference<'p> {
+        X86WithInterference {
             interference: self.build_graph(),
             blocks: self
                 .blocks

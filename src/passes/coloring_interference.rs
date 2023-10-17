@@ -1,13 +1,13 @@
-use crate::language::x86var::{Arg, CX86VarProgram, IX86VarProgram, InterferenceGraph, LArg, Reg};
+use crate::language::x86var::{Arg, X86Colored, X86WithInterference, InterferenceGraph, LArg, Reg};
 use crate::passes::uniquify::UniqueSym;
 use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
 
-impl<'p> IX86VarProgram<'p> {
-    pub fn color_interference(self) -> CX86VarProgram<'p> {
+impl<'p> X86WithInterference<'p> {
+    pub fn color_interference(self) -> X86Colored<'p> {
         let (color_map, stack_space) = color_graph(self.interference);
 
-        CX86VarProgram {
+        X86Colored {
             blocks: self.blocks,
             entry: self.entry,
             color_map,

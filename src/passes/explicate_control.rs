@@ -4,20 +4,20 @@
 //! This is achieved by flattening the nested expressions into a sequence of statements.
 
 use crate::interpreter::value::Val;
-use crate::language::alvar::{AExpr, ALVarProgram, Atom};
-use crate::language::cvar::{CExpr, CVarProgram, Tail};
+use crate::language::alvar::{AExpr, PrgAtomized, Atom};
+use crate::language::cvar::{CExpr, PrgExplicated, Tail};
 use crate::language::lvar::Op;
 use crate::passes::uniquify::{gen_sym, UniqueSym};
 use std::collections::HashMap;
 
-impl<'p> ALVarProgram<'p> {
+impl<'p> PrgAtomized<'p> {
     /// See module-level documentation.
-    pub fn explicate(self) -> CVarProgram<'p> {
+    pub fn explicate(self) -> PrgExplicated<'p> {
         let mut blocks = HashMap::new();
         let entry = gen_sym("core");
         let entry_block = explicate_tail(self.bdy, &mut blocks);
         blocks.insert(entry, entry_block);
-        CVarProgram { blocks, entry }
+        PrgExplicated { blocks, entry }
     }
 }
 
@@ -183,7 +183,12 @@ mod tests {
 
     fn explicated([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);
-        let program = program.uniquify().remove_complex_operands().explicate();
+        let program = program
+            .type_check()
+            .unwrap()
+            .uniquify()
+            .atomize()
+            .explicate();
 
         let mut io = TestIO::new(input);
         let result = program.interpret(&mut io);

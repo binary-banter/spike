@@ -1,9 +1,9 @@
 use crate::interpreter::value::Val;
-use crate::language::lvar::{Def, Expr, LVarProgram, Op};
+use crate::language::lvar::{Def, Expr, PrgGenericVar, PrgParsed, Op};
 use crate::passes::uniquify::UniqueSym;
 
 #[derive(Debug, PartialEq)]
-pub struct ALVarProgram<'p> {
+pub struct PrgAtomized<'p> {
     pub defs: Vec<Def<Atom<'p>>>,
     pub bdy: AExpr<'p>,
 }
@@ -33,8 +33,8 @@ pub enum Atom<'p> {
     Var { sym: UniqueSym<'p> },
 }
 
-impl<'p> From<ALVarProgram<'p>> for LVarProgram<'p> {
-    fn from(value: ALVarProgram<'p>) -> Self {
+impl<'p> From<PrgAtomized<'p>> for PrgGenericVar<UniqueSym<'p>> {
+    fn from(value: PrgAtomized<'p>) -> Self {
         todo!()
         // ULVarProgram {
         //     defs: todo!(),

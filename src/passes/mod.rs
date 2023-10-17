@@ -6,6 +6,7 @@ pub mod emit;
 pub mod explicate_control;
 pub mod liveness_analysis;
 pub mod patch_instructions;
-pub mod remove_complex_operands;
+pub mod atomize;
 pub mod select;
+pub mod type_check;
 pub mod uniquify;

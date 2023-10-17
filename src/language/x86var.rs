@@ -10,22 +10,14 @@ use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 
 #[derive(Debug, PartialEq)]
-pub struct X86Program<'p> {
+pub struct X86Concluded<'p> {
     pub blocks: HashMap<UniqueSym<'p>, Block<'p, Arg>>,
     pub entry: UniqueSym<'p>,
     pub std: Std<'p>,
 }
 
 #[derive(Debug, PartialEq)]
-pub struct PX86Program<'p> {
-    pub blocks: HashMap<UniqueSym<'p>, Block<'p, Arg>>,
-    pub entry: UniqueSym<'p>,
-    pub stack_space: usize,
-    pub std: Std<'p>,
-}
-
-#[derive(Debug, PartialEq)]
-pub struct AX86Program<'p> {
+pub struct X86Patched<'p> {
     pub blocks: HashMap<UniqueSym<'p>, Block<'p, Arg>>,
     pub entry: UniqueSym<'p>,
     pub stack_space: usize,
@@ -33,7 +25,15 @@ pub struct AX86Program<'p> {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct X86VarProgram<'p> {
+pub struct X86Assigned<'p> {
+    pub blocks: HashMap<UniqueSym<'p>, Block<'p, Arg>>,
+    pub entry: UniqueSym<'p>,
+    pub stack_space: usize,
+    pub std: Std<'p>,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct X86Selected<'p> {
     pub blocks: HashMap<UniqueSym<'p>, Block<'p, VarArg<'p>>>,
     pub entry: UniqueSym<'p>,
     pub std: Std<'p>,
@@ -47,7 +47,7 @@ pub struct LX86VarProgram<'p> {
 }
 
 #[derive(Debug)]
-pub struct IX86VarProgram<'p> {
+pub struct X86WithInterference<'p> {
     pub blocks: HashMap<UniqueSym<'p>, Block<'p, VarArg<'p>>>,
     pub entry: UniqueSym<'p>,
     pub interference: InterferenceGraph<'p>,
@@ -55,7 +55,7 @@ pub struct IX86VarProgram<'p> {
 }
 
 #[derive(Debug)]
-pub struct CX86VarProgram<'p> {
+pub struct X86Colored<'p> {
     pub blocks: HashMap<UniqueSym<'p>, Block<'p, VarArg<'p>>>,
     pub entry: UniqueSym<'p>,
     pub color_map: HashMap<UniqueSym<'p>, Arg>,
@@ -205,9 +205,9 @@ pub enum Reg {
     R15,
 }
 
-impl<'p> From<X86Program<'p>> for X86VarProgram<'p> {
-    fn from(value: X86Program<'p>) -> Self {
-        X86VarProgram {
+impl<'p> From<X86Concluded<'p>> for X86Selected<'p> {
+    fn from(value: X86Concluded<'p>) -> Self {
+        X86Selected {
             blocks: value
                 .blocks
                 .into_iter()
@@ -219,9 +219,9 @@ impl<'p> From<X86Program<'p>> for X86VarProgram<'p> {
     }
 }
 
-impl<'p> From<PX86Program<'p>> for X86VarProgram<'p> {
-    fn from(value: PX86Program<'p>) -> Self {
-        X86VarProgram {
+impl<'p> From<X86Patched<'p>> for X86Selected<'p> {
+    fn from(value: X86Patched<'p>) -> Self {
+        X86Selected {
             blocks: value
                 .blocks
                 .into_iter()
@@ -233,9 +233,9 @@ impl<'p> From<PX86Program<'p>> for X86VarProgram<'p> {
     }
 }
 
-impl<'p> From<AX86Program<'p>> for X86VarProgram<'p> {
-    fn from(value: AX86Program<'p>) -> Self {
-        X86VarProgram {
+impl<'p> From<X86Assigned<'p>> for X86Selected<'p> {
+    fn from(value: X86Assigned<'p>) -> Self {
+        X86Selected {
             blocks: value
                 .blocks
                 .into_iter()

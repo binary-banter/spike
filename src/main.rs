@@ -4,7 +4,7 @@ use miette::Diagnostic;
 use regex::Regex;
 use rust_compiler_construction::elf::ElfFile;
 use rust_compiler_construction::parser::{parse_program, PrettyParseError};
-use rust_compiler_construction::type_checking::{type_check_program, TypeError};
+use rust_compiler_construction::passes::type_check::TypeError;
 use std::fs::File;
 use std::io::Read;
 use std::{fs, io};
@@ -67,13 +67,10 @@ fn main() -> miette::Result<()> {
             .map_or_else(|| "output".to_string(), str::to_string)
     });
 
-    let program = parse_program(&program)?;
-
-    type_check_program(&program)?;
-
-    let program = program
+    let program = parse_program(&program)?
+        .type_check()?
         .uniquify()
-        .remove_complex_operands()
+        .atomize()
         .explicate()
         .select()
         .add_liveness()

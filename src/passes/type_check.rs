@@ -1,9 +1,6 @@
 use crate::interpreter::value::Val;
-use crate::language::lvar::{Def, Expr, LVarProgram, Op, SLVarProgram};
-use crate::type_checking::TypeError::{
-    ArgCountMismatch, DuplicateArg, DuplicateFunction, IncorrectArity, TypeMismatchEqual,
-    TypeMismatchExpect, TypeMismatchExpectFn, UndeclaredVar,
-};
+use crate::language::lvar::{Def, Expr, PrgParsed, Op, PrgTypeChecked};
+use crate::passes::type_check::TypeError::*;
 use crate::utils::expect::expect;
 use crate::utils::push_map::PushMap;
 use itertools::Itertools;
@@ -48,25 +45,41 @@ pub enum TypeError {
     DuplicateArg { sym: String },
     #[error("Function `{expected}` has {expected} arguments, but found {got} arguments.")]
     ArgCountMismatch { expected: usize, got: usize },
+    #[error("The program doesn't have a main function.")]
+    NoMain,
 }
 
-pub fn type_check_program(program: &SLVarProgram<&str>) -> Result<(), TypeError> {
-    let mut scope = uncover_fns(program)?;
+impl<'p> PrgParsed<'p> {
+    pub fn type_check(self) -> Result<PrgTypeChecked<'p>, TypeError> {
+        let mut scope = uncover_fns(&self)?;
 
-    for def in &program.defs {
-        match def {
-            Def::Fn { args, bdy, typ, .. } => {
-                scope.push_iter(args.iter().cloned(), |scope| {
-                    expect_type(bdy, scope, typ.clone())
-                })?;
-            }
-        }
+        let defs = self
+            .defs
+            .into_iter()
+            .map(|def| match def {
+                Def::Fn {
+                    sym,
+                    ref args,
+                    ref bdy,
+                    ref typ,
+                } => scope
+                    .push_iter(args.iter().cloned(), |scope| {
+                        expect_type(bdy, scope, typ.clone())
+                    })
+                    .map(|_| (sym, def)),
+            })
+            .collect::<Result<HashMap<_, _>, _>>()?;
+
+        expect(defs.contains_key("main"), NoMain)?;
+
+        Ok(PrgTypeChecked {
+            defs,
+            entry: self.entry,
+        })
     }
-
-    Ok(())
 }
 
-fn uncover_fns<'p>(program: &SLVarProgram<&'p str>) -> Result<PushMap<&'p str, Type>, TypeError> {
+fn uncover_fns<'p>(program: &PrgParsed<'p>) -> Result<PushMap<&'p str, Type>, TypeError> {
     let mut globals = HashMap::new();
 
     for def in &program.defs {
@@ -214,19 +227,22 @@ fn expect_type<'p>(
 
 #[cfg(test)]
 mod tests {
+    use crate::language::lvar::PrgTypeChecked;
     use crate::parser::parse_program;
-    use crate::type_checking::type_check_program;
     use test_each_file::test_each_file;
 
     fn check([test]: [&str; 1], should_fail: bool) {
         let mut test = test.split('#');
         let program = test.nth(3).unwrap().trim();
         let program = parse_program(program).unwrap();
+        let res = program.type_check();
 
-        if should_fail {
-            type_check_program(&program).unwrap_err();
-        } else {
-            type_check_program(&program).unwrap();
+        match (res, should_fail) {
+            (Ok(_), true) => panic!("Program should not pass type-checking."),
+            (Err(e), false) => {
+                panic!("Program should have passed type-checking, but returned error: '{e}'.")
+            }
+            _ => {}
         }
     }
 

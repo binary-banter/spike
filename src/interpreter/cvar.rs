@@ -1,11 +1,11 @@
 use crate::interpreter::lvar::interpret_expr;
 use crate::interpreter::value::Val;
 use crate::interpreter::IO;
-use crate::language::cvar::{CVarProgram, Tail};
+use crate::language::cvar::{PrgExplicated, Tail};
 use crate::passes::uniquify::UniqueSym;
 use crate::utils::push_map::PushMap;
 
-impl<'p> CVarProgram<'p> {
+impl<'p> PrgExplicated<'p> {
     pub fn interpret(&self, io: &mut impl IO) -> Val {
         self.interpret_tail(&self.blocks[&self.entry], &mut PushMap::default(), io)
     }

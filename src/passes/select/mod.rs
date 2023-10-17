@@ -6,16 +6,16 @@
 pub mod io;
 
 use crate::language::alvar::Atom;
-use crate::language::cvar::{CExpr, CVarProgram, Tail};
+use crate::language::cvar::{CExpr, PrgExplicated, Tail};
 use crate::language::lvar::Op;
-use crate::language::x86var::{Block, Cnd, Instr, VarArg, X86VarProgram};
+use crate::language::x86var::{Block, Cnd, Instr, VarArg, X86Selected};
 use crate::passes::select::io::Std;
 use crate::*;
 use std::collections::HashMap;
 
-impl<'p> CVarProgram<'p> {
+impl<'p> PrgExplicated<'p> {
     /// See module-level documentation.
-    pub fn select(self) -> X86VarProgram<'p> {
+    pub fn select(self) -> X86Selected<'p> {
         let mut blocks = HashMap::new();
         let std = Std::new(&mut blocks);
 
@@ -25,7 +25,7 @@ impl<'p> CVarProgram<'p> {
                 .map(|(name, block)| (name, select_block(block, &std))),
         );
 
-        X86VarProgram {
+        X86Selected {
             blocks,
             entry: self.entry,
             std,
@@ -136,8 +136,10 @@ mod tests {
         let expected_return = expected_return.into();
 
         let program = program
+            .type_check()
+            .unwrap()
             .uniquify()
-            .remove_complex_operands()
+            .atomize()
             .explicate()
             .select();
 

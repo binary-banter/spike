@@ -2,7 +2,7 @@
 //!
 //! This pass is responsible for assigning all the program variables to locations on the stack.
 
-use crate::language::x86var::{AX86Program, Arg, Block, CX86VarProgram, Instr, VarArg};
+use crate::language::x86var::{X86Assigned, Arg, Block, X86Colored, Instr, VarArg};
 use crate::passes::uniquify::UniqueSym;
 use crate::{
     addq, andq, callq, cmpq, divq, jcc, jmp, movq, mulq, negq, notq, orq, popq, pushq, retq, setcc,
@@ -10,10 +10,10 @@ use crate::{
 };
 use std::collections::HashMap;
 
-impl<'p> CX86VarProgram<'p> {
+impl<'p> X86Colored<'p> {
     /// See module-level documentation.
-    pub fn assign_homes(self) -> AX86Program<'p> {
-        AX86Program {
+    pub fn assign_homes(self) -> X86Assigned<'p> {
+        X86Assigned {
             blocks: self
                 .blocks
                 .into_iter()
@@ -76,7 +76,7 @@ fn assign_instr<'p>(
 #[cfg(test)]
 mod tests {
     use crate::interpreter::TestIO;
-    use crate::language::x86var::X86VarProgram;
+    use crate::language::x86var::X86Selected;
     use crate::utils::split_test::split_test;
     use test_each_file::test_each_file;
 
@@ -84,9 +84,11 @@ mod tests {
         let (input, expected_output, expected_return, program) = split_test(test);
         let expected_return = expected_return.into();
 
-        let program: X86VarProgram = program
+        let program: X86Selected = program
+            .type_check()
+            .unwrap()
             .uniquify()
-            .remove_complex_operands()
+            .atomize()
             .explicate()
             .select()
             .add_liveness()

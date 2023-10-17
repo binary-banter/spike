@@ -4,7 +4,7 @@ use crate::passes::uniquify::UniqueSym;
 use std::collections::HashMap;
 
 #[derive(Debug, PartialEq)]
-pub struct CVarProgram<'p> {
+pub struct PrgExplicated<'p> {
     pub blocks: HashMap<UniqueSym<'p>, Tail<'p>>,
     pub entry: UniqueSym<'p>,
 }

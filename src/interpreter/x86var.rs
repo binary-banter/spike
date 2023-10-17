@@ -1,7 +1,7 @@
 use crate::interpreter::value::Val;
 use crate::interpreter::IO;
 use crate::language::x86var::{
-    Block, Cnd, Instr, Reg, VarArg, X86VarProgram, CALLEE_SAVED, CALLER_SAVED,
+    Block, Cnd, Instr, Reg, VarArg, X86Selected, CALLEE_SAVED, CALLER_SAVED,
 };
 use crate::passes::uniquify::UniqueSym;
 use nom::AsBytes;
@@ -33,7 +33,7 @@ struct X86Interpreter<'p, I: IO> {
     status: Status,
 }
 
-impl<'p> X86VarProgram<'p> {
+impl<'p> X86Selected<'p> {
     pub fn interpret(&self, io: &mut impl IO) -> i64 {
         let block_ids = self.blocks.keys().map(|sym| (sym.id, *sym)).collect();
 

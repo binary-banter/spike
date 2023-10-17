@@ -19,8 +19,10 @@ fn integration([test]: [&str; 1]) {
     let expected_return: i64 = expected_return.into();
 
     let (entry, program) = program
+        .type_check()
+        .unwrap()
         .uniquify()
-        .remove_complex_operands()
+        .atomize()
         .explicate()
         .select()
         .add_liveness()

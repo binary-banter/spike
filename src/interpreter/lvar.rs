@@ -1,10 +1,10 @@
 use crate::interpreter::value::Val;
 use crate::interpreter::IO;
-use crate::language::lvar::{Expr, Op, SLVarProgram};
+use crate::language::lvar::{Expr, PrgGenericVar, Op};
 use crate::utils::push_map::PushMap;
 use std::hash::Hash;
 
-impl<A: Copy + Hash + Eq> SLVarProgram<A> {
+impl<A: Copy + Hash + Eq> PrgGenericVar<A> {
     pub fn interpret(&self, io: &mut impl IO) -> Val {
         todo!()
         // interpret_expr(&self.bdy, &mut PushMap::default(), io)
@@ -124,7 +124,7 @@ mod tests {
     fn interpret([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);
         let mut io = TestIO::new(input);
-        let result = program.interpret(&mut io);
+        let result = program.type_check().unwrap().interpret(&mut io);
 
         assert_eq!(result, expected_return);
         assert_eq!(io.outputs, expected_output);

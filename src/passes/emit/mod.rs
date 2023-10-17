@@ -6,7 +6,7 @@ mod push_pop;
 mod special;
 mod unary;
 
-use crate::language::x86var::{Arg, Block, Cnd, Instr, Reg, X86Program};
+use crate::language::x86var::{Arg, Block, Cnd, Instr, Reg, X86Concluded};
 use crate::passes::emit::binary::{
     encode_binary_instr, ADDQ_INFO, ANDQ_INFO, CMPQ_INFO, MOVQ_INFO, ORQ_INFO, SUBQ_INFO, XORQ_INFO,
 };
@@ -17,7 +17,7 @@ use crate::passes::emit::unary::{encode_unary_instr, NEGQ_INFO};
 use crate::passes::uniquify::UniqueSym;
 use std::collections::HashMap;
 
-impl<'p> X86Program<'p> {
+impl<'p> X86Concluded<'p> {
     //! See module-level documentation.
     pub fn emit(self) -> (usize, Vec<u8>) {
         let mut machine_code = Vec::new();

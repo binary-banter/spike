@@ -3,13 +3,13 @@
 //! This pass generates the entry and exit point for the program wrapped around the body of the `PX86Program` program.
 //! Note that we will refer to the body of the `PX86Program` program as the 'core' block.
 
-use crate::language::x86var::{Block, PX86Program, X86Program};
+use crate::language::x86var::{Block, X86Patched, X86Concluded};
 use crate::passes::uniquify::gen_sym;
 use crate::{addq, block, callq, imm, jmp, movq, popq, pushq, reg, subq};
 
-impl<'p> PX86Program<'p> {
+impl<'p> X86Patched<'p> {
     /// See module-level documentation.
-    pub fn conclude(mut self) -> X86Program<'p> {
+    pub fn conclude(mut self) -> X86Concluded<'p> {
         let entry = gen_sym("main");
         self.blocks.insert(
             entry,
@@ -38,7 +38,7 @@ impl<'p> PX86Program<'p> {
             .instrs
             .extend([jmp!(conclusion)]);
 
-        X86Program {
+        X86Concluded {
             blocks: self.blocks,
             entry,
             std: self.std,
@@ -49,7 +49,7 @@ impl<'p> PX86Program<'p> {
 #[cfg(test)]
 mod tests {
     use crate::interpreter::TestIO;
-    use crate::language::x86var::X86VarProgram;
+    use crate::language::x86var::X86Selected;
     use crate::utils::split_test::split_test;
     use test_each_file::test_each_file;
 
@@ -57,9 +57,11 @@ mod tests {
         let (input, expected_output, expected_return, program) = split_test(test);
         let expected_return = expected_return.into();
 
-        let program: X86VarProgram = program
+        let program: X86Selected = program
+            .type_check()
+            .unwrap()
             .uniquify()
-            .remove_complex_operands()
+            .atomize()
             .explicate()
             .select()
             .add_liveness()

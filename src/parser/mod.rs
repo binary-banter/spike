@@ -12,7 +12,7 @@ mod prim;
 mod r#type;
 mod var;
 
-use crate::language::lvar::LVarProgram;
+use crate::language::lvar::PrgParsed;
 use crate::parser::def::parse_def;
 use crate::parser::expression::parse_expression;
 use miette::{Diagnostic, SourceOffset, SourceSpan};
@@ -41,7 +41,7 @@ pub struct PrettyParseError {
     fail: SourceSpan,
 }
 
-pub fn parse_program(src: &str) -> Result<LVarProgram, PrettyParseError> {
+pub fn parse_program(src: &str) -> Result<PrgParsed, PrettyParseError> {
     match parse_program_sub(src) {
         Ok((_, o)) => Ok(o),
         Err(e) => {
@@ -60,9 +60,9 @@ pub fn parse_program(src: &str) -> Result<LVarProgram, PrettyParseError> {
     }
 }
 
-fn parse_program_sub(input: &str) -> IResult<&str, LVarProgram> {
+fn parse_program_sub(input: &str) -> IResult<&str, PrgParsed> {
     all_consuming(terminated(many0(parse_def), multispace0))
-        .map(|defs| LVarProgram {
+        .map(|defs| PrgParsed {
             defs,
             entry: "main",
         })

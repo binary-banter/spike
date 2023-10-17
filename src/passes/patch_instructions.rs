@@ -2,13 +2,13 @@
 //!
 //! This pass makes sure that no instructions use more than one argument that is dereferenced.
 
-use crate::language::x86var::{AX86Program, Arg, Block, Instr, PX86Program};
+use crate::language::x86var::{X86Assigned, Arg, Block, Instr, X86Patched};
 use crate::{addq, movq, reg, subq};
 
-impl<'p> AX86Program<'p> {
+impl<'p> X86Assigned<'p> {
     /// See module-level documentation.
-    pub fn patch(self) -> PX86Program<'p> {
-        PX86Program {
+    pub fn patch(self) -> X86Patched<'p> {
+        X86Patched {
             blocks: self
                 .blocks
                 .into_iter()
@@ -50,7 +50,7 @@ fn patch_args<'p>(src: Arg, dst: Arg, op: fn(Arg, Arg) -> Instr<'p, Arg>) -> Vec
 #[cfg(test)]
 mod tests {
     use crate::interpreter::TestIO;
-    use crate::language::x86var::X86VarProgram;
+    use crate::language::x86var::X86Selected;
     use crate::utils::split_test::split_test;
     use test_each_file::test_each_file;
 
@@ -58,9 +58,11 @@ mod tests {
         let (input, expected_output, expected_return, program) = split_test(test);
         let expected_return = expected_return.into();
 
-        let program: X86VarProgram = program
+        let program: X86Selected = program
+            .type_check()
+            .unwrap()
             .uniquify()
-            .remove_complex_operands()
+            .atomize()
             .explicate()
             .select()
             .add_liveness()

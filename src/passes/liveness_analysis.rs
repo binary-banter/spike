@@ -1,12 +1,12 @@
 use crate::language::x86var::{
-    Block, Instr, LArg, LBlock, LX86VarProgram, Reg, VarArg, X86VarProgram, ARG_PASSING_REGS,
+    Block, Instr, LArg, LBlock, LX86VarProgram, Reg, VarArg, X86Selected, ARG_PASSING_REGS,
     CALLER_SAVED, SYSCALL_REGS,
 };
 use crate::passes::uniquify::UniqueSym;
 
 use std::collections::{HashMap, HashSet};
 
-impl<'p> X86VarProgram<'p> {
+impl<'p> X86Selected<'p> {
     pub fn add_liveness(self) -> LX86VarProgram<'p> {
         // let graph = create_graph(&self.blocks);
 

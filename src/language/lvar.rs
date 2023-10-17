@@ -1,15 +1,23 @@
 use crate::interpreter::value::Val;
+use std::collections::HashMap;
 
+use crate::passes::type_check::Type;
 use crate::passes::uniquify::UniqueSym;
-use crate::type_checking::Type;
 use std::fmt::{Display, Formatter};
-
-pub type LVarProgram<'p> = SLVarProgram<&'p str>;
-pub type UVarProgram<'p> = SLVarProgram<UniqueSym<'p>>;
+use std::hash::Hash;
 
 #[derive(Debug, PartialEq)]
-pub struct SLVarProgram<A> {
-    pub defs: Vec<Def<A>>,
+pub struct PrgParsed<'p> {
+    pub defs: Vec<Def<&'p str>>,
+    pub entry: &'p str,
+}
+
+pub type PrgTypeChecked<'p> = PrgGenericVar<&'p str>;
+pub type PrgUniquified<'p> = PrgGenericVar<UniqueSym<'p>>;
+
+#[derive(Debug, PartialEq)]
+pub struct PrgGenericVar<A: Hash + Eq + PartialEq> {
+    pub defs: HashMap<A, Def<A>>,
     pub entry: A,
 }
 
