@@ -3,9 +3,9 @@
 //! This is useful because in later passes we will be changing the structure of the program,
 //! and after selecting instructions we will only have a list of X86 instructions left.
 
-use crate::language::lvar::{Def, Expr, PrgGenericVar, PrgParsed, PrgTypeChecked, PrgUniquified};
+use crate::language::lvar::{Def, Expr, PrgTypeChecked, PrgUniquified};
 use crate::utils::push_map::PushMap;
-use std::fmt::{Display, Formatter};
+use std::fmt::Display;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 static COUNT: AtomicUsize = AtomicUsize::new(0);
@@ -13,18 +13,31 @@ static COUNT: AtomicUsize = AtomicUsize::new(0);
 impl<'p> PrgTypeChecked<'p> {
     /// See module-level documentation.
     pub fn uniquify(self) -> PrgUniquified<'p> {
-        // SLVarProgram {
-        //     defs: todo!(),
-        //     bdy: uniquify_expression(self.bdy, &mut PushMap::default()),
-        // }
-        todo!()
+        let mut scope = PushMap::from_iter(self.defs.iter().map(|(&sym, _)| (sym, gen_sym(sym))));
+
+        PrgUniquified {
+            defs: self.defs.into_iter().map(|(sym, def)| (scope[&sym], uniquify_def(def, &mut scope))).collect(),
+            entry: scope[&self.entry],
+        }
     }
 }
 
-// fn uniquify_def<'p>(
-//     def: Def<&'p str>,
-//
-// )
+fn uniquify_def<'p>(def: Def<&'p str>, scope: &mut PushMap<&'p str, UniqueSym<'p>>) -> Def<UniqueSym<'p>>{
+    match def {
+        Def::Fn { sym, prms, typ, bdy } => {
+            scope.push_iter(prms.iter().map(|(sym, _)| (*sym, gen_sym(*sym))), |scope| {
+                let prms = prms.clone().into_iter().map(|(p, t)| (scope[&p], t)).collect();
+                let bdy = uniquify_expression(bdy, scope);
+                Def::Fn {
+                    sym: scope[&sym],
+                    prms,
+                    typ,
+                    bdy
+                }
+            })
+        }
+    }
+}
 
 fn uniquify_expression<'p>(
     expr: Expr<&'p str>,
@@ -56,7 +69,10 @@ fn uniquify_expression<'p>(
             thn: Box::new(uniquify_expression(*thn, scope)),
             els: Box::new(uniquify_expression(*els, scope)),
         },
-        Expr::Apply { .. } => todo!(),
+        Expr::Apply { fun, args } => Expr::Apply {
+            fun: Box::new(uniquify_expression(*fun, scope)),
+            args: args.into_iter().map(|arg| uniquify_expression(arg, scope)).collect()
+        },
     }
 }
 
