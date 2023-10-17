@@ -16,7 +16,7 @@ pub type PrgTypeChecked<'p> = PrgGenericVar<&'p str>;
 pub type PrgUniquified<'p> = PrgGenericVar<UniqueSym<'p>>;
 
 #[derive(Debug, PartialEq)]
-pub struct PrgGenericVar<A: Hash + Eq + PartialEq> {
+pub struct PrgGenericVar<A: Copy + Hash + Eq> {
     pub defs: HashMap<A, Def<A>>,
     pub entry: A,
 }
@@ -67,7 +67,7 @@ impl Display for Op {
 }
 
 #[derive(Debug, PartialEq)]
-pub enum Def<A> {
+pub enum Def<A: Copy + Hash + Eq> {
     Fn {
         sym: A,
         args: Vec<(A, Type)>,
@@ -76,10 +76,56 @@ pub enum Def<A> {
     },
 }
 
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum Lit {
+    Int { val: i64 },
+    Bool { val: bool },
+}
+
+impl Lit {
+    pub fn int(self) -> i64 {
+        match self {
+            Lit::Int { val } => val,
+            Lit::Bool { .. } => panic!(),
+        }
+    }
+
+    pub fn bool(self) -> bool {
+        match self {
+            Lit::Int { .. } => panic!(),
+            Lit::Bool { val } => val,
+        }
+    }
+}
+
+impl Display for Lit {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Lit::Int { val } => write!(f, "{val}"),
+            Lit::Bool { val } => {
+                if *val {
+                    write!(f, "t")
+                } else {
+                    write!(f, "f")
+                }
+            }
+        }
+    }
+}
+
+impl<A: Copy + Hash + Eq> From<Lit> for Val<A> {
+    fn from(value: Lit) -> Self {
+        match value {
+            Lit::Int { val } => Val::Int { val },
+            Lit::Bool { val } => Val::Bool { val },
+        }
+    }
+}
+
 #[derive(Debug, PartialEq)]
-pub enum Expr<A> {
-    Val {
-        val: Val,
+pub enum Expr<A: Copy + Hash + Eq> {
+    Lit {
+        val: Lit,
     },
     Var {
         sym: A,

@@ -1,10 +1,11 @@
 use crate::interpreter::value::Val;
-use crate::language::lvar::{Def, Expr, PrgGenericVar, PrgParsed, Op};
+use crate::language::lvar::{Def, Expr, Lit, Op, PrgGenericVar, PrgParsed};
 use crate::passes::uniquify::UniqueSym;
+use std::hash::Hash;
 
 #[derive(Debug, PartialEq)]
 pub struct PrgAtomized<'p> {
-    pub defs: Vec<Def<Atom<'p>>>,
+    // pub defs: Vec<Def<>>,
     pub bdy: AExpr<'p>,
 }
 
@@ -29,7 +30,7 @@ pub enum AExpr<'p> {
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Atom<'p> {
-    Val { val: Val },
+    Val { val: Lit },
     Var { sym: UniqueSym<'p> },
 }
 
@@ -68,7 +69,7 @@ impl<'p> From<AExpr<'p>> for Expr<UniqueSym<'p>> {
 impl<'p> From<Atom<'p>> for Expr<UniqueSym<'p>> {
     fn from(value: Atom<'p>) -> Self {
         match value {
-            Atom::Val { val } => Expr::Val { val },
+            Atom::Val { val } => Expr::Lit { val },
             Atom::Var { sym } => Expr::Var { sym },
         }
     }

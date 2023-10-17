@@ -2,7 +2,7 @@
 //!
 //! This pass makes sure that no instructions use more than one argument that is dereferenced.
 
-use crate::language::x86var::{X86Assigned, Arg, Block, Instr, X86Patched};
+use crate::language::x86var::{Arg, Block, Instr, X86Assigned, X86Patched};
 use crate::{addq, movq, reg, subq};
 
 impl<'p> X86Assigned<'p> {

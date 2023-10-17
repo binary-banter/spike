@@ -1,4 +1,6 @@
-use crate::language::x86var::{X86WithInterference, InterferenceGraph, LArg, LX86VarProgram, VarArg};
+use crate::language::x86var::{
+    InterferenceGraph, LArg, LX86VarProgram, VarArg, X86WithInterference,
+};
 use crate::passes::liveness_analysis::{handle_instr, ReadWriteOp};
 use std::collections::HashMap;
 

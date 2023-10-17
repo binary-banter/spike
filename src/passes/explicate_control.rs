@@ -4,9 +4,9 @@
 //! This is achieved by flattening the nested expressions into a sequence of statements.
 
 use crate::interpreter::value::Val;
-use crate::language::alvar::{AExpr, PrgAtomized, Atom};
+use crate::language::alvar::{AExpr, Atom, PrgAtomized};
 use crate::language::cvar::{CExpr, PrgExplicated, Tail};
-use crate::language::lvar::Op;
+use crate::language::lvar::{Lit, Op};
 use crate::passes::uniquify::{gen_sym, UniqueSym};
 use std::collections::HashMap;
 
@@ -105,7 +105,7 @@ fn explicate_pred<'p>(
                 args: vec![
                     Atom::Var { sym },
                     Atom::Val {
-                        val: Val::Bool { val: true },
+                        val: Lit::Bool { val: true },
                     },
                 ],
             },
@@ -114,7 +114,7 @@ fn explicate_pred<'p>(
         },
 
         AExpr::Atom(Atom::Val {
-            val: Val::Bool { val },
+            val: Lit::Bool { val },
         }) => {
             if val {
                 thn
@@ -124,7 +124,7 @@ fn explicate_pred<'p>(
         }
 
         AExpr::Atom(Atom::Val {
-            val: Val::Int { .. },
+            val: Lit::Int { .. },
         }) => unreachable!(),
 
         AExpr::Prim { op: Op::Not, args } => match args.as_slice() {
@@ -193,7 +193,7 @@ mod tests {
         let mut io = TestIO::new(input);
         let result = program.interpret(&mut io);
 
-        assert_eq!(result, expected_return, "Incorrect program result.");
+        assert_eq!(result, expected_return.into(), "Incorrect program result.");
         assert_eq!(io.outputs(), &expected_output, "Incorrect program output.");
     }
 

@@ -6,7 +6,7 @@
 //!
 //! We consider `Int`s and `Var`s atomic.
 
-use crate::language::alvar::{AExpr, PrgAtomized, Atom};
+use crate::language::alvar::{AExpr, Atom, PrgAtomized};
 use crate::language::lvar::{Expr, PrgParsed, PrgUniquified};
 use crate::passes::uniquify::{gen_sym, UniqueSym};
 
@@ -23,7 +23,7 @@ impl<'p> PrgUniquified<'p> {
 
 fn rco_expr(expr: Expr<UniqueSym<'_>>) -> AExpr<'_> {
     match expr {
-        Expr::Val { val } => AExpr::Atom(Atom::Val { val }),
+        Expr::Lit { val } => AExpr::Atom(Atom::Val { val }),
         Expr::Var { sym } => AExpr::Atom(Atom::Var { sym }),
         Expr::Prim { op, args } => {
             let (args, extras): (Vec<_>, Vec<_>) = args.into_iter().map(rco_atom).unzip();
@@ -53,7 +53,7 @@ fn rco_expr(expr: Expr<UniqueSym<'_>>) -> AExpr<'_> {
 
 fn rco_atom(expr: Expr<UniqueSym<'_>>) -> (Atom<'_>, Option<(UniqueSym<'_>, AExpr<'_>)>) {
     match expr {
-        Expr::Val { val } => (Atom::Val { val }, None),
+        Expr::Lit { val } => (Atom::Val { val }, None),
         Expr::Var { sym } => (Atom::Var { sym }, None),
         Expr::Prim { .. } | Expr::Let { .. } | Expr::If { .. } => {
             let tmp = gen_sym("");
@@ -72,16 +72,11 @@ mod tests {
 
     fn atomic([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);
-        let program: PrgGenericVar<_> = program
-            .type_check()
-            .unwrap()
-            .uniquify()
-            .atomize()
-            .into();
+        let program: PrgGenericVar<_> = program.type_check().unwrap().uniquify().atomize().into();
         let mut io = TestIO::new(input);
         let result = program.interpret(&mut io);
 
-        assert_eq!(result, expected_return, "Incorrect program result.");
+        assert_eq!(result, expected_return.into(), "Incorrect program result.");
         assert_eq!(io.outputs(), &expected_output, "Incorrect program output.");
     }
 

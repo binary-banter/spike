@@ -1,5 +1,6 @@
 use crate::interpreter::value::Val;
 use crate::interpreter::IO;
+use crate::language::lvar::Lit;
 use crate::language::x86var::{
     Block, Cnd, Instr, Reg, VarArg, X86Selected, CALLEE_SAVED, CALLER_SAVED,
 };
@@ -245,7 +246,7 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
         assert!(buffer_len >= 1);
 
         if self.read_buffer.is_empty() {
-            self.read_buffer = format!("{}\n", self.io.read()).into_bytes();
+            self.read_buffer = format!("{}\n", self.io.read().int()).into_bytes();
             self.read_buffer.reverse();
         }
         let val = self.read_buffer.pop().unwrap();
@@ -270,7 +271,7 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                     .unwrap()
                     .parse()
                     .unwrap();
-                self.io.print(Val::Int { val });
+                self.io.print(Lit::Int { val });
                 self.write_buffer.clear();
             }
             val => {

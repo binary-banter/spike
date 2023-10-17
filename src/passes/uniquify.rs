@@ -3,10 +3,9 @@
 //! This is useful because in later passes we will be changing the structure of the program,
 //! and after selecting instructions we will only have a list of X86 instructions left.
 
-use crate::language::lvar::{
-    Def, Expr, PrgGenericVar, PrgParsed, PrgTypeChecked, PrgUniquified,
-};
+use crate::language::lvar::{Def, Expr, PrgGenericVar, PrgParsed, PrgTypeChecked, PrgUniquified};
 use crate::utils::push_map::PushMap;
+use std::fmt::{Display, Formatter};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 static COUNT: AtomicUsize = AtomicUsize::new(0);
@@ -32,7 +31,7 @@ fn uniquify_expression<'p>(
     scope: &mut PushMap<&'p str, UniqueSym<'p>>,
 ) -> Expr<UniqueSym<'p>> {
     match expr {
-        Expr::Val { val } => Expr::Val { val },
+        Expr::Lit { val } => Expr::Lit { val: val.into() },
         Expr::Var { sym } => Expr::Var { sym: scope[&sym] },
         Expr::Prim { op, args } => Expr::Prim {
             op,
@@ -86,7 +85,7 @@ mod tests {
         let mut io = TestIO::new(input);
         let result = uniquified_program.interpret(&mut io);
 
-        assert_eq!(result, expected_return, "Incorrect program result.");
+        assert_eq!(result, expected_return.into(), "Incorrect program result.");
         assert_eq!(io.outputs(), &expected_output, "Incorrect program output.");
     }
 

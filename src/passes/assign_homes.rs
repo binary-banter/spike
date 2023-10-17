@@ -2,7 +2,7 @@
 //!
 //! This pass is responsible for assigning all the program variables to locations on the stack.
 
-use crate::language::x86var::{X86Assigned, Arg, Block, X86Colored, Instr, VarArg};
+use crate::language::x86var::{Arg, Block, Instr, VarArg, X86Assigned, X86Colored};
 use crate::passes::uniquify::UniqueSym;
 use crate::{
     addq, andq, callq, cmpq, divq, jcc, jmp, movq, mulq, negq, notq, orq, popq, pushq, retq, setcc,

@@ -4,6 +4,7 @@ use std::fs::File;
 use std::io::{BufRead, Write};
 
 use rust_compiler_construction::interpreter::value::Val;
+use rust_compiler_construction::language::lvar::Lit;
 use std::process::{Command, Stdio};
 use std::thread::sleep;
 use std::time::Duration;
@@ -68,7 +69,7 @@ fn integration([test]: [&str; 1]) {
     );
 
     for (got, expected) in out.stdout.lines().map(|r| r.unwrap()).zip(expected_output) {
-        assert_eq!(got.parse::<Val>().unwrap(), expected);
+        assert_eq!(got.parse::<Lit>().unwrap(), expected);
     }
 }
 

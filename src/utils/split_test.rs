@@ -1,8 +1,9 @@
 use crate::interpreter::value::Val;
-use crate::language::lvar::PrgParsed;
+use crate::language::lvar::{Lit, PrgParsed};
 use crate::parser::parse_program;
+use std::hash::Hash;
 
-pub fn split_test(test: &str) -> (Vec<Val>, Vec<Val>, Val, PrgParsed) {
+pub fn split_test(test: &str) -> (Vec<Lit>, Vec<Lit>, Lit, PrgParsed) {
     let mut test = test.split('#');
     let input = test.next().unwrap().trim();
     let expected_output = test.next().unwrap().trim();

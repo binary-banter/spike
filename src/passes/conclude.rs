@@ -3,7 +3,7 @@
 //! This pass generates the entry and exit point for the program wrapped around the body of the `PX86Program` program.
 //! Note that we will refer to the body of the `PX86Program` program as the 'core' block.
 
-use crate::language::x86var::{Block, X86Patched, X86Concluded};
+use crate::language::x86var::{Block, X86Concluded, X86Patched};
 use crate::passes::uniquify::gen_sym;
 use crate::{addq, block, callq, imm, jmp, movq, popq, pushq, reg, subq};
 

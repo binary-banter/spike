@@ -1,5 +1,5 @@
 use crate::interpreter::value::Val;
-use crate::language::lvar::{Def, Expr, PrgParsed, Op, PrgTypeChecked};
+use crate::language::lvar::{Def, Expr, Lit, Op, PrgParsed, PrgTypeChecked};
 use crate::passes::type_check::TypeError::*;
 use crate::utils::expect::expect;
 use crate::utils::push_map::PushMap;
@@ -115,11 +115,11 @@ fn type_check_expr<'p>(
     scope: &mut PushMap<&'p str, Type>,
 ) -> Result<Type, TypeError> {
     match expr {
-        Expr::Val {
-            val: Val::Bool { .. },
+        Expr::Lit {
+            val: Lit::Bool { .. },
         } => Ok(Type::Bool),
-        Expr::Val {
-            val: Val::Int { .. },
+        Expr::Lit {
+            val: Lit::Int { .. },
         } => Ok(Type::Int),
         Expr::Var { sym } => scope.get(sym).cloned().ok_or(UndeclaredVar {
             sym: (*sym).to_string(),

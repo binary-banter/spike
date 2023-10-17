@@ -1,4 +1,4 @@
-use crate::language::x86var::{Arg, X86Colored, X86WithInterference, InterferenceGraph, LArg, Reg};
+use crate::language::x86var::{Arg, InterferenceGraph, LArg, Reg, X86Colored, X86WithInterference};
 use crate::passes::uniquify::UniqueSym;
 use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
