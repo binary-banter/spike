@@ -1,30 +1,27 @@
 use crate::interpreter::value::Val;
 use crate::interpreter::IO;
-use crate::language::lvar::Expr::Lit;
 use crate::language::lvar::{Def, Expr, Lit, Op, PrgGenericVar};
-use crate::passes::uniquify::UniqueSym;
 use crate::utils::push_map::PushMap;
 use std::hash::Hash;
 
 impl<A: Copy + Hash + Eq> PrgGenericVar<A> {
     pub fn interpret(&self, io: &mut impl IO) -> Val<A> {
-        self.interpret_def(&self.defs[&self.entry], &mut PushMap::default(), io)
+        let mut scope = PushMap::from_iter(self.defs.iter().map(|(&sym, _)| (sym, Val::Function {sym})));
+        self.interpret_fn(self.entry,Vec::new(), &mut scope, io)
     }
 
-    fn interpret_def(
+    fn interpret_fn(
         &self,
-        def: &Def<A>,
+        sym: A,
+        args: Vec<Val<A>>,
         scope: &mut PushMap<A, Val<A>>,
         io: &mut impl IO,
     ) -> Val<A> {
-        match def {
-            Def::Fn {
-                sym,
-                args,
-                typ,
-                bdy,
-            } => {
-                todo!()
+        match &self.defs[&sym] {
+            Def::Fn { prms, bdy, .. } => {
+                scope.push_iter(prms.iter().zip(args.iter()).map(|((k, _), v)| (*k, *v)), |scope| {
+                    self.interpret_expr(bdy, scope, io)
+                })
             }
         }
     }
@@ -130,7 +127,11 @@ impl<A: Copy + Hash + Eq> PrgGenericVar<A> {
                     self.interpret_expr(els, scope, io)
                 }
             }
-            Expr::Apply { .. } => todo!(),
+            Expr::Apply { fun, args } => {
+                let sym = self.interpret_expr(fun, scope, io).fun();
+                let args = args.iter().map(|arg| self.interpret_expr(arg, scope, io)).collect();
+                self.interpret_fn(sym, args, scope, io)
+            },
         }
     }
 }

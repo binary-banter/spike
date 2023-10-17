@@ -26,6 +26,14 @@ impl<A: Copy + Hash + Eq> Val<A> {
             Val::Function { .. } => panic!(),
         }
     }
+
+    pub fn fun(self) -> A {
+        match self {
+            Val::Int { .. } => panic!(),
+            Val::Bool { .. } => panic!(),
+            Val::Function { sym } => sym,
+        }
+    }
 }
 
 impl From<Lit> for i64 {

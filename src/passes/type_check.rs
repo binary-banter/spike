@@ -59,7 +59,7 @@ impl<'p> PrgParsed<'p> {
             .map(|def| match def {
                 Def::Fn {
                     sym,
-                    ref args,
+                    prms: ref args,
                     ref bdy,
                     ref typ,
                 } => scope
@@ -84,7 +84,7 @@ fn uncover_fns<'p>(program: &PrgParsed<'p>) -> Result<PushMap<&'p str, Type>, Ty
 
     for def in &program.defs {
         match def {
-            Def::Fn { sym, args, typ, .. } => {
+            Def::Fn { sym, prms: args, typ, .. } => {
                 let signature = Type::Fn {
                     typ: Box::new(typ.clone()),
                     args: args.iter().map(|(_, t)| t.clone()).collect(),
@@ -172,7 +172,7 @@ fn type_check_expr<'p>(
             expect_type(cnd, scope, Type::Bool)?;
             expect_type_eq(thn, els, scope)
         }
-        Expr::Apply { sym, args } => match scope[sym].clone() {
+        Expr::Apply { fun, args } => match type_check_expr(fun, scope)? {
             Type::Fn {
                 typ,
                 args: expected_types,
@@ -190,9 +190,9 @@ fn type_check_expr<'p>(
 
                 Ok(*typ)
             }
-            _ => {
+            got => {
                 return Err(TypeMismatchExpectFn {
-                    got: scope[sym].clone(),
+                    got,
                 })
             }
         },

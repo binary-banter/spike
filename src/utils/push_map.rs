@@ -17,6 +17,10 @@ impl<K: Hash + Eq + Clone, V> From<HashMap<K, V>> for PushMap<K, V> {
 }
 
 impl<K: Hash + Eq + Clone, V> PushMap<K, V> {
+    pub(crate) fn from_iter(value: impl Iterator<Item=(K, V)>) -> Self {
+        PushMap(value.collect())
+    }
+
     pub fn contains(&self, k: &K) -> bool {
         self.0.contains_key(k)
     }

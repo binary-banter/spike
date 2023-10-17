@@ -31,7 +31,7 @@ pub fn parse_fn(input: &str) -> IResult<&str, Def<&str>> {
     )
     .map(|(sym, args, typ, bdy)| Def::Fn {
         sym,
-        args,
+        prms: args,
         typ,
         bdy,
     })
