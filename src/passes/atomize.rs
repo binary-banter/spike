@@ -41,8 +41,12 @@ impl<'p> PrgRevealed<'p> {
 
 fn rco_expr(expr: RExpr) -> AExpr {
     match expr {
-        RExpr::Lit { val } => AExpr::Atom(Atom::Val { val }),
-        RExpr::Var { sym } => AExpr::Atom(Atom::Var { sym }),
+        RExpr::Lit { val } => AExpr::Atom {
+            atm: Atom::Val { val },
+        },
+        RExpr::Var { sym } => AExpr::Atom {
+            atm: Atom::Var { sym },
+        },
         RExpr::Prim { op, args } => {
             let (args, extras): (Vec<_>, Vec<_>) = args.into_iter().map(rco_atom).unzip();
 
@@ -84,7 +88,9 @@ fn rco_expr(expr: RExpr) -> AExpr {
             AExpr::Let {
                 sym: tmp,
                 bnd: Box::new(AExpr::FunRef { sym }),
-                bdy: Box::new(AExpr::Atom(Atom::Var { sym: tmp })),
+                bdy: Box::new(AExpr::Atom {
+                    atm: Atom::Var { sym: tmp },
+                }),
             }
         }
     }

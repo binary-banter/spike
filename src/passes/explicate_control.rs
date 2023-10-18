@@ -3,6 +3,7 @@
 //! This pass makes the order of execution explicit in their syntax.
 //! This is achieved by flattening the nested expressions into a sequence of statements.
 
+use crate::language::alvar::ADef;
 use crate::language::alvar::{AExpr, Atom, PrgAtomized};
 use crate::language::cvar::{CExpr, PrgExplicated, Tail};
 use crate::language::lvar::{Lit, Op};
@@ -12,19 +13,32 @@ use std::collections::HashMap;
 impl<'p> PrgAtomized<'p> {
     /// See module-level documentation.
     pub fn explicate(self) -> PrgExplicated<'p> {
-        todo!()
-        // let mut blocks = HashMap::new();
-        // let entry = gen_sym("core");
-        // let entry_block = explicate_tail(self.bdy, &mut blocks);
-        // blocks.insert(entry, entry_block);
-        // PrgExplicated { blocks, entry }
+        let mut blocks = HashMap::new();
+
+        for (_, def) in self.defs {
+            explicate_def(def, &mut blocks);
+        }
+
+        PrgExplicated {
+            blocks,
+            entry: self.entry,
+        }
+    }
+}
+
+fn explicate_def<'p>(def: ADef<'p>, blocks: &mut HashMap<UniqueSym<'p>, Tail<'p>>) {
+    match def {
+        ADef::Fn { sym, bdy, .. } => {
+            let tail = explicate_tail(bdy, blocks);
+            blocks.insert(sym, tail);
+        }
     }
 }
 
 fn explicate_tail<'p>(expr: AExpr<'p>, blocks: &mut HashMap<UniqueSym<'p>, Tail<'p>>) -> Tail<'p> {
     match expr {
-        AExpr::Atom(atom) => Tail::Return {
-            expr: CExpr::Atom(atom),
+        AExpr::Atom { atm } => Tail::Return {
+            expr: CExpr::Atom { atm },
         },
         AExpr::Prim { op, args } => Tail::Return {
             expr: CExpr::Prim { op, args },
@@ -56,9 +70,9 @@ fn explicate_assign<'p>(
     };
 
     match bnd {
-        AExpr::Atom(atom) => Tail::Seq {
+        AExpr::Atom { atm } => Tail::Seq {
             sym,
-            bnd: CExpr::Atom(atom),
+            bnd: CExpr::Atom { atm },
             tail: Box::new(tail),
         },
         AExpr::Prim { op, args } => Tail::Seq {
@@ -103,7 +117,9 @@ fn explicate_pred<'p>(
     };
 
     match cnd {
-        AExpr::Atom(Atom::Var { sym }) => Tail::IfStmt {
+        AExpr::Atom {
+            atm: Atom::Var { sym },
+        } => Tail::IfStmt {
             cnd: CExpr::Prim {
                 op: Op::EQ,
                 args: vec![
@@ -117,9 +133,11 @@ fn explicate_pred<'p>(
             els: create_block(els),
         },
 
-        AExpr::Atom(Atom::Val {
-            val: Lit::Bool { val },
-        }) => {
+        AExpr::Atom {
+            atm: Atom::Val {
+                val: Lit::Bool { val },
+            },
+        } => {
             if val {
                 thn
             } else {
@@ -127,12 +145,14 @@ fn explicate_pred<'p>(
             }
         }
 
-        AExpr::Atom(Atom::Val {
-            val: Lit::Int { .. },
-        }) => unreachable!(),
+        AExpr::Atom {
+            atm: Atom::Val {
+                val: Lit::Int { .. },
+            },
+        } => unreachable!(),
 
         AExpr::Prim { op: Op::Not, args } => match args.as_slice() {
-            [a] => explicate_pred(AExpr::Atom(*a), els, thn, blocks),
+            [atm] => explicate_pred(AExpr::Atom { atm: *atm }, els, thn, blocks),
             _ => unreachable!(),
         },
 

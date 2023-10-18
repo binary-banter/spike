@@ -31,14 +31,14 @@ pub enum Tail<'p> {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum CExpr<'p> {
-    Atom(Atom<'p>),
+    Atom { atm: Atom<'p> },
     Prim { op: Op, args: Vec<Atom<'p>> },
 }
 
 impl<'p> From<CExpr<'p>> for Expr<UniqueSym<'p>> {
     fn from(value: CExpr<'p>) -> Self {
         match value {
-            CExpr::Atom(a) => a.into(),
+            CExpr::Atom { atm } => atm.into(),
             CExpr::Prim { op, args } => Expr::Prim {
                 op,
                 args: args.into_iter().map(Into::into).collect(),

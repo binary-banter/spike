@@ -21,7 +21,9 @@ pub enum ADef<'p> {
 
 #[derive(Debug, PartialEq)]
 pub enum AExpr<'p> {
-    Atom(Atom<'p>),
+    Atom {
+        atm: Atom<'p>,
+    },
     Prim {
         op: Op,
         args: Vec<Atom<'p>>,
@@ -85,7 +87,7 @@ impl<'p> From<ADef<'p>> for Def<UniqueSym<'p>> {
 impl<'p> From<AExpr<'p>> for Expr<UniqueSym<'p>> {
     fn from(value: AExpr<'p>) -> Self {
         match value {
-            AExpr::Atom(a) => a.into(),
+            AExpr::Atom { atm } => atm.into(),
             AExpr::Prim { op, args } => Expr::Prim {
                 op,
                 args: args.into_iter().map(Into::into).collect(),

@@ -1,36 +1,139 @@
-// use crate::interpreter::lvar::interpret_expr;
 use crate::interpreter::value::Val;
 use crate::interpreter::IO;
-use crate::language::cvar::{PrgExplicated, Tail};
+use crate::language::alvar::Atom;
+use crate::language::cvar::{CExpr, PrgExplicated, Tail};
+use crate::language::lvar::{Lit, Op};
 use crate::passes::uniquify::UniqueSym;
 use crate::utils::push_map::PushMap;
 
 impl<'p> PrgExplicated<'p> {
     pub fn interpret(&self, io: &mut impl IO) -> Val<UniqueSym<'p>> {
-        todo!()
-        // self.interpret_tail(&self.blocks[&self.entry], &mut PushMap::default(), io)
+        self.interpret_tail(&self.blocks[&self.entry], &mut PushMap::default(), io)
     }
 
-    // fn interpret_tail(
-    //     &self,
-    //     tail: &Tail<'p>,
-    //     scope: &mut PushMap<UniqueSym<'p>, Val>,
-    //     io: &mut impl IO,
-    // ) -> Val {
-    //     match tail {
-    //         Tail::Return { expr } => interpret_expr(&expr.clone().into(), scope, io),
-    //         Tail::Seq { sym, bnd, tail } => {
-    //             let bnd = interpret_expr(&bnd.clone().into(), scope, io);
-    //             scope.push(*sym, bnd, |scope| self.interpret_tail(tail, scope, io))
-    //         }
-    //         Tail::IfStmt { cnd, thn, els } => {
-    //             if interpret_expr(&cnd.clone().into(), scope, io).bool() {
-    //                 self.interpret_tail(&self.blocks[thn], scope, io)
-    //             } else {
-    //                 self.interpret_tail(&self.blocks[els], scope, io)
-    //             }
-    //         }
-    //         Tail::Goto { lbl } => self.interpret_tail(&self.blocks[lbl], scope, io),
-    //     }
-    // }
+    fn interpret_tail(
+        &self,
+        tail: &Tail<'p>,
+        scope: &mut PushMap<UniqueSym<'p>, Val<UniqueSym<'p>>>,
+        io: &mut impl IO,
+    ) -> Val<UniqueSym<'p>> {
+        match tail {
+            Tail::Return { expr } => self.interpret_expr(&expr.clone().into(), scope, io),
+            Tail::Seq { sym, bnd, tail } => {
+                let bnd = self.interpret_expr(&bnd.clone().into(), scope, io);
+                scope.push(*sym, bnd, |scope| self.interpret_tail(tail, scope, io))
+            }
+            Tail::IfStmt { cnd, thn, els } => {
+                if self.interpret_expr(&cnd.clone().into(), scope, io).bool() {
+                    self.interpret_tail(&self.blocks[thn], scope, io)
+                } else {
+                    self.interpret_tail(&self.blocks[els], scope, io)
+                }
+            }
+            Tail::Goto { lbl } => self.interpret_tail(&self.blocks[lbl], scope, io),
+        }
+    }
+
+    pub fn interpret_atom(
+        &self,
+        atom: &Atom<'p>,
+        scope: &mut PushMap<UniqueSym<'p>, Val<UniqueSym<'p>>>,
+    ) -> Val<UniqueSym<'p>> {
+        match atom {
+            Atom::Val { val } => (*val).into(),
+            Atom::Var { sym } => scope[sym],
+        }
+    }
+
+    pub fn interpret_expr(
+        &self,
+        expr: &CExpr<'p>,
+        scope: &mut PushMap<UniqueSym<'p>, Val<UniqueSym<'p>>>,
+        io: &mut impl IO,
+    ) -> Val<UniqueSym<'p>> {
+        match expr {
+            CExpr::Prim { op, args } => match (op, args.as_slice()) {
+                (Op::Read, []) => io.read().into(),
+                (Op::Print, [v]) => {
+                    let val = self.interpret_atom(v, scope);
+                    io.print(Lit::Int { val: val.int() });
+                    val
+                }
+                (Op::Plus, [e1, e2]) => {
+                    let e1 = self.interpret_atom(e1, scope).int();
+                    let e2 = self.interpret_atom(e2, scope).int();
+                    Val::Int { val: e1 + e2 }
+                }
+                (Op::Minus, [e1]) => {
+                    let e1 = self.interpret_atom(e1, scope).int();
+                    Val::Int { val: -e1 }
+                }
+                (Op::Minus, [e1, e2]) => {
+                    let e1 = self.interpret_atom(e1, scope).int();
+                    let e2 = self.interpret_atom(e2, scope).int();
+                    Val::Int { val: e1 - e2 }
+                }
+                (Op::Mul, [e1, e2]) => {
+                    let e1 = self.interpret_atom(e1, scope).int();
+                    let e2 = self.interpret_atom(e2, scope).int();
+                    Val::Int { val: e1 * e2 }
+                }
+                (Op::GT, [e1, e2]) => {
+                    let e1 = self.interpret_atom(e1, scope).int();
+                    let e2 = self.interpret_atom(e2, scope).int();
+                    Val::Bool { val: e1 > e2 }
+                }
+                (Op::GE, [e1, e2]) => {
+                    let e1 = self.interpret_atom(e1, scope).int();
+                    let e2 = self.interpret_atom(e2, scope).int();
+                    Val::Bool { val: e1 >= e2 }
+                }
+                (Op::LT, [e1, e2]) => {
+                    let e1 = self.interpret_atom(e1, scope).int();
+                    let e2 = self.interpret_atom(e2, scope).int();
+                    Val::Bool { val: e1 < e2 }
+                }
+                (Op::LE, [e1, e2]) => {
+                    let e1 = self.interpret_atom(e1, scope).int();
+                    let e2 = self.interpret_atom(e2, scope).int();
+                    Val::Bool { val: e1 <= e2 }
+                }
+                (Op::EQ, [e1, e2]) => {
+                    let e1 = self.interpret_atom(e1, scope);
+                    let e2 = self.interpret_atom(e2, scope);
+                    Val::Bool { val: e1 == e2 }
+                }
+                (Op::NE, [e1, e2]) => {
+                    let e1 = self.interpret_atom(e1, scope);
+                    let e2 = self.interpret_atom(e2, scope);
+                    Val::Bool { val: e1 != e2 }
+                }
+                (Op::Not, [e1]) => {
+                    let e1 = self.interpret_atom(e1, scope).bool();
+                    Val::Bool { val: !e1 }
+                }
+                (Op::LAnd, [e1, e2]) => {
+                    let e1 = self.interpret_atom(e1, scope).bool();
+                    if !e1 {
+                        return Val::Bool { val: false };
+                    }
+                    self.interpret_atom(e2, scope)
+                }
+                (Op::LOr, [e1, e2]) => {
+                    let e1 = self.interpret_atom(e1, scope).bool();
+                    if e1 {
+                        return Val::Bool { val: true };
+                    }
+                    self.interpret_atom(e2, scope)
+                }
+                (Op::Xor, [e1, e2]) => {
+                    let e1 = self.interpret_atom(e1, scope).bool();
+                    let e2 = self.interpret_atom(e2, scope).bool();
+                    Val::Bool { val: e1 ^ e2 }
+                }
+                _ => unreachable!(),
+            },
+            CExpr::Atom { atm } => self.interpret_atom(atm, scope),
+        }
+    }
 }

@@ -227,7 +227,6 @@ fn expect_type<'p>(
 
 #[cfg(test)]
 mod tests {
-    use crate::language::lvar::PrgTypeChecked;
     use crate::parser::parse_program;
     use test_each_file::test_each_file;
 
