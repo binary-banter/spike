@@ -15,26 +15,36 @@ impl<'p> PrgTypeChecked<'p> {
         let mut scope = PushMap::from_iter(self.defs.iter().map(|(&sym, _)| (sym, gen_sym(sym))));
 
         PrgUniquified {
-            defs: self.defs.into_iter().map(|(sym, def)| (scope[&sym], uniquify_def(def, &mut scope))).collect(),
+            defs: self
+                .defs
+                .into_iter()
+                .map(|(sym, def)| (scope[&sym], uniquify_def(def, &mut scope)))
+                .collect(),
             entry: scope[&self.entry],
         }
     }
 }
 
-fn uniquify_def<'p>(def: Def<&'p str>, scope: &mut PushMap<&'p str, UniqueSym<'p>>) -> Def<UniqueSym<'p>>{
+fn uniquify_def<'p>(
+    def: Def<&'p str>,
+    scope: &mut PushMap<&'p str, UniqueSym<'p>>,
+) -> Def<UniqueSym<'p>> {
     match def {
-        Def::Fn { sym, prms, typ, bdy } => {
-            scope.push_iter(prms.iter().map(|(sym, _)| (*sym, gen_sym(*sym))), |scope| {
-                let prms = prms.iter().cloned().map(|(p, t)| (scope[&p], t)).collect();
-                let bdy = uniquify_expression(bdy, scope);
-                Def::Fn {
-                    sym: scope[&sym],
-                    prms,
-                    typ,
-                    bdy
-                }
-            })
-        }
+        Def::Fn {
+            sym,
+            prms,
+            typ,
+            bdy,
+        } => scope.push_iter(prms.iter().map(|(sym, _)| (*sym, gen_sym(sym))), |scope| {
+            let prms = prms.iter().cloned().map(|(p, t)| (scope[&p], t)).collect();
+            let bdy = uniquify_expression(bdy, scope);
+            Def::Fn {
+                sym: scope[&sym],
+                prms,
+                typ,
+                bdy,
+            }
+        }),
     }
 }
 
@@ -43,7 +53,7 @@ fn uniquify_expression<'p>(
     scope: &mut PushMap<&'p str, UniqueSym<'p>>,
 ) -> Expr<UniqueSym<'p>> {
     match expr {
-        Expr::Lit { val } => Expr::Lit { val: val.into() },
+        Expr::Lit { val } => Expr::Lit { val },
         Expr::Var { sym } => Expr::Var { sym: scope[&sym] },
         Expr::Prim { op, args } => Expr::Prim {
             op,
@@ -70,7 +80,10 @@ fn uniquify_expression<'p>(
         },
         Expr::Apply { fun, args } => Expr::Apply {
             fun: Box::new(uniquify_expression(*fun, scope)),
-            args: args.into_iter().map(|arg| uniquify_expression(arg, scope)).collect()
+            args: args
+                .into_iter()
+                .map(|arg| uniquify_expression(arg, scope))
+                .collect(),
         },
     }
 }

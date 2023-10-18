@@ -3,7 +3,6 @@
 //! This pass makes the order of execution explicit in their syntax.
 //! This is achieved by flattening the nested expressions into a sequence of statements.
 
-use crate::interpreter::value::Val;
 use crate::language::alvar::{AExpr, Atom, PrgAtomized};
 use crate::language::cvar::{CExpr, PrgExplicated, Tail};
 use crate::language::lvar::{Lit, Op};
@@ -39,7 +38,8 @@ fn explicate_tail<'p>(expr: AExpr<'p>, blocks: &mut HashMap<UniqueSym<'p>, Tail<
             explicate_tail(*els, blocks),
             blocks,
         ),
-        AExpr::Apply { .. } => todo!()
+        AExpr::Apply { .. } => todo!(),
+        AExpr::FunRef { .. } => todo!(),
     }
 }
 
@@ -86,6 +86,7 @@ fn explicate_assign<'p>(
             )
         }
         AExpr::Apply { .. } => todo!(),
+        AExpr::FunRef { .. } => todo!(),
     }
 }
 
@@ -176,7 +177,8 @@ fn explicate_pred<'p>(
             )
         }
 
-        AExpr::Apply {.. }=> todo!(),
+        AExpr::Apply { .. } => todo!(),
+        AExpr::FunRef { .. } => todo!(),
     }
 }
 
@@ -192,6 +194,7 @@ mod tests {
             .type_check()
             .unwrap()
             .uniquify()
+            .reveal()
             .atomize()
             .explicate();
 

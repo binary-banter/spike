@@ -6,30 +6,44 @@
 //!
 //! We consider `Int`s and `Var`s atomic.
 
-use crate::language::alvar::{AExpr, Atom, PrgAtomized};
-use crate::language::lvar::{Expr, PrgParsed, PrgUniquified};
+use crate::language::alvar::{ADef, AExpr, Atom, PrgAtomized};
+use crate::language::rlvar::{PrgRevealed, RDef, RExpr};
 use crate::passes::uniquify::{gen_sym, UniqueSym};
 
-impl<'p> PrgUniquified<'p> {
+impl<'p> PrgRevealed<'p> {
     /// See module-level documentation.
     pub fn atomize(self) -> PrgAtomized<'p> {
-        // PrgAtomized {
-        //     defs: self.defs
-        //     entry: self.entry,
-        // }
-        todo!()
-        // ALVarProgram {
-        //     defs: todo!(),
-        //     bdy: rco_expr(self.bdy),
-        // }
+        PrgAtomized {
+            defs: self
+                .defs
+                .into_iter()
+                .map(|(sym, def)| {
+                    let def = match def {
+                        RDef::Fn {
+                            sym,
+                            prms,
+                            typ,
+                            bdy,
+                        } => ADef::Fn {
+                            sym,
+                            prms,
+                            typ,
+                            bdy: rco_expr(bdy),
+                        },
+                    };
+                    (sym, def)
+                })
+                .collect(),
+            entry: self.entry,
+        }
     }
 }
 
-fn rco_expr(expr: Expr<UniqueSym<'_>>) -> AExpr<'_> {
+fn rco_expr(expr: RExpr) -> AExpr {
     match expr {
-        Expr::Lit { val } => AExpr::Atom(Atom::Val { val }),
-        Expr::Var { sym } => AExpr::Atom(Atom::Var { sym }),
-        Expr::Prim { op, args } => {
+        RExpr::Lit { val } => AExpr::Atom(Atom::Val { val }),
+        RExpr::Var { sym } => AExpr::Atom(Atom::Var { sym }),
+        RExpr::Prim { op, args } => {
             let (args, extras): (Vec<_>, Vec<_>) = args.into_iter().map(rco_atom).unzip();
 
             extras
@@ -41,29 +55,53 @@ fn rco_expr(expr: Expr<UniqueSym<'_>>) -> AExpr<'_> {
                     bdy: Box::new(bdy),
                 })
         }
-        Expr::Let { sym, bnd, bdy } => AExpr::Let {
+        RExpr::Let { sym, bnd, bdy } => AExpr::Let {
             sym,
             bnd: Box::new(rco_expr(*bnd)),
             bdy: Box::new(rco_expr(*bdy)),
         },
-        Expr::If { cnd, thn, els } => AExpr::If {
+        RExpr::If { cnd, thn, els } => AExpr::If {
             cnd: Box::new(rco_expr(*cnd)),
             thn: Box::new(rco_expr(*thn)),
             els: Box::new(rco_expr(*els)),
         },
-        Expr::Apply { .. } => todo!(),
+        RExpr::Apply { fun, args } => {
+            let (args, extras): (Vec<_>, Vec<_>) = args.into_iter().map(rco_atom).unzip();
+
+            let fun = Box::new(rco_expr(*fun));
+
+            extras
+                .into_iter()
+                .flatten()
+                .rfold(AExpr::Apply { fun, args }, |bdy, (sym, bnd)| AExpr::Let {
+                    sym,
+                    bnd: Box::new(bnd),
+                    bdy: Box::new(bdy),
+                })
+        }
+        RExpr::FunRef { sym } => {
+            let tmp = gen_sym("");
+            AExpr::Let {
+                sym: tmp,
+                bnd: Box::new(AExpr::FunRef { sym }),
+                bdy: Box::new(AExpr::Atom(Atom::Var { sym: tmp })),
+            }
+        }
     }
 }
 
-fn rco_atom(expr: Expr<UniqueSym<'_>>) -> (Atom<'_>, Option<(UniqueSym<'_>, AExpr<'_>)>) {
+fn rco_atom(expr: RExpr) -> (Atom, Option<(UniqueSym, AExpr)>) {
     match expr {
-        Expr::Lit { val } => (Atom::Val { val }, None),
-        Expr::Var { sym } => (Atom::Var { sym }, None),
-        Expr::Prim { .. } | Expr::Let { .. } | Expr::If { .. } => {
+        RExpr::Lit { val } => (Atom::Val { val }, None),
+        RExpr::Var { sym } => (Atom::Var { sym }, None),
+        RExpr::Prim { .. }
+        | RExpr::Let { .. }
+        | RExpr::If { .. }
+        | RExpr::Apply { .. }
+        | RExpr::FunRef { .. } => {
             let tmp = gen_sym("");
             (Atom::Var { sym: tmp }, Some((tmp, rco_expr(expr))))
         }
-        Expr::Apply { .. } => todo!(),
     }
 }
 
@@ -74,9 +112,15 @@ mod tests {
     use crate::utils::split_test::split_test;
     use test_each_file::test_each_file;
 
-    fn atomic([test]: [&str; 1]) {
+    fn atomize([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);
-        let program: PrgGenericVar<_> = program.type_check().unwrap().uniquify().atomize().into();
+        let program: PrgGenericVar<_> = program
+            .type_check()
+            .unwrap()
+            .uniquify()
+            .reveal()
+            .atomize()
+            .into();
         let mut io = TestIO::new(input);
         let result = program.interpret(&mut io);
 
@@ -84,5 +128,5 @@ mod tests {
         assert_eq!(io.outputs(), &expected_output, "Incorrect program output.");
     }
 
-    test_each_file! { for ["test"] in "./programs/good" as remove_complex_operands => atomic }
+    test_each_file! { for ["test"] in "./programs/good" as atomize => atomize }
 }

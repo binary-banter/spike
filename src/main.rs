@@ -70,6 +70,7 @@ fn main() -> miette::Result<()> {
     let program = parse_program(&program)?
         .type_check()?
         .uniquify()
+        .reveal()
         .atomize()
         .explicate()
         .select()

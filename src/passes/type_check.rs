@@ -1,4 +1,3 @@
-use crate::interpreter::value::Val;
 use crate::language::lvar::{Def, Expr, Lit, Op, PrgParsed, PrgTypeChecked};
 use crate::passes::type_check::TypeError::*;
 use crate::utils::expect::expect;
@@ -84,7 +83,12 @@ fn uncover_fns<'p>(program: &PrgParsed<'p>) -> Result<PushMap<&'p str, Type>, Ty
 
     for def in &program.defs {
         match def {
-            Def::Fn { sym, prms: args, typ, .. } => {
+            Def::Fn {
+                sym,
+                prms: args,
+                typ,
+                ..
+            } => {
                 let signature = Type::Fn {
                     typ: Box::new(typ.clone()),
                     args: args.iter().map(|(_, t)| t.clone()).collect(),
@@ -190,11 +194,7 @@ fn type_check_expr<'p>(
 
                 Ok(*typ)
             }
-            got => {
-                return Err(TypeMismatchExpectFn {
-                    got,
-                })
-            }
+            got => Err(TypeMismatchExpectFn { got }),
         },
     }
 }

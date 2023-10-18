@@ -1,4 +1,3 @@
-use crate::interpreter::value::Val;
 use crate::language::lvar::{Expr, Lit};
 use nom::character::complete::digit1;
 use nom::combinator::map_res;

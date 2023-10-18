@@ -14,13 +14,12 @@ mod var;
 
 use crate::language::lvar::PrgParsed;
 use crate::parser::def::parse_def;
-use crate::parser::expression::parse_expression;
 use miette::{Diagnostic, SourceOffset, SourceSpan};
 use nom::character::complete::{multispace0, multispace1};
 use nom::combinator::all_consuming;
 use nom::error::{ErrorKind, ParseError};
 use nom::multi::many0;
-use nom::sequence::{pair, preceded, terminated};
+use nom::sequence::{preceded, terminated};
 use nom::Err;
 use nom::{IResult, Parser, Slice};
 use regex::Regex;

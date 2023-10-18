@@ -1,4 +1,3 @@
-use crate::interpreter::value::Val;
 use crate::language::lvar::{Expr, Lit};
 use nom::branch::alt;
 use nom::character::complete::char;

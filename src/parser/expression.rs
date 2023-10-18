@@ -23,11 +23,6 @@ pub fn parse_expression(input: &str) -> IResult<&str, Expr<&str>> {
 
 pub fn parse_expression_no_apply(input: &str) -> IResult<&str, Expr<&str>> {
     alt((
-        parse_prim,
-        parse_bool,
-        parse_int,
-        parse_var,
-        parse_let,
-        parse_if,
+        parse_prim, parse_bool, parse_int, parse_var, parse_let, parse_if,
     ))(input)
 }

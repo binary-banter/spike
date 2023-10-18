@@ -16,6 +16,9 @@ pub fn parse_apply(input: &str) -> IResult<&str, Expr<&str>> {
             trim0(char(')')),
         ),
     )
-    .map(|(fun, args)| Expr::Apply { fun: Box::new(fun), args })
+    .map(|(fun, args)| Expr::Apply {
+        fun: Box::new(fun),
+        args,
+    })
     .parse(input)
 }

@@ -1,4 +1,3 @@
-use crate::interpreter::value::Val;
 use crate::interpreter::IO;
 use crate::language::lvar::Lit;
 use crate::language::x86var::{

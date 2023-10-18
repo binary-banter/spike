@@ -1,7 +1,7 @@
-use std::collections::HashMap;
 use crate::language::lvar::{Def, Expr, Lit, Op, PrgUniquified};
 use crate::passes::type_check::Type;
 use crate::passes::uniquify::UniqueSym;
+use std::collections::HashMap;
 
 #[derive(Debug, PartialEq)]
 pub struct PrgRevealed<'p> {
@@ -27,7 +27,7 @@ pub enum RExpr<'p> {
     Var {
         sym: UniqueSym<'p>,
     },
-    FunRef{
+    FunRef {
         sym: UniqueSym<'p>,
     },
     Prim {
@@ -50,10 +50,14 @@ pub enum RExpr<'p> {
     },
 }
 
-impl<'p> From<PrgRevealed<'p>> for PrgUniquified<'p>{
+impl<'p> From<PrgRevealed<'p>> for PrgUniquified<'p> {
     fn from(value: PrgRevealed<'p>) -> Self {
         PrgUniquified {
-            defs: value.defs.into_iter().map(|(sym, def)| (sym, def.into())).collect(),
+            defs: value
+                .defs
+                .into_iter()
+                .map(|(sym, def)| (sym, def.into()))
+                .collect(),
             entry: value.entry,
         }
     }
@@ -62,12 +66,17 @@ impl<'p> From<PrgRevealed<'p>> for PrgUniquified<'p>{
 impl<'p> From<RDef<'p>> for Def<UniqueSym<'p>> {
     fn from(value: RDef<'p>) -> Self {
         match value {
-            RDef::Fn { sym, prms, typ, bdy} => Def::Fn {
+            RDef::Fn {
+                sym,
+                prms,
+                typ,
+                bdy,
+            } => Def::Fn {
                 sym,
                 prms,
                 typ,
                 bdy: bdy.into(),
-            }
+            },
         }
     }
 }
@@ -75,7 +84,7 @@ impl<'p> From<RDef<'p>> for Def<UniqueSym<'p>> {
 impl<'p> From<RExpr<'p>> for Expr<UniqueSym<'p>> {
     fn from(value: RExpr<'p>) -> Self {
         match value {
-            RExpr::Lit {val} => Expr::Lit {val},
+            RExpr::Lit { val } => Expr::Lit { val },
             RExpr::Prim { op, args } => Expr::Prim {
                 op,
                 args: args.into_iter().map(Into::into).collect(),
@@ -94,7 +103,7 @@ impl<'p> From<RExpr<'p>> for Expr<UniqueSym<'p>> {
                 fun: Box::new((*fun).into()),
                 args: args.into_iter().map(Into::into).collect(),
             },
-            RExpr::Var { sym } | RExpr::FunRef { sym }=> Expr::Var {sym},
+            RExpr::Var { sym } | RExpr::FunRef { sym } => Expr::Var { sym },
         }
     }
 }

@@ -62,6 +62,7 @@ mod tests {
             .type_check()
             .unwrap()
             .uniquify()
+            .reveal()
             .atomize()
             .explicate()
             .select()

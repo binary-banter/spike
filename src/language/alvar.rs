@@ -1,7 +1,7 @@
-use std::collections::HashMap;
-use crate::language::lvar::{Expr, Lit, Op, PrgGenericVar};
-use crate::passes::uniquify::UniqueSym;
+use crate::language::lvar::{Def, Expr, Lit, Op, PrgUniquified};
 use crate::passes::type_check::Type;
+use crate::passes::uniquify::UniqueSym;
+use std::collections::HashMap;
 
 #[derive(Debug, PartialEq)]
 pub struct PrgAtomized<'p> {
@@ -38,7 +38,10 @@ pub enum AExpr<'p> {
     },
     Apply {
         fun: Box<AExpr<'p>>,
-        args: Vec<AExpr<'p>>,
+        args: Vec<Atom<'p>>,
+    },
+    FunRef {
+        sym: UniqueSym<'p>,
     },
 }
 
@@ -48,13 +51,34 @@ pub enum Atom<'p> {
     Var { sym: UniqueSym<'p> },
 }
 
-impl<'p> From<PrgAtomized<'p>> for PrgGenericVar<UniqueSym<'p>> {
+impl<'p> From<PrgAtomized<'p>> for PrgUniquified<'p> {
     fn from(value: PrgAtomized<'p>) -> Self {
-        todo!()
-        // ULVarProgram {
-        //     defs: todo!(),
-        //     bdy: value.bdy.into(),
-        // }
+        PrgUniquified {
+            defs: value
+                .defs
+                .into_iter()
+                .map(|(sym, def)| (sym, def.into()))
+                .collect(),
+            entry: value.entry,
+        }
+    }
+}
+
+impl<'p> From<ADef<'p>> for Def<UniqueSym<'p>> {
+    fn from(value: ADef<'p>) -> Self {
+        match value {
+            ADef::Fn {
+                sym,
+                prms,
+                typ,
+                bdy,
+            } => Def::Fn {
+                sym,
+                prms,
+                typ,
+                bdy: bdy.into(),
+            },
+        }
     }
 }
 
@@ -77,9 +101,10 @@ impl<'p> From<AExpr<'p>> for Expr<UniqueSym<'p>> {
                 els: Box::new((*els).into()),
             },
             AExpr::Apply { fun, args } => Expr::Apply {
-                    fun: Box::new((*fun).into()),
+                fun: Box::new((*fun).into()),
                 args: args.into_iter().map(Into::into).collect(),
             },
+            AExpr::FunRef { sym } => Expr::Var { sym },
         }
     }
 }

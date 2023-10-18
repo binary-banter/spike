@@ -6,8 +6,12 @@ use std::hash::Hash;
 
 impl<A: Copy + Hash + Eq> PrgGenericVar<A> {
     pub fn interpret(&self, io: &mut impl IO) -> Val<A> {
-        let mut scope = PushMap::from_iter(self.defs.iter().map(|(&sym, _)| (sym, Val::Function {sym})));
-        self.interpret_fn(self.entry,Vec::new(), &mut scope, io)
+        let mut scope = PushMap::from_iter(
+            self.defs
+                .iter()
+                .map(|(&sym, _)| (sym, Val::Function { sym })),
+        );
+        self.interpret_fn(self.entry, Vec::new(), &mut scope, io)
     }
 
     fn interpret_fn(
@@ -18,11 +22,10 @@ impl<A: Copy + Hash + Eq> PrgGenericVar<A> {
         io: &mut impl IO,
     ) -> Val<A> {
         match &self.defs[&sym] {
-            Def::Fn { prms, bdy, .. } => {
-                scope.push_iter(prms.iter().zip(args.iter()).map(|((k, _), v)| (*k, *v)), |scope| {
-                    self.interpret_expr(bdy, scope, io)
-                })
-            }
+            Def::Fn { prms, bdy, .. } => scope.push_iter(
+                prms.iter().zip(args.iter()).map(|((k, _), v)| (*k, *v)),
+                |scope| self.interpret_expr(bdy, scope, io),
+            ),
         }
     }
 
@@ -129,9 +132,12 @@ impl<A: Copy + Hash + Eq> PrgGenericVar<A> {
             }
             Expr::Apply { fun, args } => {
                 let sym = self.interpret_expr(fun, scope, io).fun();
-                let args = args.iter().map(|arg| self.interpret_expr(arg, scope, io)).collect();
+                let args = args
+                    .iter()
+                    .map(|arg| self.interpret_expr(arg, scope, io))
+                    .collect();
                 self.interpret_fn(sym, args, scope, io)
-            },
+            }
         }
     }
 }
