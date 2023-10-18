@@ -134,6 +134,19 @@ impl<'p> PrgExplicated<'p> {
                 _ => unreachable!(),
             },
             CExpr::Atom { atm } => self.interpret_atom(atm, scope),
+            CExpr::FunRef { sym } => Val::Function { sym: *sym },
+            CExpr::Apply { fun, args } => {
+                let fn_sym = self.interpret_atom(fun, scope).fun();
+                let args = self.fn_params[&fn_sym]
+                    .iter()
+                    .zip(args.iter())
+                    .map(|(sym, atm)| (*sym, self.interpret_atom(atm, scope)))
+                    .collect::<Vec<_>>();
+
+                scope.push_iter(args.into_iter(), |scope| {
+                    self.interpret_tail(&self.blocks[&fn_sym], scope, io)
+                })
+            }
         }
     }
 }

@@ -39,7 +39,7 @@ pub enum AExpr<'p> {
         els: Box<AExpr<'p>>,
     },
     Apply {
-        fun: Box<AExpr<'p>>,
+        fun: Box<Atom<'p>>,
         args: Vec<Atom<'p>>,
     },
     FunRef {

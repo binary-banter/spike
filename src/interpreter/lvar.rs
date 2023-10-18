@@ -2,9 +2,10 @@ use crate::interpreter::value::Val;
 use crate::interpreter::IO;
 use crate::language::lvar::{Def, Expr, Lit, Op, PrgGenericVar};
 use crate::utils::push_map::PushMap;
+use std::fmt::Debug;
 use std::hash::Hash;
 
-impl<A: Copy + Hash + Eq> PrgGenericVar<A> {
+impl<A: Copy + Hash + Eq + Debug> PrgGenericVar<A> {
     pub fn interpret(&self, io: &mut impl IO) -> Val<A> {
         let mut scope = PushMap::from_iter(
             self.defs

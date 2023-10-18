@@ -107,6 +107,8 @@ fn select_assign<'p>(
             ],
             _ => panic!("Encountered Prim with incorrect arity during select instructions pass."),
         },
+        CExpr::FunRef { .. } => todo!(),
+        CExpr::Apply { .. } => todo!(),
     }
 }
 

@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fmt::Debug;
 use std::hash::Hash;
 use std::ops::Index;
 
@@ -16,7 +17,7 @@ impl<K: Hash + Eq + Clone, V> From<HashMap<K, V>> for PushMap<K, V> {
     }
 }
 
-impl<K: Hash + Eq + Clone, V> PushMap<K, V> {
+impl<K: Hash + Eq + Clone + Debug, V> PushMap<K, V> {
     pub(crate) fn from_iter(value: impl Iterator<Item = (K, V)>) -> Self {
         PushMap(value.collect())
     }
@@ -80,10 +81,14 @@ impl<K: Hash + Eq + Clone, V> PushMap<K, V> {
     }
 }
 
-impl<K: Hash + Eq + Clone, V> Index<&K> for PushMap<K, V> {
+impl<K: Hash + Eq + Clone + Debug, V> Index<&K> for PushMap<K, V> {
     type Output = V;
 
     fn index(&self, index: &K) -> &Self::Output {
+        assert!(
+            self.0.contains_key(index),
+            "Expected to find {index:?} in push map."
+        );
         &self.0[index]
     }
 }

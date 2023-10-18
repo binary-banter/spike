@@ -14,6 +14,13 @@ impl<'p> PrgAtomized<'p> {
     /// See module-level documentation.
     pub fn explicate(self) -> PrgExplicated<'p> {
         let mut blocks = HashMap::new();
+        let fn_params = self
+            .defs
+            .iter()
+            .map(|(fn_sym, def)| match def {
+                ADef::Fn { params, .. } => (*fn_sym, params.iter().map(|(sym, _)| *sym).collect()),
+            })
+            .collect();
 
         for (_, def) in self.defs {
             explicate_def(def, &mut blocks);
@@ -21,6 +28,7 @@ impl<'p> PrgAtomized<'p> {
 
         PrgExplicated {
             blocks,
+            fn_params,
             entry: self.entry,
         }
     }
@@ -52,8 +60,12 @@ fn explicate_tail<'p>(expr: AExpr<'p>, blocks: &mut HashMap<UniqueSym<'p>, Tail<
             explicate_tail(*els, blocks),
             blocks,
         ),
-        AExpr::Apply { .. } => todo!(),
-        AExpr::FunRef { .. } => todo!(),
+        AExpr::Apply { fun, args } => Tail::Return {
+            expr: CExpr::Apply { fun, args },
+        },
+        AExpr::FunRef { sym } => Tail::Return {
+            expr: CExpr::FunRef { sym },
+        },
     }
 }
 
@@ -70,6 +82,16 @@ fn explicate_assign<'p>(
     };
 
     match bnd {
+        AExpr::Apply { fun, args } => Tail::Seq {
+            sym,
+            bnd: CExpr::Apply { fun, args },
+            tail: Box::new(tail),
+        },
+        AExpr::FunRef { sym: sym_fn } => Tail::Seq {
+            sym,
+            bnd: CExpr::FunRef { sym: sym_fn },
+            tail: Box::new(tail),
+        },
         AExpr::Atom { atm } => Tail::Seq {
             sym,
             bnd: CExpr::Atom { atm },
@@ -99,8 +121,6 @@ fn explicate_assign<'p>(
                 blocks,
             )
         }
-        AExpr::Apply { .. } => todo!(),
-        AExpr::FunRef { .. } => todo!(),
     }
 }
 
@@ -145,27 +165,32 @@ fn explicate_pred<'p>(
             }
         }
 
-        AExpr::Atom {
-            atm: Atom::Val {
-                val: Lit::Int { .. },
+        AExpr::Prim { op, args } => match op {
+            Op::Not => explicate_pred(AExpr::Atom { atm: args[0] }, els, thn, blocks),
+            Op::EQ | Op::NE | Op::GT | Op::GE | Op::LT | Op::LE => Tail::IfStmt {
+                cnd: CExpr::Prim { op, args },
+                thn: create_block(thn),
+                els: create_block(els),
             },
-        } => unreachable!(),
+            Op::LAnd | Op::LOr | Op::Xor => {
+                let tmp = gen_sym("");
+                explicate_assign(
+                    tmp,
+                    AExpr::Prim { op, args },
+                    explicate_pred(
+                        AExpr::Atom {
+                            atm: Atom::Var { sym: tmp },
+                        },
+                        thn,
+                        els,
+                        blocks,
+                    ),
+                    blocks,
+                )
+            }
 
-        AExpr::Prim { op: Op::Not, args } => match args.as_slice() {
-            [atm] => explicate_pred(AExpr::Atom { atm: *atm }, els, thn, blocks),
-            _ => unreachable!(),
+            Op::Read | Op::Print | Op::Plus | Op::Minus | Op::Mul => unreachable!(),
         },
-
-        AExpr::Prim {
-            op: op @ (Op::EQ | Op::NE | Op::GT | Op::GE | Op::LT | Op::LE),
-            args,
-        } => Tail::IfStmt {
-            cnd: CExpr::Prim { op, args },
-            thn: create_block(thn),
-            els: create_block(els),
-        },
-
-        AExpr::Prim { .. } => unreachable!(),
 
         AExpr::Let { sym, bnd, bdy } => {
             explicate_assign(sym, *bnd, explicate_pred(*bdy, thn, els, blocks), blocks)
@@ -197,8 +222,29 @@ fn explicate_pred<'p>(
             )
         }
 
-        AExpr::Apply { .. } => todo!(),
-        AExpr::FunRef { .. } => todo!(),
+        AExpr::Apply { fun, args } => {
+            let tmp = gen_sym("");
+            explicate_assign(
+                tmp,
+                AExpr::Apply { fun, args },
+                explicate_pred(
+                    AExpr::Atom {
+                        atm: Atom::Var { sym: tmp },
+                    },
+                    thn,
+                    els,
+                    blocks,
+                ),
+                blocks,
+            )
+        }
+
+        AExpr::FunRef { .. }
+        | AExpr::Atom {
+            atm: Atom::Val {
+                val: Lit::Int { .. },
+            },
+        } => unreachable!(),
     }
 }
 

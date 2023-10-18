@@ -72,16 +72,22 @@ fn rco_expr(expr: RExpr) -> AExpr {
         RExpr::Apply { fun, args } => {
             let (args, extras): (Vec<_>, Vec<_>) = args.into_iter().map(rco_atom).unzip();
 
-            let fun = Box::new(rco_expr(*fun));
+            let (fun, fun_expr) = rco_atom(*fun);
 
-            extras
+            fun_expr
                 .into_iter()
-                .flatten()
-                .rfold(AExpr::Apply { fun, args }, |bdy, (sym, bnd)| AExpr::Let {
-                    sym,
-                    bnd: Box::new(bnd),
-                    bdy: Box::new(bdy),
-                })
+                .chain(extras.into_iter().flatten())
+                .rfold(
+                    AExpr::Apply {
+                        fun: Box::new(fun),
+                        args,
+                    },
+                    |bdy, (sym, bnd)| AExpr::Let {
+                        sym,
+                        bnd: Box::new(bnd),
+                        bdy: Box::new(bdy),
+                    },
+                )
         }
         RExpr::FunRef { sym } => {
             let tmp = gen_sym("");
