@@ -32,19 +32,26 @@ fn uniquify_def<'p>(
     match def {
         Def::Fn {
             sym,
-            prms,
+            params,
             typ,
             bdy,
-        } => scope.push_iter(prms.iter().map(|(sym, _)| (*sym, gen_sym(sym))), |scope| {
-            let prms = prms.iter().cloned().map(|(p, t)| (scope[&p], t)).collect();
-            let bdy = uniquify_expression(bdy, scope);
-            Def::Fn {
-                sym: scope[&sym],
-                prms,
-                typ,
-                bdy,
-            }
-        }),
+        } => scope.push_iter(
+            params.iter().map(|(sym, _)| (*sym, gen_sym(sym))),
+            |scope| {
+                let params = params
+                    .iter()
+                    .cloned()
+                    .map(|(p, t)| (scope[&p], t))
+                    .collect();
+                let bdy = uniquify_expression(bdy, scope);
+                Def::Fn {
+                    sym: scope[&sym],
+                    params,
+                    typ,
+                    bdy,
+                }
+            },
+        ),
     }
 }
 

@@ -13,7 +13,7 @@ pub struct PrgAtomized<'p> {
 pub enum ADef<'p> {
     Fn {
         sym: UniqueSym<'p>,
-        prms: Vec<(UniqueSym<'p>, Type)>,
+        params: Vec<(UniqueSym<'p>, Type)>,
         typ: Type,
         bdy: AExpr<'p>,
     },
@@ -69,12 +69,12 @@ impl<'p> From<ADef<'p>> for Def<UniqueSym<'p>> {
         match value {
             ADef::Fn {
                 sym,
-                prms,
+                params,
                 typ,
                 bdy,
             } => Def::Fn {
                 sym,
-                prms,
+                params,
                 typ,
                 bdy: bdy.into(),
             },

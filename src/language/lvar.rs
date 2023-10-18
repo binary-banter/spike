@@ -70,7 +70,7 @@ impl Display for Op {
 pub enum Def<A: Copy + Hash + Eq> {
     Fn {
         sym: A,
-        prms: Vec<(A, Type)>,
+        params: Vec<(A, Type)>,
         typ: Type,
         bdy: Expr<A>,
     },

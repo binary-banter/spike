@@ -21,12 +21,12 @@ impl<'p> PrgRevealed<'p> {
                     let def = match def {
                         RDef::Fn {
                             sym,
-                            prms,
+                            params,
                             typ,
                             bdy,
                         } => ADef::Fn {
                             sym,
-                            prms,
+                            params,
                             typ,
                             bdy: rco_expr(bdy),
                         },

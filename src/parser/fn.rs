@@ -29,9 +29,9 @@ pub fn parse_fn(input: &str) -> IResult<&str, Def<&str>> {
             delimited(trim0(char('{')), trim0(parse_expression), trim0(char('}'))),
         )),
     )
-    .map(|(sym, args, typ, bdy)| Def::Fn {
+    .map(|(sym, params, typ, bdy)| Def::Fn {
         sym,
-        prms: args,
+        params,
         typ,
         bdy,
     })

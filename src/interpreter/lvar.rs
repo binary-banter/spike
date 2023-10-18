@@ -22,8 +22,8 @@ impl<A: Copy + Hash + Eq> PrgGenericVar<A> {
         io: &mut impl IO,
     ) -> Val<A> {
         match &self.defs[&sym] {
-            Def::Fn { prms, bdy, .. } => scope.push_iter(
-                prms.iter().zip(args.iter()).map(|((k, _), v)| (*k, *v)),
+            Def::Fn { params, bdy, .. } => scope.push_iter(
+                params.iter().zip(args.iter()).map(|((k, _), v)| (*k, *v)),
                 |scope| self.interpret_expr(bdy, scope, io),
             ),
         }

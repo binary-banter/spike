@@ -15,12 +15,12 @@ impl<'p> PrgUniquified<'p> {
                     let def = match def {
                         Def::Fn {
                             sym,
-                            prms,
+                            params,
                             typ,
                             bdy,
                         } => RDef::Fn {
                             sym,
-                            prms,
+                            params,
                             typ,
                             bdy: reveal_expr(bdy, &mut scope),
                         },

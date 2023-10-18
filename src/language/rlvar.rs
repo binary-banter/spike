@@ -13,7 +13,7 @@ pub struct PrgRevealed<'p> {
 pub enum RDef<'p> {
     Fn {
         sym: UniqueSym<'p>,
-        prms: Vec<(UniqueSym<'p>, Type)>,
+        params: Vec<(UniqueSym<'p>, Type)>,
         typ: Type,
         bdy: RExpr<'p>,
     },
@@ -68,12 +68,12 @@ impl<'p> From<RDef<'p>> for Def<UniqueSym<'p>> {
         match value {
             RDef::Fn {
                 sym,
-                prms,
+                params,
                 typ,
                 bdy,
             } => Def::Fn {
                 sym,
-                prms,
+                params,
                 typ,
                 bdy: bdy.into(),
             },

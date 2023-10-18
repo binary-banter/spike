@@ -58,11 +58,11 @@ impl<'p> PrgParsed<'p> {
             .map(|def| match def {
                 Def::Fn {
                     sym,
-                    prms: ref args,
+                    ref params,
                     ref bdy,
                     ref typ,
                 } => scope
-                    .push_iter(args.iter().cloned(), |scope| {
+                    .push_iter(params.iter().cloned(), |scope| {
                         expect_type(bdy, scope, typ.clone())
                     })
                     .map(|_| (sym, def)),
@@ -85,7 +85,7 @@ fn uncover_fns<'p>(program: &PrgParsed<'p>) -> Result<PushMap<&'p str, Type>, Ty
         match def {
             Def::Fn {
                 sym,
-                prms: args,
+                params: args,
                 typ,
                 ..
             } => {
