@@ -182,7 +182,17 @@ pub fn handle_instr<'p>(
                 arg(&(*larg).into(), R);
             }
         }
-        Instr::LoadLbl { .. } => todo!(),
-        Instr::CallqIndirect { .. } => todo!(),
+        Instr::LoadLbl { dst, .. } => {
+            arg(dst, W);
+        },
+        Instr::CallqIndirect { src, arity } => {
+            for reg in CALLER_SAVED {
+                arg(&VarArg::Reg { reg }, W);
+            }
+            for reg in ARG_PASSING_REGS.into_iter().take(*arity) {
+                arg(&VarArg::Reg { reg }, R);
+            }
+            arg(src, R);
+        },
     }
 }
