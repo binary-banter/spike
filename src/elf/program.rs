@@ -1,3 +1,4 @@
+use crate::elf::PRG_OFFSET;
 use bitflags::bitflags;
 use std::mem::size_of;
 use zerocopy::AsBytes;
@@ -71,8 +72,8 @@ impl ProgramHeader {
             p_type: ProgramType::PT_LOAD,
             p_flags: ProgramFlags::Executable | ProgramFlags::Readable,
             p_offset: offset,
-            p_vaddr: 0x0040_0000,
-            p_paddr: 0x0040_0000,
+            p_vaddr: PRG_OFFSET as u64,
+            p_paddr: PRG_OFFSET as u64,
             p_filesz: len,
             p_memsz: len,
             p_align: 0,

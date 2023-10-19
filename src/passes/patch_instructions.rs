@@ -51,10 +51,10 @@ fn patch_args<'p>(src: Arg, dst: Arg, op: fn(Arg, Arg) -> Instr<'p, Arg>) -> Vec
 mod tests {
     use crate::interpreter::TestIO;
     use crate::language::x86var::X86Selected;
-    use crate::utils::split_test::split_test;
-    use test_each_file::test_each_file;
-    use crate::*;
     use crate::passes::uniquify::gen_sym;
+    use crate::utils::split_test::split_test;
+    use crate::*;
+    use test_each_file::test_each_file;
 
     fn patch_instructions([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);
@@ -77,11 +77,14 @@ mod tests {
 
         // Redirect program to exit
         let new_entry = gen_sym("");
-        program.blocks.insert(new_entry, block!(
-            load_lbl!(program.std.exit, reg!(RAX)),
-            pushq!(reg!(RAX)),
-            jmp!(program.entry)
-        ));
+        program.blocks.insert(
+            new_entry,
+            block!(
+                load_lbl!(program.std.exit, reg!(RAX)),
+                pushq!(reg!(RAX)),
+                jmp!(program.entry)
+            ),
+        );
         program.entry = new_entry;
 
         let mut io = TestIO::new(input);

@@ -6,6 +6,8 @@ mod push_pop;
 mod special;
 mod unary;
 
+use crate::elf::PRG_OFFSET;
+use crate::imm;
 use crate::language::x86var::{Arg, Block, Cnd, Instr, Reg, X86Concluded};
 use crate::passes::emit::binary::{
     encode_binary_instr, ADDQ_INFO, ANDQ_INFO, CMPQ_INFO, MOVQ_INFO, ORQ_INFO, SUBQ_INFO, XORQ_INFO,
@@ -13,10 +15,9 @@ use crate::passes::emit::binary::{
 use crate::passes::emit::mul_div::{encode_muldiv_instr, MulDivOpInfo};
 use crate::passes::emit::push_pop::{encode_push_pop, POPQ_INFO, PUSHQ_INFO};
 use crate::passes::emit::special::encode_setcc;
-use crate::passes::emit::unary::{CALLQ_INDIRECT_INFO, encode_unary_instr, NEGQ_INFO, UnaryOpInfo};
+use crate::passes::emit::unary::{encode_unary_instr, CALLQ_INDIRECT_INFO, NEGQ_INFO};
 use crate::passes::uniquify::UniqueSym;
 use std::collections::HashMap;
-use crate::imm;
 
 impl<'p> X86Concluded<'p> {
     //! See module-level documentation.
@@ -41,7 +42,7 @@ impl<'p> X86Concluded<'p> {
         }
 
         for (addr, block) in abs_jumps {
-            let target = addresses[&block] as i32;
+            let target = (PRG_OFFSET + addresses[&block]) as i32;
 
             machine_code[addr..addr + 4].copy_from_slice(&target.to_le_bytes());
         }
@@ -110,6 +111,7 @@ fn emit_instr<'p>(
             src,
         ),
         Instr::LoadLbl { sym, dst } => {
+            // todo: this offset is *only* correct when dst is a register!
             abs_jumps.insert(machine_code.len() + 3, *sym);
             encode_binary_instr(MOVQ_INFO, &imm!(0), dst)
         }
@@ -168,7 +170,12 @@ macro_rules! check {
             let mut output = vec![];
             use std::collections::HashMap;
             use $crate::passes::emit::emit_instr;
-            emit_instr(&$instr, &mut output, &mut HashMap::new(), &mut HashMap::new());
+            emit_instr(
+                &$instr,
+                &mut output,
+                &mut HashMap::new(),
+                &mut HashMap::new(),
+            );
 
             assert_eq!(output, $expected);
         }

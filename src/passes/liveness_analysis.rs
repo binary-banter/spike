@@ -184,7 +184,7 @@ pub fn handle_instr<'p>(
         }
         Instr::LoadLbl { dst, .. } => {
             arg(dst, W);
-        },
+        }
         Instr::CallqIndirect { src, arity } => {
             for reg in CALLER_SAVED {
                 arg(&VarArg::Reg { reg }, W);
@@ -193,6 +193,6 @@ pub fn handle_instr<'p>(
                 arg(&VarArg::Reg { reg }, R);
             }
             arg(src, R);
-        },
+        }
     }
 }

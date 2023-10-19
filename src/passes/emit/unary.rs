@@ -7,15 +7,9 @@ pub struct UnaryOpInfo {
     pub pad: u8,
 }
 
-pub const NEGQ_INFO: UnaryOpInfo = UnaryOpInfo {
-    op: 0xF7,
-    pad: 0x3,
-};
+pub const NEGQ_INFO: UnaryOpInfo = UnaryOpInfo { op: 0xF7, pad: 0x3 };
 
-pub const CALLQ_INDIRECT_INFO: UnaryOpInfo = UnaryOpInfo {
-    op: 0xFF,
-    pad: 0x2,
-};
+pub const CALLQ_INDIRECT_INFO: UnaryOpInfo = UnaryOpInfo { op: 0xFF, pad: 0x2 };
 
 pub fn encode_unary_instr(op_info: UnaryOpInfo, dst: &Arg) -> Vec<u8> {
     match dst {

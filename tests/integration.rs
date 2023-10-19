@@ -3,7 +3,6 @@ use rust_compiler_construction::utils::split_test::split_test;
 use std::fs::File;
 use std::io::{BufRead, Write};
 
-use rust_compiler_construction::interpreter::value::Val;
 use rust_compiler_construction::language::lvar::Lit;
 use std::process::{Command, Stdio};
 use std::thread::sleep;

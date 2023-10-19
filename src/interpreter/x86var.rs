@@ -190,7 +190,7 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                 Instr::LoadLbl { sym, dst } => {
                     let val = self.instr_to_addr(*sym, 0);
                     self.set_arg(dst, val);
-                },
+                }
                 Instr::CallqIndirect { src, .. } => {
                     let ret_addr = self.instr_to_addr(block_name, instr_id + 1);
 
@@ -200,7 +200,7 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                     self.memory.insert(*rsp, ret_addr);
 
                     return self.interpret_addr(self.get_arg(src));
-                },
+                }
             }
         }
         panic!("A block ran out of instructions.");

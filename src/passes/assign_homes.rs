@@ -4,7 +4,10 @@
 
 use crate::language::x86var::{Arg, Block, Instr, VarArg, X86Assigned, X86Colored};
 use crate::passes::uniquify::UniqueSym;
-use crate::{addq, andq, callq_direct, callq_indirect, cmpq, divq, jcc, jmp, load_lbl, movq, mulq, negq, notq, orq, popq, pushq, retq, setcc, subq, syscall, xorq};
+use crate::{
+    addq, andq, callq_direct, callq_indirect, cmpq, divq, jcc, jmp, load_lbl, movq, mulq, negq,
+    notq, orq, popq, pushq, retq, setcc, subq, syscall, xorq,
+};
 use std::collections::HashMap;
 
 impl<'p> X86Colored<'p> {
@@ -76,10 +79,10 @@ fn assign_instr<'p>(
 mod tests {
     use crate::interpreter::TestIO;
     use crate::language::x86var::X86Selected;
-    use crate::utils::split_test::split_test;
-    use test_each_file::test_each_file;
-    use crate::*;
     use crate::passes::uniquify::gen_sym;
+    use crate::utils::split_test::split_test;
+    use crate::*;
+    use test_each_file::test_each_file;
 
     fn assign_homes([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);
@@ -101,11 +104,14 @@ mod tests {
 
         // Redirect program to exit
         let new_entry = gen_sym("");
-        program.blocks.insert(new_entry, block!(
-            load_lbl!(program.std.exit, reg!(RAX)),
-            pushq!(reg!(RAX)),
-            jmp!(program.entry)
-        ));
+        program.blocks.insert(
+            new_entry,
+            block!(
+                load_lbl!(program.std.exit, reg!(RAX)),
+                pushq!(reg!(RAX)),
+                jmp!(program.entry)
+            ),
+        );
         program.entry = new_entry;
 
         let mut io = TestIO::new(input);

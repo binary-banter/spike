@@ -1,6 +1,9 @@
 use crate::passes::select::io::Std;
 use crate::passes::uniquify::UniqueSym;
-use crate::{addq, andq, callq_direct, callq_indirect, cmpq, divq, jcc, jmp, load_lbl, movq, mulq, negq, notq, orq, popq, pushq, retq, setcc, subq, syscall, xorq};
+use crate::{
+    addq, andq, callq_direct, callq_indirect, cmpq, divq, jcc, jmp, load_lbl, movq, mulq, negq,
+    notq, orq, popq, pushq, retq, setcc, subq, syscall, xorq,
+};
 use petgraph::prelude::GraphMap;
 use petgraph::Undirected;
 use std::collections::{HashMap, HashSet};
@@ -116,7 +119,7 @@ pub enum Instr<'p, A> {
     Setcc { cnd: Cnd }, //TODO allow setting other byteregs
     LoadLbl { sym: UniqueSym<'p>, dst: A },
     CallqDirect { lbl: UniqueSym<'p>, arity: usize },
-    CallqIndirect { src: A, arity: usize }
+    CallqIndirect { src: A, arity: usize },
 }
 
 #[derive(Debug, PartialEq, Clone, Copy, Hash, Eq)]
@@ -285,7 +288,7 @@ impl<'p> From<Instr<'p, Arg>> for Instr<'p, VarArg<'p>> {
             Instr::Notq { dst } => notq!(dst.into()),
             Instr::Setcc { cnd } => setcc!(cnd),
             Instr::LoadLbl { sym, dst } => load_lbl!(sym, dst.into()),
-            Instr::CallqIndirect { src, arity } => callq_indirect!(src.into(), arity)
+            Instr::CallqIndirect { src, arity } => callq_indirect!(src.into(), arity),
         }
     }
 }
@@ -410,7 +413,7 @@ mod macros {
         ($lbl:expr, $dst: expr) => {
             $crate::language::x86var::Instr::LoadLbl {
                 sym: $lbl,
-                dst: $dst
+                dst: $dst,
             }
         };
     }

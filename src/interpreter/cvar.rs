@@ -18,13 +18,13 @@ impl<'p> PrgExplicated<'p> {
         io: &mut impl IO,
     ) -> Val<UniqueSym<'p>> {
         match tail {
-            Tail::Return { expr } => self.interpret_expr(&expr.clone().into(), scope, io),
+            Tail::Return { expr } => self.interpret_expr(&expr.clone(), scope, io),
             Tail::Seq { sym, bnd, tail } => {
-                let bnd = self.interpret_expr(&bnd.clone().into(), scope, io);
+                let bnd = self.interpret_expr(&bnd.clone(), scope, io);
                 scope.push(*sym, bnd, |scope| self.interpret_tail(tail, scope, io))
             }
             Tail::IfStmt { cnd, thn, els } => {
-                if self.interpret_expr(&cnd.clone().into(), scope, io).bool() {
+                if self.interpret_expr(&cnd.clone(), scope, io).bool() {
                     self.interpret_tail(&self.blocks[thn], scope, io)
                 } else {
                     self.interpret_tail(&self.blocks[els], scope, io)
@@ -37,7 +37,7 @@ impl<'p> PrgExplicated<'p> {
     pub fn interpret_atom(
         &self,
         atom: &Atom<'p>,
-        scope: &mut PushMap<UniqueSym<'p>, Val<UniqueSym<'p>>>,
+        scope: &PushMap<UniqueSym<'p>, Val<UniqueSym<'p>>>,
     ) -> Val<UniqueSym<'p>> {
         match atom {
             Atom::Val { val } => (*val).into(),

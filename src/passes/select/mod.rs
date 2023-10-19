@@ -8,12 +8,11 @@ pub mod io;
 use crate::language::alvar::Atom;
 use crate::language::cvar::{CExpr, PrgExplicated, Tail};
 use crate::language::lvar::Op;
-use crate::language::x86var::{ARG_PASSING_REGS, Block, Cnd, Instr, VarArg, X86Selected};
+use crate::language::x86var::{Block, Cnd, Instr, VarArg, X86Selected, ARG_PASSING_REGS};
 use crate::passes::select::io::Std;
+use crate::passes::uniquify::UniqueSym;
 use crate::*;
 use std::collections::HashMap;
-use itertools::Itertools;
-use crate::passes::uniquify::UniqueSym;
 
 impl<'p> PrgExplicated<'p> {
     /// See module-level documentation.
@@ -35,14 +34,22 @@ impl<'p> PrgExplicated<'p> {
     }
 }
 
-fn select_block<'p>(sym: UniqueSym<'p>, tail: Tail<'p>, std: &Std<'p>, fn_params: &HashMap<UniqueSym<'p>, Vec<UniqueSym<'p>>>) -> Block<'p, VarArg<'p>> {
+fn select_block<'p>(
+    sym: UniqueSym<'p>,
+    tail: Tail<'p>,
+    std: &Std<'p>,
+    fn_params: &HashMap<UniqueSym<'p>, Vec<UniqueSym<'p>>>,
+) -> Block<'p, VarArg<'p>> {
     let mut instrs = Vec::new();
 
     if let Some(params) = fn_params.get(&sym) {
         for (reg, param) in ARG_PASSING_REGS.into_iter().zip(params.iter()) {
-            instrs.push(movq!(VarArg::Reg {reg}, VarArg::XVar { sym: *param }));
+            instrs.push(movq!(VarArg::Reg { reg }, VarArg::XVar { sym: *param }));
         }
-        assert!(params.iter().skip(6).next().is_none(), "Argument passing to stack is not yet implemented.");
+        assert!(
+            params.len() <= 6,
+            "Argument passing to stack is not yet implemented."
+        );
     }
 
     select_tail(tail, &mut instrs, std);
@@ -123,13 +130,16 @@ fn select_assign<'p>(
             let mut instrs = vec![];
 
             for (arg, reg) in args.iter().zip(ARG_PASSING_REGS.into_iter()) {
-                instrs.push(movq!(select_atom(arg), VarArg::Reg {reg}));
+                instrs.push(movq!(select_atom(arg), VarArg::Reg { reg }));
             }
-            assert!(args.iter().skip(6).next().is_none(), "Argument passing to stack is not yet implemented.");
+            assert!(
+                args.len() <= 6,
+                "Argument passing to stack is not yet implemented."
+            );
 
             instrs.push(callq_indirect!(select_atom(&fun), args.len()));
             instrs
-        },
+        }
     }
 }
 
@@ -155,10 +165,10 @@ fn select_cmp(op: Op) -> Cnd {
 #[cfg(test)]
 mod tests {
     use crate::interpreter::TestIO;
-    use crate::utils::split_test::split_test;
-    use test_each_file::test_each_file;
-    use crate::{block, jmp, load_lbl, pushq, reg};
     use crate::passes::uniquify::gen_sym;
+    use crate::utils::split_test::split_test;
+    use crate::{block, jmp, load_lbl, pushq, reg};
+    use test_each_file::test_each_file;
 
     fn select([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);
@@ -175,11 +185,14 @@ mod tests {
 
         // Redirect program to exit
         let new_entry = gen_sym("");
-        program.blocks.insert(new_entry, block!(
-            load_lbl!(program.std.exit, reg!(RAX)),
-            pushq!(reg!(RAX)),
-            jmp!(program.entry)
-        ));
+        program.blocks.insert(
+            new_entry,
+            block!(
+                load_lbl!(program.std.exit, reg!(RAX)),
+                pushq!(reg!(RAX)),
+                jmp!(program.entry)
+            ),
+        );
         program.entry = new_entry;
 
         let mut io = TestIO::new(input);

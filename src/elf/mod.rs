@@ -12,6 +12,8 @@ use std::io::Write;
 use std::mem::size_of;
 use zerocopy::AsBytes;
 
+pub const PRG_OFFSET: usize = 0x0040_0000;
+
 #[repr(C, packed)]
 pub struct ElfFile<'a> {
     header: ElfHeader,
@@ -24,7 +26,7 @@ impl<'a> ElfFile<'a> {
         let p_headers = vec![ProgramHeader::new(0x1000, program.len() as u64)];
 
         Self {
-            header: ElfHeader::new(0x0040_0000 + entry as u64, p_headers.len() as u16),
+            header: ElfHeader::new((PRG_OFFSET + entry) as u64, p_headers.len() as u16),
             p_headers,
             program,
         }
