@@ -53,12 +53,14 @@ mod tests {
     use crate::language::x86var::X86Selected;
     use crate::utils::split_test::split_test;
     use test_each_file::test_each_file;
+    use crate::*;
+    use crate::passes::uniquify::gen_sym;
 
     fn patch_instructions([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);
         let expected_return = expected_return.into();
 
-        let program: X86Selected = program
+        let mut program: X86Selected = program
             .type_check()
             .unwrap()
             .uniquify()
@@ -72,6 +74,16 @@ mod tests {
             .assign_homes()
             .patch()
             .into();
+
+        // Redirect program to exit
+        let new_entry = gen_sym("");
+        program.blocks.insert(new_entry, block!(
+            load_lbl!(program.std.exit, reg!(RAX)),
+            pushq!(reg!(RAX)),
+            jmp!(program.entry)
+        ));
+        program.entry = new_entry;
+
         let mut io = TestIO::new(input);
         let result = program.interpret(&mut io);
 

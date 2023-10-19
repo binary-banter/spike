@@ -4,12 +4,17 @@ use crate::passes::emit::Reg;
 
 pub struct UnaryOpInfo {
     pub op: u8,
-    pub imm_as_src: u8,
+    pub pad: u8,
 }
 
 pub const NEGQ_INFO: UnaryOpInfo = UnaryOpInfo {
     op: 0xF7,
-    imm_as_src: 0x3,
+    pad: 0x3,
+};
+
+pub const CALLQ_INDIRECT_INFO: UnaryOpInfo = UnaryOpInfo {
+    op: 0xFF,
+    pad: 0x2,
 };
 
 pub fn encode_unary_instr(op_info: UnaryOpInfo, dst: &Arg) -> Vec<u8> {
@@ -20,7 +25,7 @@ pub fn encode_unary_instr(op_info: UnaryOpInfo, dst: &Arg) -> Vec<u8> {
             vec![
                 0b0100_1000 | d,
                 op_info.op,
-                0b11_000_000 | op_info.imm_as_src << 3 | ddd,
+                0b11_000_000 | op_info.pad << 3 | ddd,
             ]
         }
         Arg::Deref { reg: dst, off } => {
@@ -32,7 +37,7 @@ pub fn encode_unary_instr(op_info: UnaryOpInfo, dst: &Arg) -> Vec<u8> {
             let mut v = vec![
                 0b0100_1000 | d,
                 op_info.op,
-                0b10_000_000 | op_info.imm_as_src << 3 | ddd,
+                0b10_000_000 | op_info.pad << 3 | ddd,
             ];
 
             if matches!(dst, Reg::RSP | Reg::R12) {
@@ -57,6 +62,17 @@ mod tests {
             deref,
             negq!(deref!(RSP, i32::MAX as i64)),
             vec![0x48, 0xF7, 0x9C, 0x24, 0xFF, 0xFF, 0xFF, 0x7F]
+        );
+
+        check!(
+            callq_indirect1,
+            callq_indirect!(reg!(RBX), 0),
+            vec![0x48, 0xFF, 0xD3]
+        );
+        check!(
+            callq_indirect2,
+            callq_indirect!(reg!(R13), 0),
+            vec![0x49, 0xFF, 0xD5]
         );
     }
 }

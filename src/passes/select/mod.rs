@@ -54,7 +54,7 @@ fn select_tail<'p>(tail: Tail<'p>, instrs: &mut Vec<Instr<'p, VarArg<'p>>>, std:
     match tail {
         Tail::Return { expr } => {
             instrs.extend(select_assign(reg!(RDI), expr, std));
-            instrs.push(jmp!(std.exit));
+            instrs.push(retq!());
         }
         Tail::Seq { sym, bnd, tail } => {
             instrs.extend(select_assign(var!(sym), bnd, std));
@@ -157,12 +157,14 @@ mod tests {
     use crate::interpreter::TestIO;
     use crate::utils::split_test::split_test;
     use test_each_file::test_each_file;
+    use crate::{block, jmp, load_lbl, pushq, reg};
+    use crate::passes::uniquify::gen_sym;
 
     fn select([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);
         let expected_return = expected_return.into();
 
-        let program = program
+        let mut program = program
             .type_check()
             .unwrap()
             .uniquify()
@@ -170,6 +172,15 @@ mod tests {
             .atomize()
             .explicate()
             .select();
+
+        // Redirect program to exit
+        let new_entry = gen_sym("");
+        program.blocks.insert(new_entry, block!(
+            load_lbl!(program.std.exit, reg!(RAX)),
+            pushq!(reg!(RAX)),
+            jmp!(program.entry)
+        ));
+        program.entry = new_entry;
 
         let mut io = TestIO::new(input);
         let result = program.interpret(&mut io);

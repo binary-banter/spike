@@ -304,7 +304,7 @@ mod macros {
     #[macro_export]
     macro_rules! block {
         ($($instr:expr),*) => {
-            Block { instrs: vec![$($instr),*] }
+            $crate::language::x86var::Block { instrs: vec![$($instr),*] }
         };
     }
 

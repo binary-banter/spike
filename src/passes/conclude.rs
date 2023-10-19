@@ -17,26 +17,12 @@ impl<'p> X86Patched<'p> {
                 pushq!(reg!(RBP)),
                 movq!(reg!(RSP), reg!(RBP)),
                 subq!(imm!(self.stack_space as i64), reg!(RSP)),
-                jmp!(self.entry)
-            ),
-        );
-
-        let conclusion = gen_sym("conclusion");
-        self.blocks.insert(
-            conclusion,
-            block!(
+                callq_direct!(self.entry, 0),
                 addq!(imm!(self.stack_space as i64), reg!(RSP)),
                 popq!(reg!(RBP)),
-                movq!(reg!(RAX), reg!(RDI)),
                 callq_direct!(self.std.exit, 1)
             ),
         );
-
-        self.blocks
-            .get_mut(&self.entry)
-            .unwrap()
-            .instrs
-            .extend([jmp!(conclusion)]);
 
         X86Concluded {
             blocks: self.blocks,
