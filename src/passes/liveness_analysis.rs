@@ -144,7 +144,7 @@ pub fn handle_instr<'p>(
         Instr::Negq { dst } | Instr::Notq { dst } => {
             arg(dst, RW);
         }
-        Instr::Callq { arity, .. } => {
+        Instr::CallqDirect { arity, .. } => {
             for reg in CALLER_SAVED {
                 arg(&VarArg::Reg { reg }, W);
             }
@@ -182,5 +182,7 @@ pub fn handle_instr<'p>(
                 arg(&(*larg).into(), R);
             }
         }
+        Instr::LoadLbl { .. } => todo!(),
+        Instr::CallqIndirect { .. } => todo!(),
     }
 }

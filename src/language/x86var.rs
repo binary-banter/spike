@@ -1,9 +1,6 @@
 use crate::passes::select::io::Std;
 use crate::passes::uniquify::UniqueSym;
-use crate::{
-    addq, andq, callq, cmpq, divq, jcc, jmp, movq, mulq, negq, notq, orq, popq, pushq, retq, setcc,
-    subq, syscall, xorq,
-};
+use crate::{addq, andq, callq_direct, callq_indirect, cmpq, divq, jcc, jmp, load_lbl, movq, mulq, negq, notq, orq, popq, pushq, retq, setcc, subq, syscall, xorq};
 use petgraph::prelude::GraphMap;
 use petgraph::Undirected;
 use std::collections::{HashMap, HashSet};
@@ -107,7 +104,6 @@ pub enum Instr<'p, A> {
     Movq { src: A, dst: A },
     Pushq { src: A },
     Popq { dst: A },
-    Callq { lbl: UniqueSym<'p>, arity: usize },
     Retq,
     Syscall { arity: usize },
     Cmpq { src: A, dst: A },
@@ -118,6 +114,9 @@ pub enum Instr<'p, A> {
     Xorq { src: A, dst: A },
     Notq { dst: A },
     Setcc { cnd: Cnd }, //TODO allow setting other byteregs
+    LoadLbl { sym: UniqueSym<'p>, dst: A },
+    CallqDirect { lbl: UniqueSym<'p>, arity: usize },
+    CallqIndirect { src: A, arity: usize }
 }
 
 #[derive(Debug, PartialEq, Clone, Copy, Hash, Eq)]
@@ -272,7 +271,7 @@ impl<'p> From<Instr<'p, Arg>> for Instr<'p, VarArg<'p>> {
             Instr::Movq { src, dst } => movq!(src.into(), dst.into()),
             Instr::Pushq { src } => pushq!(src.into()),
             Instr::Popq { dst } => popq!(dst.into()),
-            Instr::Callq { lbl, arity } => callq!(lbl, arity),
+            Instr::CallqDirect { lbl, arity } => callq_direct!(lbl, arity),
             Instr::Retq => retq!(),
             Instr::Jmp { lbl } => jmp!(lbl),
             Instr::Syscall { arity } => syscall!(arity),
@@ -285,6 +284,8 @@ impl<'p> From<Instr<'p, Arg>> for Instr<'p, VarArg<'p>> {
             Instr::Xorq { src, dst } => xorq!(src.into(), dst.into()),
             Instr::Notq { dst } => notq!(dst.into()),
             Instr::Setcc { cnd } => setcc!(cnd),
+            Instr::LoadLbl { sym, dst } => load_lbl!(sym, dst.into()),
+            Instr::CallqIndirect { src, arity } => callq_indirect!(src.into(), arity)
         }
     }
 }
@@ -405,6 +406,16 @@ mod macros {
     }
 
     #[macro_export]
+    macro_rules! load_lbl {
+        ($lbl:expr, $dst: expr) => {
+            $crate::language::x86var::Instr::LoadLbl {
+                sym: $lbl,
+                dst: $dst
+            }
+        };
+    }
+
+    #[macro_export]
     macro_rules! pushq {
         ($src:expr) => {
             $crate::language::x86var::Instr::Pushq { src: $src }
@@ -419,10 +430,20 @@ mod macros {
     }
 
     #[macro_export]
-    macro_rules! callq {
+    macro_rules! callq_direct {
         ($lbl:expr, $arity:expr) => {
-            $crate::language::x86var::Instr::Callq {
+            $crate::language::x86var::Instr::CallqDirect {
                 lbl: $lbl,
+                arity: $arity,
+            }
+        };
+    }
+
+    #[macro_export]
+    macro_rules! callq_indirect {
+        ($src:expr, $arity:expr) => {
+            $crate::language::x86var::Instr::CallqIndirect {
+                src: $src,
                 arity: $arity,
             }
         };

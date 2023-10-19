@@ -70,9 +70,12 @@ fn emit_instr<'p>(
         Instr::Xorq { src, dst } => encode_binary_instr(XORQ_INFO, src, dst),
         Instr::Notq { .. } => todo!(),
         Instr::Setcc { cnd } => encode_setcc(cnd),
-        Instr::Callq { lbl, .. } => {
+        Instr::CallqDirect { lbl, .. } => {
             jumps.insert(machine_code.len() + 1, *lbl);
             vec![0xE8, 0x00, 0x00, 0x00, 0x00]
+        }
+        Instr::CallqIndirect { .. } => {
+            todo!()
         }
         Instr::Jmp { lbl } => {
             jumps.insert(machine_code.len() + 1, *lbl);
@@ -98,6 +101,9 @@ fn emit_instr<'p>(
             },
             src,
         ),
+        Instr::LoadLbl { .. } => {
+            todo!()
+        }
     };
     machine_code.extend(v);
 }

@@ -5,7 +5,7 @@
 use crate::language::x86var::{Arg, Block, Instr, VarArg, X86Assigned, X86Colored};
 use crate::passes::uniquify::UniqueSym;
 use crate::{
-    addq, andq, callq, cmpq, divq, jcc, jmp, movq, mulq, negq, notq, orq, popq, pushq, retq, setcc,
+    addq, andq, callq_direct, cmpq, divq, jcc, jmp, movq, mulq, negq, notq, orq, popq, pushq, retq, setcc,
     subq, syscall, xorq,
 };
 use std::collections::HashMap;
@@ -59,7 +59,7 @@ fn assign_instr<'p>(
         Instr::Movq { src, dst } => movq!(map(src), map(dst)),
         Instr::Pushq { src } => pushq!(map(src)),
         Instr::Popq { dst } => popq!(map(dst)),
-        Instr::Callq { lbl, arity } => callq!(lbl, arity),
+        Instr::CallqDirect { lbl, arity } => callq_direct!(lbl, arity),
         Instr::Retq => retq!(),
         Instr::Syscall { arity } => syscall!(arity),
         Instr::Jmp { lbl } => jmp!(lbl),
@@ -70,6 +70,8 @@ fn assign_instr<'p>(
         Instr::Xorq { src, dst } => xorq!(map(src), map(dst)),
         Instr::Notq { dst } => notq!(map(dst)),
         Instr::Setcc { cnd } => setcc!(cnd),
+        Instr::LoadLbl { .. } => todo!(),
+        Instr::CallqIndirect { .. } => todo!(),
     }
 }
 

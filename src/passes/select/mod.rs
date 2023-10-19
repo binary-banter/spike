@@ -8,10 +8,12 @@ pub mod io;
 use crate::language::alvar::Atom;
 use crate::language::cvar::{CExpr, PrgExplicated, Tail};
 use crate::language::lvar::Op;
-use crate::language::x86var::{Block, Cnd, Instr, VarArg, X86Selected};
+use crate::language::x86var::{ARG_PASSING_REGS, Block, Cnd, Instr, VarArg, X86Selected};
 use crate::passes::select::io::Std;
 use crate::*;
 use std::collections::HashMap;
+use itertools::Itertools;
+use crate::passes::uniquify::UniqueSym;
 
 impl<'p> PrgExplicated<'p> {
     /// See module-level documentation.
@@ -22,7 +24,7 @@ impl<'p> PrgExplicated<'p> {
         blocks.extend(
             self.blocks
                 .into_iter()
-                .map(|(name, block)| (name, select_block(block, &std))),
+                .map(|(sym, block)| (sym, select_block(sym, block, &std, &self.fn_params))),
         );
 
         X86Selected {
@@ -33,9 +35,18 @@ impl<'p> PrgExplicated<'p> {
     }
 }
 
-fn select_block<'p>(tail: Tail<'p>, std: &Std<'p>) -> Block<'p, VarArg<'p>> {
+fn select_block<'p>(sym: UniqueSym<'p>, tail: Tail<'p>, std: &Std<'p>, fn_params: &HashMap<UniqueSym<'p>, Vec<UniqueSym<'p>>>) -> Block<'p, VarArg<'p>> {
     let mut instrs = Vec::new();
+
+    if let Some(params) = fn_params.get(&sym) {
+        for (reg, param) in ARG_PASSING_REGS.into_iter().zip(params.iter()) {
+            instrs.push(movq!(VarArg::Reg {reg}, VarArg::XVar { sym: *param }));
+        }
+        assert!(params.iter().skip(6).next().is_none(), "Argument passing to stack is not yet implemented.");
+    }
+
     select_tail(tail, &mut instrs, std);
+
     Block { instrs }
 }
 
@@ -87,11 +98,11 @@ fn select_assign<'p>(
                 movq!(reg!(RAX), dst),
             ],
             (Op::Read, []) => {
-                vec![callq!(std.read_int, 0), movq!(reg!(RAX), dst)]
+                vec![callq_direct!(std.read_int, 0), movq!(reg!(RAX), dst)]
             }
             (Op::Print, [a0]) => vec![
                 movq!(select_atom(a0), reg!(RDI)),
-                callq!(std.print_int, 1),
+                callq_direct!(std.print_int, 1),
                 movq!(select_atom(a0), dst),
             ],
             (Op::LAnd, [a0, a1]) => vec![movq!(select_atom(a0), dst), andq!(select_atom(a1), dst)],
@@ -107,8 +118,18 @@ fn select_assign<'p>(
             ],
             _ => panic!("Encountered Prim with incorrect arity during select instructions pass."),
         },
-        CExpr::FunRef { .. } => todo!(),
-        CExpr::Apply { .. } => todo!(),
+        CExpr::FunRef { sym } => vec![load_lbl!(sym, dst)],
+        CExpr::Apply { fun, args } => {
+            let mut instrs = vec![];
+
+            for (arg, reg) in args.iter().zip(ARG_PASSING_REGS.into_iter()) {
+                instrs.push(movq!(select_atom(arg), VarArg::Reg {reg}));
+            }
+            assert!(args.iter().skip(6).next().is_none(), "Argument passing to stack is not yet implemented.");
+
+            instrs.push(callq_indirect!(select_atom(&fun), args.len()));
+            instrs
+        },
     }
 }
 

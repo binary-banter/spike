@@ -102,7 +102,7 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                 Instr::Jmp { lbl } => {
                     return self.interpret_block(*lbl, 0);
                 }
-                Instr::Callq { lbl, .. } => {
+                Instr::CallqDirect { lbl, .. } => {
                     let ret_addr = self.instr_to_addr(block_name, instr_id + 1);
 
                     let rsp = self.regs.get_mut(&Reg::RSP).unwrap();
@@ -187,6 +187,20 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                     let cnd = self.evaluate_cnd(*cnd) as i64;
                     self.regs.insert(Reg::RAX, rax & !0xFF | cnd);
                 }
+                Instr::LoadLbl { sym, dst } => {
+                    let val = self.instr_to_addr(*sym, 0);
+                    self.set_arg(dst, val);
+                },
+                Instr::CallqIndirect { src, .. } => {
+                    let ret_addr = self.instr_to_addr(block_name, instr_id + 1);
+
+                    let rsp = self.regs.get_mut(&Reg::RSP).unwrap();
+                    assert_eq!(*rsp % 8, 0, "Misaligned stack pointer.");
+                    *rsp -= 8;
+                    self.memory.insert(*rsp, ret_addr);
+
+                    return self.interpret_addr(self.get_arg(src));
+                },
             }
         }
         panic!("A block ran out of instructions.");

@@ -5,7 +5,7 @@
 
 use crate::language::x86var::{Block, X86Concluded, X86Patched};
 use crate::passes::uniquify::gen_sym;
-use crate::{addq, block, callq, imm, jmp, movq, popq, pushq, reg, subq};
+use crate::{addq, block, callq_direct, imm, jmp, movq, popq, pushq, reg, subq};
 
 impl<'p> X86Patched<'p> {
     /// See module-level documentation.
@@ -28,7 +28,7 @@ impl<'p> X86Patched<'p> {
                 addq!(imm!(self.stack_space as i64), reg!(RSP)),
                 popq!(reg!(RBP)),
                 movq!(reg!(RAX), reg!(RDI)),
-                callq!(self.std.exit, 1)
+                callq_direct!(self.std.exit, 1)
             ),
         );
 
