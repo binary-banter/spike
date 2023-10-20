@@ -32,7 +32,6 @@ fn add_exit_block<'p>(blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg>>) ->
     entry
 }
 
-//We can use: rax rcx rdx rsi rdi r8 r9 r10 r11
 fn add_print_block<'p>(blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg>>) -> UniqueSym<'p> {
     let entry = gen_sym("print_int");
     let print_int_neg = gen_sym("print_int_neg");

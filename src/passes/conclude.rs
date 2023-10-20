@@ -18,6 +18,7 @@ impl<'p> X86Patched<'p> {
                 movq!(reg!(RSP), reg!(RBP)),
                 subq!(imm!(self.stack_space as i64), reg!(RSP)),
                 callq_direct!(self.entry, 0),
+                movq!(reg!(RAX), reg!(RDI)),
                 addq!(imm!(self.stack_space as i64), reg!(RSP)),
                 popq!(reg!(RBP)),
                 callq_direct!(self.std.exit, 1)

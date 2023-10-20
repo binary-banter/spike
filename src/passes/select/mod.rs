@@ -60,7 +60,7 @@ fn select_block<'p>(
 fn select_tail<'p>(tail: Tail<'p>, instrs: &mut Vec<Instr<'p, VarArg<'p>>>, std: &Std<'p>) {
     match tail {
         Tail::Return { expr } => {
-            instrs.extend(select_assign(reg!(RDI), expr, std));
+            instrs.extend(select_assign(reg!(RAX), expr, std));
             instrs.push(retq!());
         }
         Tail::Seq { sym, bnd, tail } => {
@@ -138,6 +138,7 @@ fn select_assign<'p>(
             );
 
             instrs.push(callq_indirect!(select_atom(&fun), args.len()));
+            instrs.push(movq!(reg!(RAX), dst));
             instrs
         }
     }
@@ -167,7 +168,7 @@ mod tests {
     use crate::interpreter::TestIO;
     use crate::passes::uniquify::gen_sym;
     use crate::utils::split_test::split_test;
-    use crate::{block, jmp, load_lbl, pushq, reg};
+    use crate::{block, callq_direct, movq, reg};
     use test_each_file::test_each_file;
 
     fn select([test]: [&str; 1]) {
@@ -188,9 +189,9 @@ mod tests {
         program.blocks.insert(
             new_entry,
             block!(
-                load_lbl!(program.std.exit, reg!(RAX)),
-                pushq!(reg!(RAX)),
-                jmp!(program.entry)
+                callq_direct!(program.entry, 0),
+                movq!(reg!(RAX), reg!(RDI)),
+                callq_direct!(program.std.exit, 1)
             ),
         );
         program.entry = new_entry;

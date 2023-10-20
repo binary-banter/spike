@@ -81,7 +81,7 @@ mod tests {
     use crate::language::x86var::X86Selected;
     use crate::passes::uniquify::gen_sym;
     use crate::utils::split_test::split_test;
-    use crate::*;
+    use crate::{block, callq_direct, movq, reg};
     use test_each_file::test_each_file;
 
     fn assign_homes([test]: [&str; 1]) {
@@ -107,9 +107,9 @@ mod tests {
         program.blocks.insert(
             new_entry,
             block!(
-                load_lbl!(program.std.exit, reg!(RAX)),
-                pushq!(reg!(RAX)),
-                jmp!(program.entry)
+                callq_direct!(program.entry, 0),
+                movq!(reg!(RAX), reg!(RDI)),
+                callq_direct!(program.std.exit, 1)
             ),
         );
         program.entry = new_entry;
