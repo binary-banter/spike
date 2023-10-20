@@ -8,7 +8,9 @@ use rust_compiler_construction::passes::type_check::TypeError;
 use std::fs::File;
 use std::io::Read;
 use std::{fs, io};
+use std::path::Path;
 use thiserror::Error;
+use rust_compiler_construction::compile;
 
 #[derive(Debug, Error, Diagnostic)]
 enum MainError {
@@ -67,25 +69,5 @@ fn main() -> miette::Result<()> {
             .map_or_else(|| "output".to_string(), str::to_string)
     });
 
-    let program = parse_program(&program)?
-        .type_check()?
-        .uniquify()
-        .reveal()
-        .atomize()
-        .explicate()
-        .select()
-        .add_liveness()
-        .compute_interference()
-        .color_interference()
-        .assign_homes()
-        .patch()
-        .conclude();
-
-    let (entry, program) = program.emit();
-
-    let elf = ElfFile::new(entry, &program);
-    let mut file = File::create(output).unwrap();
-    elf.write(&mut file);
-
-    Ok(())
+    compile(&program, Path::new(&output))
 }
