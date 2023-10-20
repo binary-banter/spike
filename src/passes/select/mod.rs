@@ -8,9 +8,9 @@ pub mod io;
 use crate::language::alvar::Atom;
 use crate::language::cvar::{CExpr, PrgExplicated, Tail};
 use crate::language::lvar::Op;
-use crate::language::x86var::{Block, Cnd, Instr, VarArg, X86Selected, ARG_PASSING_REGS};
+use crate::language::x86var::{Block, Cnd, Instr, VarArg, X86Selected, ARG_PASSING_REGS, CALLEE_SAVED, CALLEE_SAVED_NO_STACK};
 use crate::passes::select::io::Std;
-use crate::passes::uniquify::UniqueSym;
+use crate::passes::uniquify::{gen_sym, UniqueSym};
 use crate::*;
 use std::collections::HashMap;
 
@@ -40,9 +40,15 @@ fn select_block<'p>(
     std: &Std<'p>,
     fn_params: &HashMap<UniqueSym<'p>, Vec<UniqueSym<'p>>>,
 ) -> Block<'p, VarArg<'p>> {
-    let mut instrs = Vec::new();
+    let mut instrs =  Vec::new();
 
     if let Some(params) = fn_params.get(&sym) {
+        instrs.push(pushq!(reg!(RBP)));
+        instrs.push(movq!(reg!(RSP), reg!(RBP)));
+        for reg in CALLEE_SAVED_NO_STACK.into_iter(){
+            instrs.push(pushq!(VarArg::Reg {reg}));
+        }
+
         for (reg, param) in ARG_PASSING_REGS.into_iter().zip(params.iter()) {
             instrs.push(movq!(VarArg::Reg { reg }, VarArg::XVar { sym: *param }));
         }
@@ -61,6 +67,12 @@ fn select_tail<'p>(tail: Tail<'p>, instrs: &mut Vec<Instr<'p, VarArg<'p>>>, std:
     match tail {
         Tail::Return { expr } => {
             instrs.extend(select_assign(reg!(RAX), expr, std));
+
+            for reg in CALLEE_SAVED_NO_STACK.into_iter().rev() {
+                instrs.push(popq!(VarArg::Reg{reg}));
+            }
+            instrs.push(popq!(reg!(RBP)));
+
             instrs.push(retq!());
         }
         Tail::Seq { sym, bnd, tail } => {
@@ -68,12 +80,15 @@ fn select_tail<'p>(tail: Tail<'p>, instrs: &mut Vec<Instr<'p, VarArg<'p>>>, std:
             select_tail(*tail, instrs, std);
         }
         Tail::IfStmt { cnd, thn, els } => match cnd {
-            CExpr::Prim { op, args } => instrs.extend(vec![
-                movq!(select_atom(&args[0]), reg!(RAX)),
-                cmpq!(select_atom(&args[1]), reg!(RAX)),
-                jcc!(thn, select_cmp(op)),
-                jmp!(els),
-            ]),
+            CExpr::Prim { op, args } => {
+                let tmp = gen_sym("tmp");
+                instrs.extend(vec![
+                    movq!(select_atom(&args[0]), var!(tmp)),
+                    cmpq!(select_atom(&args[1]), var!(tmp)),
+                    jcc!(thn, select_cmp(op)),
+                    jmp!(els),
+                ])
+            },
             _ => unreachable!(),
         },
         Tail::Goto { lbl } => {
@@ -116,13 +131,16 @@ fn select_assign<'p>(
             (Op::LOr, [a0, a1]) => vec![movq!(select_atom(a0), dst), orq!(select_atom(a1), dst)],
             (Op::Not, [a0]) => vec![movq!(select_atom(a0), dst), xorq!(imm!(1), dst)],
             (Op::Xor, [a0, a1]) => vec![movq!(select_atom(a0), dst), xorq!(select_atom(a1), dst)],
-            (op @ (Op::GT | Op::GE | Op::EQ | Op::LE | Op::LT | Op::NE), [a0, a1]) => vec![
-                movq!(select_atom(a0), reg!(RAX)),
-                cmpq!(select_atom(a1), reg!(RAX)),
-                movq!(imm!(0), reg!(RAX)),
-                setcc!(select_cmp(op)),
-                movq!(reg!(RAX), dst),
-            ],
+            (op @ (Op::GT | Op::GE | Op::EQ | Op::LE | Op::LT | Op::NE), [a0, a1]) => {
+                let tmp = gen_sym("tmp");
+                vec![
+                    movq!(select_atom(a0), var!(tmp)),
+                    cmpq!(select_atom(a1), var!(tmp)),
+                    movq!(imm!(0), reg!(RAX)),
+                    setcc!(select_cmp(op)),
+                    movq!(reg!(RAX), dst),
+                ]
+            },
             _ => panic!("Encountered Prim with incorrect arity during select instructions pass."),
         },
         CExpr::FunRef { sym } => vec![load_lbl!(sym, dst)],
@@ -185,7 +203,7 @@ mod tests {
             .select();
 
         // Redirect program to exit
-        let new_entry = gen_sym("");
+        let new_entry = gen_sym("tmp");
         program.blocks.insert(
             new_entry,
             block!(
@@ -195,6 +213,8 @@ mod tests {
             ),
         );
         program.entry = new_entry;
+
+        println!("{}", program);
 
         let mut io = TestIO::new(input);
         let result = program.interpret(&mut io);

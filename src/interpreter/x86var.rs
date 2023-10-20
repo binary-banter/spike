@@ -6,6 +6,7 @@ use crate::language::x86var::{
 use crate::passes::uniquify::UniqueSym;
 use nom::AsBytes;
 use std::collections::HashMap;
+use std::mem;
 
 #[derive(Default)]
 struct Status {
@@ -25,7 +26,10 @@ struct X86Interpreter<'p, I: IO> {
     blocks: &'p HashMap<UniqueSym<'p>, Block<'p, VarArg<'p>>>,
     io: &'p mut I,
     regs: HashMap<Reg, i64>,
+
     vars: HashMap<UniqueSym<'p>, i64>,
+    var_stack: Vec<HashMap<UniqueSym<'p>, i64>>,
+
     memory: HashMap<i64, i64>,
     block_ids: HashMap<usize, UniqueSym<'p>>,
     read_buffer: Vec<u8>,
@@ -51,6 +55,7 @@ impl<'p> X86Selected<'p> {
             io,
             regs,
             vars: HashMap::default(),
+            var_stack: vec![],
             memory: HashMap::default(),
             block_ids,
             read_buffer: Vec::new(),
@@ -102,21 +107,14 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                 Instr::Jmp { lbl } => {
                     return self.interpret_block(*lbl, 0);
                 }
-                Instr::CallqDirect { lbl, .. } => {
-                    let ret_addr = self.instr_to_addr(block_name, instr_id + 1);
-
-                    let rsp = self.regs.get_mut(&Reg::RSP).unwrap();
-                    assert_eq!(*rsp % 8, 0, "Misaligned stack pointer.");
-                    *rsp -= 8;
-                    self.memory.insert(*rsp, ret_addr);
-
-                    return self.interpret_block(*lbl, 0);
-                }
                 Instr::Retq => {
                     let rsp = self.regs[&Reg::RSP];
                     assert_eq!(rsp % 8, 0, "Misaligned stack pointer.");
                     let addr = self.memory[&rsp];
                     *self.regs.get_mut(&Reg::RSP).unwrap() += 8;
+
+                    // Pop var context
+                    self.vars = self.var_stack.pop().expect("Found more returns than we have had calls so far, ur program is weird m8");
 
                     return self.interpret_addr(addr);
                 }
@@ -191,6 +189,19 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                     let val = self.instr_to_addr(*sym, 0);
                     self.set_arg(dst, val);
                 }
+                Instr::CallqDirect { lbl, .. } => {
+                    let ret_addr = self.instr_to_addr(block_name, instr_id + 1);
+
+                    let rsp = self.regs.get_mut(&Reg::RSP).unwrap();
+                    assert_eq!(*rsp % 8, 0, "Misaligned stack pointer.");
+                    *rsp -= 8;
+                    self.memory.insert(*rsp, ret_addr);
+
+                    //Push old var context
+                    self.var_stack.push(mem::take(&mut self.vars));
+
+                    return self.interpret_block(*lbl, 0);
+                }
                 Instr::CallqIndirect { src, .. } => {
                     let ret_addr = self.instr_to_addr(block_name, instr_id + 1);
 
@@ -199,7 +210,12 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                     *rsp -= 8;
                     self.memory.insert(*rsp, ret_addr);
 
-                    return self.interpret_addr(self.get_arg(src));
+                    let block = self.get_arg(src);
+
+                    //Push old var context
+                    self.var_stack.push(mem::take(&mut self.vars));
+
+                    return self.interpret_addr(block);
                 }
             }
         }
@@ -232,7 +248,7 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
             VarArg::Imm { val } => *val,
             VarArg::Reg { reg } => self.regs[reg],
             VarArg::Deref { reg, off } => self.memory[&(self.regs[reg] + off)],
-            VarArg::XVar { sym } => self.vars[sym],
+            VarArg::XVar { sym } => *self.vars.get(sym).expect(&format!("Expected to find variable {sym}")),
         }
     }
 

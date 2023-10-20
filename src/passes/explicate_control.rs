@@ -76,7 +76,7 @@ fn explicate_assign<'p>(
     blocks: &mut HashMap<UniqueSym<'p>, Tail<'p>>,
 ) -> Tail<'p> {
     let mut create_block = |goto: Tail<'p>| {
-        let sym = gen_sym("");
+        let sym = gen_sym("tmp");
         blocks.insert(sym, goto);
         sym
     };
@@ -131,7 +131,7 @@ fn explicate_pred<'p>(
     blocks: &mut HashMap<UniqueSym<'p>, Tail<'p>>,
 ) -> Tail<'p> {
     let mut create_block = |goto: Tail<'p>| {
-        let sym = gen_sym("");
+        let sym = gen_sym("tmp");
         blocks.insert(sym, goto);
         sym
     };
@@ -173,7 +173,7 @@ fn explicate_pred<'p>(
                 els: create_block(els),
             },
             Op::LAnd | Op::LOr | Op::Xor => {
-                let tmp = gen_sym("");
+                let tmp = gen_sym("tmp");
                 explicate_assign(
                     tmp,
                     AExpr::Prim { op, args },
@@ -223,7 +223,7 @@ fn explicate_pred<'p>(
         }
 
         AExpr::Apply { fun, args } => {
-            let tmp = gen_sym("");
+            let tmp = gen_sym("tmp");
             explicate_assign(
                 tmp,
                 AExpr::Apply { fun, args },

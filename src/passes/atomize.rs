@@ -90,7 +90,7 @@ fn rco_expr(expr: RExpr) -> AExpr {
                 )
         }
         RExpr::FunRef { sym } => {
-            let tmp = gen_sym("");
+            let tmp = gen_sym("tmp");
             AExpr::Let {
                 sym: tmp,
                 bnd: Box::new(AExpr::FunRef { sym }),
@@ -111,7 +111,7 @@ fn rco_atom(expr: RExpr) -> (Atom, Option<(UniqueSym, AExpr)>) {
         | RExpr::If { .. }
         | RExpr::Apply { .. }
         | RExpr::FunRef { .. } => {
-            let tmp = gen_sym("");
+            let tmp = gen_sym("tmp");
             (Atom::Var { sym: tmp }, Some((tmp, rco_expr(expr))))
         }
     }

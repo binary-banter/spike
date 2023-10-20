@@ -103,7 +103,7 @@ mod tests {
             .into();
 
         // Redirect program to exit
-        let new_entry = gen_sym("");
+        let new_entry = gen_sym("tmp");
         program.blocks.insert(
             new_entry,
             block!(
