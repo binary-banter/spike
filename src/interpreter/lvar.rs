@@ -65,6 +65,16 @@ impl<A: Copy + Hash + Eq + Debug> PrgGenericVar<A> {
                     let e2 = self.interpret_expr(e2, scope, io).int();
                     Val::Int { val: e1 * e2 }
                 }
+                (Op::Div, [e1, e2]) => {
+                    let e1 = self.interpret_expr(e1, scope, io).int();
+                    let e2 = self.interpret_expr(e2, scope, io).int();
+                    Val::Int { val: e1 / e2 }
+                }
+                (Op::Mod, [e1, e2]) => {
+                    let e1 = self.interpret_expr(e1, scope, io).int();
+                    let e2 = self.interpret_expr(e2, scope, io).int();
+                    Val::Int { val: e1 % e2 }
+                }
                 (Op::GT, [e1, e2]) => {
                     let e1 = self.interpret_expr(e1, scope, io).int();
                     let e2 = self.interpret_expr(e2, scope, io).int();

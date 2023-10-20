@@ -78,6 +78,16 @@ impl<'p> PrgExplicated<'p> {
                     let e2 = self.interpret_atom(e2, scope).int();
                     Val::Int { val: e1 * e2 }
                 }
+                (Op::Div, [e1, e2]) => {
+                    let e1 = self.interpret_atom(e1, scope).int();
+                    let e2 = self.interpret_atom(e2, scope).int();
+                    Val::Int { val: e1 / e2 }
+                }
+                (Op::Mod, [e1, e2]) => {
+                    let e1 = self.interpret_atom(e1, scope).int();
+                    let e2 = self.interpret_atom(e2, scope).int();
+                    Val::Int { val: e1 % e2 }
+                }
                 (Op::GT, [e1, e2]) => {
                     let e1 = self.interpret_atom(e1, scope).int();
                     let e2 = self.interpret_atom(e2, scope).int();

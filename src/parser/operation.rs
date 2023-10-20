@@ -18,6 +18,8 @@ pub fn parse_operation(input: &str) -> IResult<&str, Op> {
         char('+').map(|_| Op::Plus),
         char('-').map(|_| Op::Minus),
         char('*').map(|_| Op::Mul),
+        char('/').map(|_| Op::Div),
+        char('%').map(|_| Op::Mod),
         char('<').map(|_| Op::LT),
         char('!').map(|_| Op::Not),
         char('^').map(|_| Op::Xor),

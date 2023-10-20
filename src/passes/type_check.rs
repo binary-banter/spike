@@ -129,7 +129,7 @@ fn type_check_expr<'p>(
             sym: (*sym).to_string(),
         }),
         Expr::Prim { op, args } => match (op, args.as_slice()) {
-            (Op::Plus | Op::Minus | Op::Mul, [e1, e2]) => {
+            (Op::Plus | Op::Minus | Op::Mul | Op::Mod | Op::Div, [e1, e2]) => {
                 expect_type(e1, scope, Type::Int)?;
                 expect_type(e2, scope, Type::Int)?;
                 Ok(Type::Int)

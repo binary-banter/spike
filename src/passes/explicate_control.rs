@@ -189,7 +189,9 @@ fn explicate_pred<'p>(
                 )
             }
 
-            Op::Read | Op::Print | Op::Plus | Op::Minus | Op::Mul => unreachable!(),
+            Op::Read | Op::Print | Op::Plus | Op::Minus | Op::Mul | Op::Mod | Op::Div => {
+                unreachable!()
+            }
         },
 
         AExpr::Let { sym, bnd, bdy } => {

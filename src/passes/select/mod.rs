@@ -121,6 +121,20 @@ fn select_assign<'p>(
                 mulq!(reg!(RBX)),
                 movq!(reg!(RAX), dst),
             ],
+            (Op::Div, [a0, a1]) => vec![
+                movq!(imm!(0), reg!(RDX)),
+                movq!(select_atom(a0), reg!(RAX)),
+                movq!(select_atom(a1), reg!(RBX)),
+                divq!(reg!(RBX)),
+                movq!(reg!(RAX), dst),
+            ],
+            (Op::Mod, [a0, a1]) => vec![
+                movq!(imm!(0), reg!(RDX)),
+                movq!(select_atom(a0), reg!(RAX)),
+                movq!(select_atom(a1), reg!(RBX)),
+                divq!(reg!(RBX)),
+                movq!(reg!(RDX), dst),
+            ],
             (Op::Read, []) => {
                 vec![callq_direct!(std.read_int, 0), movq!(reg!(RAX), dst)]
             }
