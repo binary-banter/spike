@@ -114,7 +114,9 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                     *self.regs.get_mut(&Reg::RSP).unwrap() += 8;
 
                     // Pop var context
-                    self.vars = self.var_stack.pop().expect("Found more returns than we have had calls so far, ur program is weird m8");
+                    self.vars = self.var_stack.pop().expect(
+                        "Found more returns than we have had calls so far, ur program is weird m8",
+                    );
 
                     return self.interpret_addr(addr);
                 }
@@ -248,7 +250,10 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
             VarArg::Imm { val } => *val,
             VarArg::Reg { reg } => self.regs[reg],
             VarArg::Deref { reg, off } => self.memory[&(self.regs[reg] + off)],
-            VarArg::XVar { sym } => *self.vars.get(sym).expect(&format!("Expected to find variable {sym}")),
+            VarArg::XVar { sym } => *self
+                .vars
+                .get(sym)
+                .unwrap_or_else(|| panic!("Expected to find variable {sym}")),
         }
     }
 

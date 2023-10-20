@@ -1,19 +1,16 @@
 use rust_compiler_construction::elf::ElfFile;
 use rust_compiler_construction::utils::split_test::split_test;
-use std::fs::File;
+use std::fs::OpenOptions;
 use std::io::{BufRead, Write};
+use std::os::unix::prelude::OpenOptionsExt;
 
 use rust_compiler_construction::language::lvar::Lit;
 use std::process::{Command, Stdio};
-use std::thread::sleep;
-use std::time::Duration;
 use tempdir::TempDir;
 use test_each_file::test_each_file;
 
 fn integration([test]: [&str; 1]) {
     let tempdir = TempDir::new("rust-compiler-construction-integration").unwrap();
-
-    let mut file = File::create(tempdir.path().join("output")).unwrap();
 
     let (input, expected_output, expected_return, program) = split_test(test);
     let expected_return: i64 = expected_return.into();
@@ -34,28 +31,35 @@ fn integration([test]: [&str; 1]) {
         .conclude()
         .emit();
 
+    let input_path = tempdir.path().join("output");
+    let mut output = OpenOptions::new()
+        .write(true)
+        .create(true)
+        .mode(0o777)
+        .open(&input_path)
+        .unwrap();
+
     let elf = ElfFile::new(entry, &program);
-    elf.write(&mut file);
-    file.flush().unwrap();
-    drop(file);
+    elf.write(&mut output);
+    drop(output);
 
-    Command::new("chmod")
-        .current_dir(&tempdir)
-        .arg("+x")
-        .arg("output")
-        .spawn()
-        .unwrap()
-        .wait()
-        .unwrap();
+    // Wait for file to be readable
+    let mut program;
+    loop {
+        let sub_res = Command::new("./output")
+            .current_dir(&tempdir)
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn();
+        if let Err(e) = &sub_res {
+            if e.kind().to_string() == "executable file busy".to_string() {
+                continue;
+            }
+        }
 
-    sleep(Duration::from_secs(1));
-
-    let mut program = Command::new("./output")
-        .current_dir(&tempdir)
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .spawn()
-        .unwrap();
+        program = sub_res.unwrap();
+        break;
+    }
 
     let mut stdin = program.stdin.take().unwrap();
     for num in input {

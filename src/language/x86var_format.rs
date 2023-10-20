@@ -1,6 +1,6 @@
-use std::fmt::{Display, Formatter};
 use crate::language::x86var::{Block, Cnd, Instr, Reg, VarArg, X86Selected};
 use crate::passes::uniquify::UniqueSym;
+use std::fmt::{Display, Formatter};
 
 impl Display for X86Selected<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -44,7 +44,9 @@ impl<A: Display> Display for Instr<'_, A> {
             Instr::Setcc { cnd } => write!(f, "setcc\t{cnd}"),
             Instr::LoadLbl { sym, dst } => write!(f, "loadlbl\t{sym}\t{dst}"),
             Instr::CallqDirect { lbl, arity } => write!(f, "call_direct\t{lbl}\t// arity: {arity}"),
-            Instr::CallqIndirect { src, arity } => write!(f, "call_indirect\t{src}\t// arity: {arity}"),
+            Instr::CallqIndirect { src, arity } => {
+                write!(f, "call_indirect\t{src}\t// arity: {arity}")
+            }
         }
     }
 }

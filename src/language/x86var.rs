@@ -39,7 +39,6 @@ pub struct X86Selected<'p> {
     pub std: Std<'p>,
 }
 
-
 #[derive(Debug, PartialEq)]
 pub struct LX86VarProgram<'p> {
     pub blocks: HashMap<UniqueSym<'p>, LBlock<'p>>,
@@ -173,13 +172,7 @@ pub const CALLEE_SAVED: [Reg; 7] = [
     Reg::R14,
     Reg::R15,
 ];
-pub const CALLEE_SAVED_NO_STACK: [Reg; 5] = [
-    Reg::RBX,
-    Reg::R12,
-    Reg::R13,
-    Reg::R14,
-    Reg::R15,
-];
+pub const CALLEE_SAVED_NO_STACK: [Reg; 5] = [Reg::RBX, Reg::R12, Reg::R13, Reg::R14, Reg::R15];
 
 pub const ARG_PASSING_REGS: [Reg; 6] = [Reg::RDI, Reg::RSI, Reg::RDX, Reg::RCX, Reg::R8, Reg::R9];
 pub const SYSCALL_REGS: [Reg; 7] = [
