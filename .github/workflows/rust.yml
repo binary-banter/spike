@@ -12,6 +12,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: CC
 
     steps:
       - uses: actions/checkout@v3
@@ -24,4 +25,7 @@ jobs:
       - name: Run tests
         run: cargo test --verbose
       - name: Run regression tests
+        env:
+          MONGO_PW: ${{ secrets.MONGO_PW }}
         run: cargo run --bin bencher --features bench
+
