@@ -1,3 +1,5 @@
+#![cfg(unix)]
+
 use rust_compiler_construction::elf::ElfFile;
 use rust_compiler_construction::utils::split_test::split_test;
 use std::fs::OpenOptions;

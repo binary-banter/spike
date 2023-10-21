@@ -1,15 +1,13 @@
 use crate::interpreter::IO;
 use crate::language::lvar::Lit;
-use crate::language::x86var::{
-    Block, Cnd, Instr, Reg, VarArg, X86Selected, CALLEE_SAVED, CALLER_SAVED,
-};
+use crate::language::x86var::{Block, Cnd, Instr, Reg, VarArg, X86Selected, CALLEE_SAVED, CALLER_SAVED, IStats};
 use crate::passes::uniquify::UniqueSym;
 use nom::AsBytes;
 use std::collections::HashMap;
 use std::mem;
 
 #[derive(Default)]
-struct Status {
+pub struct Status {
     /// CF
     carry: bool,
     /// PF
@@ -22,28 +20,24 @@ struct Status {
     overflow: bool,
 }
 
-struct X86Interpreter<'p, I: IO> {
-    blocks: &'p HashMap<UniqueSym<'p>, Block<'p, VarArg<'p>>>,
-    io: &'p mut I,
-    regs: HashMap<Reg, i64>,
+pub struct X86Interpreter<'p, I: IO> {
+    pub blocks: &'p HashMap<UniqueSym<'p>, Block<'p, VarArg<'p>>>,
+    pub io: &'p mut I,
+    pub regs: HashMap<Reg, i64>,
 
-    vars: HashMap<UniqueSym<'p>, i64>,
-    var_stack: Vec<HashMap<UniqueSym<'p>, i64>>,
+    pub vars: HashMap<UniqueSym<'p>, i64>,
+    pub var_stack: Vec<HashMap<UniqueSym<'p>, i64>>,
 
-    memory: HashMap<i64, i64>,
-    block_ids: HashMap<usize, UniqueSym<'p>>,
-    read_buffer: Vec<u8>,
-    write_buffer: Vec<u8>,
-    status: Status,
-    stats: Stats,
-}
-
-pub struct Stats{
-
+    pub memory: HashMap<i64, i64>,
+    pub block_ids: HashMap<usize, UniqueSym<'p>>,
+    pub read_buffer: Vec<u8>,
+    pub write_buffer: Vec<u8>,
+    pub status: Status,
+    pub stats: IStats,
 }
 
 impl<'p> X86Selected<'p> {
-    pub fn interpret_with_stats(&self, io: &mut impl IO) -> (i64, Stats) {
+    pub fn interpret(&self, io: &mut impl IO) -> i64 {
         let block_ids = self.blocks.keys().map(|sym| (sym.id, *sym)).collect();
 
         let mut regs = HashMap::new();
@@ -66,15 +60,10 @@ impl<'p> X86Selected<'p> {
             read_buffer: Vec::new(),
             write_buffer: Vec::new(),
             status: Default::default(),
-            stats: Stats {},
+            stats: IStats {},
         };
 
-        let val = state.interpret_block(self.entry, 0);
-        (val, state.stats)
-    }
-
-    pub fn interpret(&self, io: &mut impl IO) -> i64 {
-        self.interpret_with_stats(io).0
+        state.interpret_block(self.entry, 0)
     }
 }
 
@@ -90,7 +79,7 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
         self.interpret_block(self.block_ids[&block_id], instr_id)
     }
 
-    fn interpret_block(&mut self, block_name: UniqueSym<'p>, offset: usize) -> i64 {
+    pub fn interpret_block(&mut self, block_name: UniqueSym<'p>, offset: usize) -> i64 {
         let block = &self.blocks[&block_name];
 
         for (instr_id, instr) in block.instrs.iter().enumerate().skip(offset) {

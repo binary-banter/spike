@@ -8,12 +8,54 @@ use petgraph::prelude::GraphMap;
 use petgraph::Undirected;
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
+use crate::interpreter::IO;
+use crate::interpreter::x86var::X86Interpreter;
 
 #[derive(Debug, PartialEq)]
 pub struct X86Concluded<'p> {
     pub blocks: HashMap<UniqueSym<'p>, Block<'p, Arg>>,
     pub entry: UniqueSym<'p>,
     pub std: Std<'p>,
+}
+
+/// Stats gathered by the interpreter.
+#[derive(Debug)]
+pub struct IStats {
+    // todo: branches taken
+    // todo: instructions executed
+}
+
+impl<'p> X86Concluded<'p> {
+    pub fn interpret_with_stats(&self, io: &mut impl IO) -> (i64, IStats) {
+        let block_ids = self.blocks.keys().map(|sym| (sym.id, *sym)).collect();
+
+        let mut regs = HashMap::new();
+        for reg in CALLEE_SAVED.into_iter().chain(CALLER_SAVED.into_iter()) {
+            regs.insert(reg, 0);
+        }
+
+        let mut state = X86Interpreter {
+            // todo: remove this clone
+            blocks: &self.blocks.clone().into_iter().map(|(sym, block)|(sym, block.into())).collect(),
+            io,
+            regs,
+            vars: HashMap::default(),
+            var_stack: vec![],
+            memory: HashMap::default(),
+            block_ids,
+            read_buffer: Vec::new(),
+            write_buffer: Vec::new(),
+            status: Default::default(),
+            stats: IStats {},
+        };
+
+        let val = state.interpret_block(self.entry, 0);
+        (val, state.stats)
+    }
+
+    pub fn interpret(&self, io: &mut impl IO) -> i64 {
+        self.interpret_with_stats(io).0
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -65,7 +107,7 @@ pub struct X86Colored<'p> {
 
 pub type InterferenceGraph<'p> = GraphMap<LArg<'p>, (), Undirected>;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Block<'p, A> {
     pub instrs: Vec<Instr<'p, A>>,
 }
