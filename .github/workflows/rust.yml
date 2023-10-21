@@ -17,15 +17,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Build main
-        run: cargo build --verbose
+        run: cargo build --release
       - name: Cargo fmt
         run: cargo fmt --check
       - name: Cargo clippy
         run: cargo clippy -- -D warnings
       - name: Run tests
-        run: cargo test --verbose
+        run: cargo test --release
       - name: Run regression tests
         env:
           MONGO_PW: ${{ secrets.MONGO_PW }}
-        run: cargo run --bin bencher --features bench
-
+        run: cargo run --release --bin bencher --features bench
