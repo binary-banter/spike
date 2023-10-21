@@ -1,3 +1,5 @@
+use crate::interpreter::x86var::X86Interpreter;
+use crate::interpreter::IO;
 use crate::passes::select::io::Std;
 use crate::passes::uniquify::UniqueSym;
 use crate::{
@@ -6,10 +8,9 @@ use crate::{
 };
 use petgraph::prelude::GraphMap;
 use petgraph::Undirected;
+use serde::Serialize;
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
-use crate::interpreter::IO;
-use crate::interpreter::x86var::X86Interpreter;
 
 #[derive(Debug, PartialEq)]
 pub struct X86Concluded<'p> {
@@ -19,7 +20,7 @@ pub struct X86Concluded<'p> {
 }
 
 /// Stats gathered by the interpreter.
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct IStats {
     // todo: branches taken
     // todo: instructions executed
@@ -36,7 +37,12 @@ impl<'p> X86Concluded<'p> {
 
         let mut state = X86Interpreter {
             // todo: remove this clone
-            blocks: &self.blocks.clone().into_iter().map(|(sym, block)|(sym, block.into())).collect(),
+            blocks: &self
+                .blocks
+                .clone()
+                .into_iter()
+                .map(|(sym, block)| (sym, block.into()))
+                .collect(),
             io,
             regs,
             vars: HashMap::default(),

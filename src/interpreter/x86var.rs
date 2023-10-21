@@ -1,6 +1,8 @@
 use crate::interpreter::IO;
 use crate::language::lvar::Lit;
-use crate::language::x86var::{Block, Cnd, Instr, Reg, VarArg, X86Selected, CALLEE_SAVED, CALLER_SAVED, IStats};
+use crate::language::x86var::{
+    Block, Cnd, IStats, Instr, Reg, VarArg, X86Selected, CALLEE_SAVED, CALLER_SAVED,
+};
 use crate::passes::uniquify::UniqueSym;
 use nom::AsBytes;
 use std::collections::HashMap;

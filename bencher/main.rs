@@ -1,28 +1,30 @@
-use mongodb::options::{ClientOptions, Credential, ServerAddress};
-use mongodb::Client;
-use rust_compiler_construction::utils::split_test::split_test_raw;
-use std::fs::{File};
-use std::path::{Path, PathBuf};
-use std::{env, fs};
-use std::collections::HashMap;
+use itertools::Itertools;
 use mongodb::bson::{doc, Document};
+use mongodb::options::{ClientOptions, Credential, ServerAddress};
+use mongodb::{bson, Client};
 use pathdiff::diff_paths;
-use tempdir::TempDir;
-use walkdir::WalkDir;
 use rust_compiler_construction::elf::ElfFile;
-use rust_compiler_construction::interpreter::{IO, TestIO};
+use rust_compiler_construction::interpreter::{TestIO, IO};
 use rust_compiler_construction::language::x86var::IStats;
 use rust_compiler_construction::parser::parse_program;
+use rust_compiler_construction::utils::split_test::split_test_raw;
+use serde::Serialize;
+use std::collections::HashMap;
+use std::fs::File;
+use std::path::{Path, PathBuf};
+use std::{env, fs};
+use tempdir::TempDir;
+use walkdir::WalkDir;
 
 /// Stats gathered by the bencher.
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 struct BStats {
     binary_size: usize,
     // todo: speed?
 }
 
 /// Accumulated stats.
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 struct Stats {
     bencher_stats: BStats,
     interpreter_stats: IStats,
@@ -56,7 +58,8 @@ impl Check for IStats {
 async fn main() {
     let mongo_pw =
         env::var("MONGO_PW").expect("No environment variable was set to connect to the database.");
-    let address = env::var("MONGO_ADDRESS").expect("No environment variable was set to connect to the database.");
+    let address = env::var("MONGO_ADDRESS")
+        .expect("No environment variable was set to connect to the database.");
 
     let client_options = ClientOptions::builder()
         .credential(Some(
@@ -69,7 +72,7 @@ async fn main() {
         .build();
     let client = Client::with_options(client_options).unwrap();
 
-    let mut test_data = HashMap::new();
+    let mut test_data = doc!();
 
     for entry in WalkDir::new("./programs/good")
         .into_iter()
@@ -82,36 +85,33 @@ async fn main() {
 
         let mut path = diff_paths(entry.path(), "./programs/good").unwrap();
         path.set_extension("");
-        let path =  path.to_str().unwrap().to_string().replace(['/', '\\'], "::");
+        let path = path
+            .to_str()
+            .unwrap()
+            .to_string()
+            .replace(['/', '\\'], "::");
 
-        test_data.insert(path, Stats::new(program, &mut io));
+        test_data.insert(path, bson::to_bson(&Stats::new(program, &mut io)).unwrap());
     }
-
-    // what is our current commit?
-    // what are our previous good commits?
 
     let db = client.database("rust-compiler-construction");
     let benches = db.collection::<Document>("benches");
 
-    let test = "e";
-    let docs = vec![
-        doc! { test: "asd" }
-    ];
-
-    benches.insert_many(docs, None).await?;
-
-    for (test, stats) in test_data {
-        println!("{test:?}: {stats:?}");
-    }
+    benches
+        .insert_one(doc!("commit": test_data), None)
+        .await
+        .unwrap();
 }
 
-impl Stats{
+impl Stats {
     fn new(program: &str, io: &mut impl IO) -> Self {
         let tempdir = TempDir::new("cc-bench").unwrap();
         let output = tempdir.path().join("output");
 
-        let prg_concluded = parse_program(program).unwrap()
-            .type_check().unwrap()
+        let prg_concluded = parse_program(program)
+            .unwrap()
+            .type_check()
+            .unwrap()
             .uniquify()
             .reveal()
             .atomize()
@@ -141,9 +141,9 @@ impl Stats{
     }
 }
 
-impl BStats{
+impl BStats {
     fn new(output: &PathBuf) -> Self {
-        BStats{
+        BStats {
             binary_size: binary_size(output),
         }
     }

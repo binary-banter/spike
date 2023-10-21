@@ -1359,6 +1359,7 @@ dependencies = [
  "pathdiff",
  "petgraph",
  "regex",
+ "serde",
  "tempdir",
  "test_each_file",
  "thiserror",

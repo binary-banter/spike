@@ -29,6 +29,6 @@ pub fn split_test_raw(test: &str) -> (Vec<Lit>, Vec<Lit>, Lit, &str) {
 
 pub fn split_test(test: &str) -> (Vec<Lit>, Vec<Lit>, Lit, PrgParsed) {
     let (input, expected_output, expected_return, program) = split_test_raw(test);
-    let program = parse_program(&program).unwrap();
+    let program = parse_program(program).unwrap();
     (input, expected_output, expected_return, program)
 }
