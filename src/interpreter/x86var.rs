@@ -35,10 +35,15 @@ struct X86Interpreter<'p, I: IO> {
     read_buffer: Vec<u8>,
     write_buffer: Vec<u8>,
     status: Status,
+    stats: Stats,
+}
+
+pub struct Stats{
+
 }
 
 impl<'p> X86Selected<'p> {
-    pub fn interpret(&self, io: &mut impl IO) -> i64 {
+    pub fn interpret_with_stats(&self, io: &mut impl IO) -> (i64, Stats) {
         let block_ids = self.blocks.keys().map(|sym| (sym.id, *sym)).collect();
 
         let mut regs = HashMap::new();
@@ -61,9 +66,15 @@ impl<'p> X86Selected<'p> {
             read_buffer: Vec::new(),
             write_buffer: Vec::new(),
             status: Default::default(),
+            stats: Stats {},
         };
 
-        state.interpret_block(self.entry, 0)
+        let val = state.interpret_block(self.entry, 0);
+        (val, state.stats)
+    }
+
+    pub fn interpret(&self, io: &mut impl IO) -> i64 {
+        self.interpret_with_stats(io).0
     }
 }
 
