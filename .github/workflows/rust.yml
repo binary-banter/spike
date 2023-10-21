@@ -27,4 +27,5 @@ jobs:
       - name: Run regression tests
         env:
           MONGO_PW: ${{ secrets.MONGO_PW }}
+          MONGO_ADDRESS: ${{ secrets.MONGO_ADDRESS }}
         run: cargo run --release --bin bencher --features bench
