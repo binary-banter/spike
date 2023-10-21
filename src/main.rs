@@ -2,15 +2,13 @@ use crate::MainError::{IOResult, RegexError};
 use clap::Parser;
 use miette::Diagnostic;
 use regex::Regex;
-use rust_compiler_construction::elf::ElfFile;
-use rust_compiler_construction::parser::{parse_program, PrettyParseError};
-use rust_compiler_construction::passes::type_check::TypeError;
-use std::fs::File;
-use std::io::Read;
-use std::{fs, io};
-use std::path::Path;
-use thiserror::Error;
 use rust_compiler_construction::compile;
+use rust_compiler_construction::parser::PrettyParseError;
+use rust_compiler_construction::passes::type_check::TypeError;
+use std::io::Read;
+use std::path::Path;
+use std::{fs, io};
+use thiserror::Error;
 
 #[derive(Debug, Error, Diagnostic)]
 enum MainError {
