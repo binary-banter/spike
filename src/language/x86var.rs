@@ -8,7 +8,7 @@ use crate::{
 };
 use petgraph::prelude::GraphMap;
 use petgraph::Undirected;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 
@@ -20,7 +20,7 @@ pub struct X86Concluded<'p> {
 }
 
 /// Stats gathered by the interpreter.
-#[derive(Debug, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct IStats {
     // todo: branches taken
     // todo: instructions executed

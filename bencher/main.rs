@@ -1,55 +1,104 @@
-use git2::{Commit, Oid, Repository};
+use git2::{Commit, Repository};
+use mongodb::bson;
+use mongodb::bson::{doc, to_bson, Bson, Document};
+use mongodb::options::{ClientOptions, Credential, ServerAddress};
+use mongodb::sync::{Client, Collection};
 use pathdiff::diff_paths;
 use rust_compiler_construction::elf::ElfFile;
 use rust_compiler_construction::interpreter::{TestIO, IO};
 use rust_compiler_construction::language::x86var::IStats;
 use rust_compiler_construction::parser::parse_program;
 use rust_compiler_construction::utils::split_test::split_test_raw;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::env;
+use std::fs::read_to_string;
 use std::fs::File;
-use std::path::{Path, PathBuf};
-use std::{env, fs};
+use std::path::Path;
 use tempdir::TempDir;
 use walkdir::WalkDir;
-use std::fs::read_to_string;
-use mongodb::bson::{doc, Document, to_bson};
-use mongodb::options::{ClientOptions, Credential, ServerAddress};
-use mongodb::sync::{Client, Collection};
 
 /// Stats gathered by the bencher.
-#[derive(Debug, Serialize)]
+// #[derive(Check)]
+#[derive(Debug, Deserialize, Serialize)]
 struct BStats {
+    // #[lower_is_better]
     binary_size: usize,
     // todo: speed?
 }
 
 /// Accumulated stats.
-#[derive(Debug, Serialize)]
+// #[derive(Check)]
+#[derive(Debug, Deserialize, Serialize)]
 struct Stats {
+    // #[recursive]
     bencher_stats: BStats,
+    // #[recursive]
     interpreter_stats: IStats,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+struct StatsPartial {
+    bencher_stats: Option<BStatsPartial>,
+    interpreter_stats: Option<IStatsPartial>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct BStatsPartial {
+    binary_size: Option<usize>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct IStatsPartial {}
+
 trait Check {
+    type Partial;
+
     /// Checks whether `self` does not regress compared to `other`.
-    fn check(&self, other: &Self) -> bool;
+    fn check(&self, prev: &Self::Partial) -> bool;
 }
 
 impl Check for Stats {
-    fn check(&self, other: &Self) -> bool {
-        self.bencher_stats.check(&other.bencher_stats)
-            && self.interpreter_stats.check(&other.interpreter_stats)
+    type Partial = StatsPartial;
+
+    fn check(&self, prev: &Self::Partial) -> bool {
+        if let Some(prev) = &prev.bencher_stats {
+            if !self.bencher_stats.check(prev) {
+                return false;
+            }
+        }
+        if let Some(prev) = &prev.interpreter_stats {
+            if !self.interpreter_stats.check(prev) {
+                return false;
+            }
+        }
+
+        true
     }
 }
 
 impl Check for BStats {
-    fn check(&self, other: &Self) -> bool {
-        self.binary_size <= other.binary_size
+    type Partial = BStatsPartial;
+
+    fn check(&self, prev: &Self::Partial) -> bool {
+        if let Some(prev) = prev.binary_size {
+            if !(self.binary_size <= prev) {
+                eprint!(
+                    "Statistic `binary_size` regressed from {prev:?} to {:?} in test ",
+                    self.binary_size
+                );
+                return false;
+            }
+        }
+
+        true
     }
 }
 
 impl Check for IStats {
-    fn check(&self, _other: &Self) -> bool {
+    type Partial = IStatsPartial;
+
+    fn check(&self, _prev: &Self::Partial) -> bool {
         true
     }
 }
@@ -100,30 +149,53 @@ fn main() {
     let oid = repo.head().unwrap().target().unwrap();
     let commit = repo.find_commit(oid).unwrap();
 
-    assert!(check_parents(&benches, &commit, &test_data));
+    let new_stats = bson::from_bson::<HashMap<String, Stats>>(Bson::Document(test_data.clone())).unwrap();
 
-    // write_commit(&benches, &commit, &test_data);
+    assert!(check_parents(&benches, &commit, &new_stats));
+    write_commit(&benches, &commit, &test_data);
 }
 
-fn check_parents(benches: &Collection<Document>, commit: &Commit, test_data: &Document) -> bool {
-    let mut failure = false;
-    for parent in commit.parents(){
+fn check_parents(
+    benches: &Collection<Document>,
+    commit: &Commit,
+    new_stats: &HashMap<String, Stats>,
+) -> bool {
+    let mut ok = true;
+    for parent in commit.parents() {
         let filter = doc!("commits.hash": parent.id().to_string());
         let options = None;
-        if let Some(parent_data) = benches.find_one(filter, options).unwrap()  {
-            let parent_data = parent_data.get_array("commits").unwrap().first().unwrap().as_document().unwrap().get_document("tests").unwrap();
-            test_data.check(parent_data);
-        } else{
-            failure |= check_parents(benches, commit, test_data);
+        if let Some(parent_data) = benches.find_one(filter, options).unwrap() {
+            let parent_data = parent_data
+                .get_array("commits")
+                .unwrap()
+                .first()
+                .unwrap()
+                .as_document()
+                .unwrap()
+                .get_document("tests")
+                .unwrap();
+
+            let old_stats = bson::from_bson::<HashMap<String, StatsPartial>>(Bson::Document(
+                parent_data.clone(),
+            ))
+            .unwrap();
+
+            for (test_name, new_stats) in new_stats {
+                if let Some(old_stats) = old_stats.get(test_name) {
+                    if !new_stats.check(old_stats) {
+                        ok = false;
+                        eprintln!(
+                            "`{test_name}` when comparing with parent `{}`.",
+                            parent.id()
+                        );
+                    }
+                }
+            }
+        } else {
+            ok &= check_parents(benches, &parent, new_stats);
         };
     }
-    !failure
-}
-
-impl Check for Document{
-    fn check(&self, other: &Self) -> bool {
-        todo!()
-    }
+    ok
 }
 
 fn write_commit(benches: &Collection<Document>, commit: &Commit<'_>, test_data: &Document) {
@@ -186,7 +258,7 @@ impl Stats {
 }
 
 impl BStats {
-    fn new(output: &PathBuf) -> Self {
+    fn new(output: &Path) -> Self {
         BStats {
             binary_size: binary_size(output),
         }
