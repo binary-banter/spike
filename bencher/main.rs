@@ -149,7 +149,8 @@ fn main() {
     let oid = repo.head().unwrap().target().unwrap();
     let commit = repo.find_commit(oid).unwrap();
 
-    let new_stats = bson::from_bson::<HashMap<String, Stats>>(Bson::Document(test_data.clone())).unwrap();
+    let new_stats =
+        bson::from_bson::<HashMap<String, Stats>>(Bson::Document(test_data.clone())).unwrap();
 
     assert!(check_parents(&benches, &commit, &new_stats));
     write_commit(&benches, &commit, &test_data);
