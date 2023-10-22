@@ -1,6 +1,0 @@
-fn fib(n: Int) -> Int {
-    8
-}
-fn main() -> Int {
-    fib(9)
-}

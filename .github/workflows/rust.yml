@@ -1,0 +1,29 @@
+name: Rust
+
+on:
+  push:
+    branches: [ "**" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: CC
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build main
+        run: cargo build --release
+      - name: Cargo fmt
+        run: cargo fmt --check
+      - name: Cargo clippy
+        run: cargo clippy -- -D warnings
+      - name: Run tests
+        run: cargo test --release
+      - name: Run regression tests
+        env:
+          MONGO_PW: ${{ secrets.MONGO_PW }}
+          MONGO_ADDRESS: ${{ secrets.MONGO_ADDRESS }}
+        run: cargo run --release --bin bencher --features bench

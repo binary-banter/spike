@@ -2,11 +2,11 @@ use crate::MainError::{IOResult, RegexError};
 use clap::Parser;
 use miette::Diagnostic;
 use regex::Regex;
-use rust_compiler_construction::elf::ElfFile;
-use rust_compiler_construction::parser::{parse_program, PrettyParseError};
+use rust_compiler_construction::compile;
+use rust_compiler_construction::parser::PrettyParseError;
 use rust_compiler_construction::passes::type_check::TypeError;
-use std::fs::File;
 use std::io::Read;
+use std::path::Path;
 use std::{fs, io};
 use thiserror::Error;
 
@@ -67,25 +67,5 @@ fn main() -> miette::Result<()> {
             .map_or_else(|| "output".to_string(), str::to_string)
     });
 
-    let program = parse_program(&program)?
-        .type_check()?
-        .uniquify()
-        .reveal()
-        .atomize()
-        .explicate()
-        .select()
-        .add_liveness()
-        .compute_interference()
-        .color_interference()
-        .assign_homes()
-        .patch()
-        .conclude();
-
-    let (entry, program) = program.emit();
-
-    let elf = ElfFile::new(entry, &program);
-    let mut file = File::create(output).unwrap();
-    elf.write(&mut file);
-
-    Ok(())
+    compile(&program, Path::new(&output))
 }
