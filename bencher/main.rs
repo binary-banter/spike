@@ -1,7 +1,4 @@
-use git2::Repository;
-use mongodb::bson::{doc, Document};
-use mongodb::options::{ClientOptions, Credential, ServerAddress};
-use mongodb::{bson, Client};
+use git2::{Commit, Oid, Repository};
 use pathdiff::diff_paths;
 use rust_compiler_construction::elf::ElfFile;
 use rust_compiler_construction::interpreter::{TestIO, IO};
@@ -14,6 +11,10 @@ use std::path::{Path, PathBuf};
 use std::{env, fs};
 use tempdir::TempDir;
 use walkdir::WalkDir;
+use std::fs::read_to_string;
+use mongodb::bson::{doc, Document, to_bson};
+use mongodb::options::{ClientOptions, Credential, ServerAddress};
+use mongodb::sync::{Client, Collection};
 
 /// Stats gathered by the bencher.
 #[derive(Debug, Serialize)]
@@ -53,8 +54,7 @@ impl Check for IStats {
     }
 }
 
-#[tokio::main]
-async fn main() {
+fn main() {
     let mongo_pw =
         env::var("MONGO_PW").expect("No environment variable was set to connect to the database.");
     let address = env::var("MONGO_ADDRESS")
@@ -78,7 +78,7 @@ async fn main() {
         .filter_map(|e| e.ok())
         .filter(|f| f.file_type().is_file())
     {
-        let content = fs::read_to_string(entry.path()).unwrap();
+        let content = read_to_string(entry.path()).unwrap();
         let (input, _, _, program) = split_test_raw(&content);
         let mut io = TestIO::new(input);
 
@@ -90,33 +90,54 @@ async fn main() {
             .to_string()
             .replace(['/', '\\'], "::");
 
-        test_data.insert(path, bson::to_bson(&Stats::new(program, &mut io)).unwrap());
+        test_data.insert(path, to_bson(&Stats::new(program, &mut io)).unwrap());
     }
 
     let db = client.database("rust-compiler-construction");
-    let benches = db.collection::<Document>("benches");
+    let benches = db.collection("benches");
 
     let repo = Repository::open(".").unwrap();
-    let iod = repo.head().unwrap().target().unwrap();
-    let commit = repo.find_commit(iod).unwrap();
+    let oid = repo.head().unwrap().target().unwrap();
+    let commit = repo.find_commit(oid).unwrap();
 
-    let hash = iod.to_string();
+    assert!(check_parents(&benches, &commit, &test_data));
+
+    // write_commit(&benches, &commit, &test_data);
+}
+
+fn check_parents(benches: &Collection<Document>, commit: &Commit, test_data: &Document) -> bool {
+    let mut failure = false;
+    for parent in commit.parents(){
+        let filter = doc!("commits.hash": parent.id().to_string());
+        let options = None;
+        if let Some(c) = benches.find_one(filter, options).unwrap()  {
+            dbg!(c);
+            // todo logic!
+        } else{
+            failure |= check_parents(benches, commit, test_data);
+        };
+    }
+    !failure
+}
+
+
+fn write_commit(benches: &Collection<Document>, commit: &Commit<'_>, test_data: &Document) {
+    let hash = commit.id().to_string();
     let time = commit.time().seconds();
     let summary = commit.summary().unwrap();
 
     let commit = doc!(
+        "hash": hash,
         "summary": summary,
         "time": time,
         "tests": test_data
     );
 
-    let index = format!("commits.{hash}");
     let filter = doc!();
-    let update = doc! ("$set": doc!( index: commit ));
+    let update = doc! ("$push": {"commits": commit});
     let options = None;
     benches
-        .find_one_and_update(filter, update, options)
-        .await
+        .find_one_and_replace(filter, update, options)
         .unwrap()
         .unwrap();
 }
