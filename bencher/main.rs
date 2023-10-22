@@ -215,7 +215,7 @@ fn write_commit(benches: &Collection<Document>, commit: &Commit<'_>, test_data: 
     let update = doc! ("$push": {"commits": commit});
     let options = None;
     benches
-        .find_one_and_replace(filter, update, options)
+        .find_one_and_update(filter, update, options)
         .unwrap()
         .unwrap();
 }
