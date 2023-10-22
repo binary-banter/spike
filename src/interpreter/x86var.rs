@@ -1,10 +1,11 @@
 use crate::interpreter::IO;
 use crate::language::lvar::Lit;
 use crate::language::x86var::{
-    Block, Cnd, IStats, Instr, Reg, VarArg, X86Selected, CALLEE_SAVED, CALLER_SAVED,
+    Block, Cnd, Instr, Reg, VarArg, X86Concluded, X86Selected, CALLEE_SAVED, CALLER_SAVED,
 };
 use crate::passes::uniquify::UniqueSym;
 use nom::AsBytes;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::mem;
 
@@ -22,6 +23,13 @@ pub struct Status {
     overflow: bool,
 }
 
+/// Stats gathered by the interpreter.
+#[derive(Debug, Deserialize, Serialize, Default)]
+pub struct IStats {
+    pub branches_taken: usize,
+    pub instructions_executed: usize,
+}
+
 pub struct X86Interpreter<'p, I: IO> {
     pub blocks: &'p HashMap<UniqueSym<'p>, Block<'p, VarArg<'p>>>,
     pub io: &'p mut I,
@@ -36,6 +44,44 @@ pub struct X86Interpreter<'p, I: IO> {
     pub write_buffer: Vec<u8>,
     pub status: Status,
     pub stats: IStats,
+}
+
+impl<'p> X86Concluded<'p> {
+    pub fn interpret_with_stats(&self, io: &mut impl IO) -> (i64, IStats) {
+        let block_ids = self.blocks.keys().map(|sym| (sym.id, *sym)).collect();
+
+        let mut regs = HashMap::new();
+        for reg in CALLEE_SAVED.into_iter().chain(CALLER_SAVED.into_iter()) {
+            regs.insert(reg, 0);
+        }
+
+        let mut state = X86Interpreter {
+            // todo: remove this clone
+            blocks: &self
+                .blocks
+                .clone()
+                .into_iter()
+                .map(|(sym, block)| (sym, block.into()))
+                .collect(),
+            io,
+            regs,
+            vars: HashMap::default(),
+            var_stack: vec![],
+            memory: HashMap::default(),
+            block_ids,
+            read_buffer: Vec::new(),
+            write_buffer: Vec::new(),
+            status: Default::default(),
+            stats: IStats::default(),
+        };
+
+        let val = state.interpret_block(self.entry, 0);
+        (val, state.stats)
+    }
+
+    pub fn interpret(&self, io: &mut impl IO) -> i64 {
+        self.interpret_with_stats(io).0
+    }
 }
 
 impl<'p> X86Selected<'p> {
@@ -62,7 +108,7 @@ impl<'p> X86Selected<'p> {
             read_buffer: Vec::new(),
             write_buffer: Vec::new(),
             status: Default::default(),
-            stats: IStats {},
+            stats: IStats::default(),
         };
 
         state.interpret_block(self.entry, 0)
@@ -85,6 +131,7 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
         let block = &self.blocks[&block_name];
 
         for (instr_id, instr) in block.instrs.iter().enumerate().skip(offset) {
+            self.stats.instructions_executed += 1;
             match instr {
                 Instr::Addq { src, dst } => {
                     self.set_arg(dst, self.get_arg(src) + self.get_arg(dst))
@@ -149,6 +196,7 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                     self.regs.insert(Reg::RDX, (res >> 64) as i64);
                 }
                 Instr::Jcc { lbl, cnd } => {
+                    self.stats.branches_taken += 1;
                     if self.evaluate_cnd(*cnd) {
                         return self.interpret_block(*lbl, 0);
                     }

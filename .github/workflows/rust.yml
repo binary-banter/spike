@@ -26,4 +26,4 @@ jobs:
         env:
           MONGO_PW: ${{ secrets.MONGO_PW }}
           MONGO_ADDRESS: ${{ secrets.MONGO_ADDRESS }}
-        run: cargo run --release --bin bencher --features bench
+        run: cargo run --release --bin bencher --features bench -- --read --write
