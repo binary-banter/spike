@@ -1,3 +1,4 @@
+use clap::Parser;
 use git2::{Commit, Repository};
 use mongodb::bson;
 use mongodb::bson::{doc, to_bson, Bson, Document};
@@ -5,8 +6,8 @@ use mongodb::options::{ClientOptions, Credential, ServerAddress};
 use mongodb::sync::{Client, Collection};
 use pathdiff::diff_paths;
 use rust_compiler_construction::elf::ElfFile;
+use rust_compiler_construction::interpreter::x86var::IStats;
 use rust_compiler_construction::interpreter::{TestIO, IO};
-use rust_compiler_construction::language::x86var::IStats;
 use rust_compiler_construction::parser::parse_program;
 use rust_compiler_construction::utils::split_test::split_test_raw;
 use serde::{Deserialize, Serialize};
@@ -49,7 +50,10 @@ struct BStatsPartial {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-struct IStatsPartial {}
+struct IStatsPartial {
+    branches_taken: Option<usize>,
+    instructions_executed: Option<usize>,
+}
 
 trait Check {
     type Partial;
@@ -98,9 +102,39 @@ impl Check for BStats {
 impl Check for IStats {
     type Partial = IStatsPartial;
 
-    fn check(&self, _prev: &Self::Partial) -> bool {
+    fn check(&self, prev: &Self::Partial) -> bool {
+        if let Some(prev) = prev.branches_taken {
+            if !(self.branches_taken <= prev) {
+                eprint!(
+                    "Statistic `branches_taken` regressed from {prev:?} to {:?} in test ",
+                    self.branches_taken
+                );
+                return false;
+            }
+        }
+
+        if let Some(prev) = prev.instructions_executed {
+            if !(self.instructions_executed <= prev) {
+                eprint!(
+                    "Statistic `instructions_executed` regressed from {prev:?} to {:?} in test ",
+                    self.instructions_executed
+                );
+                return false;
+            }
+        }
+
         true
     }
+}
+
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    #[arg(short, long)]
+    read: bool,
+
+    #[arg(short, long)]
+    write: bool,
 }
 
 fn main() {
