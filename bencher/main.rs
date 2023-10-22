@@ -1,4 +1,4 @@
-use itertools::Itertools;
+use git2::Repository;
 use mongodb::bson::{doc, Document};
 use mongodb::options::{ClientOptions, Credential, ServerAddress};
 use mongodb::{bson, Client};
@@ -9,7 +9,6 @@ use rust_compiler_construction::language::x86var::IStats;
 use rust_compiler_construction::parser::parse_program;
 use rust_compiler_construction::utils::split_test::split_test_raw;
 use serde::Serialize;
-use std::collections::HashMap;
 use std::fs::File;
 use std::path::{Path, PathBuf};
 use std::{env, fs};
@@ -97,9 +96,28 @@ async fn main() {
     let db = client.database("rust-compiler-construction");
     let benches = db.collection::<Document>("benches");
 
+    let repo = Repository::open(".").unwrap();
+    let iod = repo.head().unwrap().target().unwrap();
+    let commit = repo.find_commit(iod).unwrap();
+
+    let hash = iod.to_string();
+    let time = commit.time().seconds();
+    let summary = commit.summary().unwrap();
+
+    let commit = doc!(
+        "summary": summary,
+        "time": time,
+        "tests": test_data
+    );
+
+    let index = format!("commits.{hash}");
+    let filter = doc!();
+    let update = doc! ("$set": doc!( index: commit ));
+    let options = None;
     benches
-        .insert_one(doc!("commit": test_data), None)
+        .find_one_and_update(filter, update, options)
         .await
+        .unwrap()
         .unwrap();
 }
 
