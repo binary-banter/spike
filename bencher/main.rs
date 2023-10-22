@@ -110,9 +110,9 @@ fn check_parents(benches: &Collection<Document>, commit: &Commit, test_data: &Do
     for parent in commit.parents(){
         let filter = doc!("commits.hash": parent.id().to_string());
         let options = None;
-        if let Some(c) = benches.find_one(filter, options).unwrap()  {
-            dbg!(c);
-            // todo logic!
+        if let Some(parent_data) = benches.find_one(filter, options).unwrap()  {
+            let parent_data = parent_data.get_array("commits").unwrap().first().unwrap().as_document().unwrap().get_document("tests").unwrap();
+            test_data.check(parent_data);
         } else{
             failure |= check_parents(benches, commit, test_data);
         };
@@ -120,6 +120,11 @@ fn check_parents(benches: &Collection<Document>, commit: &Commit, test_data: &Do
     !failure
 }
 
+impl Check for Document{
+    fn check(&self, other: &Self) -> bool {
+        todo!()
+    }
+}
 
 fn write_commit(benches: &Collection<Document>, commit: &Commit<'_>, test_data: &Document) {
     let hash = commit.id().to_string();
