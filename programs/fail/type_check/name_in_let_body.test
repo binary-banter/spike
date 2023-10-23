@@ -1,4 +1,4 @@
 ###
 fn main() -> Int {
-    (let (y x) 1)
+    let y = 3; x
 }

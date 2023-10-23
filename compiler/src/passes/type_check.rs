@@ -245,6 +245,6 @@ mod tests {
         }
     }
 
-    test_each_file! { for ["test"] in "./programs/good" as good => |p| check(p, false) }
-    test_each_file! { for ["test"] in "./programs/type_fail" as bad => |p| check(p, true) }
+    test_each_file! { for ["test"] in "./programs/good" as type_check_succeed => |p| check(p, false) }
+    test_each_file! { for ["test"] in "./programs/fail/type_check" as type_check_fail => |p| check(p, true) }
 }
