@@ -4,5 +4,5 @@
 42
 #
 fn main() -> Int {
-    (print 42)
+    print(42)
 }

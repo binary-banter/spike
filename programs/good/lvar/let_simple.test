@@ -3,5 +3,6 @@
 42
 #
 fn main() -> Int {
-    (let (x 42) x)
+    let x = 42;
+    x
 }

@@ -20,6 +20,8 @@ match {
     "*",
     "/",
     "%",
+    "read",
+    "print",
 
     r"\s+" => {},
 }
@@ -36,14 +38,14 @@ pub Fn: Def<&'input str> = {
     "fn" "main" "(" ")" "->" "Int" "{" <bdy: Expr> "}" => Def::Fn { sym: "main", params: vec![], typ: Type::Int, bdy }
 }
 
-Tier<Op,NextTier>: Expr<&'input str> = {
-    <e1:Tier<Op,NextTier>> <op:Op> <e2:NextTier> => Expr::Prim{op, args: vec![e1, e2] },
-    NextTier
+BinaryOps<Op,Next>: Expr<&'input str> = {
+    <e1:BinaryOps<Op,Next>> <op:Op> <e2:Next> => Expr::Prim{op, args: vec![e1, e2] },
+    Next
 };
 
 Expr = ExprAdditive;
-ExprAdditive = Tier<AdditiveOp, ExprMultiplicative>;
-ExprMultiplicative = Tier<MultiplicativeOp, ExprAtom>;
+ExprAdditive = BinaryOps<AdditiveOp, ExprMultiplicative>;
+ExprMultiplicative = BinaryOps<MultiplicativeOp, ExprUnary>;
 
 AdditiveOp: Op = {
     "+" => Op::Plus,
@@ -54,9 +56,22 @@ MultiplicativeOp: Op = {
    "/" => Op::Div,
    "%" => Op::Mod,
 };
+UnaryOp: Op = {
+    "-" => Op::Minus,
+}
 
+ExprUnary: Expr<&'input str> = {
+    <op:UnaryOp> <e:ExprUnary> => Expr::Prim{op, args: vec![e]},
+    ExprCall
+}
 
-pub ExprAtom: Expr<&'input str> = {
+ExprCall: Expr<&'input str> = {
+    "read" "(" ")" => Expr::Prim{ op: Op::Read, args: vec![] },
+    "print" "(" <e: Expr> ")" => Expr::Prim{ op: Op::Print, args: vec![e] },
+    ExprAtom
+}
+
+ExprAtom: Expr<&'input str> = {
     Num => Expr::Lit{ val: Lit::Int { val: <> }},
     "(" <Expr> ")",
 };
