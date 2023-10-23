@@ -4,10 +4,9 @@ use crate::{
     addq, andq, callq_direct, callq_indirect, cmpq, divq, jcc, jmp, load_lbl, movq, mulq, negq,
     notq, orq, popq, pushq, retq, setcc, subq, syscall, xorq,
 };
-use petgraph::prelude::GraphMap;
+use petgraph::graphmap::GraphMap;
 use petgraph::Undirected;
 use std::collections::{HashMap, HashSet};
-use std::hash::Hash;
 
 #[derive(Debug, PartialEq)]
 pub struct X86Concluded<'p> {
