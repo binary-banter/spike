@@ -6,27 +6,57 @@ use crate::passes::type_check::Type;
 grammar;
 
 match {
-    r"[0-9]+",
-    r"[_a-zA-Z][_a-zA-Z0-9]*",
+    // Keywords
     "fn",
+    "let",
+
+    // Structural tokens
     "(",
     ")",
     "{",
     "}",
     "->",
+    "=",
+    ";",
+
+    // Identifier
+    r"[_a-zA-Z][_a-zA-Z0-9]*",
+
+    // Integer operators
     "+",
     "-",
     "*",
     "/",
     "%",
+
+    // Cursed build-in functions
     "read",
     "print",
-    "let",
-    "=",
-    ";",
+
+    // Types
     "Int",
     "Bool",
 
+    // Literals
+    "true",
+    "false",
+    r"[0-9]+",
+
+    // Logical operators
+    "^",
+    "&&",
+    "||",
+    "!",
+
+    // Compartive operators
+    "==",
+    "!=",
+    ">",
+    ">=",
+    "<",
+    "<=",
+
+    // Whitespaces
     r"\s+" => {},
 }
 
@@ -47,51 +77,71 @@ Type: Type = {
 
 BinaryOps<Op,Next>: Expr<&'input str> = {
     <e1:BinaryOps<Op,Next>> <op:Op> <e2:Next> => Expr::Prim{op, args: vec![e1, e2] },
-    Next
-};
-
-
+    Next,
+}
 
 Expr = ExprStmt;
 
 ExprStmt: Expr<&'input str> = {
-    "let" <sym:Ident> "=" <bnd:ExprAdditive> ";" <bdy:ExprStmt> => Expr::Let { sym, bnd: Box::new(bnd), bdy: Box::new(bdy) },
-    ExprAdditive
+    "let" <sym:Ident> "=" <bnd:ExprLogicalOr> ";" <bdy:ExprStmt> => Expr::Let { sym, bnd: Box::new(bnd), bdy: Box::new(bdy) },
+    ExprLogicalOr,
 }
 
+ExprLogicalOr = BinaryOps<LogicalOrOp, ExprLogicalAnd>;
+ExprLogicalAnd = BinaryOps<LogicalAndOp, ExprComparative>;
+ExprComparative = BinaryOps<ComparativeOp, ExprXor>;
+ExprXor = BinaryOps<XorOp, ExprAdditive>;
 ExprAdditive = BinaryOps<AdditiveOp, ExprMultiplicative>;
 ExprMultiplicative = BinaryOps<MultiplicativeOp, ExprUnary>;
 
+LogicalOrOp: Op = "||" => Op::LOr;
+LogicalAndOp: Op = "&&" => Op::LAnd;
+ComparativeOp: Op = {
+    "==" => Op::EQ,
+    "!=" => Op::NE,
+    ">" => Op::GT,
+    ">=" => Op::GE,
+    "<" => Op::LT,
+    "<=" => Op::LE,
+}
+XorOp: Op = "^" => Op::Xor;
 AdditiveOp: Op = {
     "+" => Op::Plus,
     "-" => Op::Minus,
-};
+}
 MultiplicativeOp: Op = {
    "*" => Op::Mul,
    "/" => Op::Div,
    "%" => Op::Mod,
-};
+}
 UnaryOp: Op = {
     "-" => Op::Minus,
+    "!" => Op::Not,
 }
 
 ExprUnary: Expr<&'input str> = {
     <op:UnaryOp> <e:ExprUnary> => Expr::Prim{op, args: vec![e]},
-    ExprCall
+    ExprCall,
 }
 
 ExprCall: Expr<&'input str> = {
     "read" "(" ")" => Expr::Prim{ op: Op::Read, args: vec![] },
     "print" "(" <e: Expr> ")" => Expr::Prim{ op: Op::Print, args: vec![e] },
-    ExprAtom
+    ExprAtom,
 }
 
 ExprAtom: Expr<&'input str> = {
     Num => Expr::Lit{ val: Lit::Int { val: <> }},
+    Bool => Expr::Lit { val: Lit::Bool { val: <> }},
     Ident => Expr::Var { sym: <> },
     "(" <Expr> ")",
-};
+}
 
 Ident: &'input str = r"[_a-zA-Z][_a-zA-Z0-9]*";
 
 Num: i64 = <s:r"[0-9]+"> => i64::from_str(s).unwrap();
+
+Bool: bool = {
+    "true" => true,
+    "false" => false,
+}

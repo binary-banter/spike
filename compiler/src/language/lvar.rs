@@ -108,9 +108,9 @@ impl Display for Lit {
             Lit::Int { val } => write!(f, "{val}"),
             Lit::Bool { val } => {
                 if *val {
-                    write!(f, "t")
+                    write!(f, "true")
                 } else {
-                    write!(f, "f")
+                    write!(f, "false")
                 }
             }
         }
