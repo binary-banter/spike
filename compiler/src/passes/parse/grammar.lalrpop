@@ -7,11 +7,10 @@ grammar;
 
 match {
     r"[0-9]+",
+    r"[_a-zA-Z][_a-zA-Z0-9]*",
     "fn",
-    "main",
     "(",
     ")",
-    "Int",
     "{",
     "}",
     "->",
@@ -22,6 +21,11 @@ match {
     "%",
     "read",
     "print",
+    "let",
+    "=",
+    ";",
+    "Int",
+    "Bool",
 
     r"\s+" => {},
 }
@@ -30,12 +34,15 @@ pub Program: PrgParsed<'input> = {
     <defs: Def*> => PrgParsed{ defs, entry: "main" }
 }
 
-pub Def: Def<&'input str> = {
-    Fn
+Def: Def<&'input str> = Fn;
+
+Fn: Def<&'input str> = {
+    "fn" <sym:Ident> "(" ")" "->" <typ:Type> "{" <bdy: Expr> "}" => Def::Fn { sym, params: vec![], typ, bdy }
 }
 
-pub Fn: Def<&'input str> = {
-    "fn" "main" "(" ")" "->" "Int" "{" <bdy: Expr> "}" => Def::Fn { sym: "main", params: vec![], typ: Type::Int, bdy }
+Type: Type = {
+    "Int" => Type::Int,
+    "Bool" => Type::Bool,
 }
 
 BinaryOps<Op,Next>: Expr<&'input str> = {
@@ -43,7 +50,15 @@ BinaryOps<Op,Next>: Expr<&'input str> = {
     Next
 };
 
-Expr = ExprAdditive;
+
+
+Expr = ExprStmt;
+
+ExprStmt: Expr<&'input str> = {
+    "let" <sym:Ident> "=" <bnd:ExprAdditive> ";" <bdy:ExprStmt> => Expr::Let { sym, bnd: Box::new(bnd), bdy: Box::new(bdy) },
+    ExprAdditive
+}
+
 ExprAdditive = BinaryOps<AdditiveOp, ExprMultiplicative>;
 ExprMultiplicative = BinaryOps<MultiplicativeOp, ExprUnary>;
 
@@ -73,7 +88,10 @@ ExprCall: Expr<&'input str> = {
 
 ExprAtom: Expr<&'input str> = {
     Num => Expr::Lit{ val: Lit::Int { val: <> }},
+    Ident => Expr::Var { sym: <> },
     "(" <Expr> ")",
 };
+
+Ident: &'input str = r"[_a-zA-Z][_a-zA-Z0-9]*";
 
 Num: i64 = <s:r"[0-9]+"> => i64::from_str(s).unwrap();
