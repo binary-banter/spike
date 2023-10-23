@@ -1,10 +1,10 @@
 use crate::MainError::{IOResult, RegexError};
 use clap::Parser;
+use compiler::compile;
+use compiler::parser::PrettyParseError;
+use compiler::passes::type_check::TypeError;
 use miette::Diagnostic;
 use regex::Regex;
-use rust_compiler_construction::compile;
-use rust_compiler_construction::parser::PrettyParseError;
-use rust_compiler_construction::passes::type_check::TypeError;
 use std::io::Read;
 use std::path::Path;
 use std::{fs, io};

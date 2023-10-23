@@ -1,12 +1,11 @@
 #![cfg(unix)]
 
-use rust_compiler_construction::elf::ElfFile;
-use rust_compiler_construction::utils::split_test::split_test;
+use compiler::elf::ElfFile;
+use compiler::language::lvar::Lit;
+use compiler::utils::split_test::split_test;
 use std::fs::OpenOptions;
 use std::io::{BufRead, Write};
 use std::os::unix::prelude::OpenOptionsExt;
-
-use rust_compiler_construction::language::lvar::Lit;
 use std::process::{Command, Stdio};
 use tempdir::TempDir;
 use test_each_file::test_each_file;

@@ -1,16 +1,16 @@
 #![allow(non_camel_case_types)]
 #![allow(clippy::upper_case_acronyms)]
 
+use crate::elf::header::ElfHeader;
+use crate::elf::program::ProgramHeader;
+use std::io::Write;
+use std::mem::size_of;
+use zerocopy::AsBytes;
+
 #[allow(clippy::module_inception)]
 mod header;
 mod program;
 mod section;
-
-use header::ElfHeader;
-use program::ProgramHeader;
-use std::io::Write;
-use std::mem::size_of;
-use zerocopy::AsBytes;
 
 pub const PRG_OFFSET: usize = 0x0040_0000;
 
