@@ -1,6 +1,8 @@
 [package]
 name = "parser_generator"
 version = "0.1.0"
+edition = "2021"
 authors = ["joooooooonaaaaa", "juuuuuuuuuuuuuuuuuuliaaaaaaaaaa"]
 
 [dependencies]
+lalrpop = "0.20.1"
