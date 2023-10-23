@@ -14,16 +14,16 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - name: Build main
-        run: cargo build --release
+      - name: Build workspace
+        run: cargo build --workspace --release
       - name: Cargo fmt
         run: cargo fmt --check
       - name: Cargo clippy
-        run: cargo clippy -- -D warnings
+        run: cargo clippy --release -- -D warnings
       - name: Run tests
         run: cargo test --release
       - name: Run regression tests
         env:
           MONGO_PW: ${{ secrets.MONGO_PW }}
           MONGO_ADDRESS: ${{ secrets.MONGO_ADDRESS }}
-        run: cargo run --release --bin bencher --features bench -- --read --write
+        run: cargo run -p bencher --release -- --read --write
