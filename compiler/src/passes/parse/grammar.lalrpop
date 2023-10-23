@@ -9,6 +9,8 @@ match {
     // Keywords
     "fn",
     "let",
+    "if",
+    "else",
 
     // Structural tokens
     "(",
@@ -84,6 +86,7 @@ Expr = ExprStmt;
 
 ExprStmt: Expr<&'input str> = {
     "let" <sym:Ident> "=" <bnd:ExprLogicalOr> ";" <bdy:ExprStmt> => Expr::Let { sym, bnd: Box::new(bnd), bdy: Box::new(bdy) },
+    "if" <cnd:ExprLogicalOr> "{" <thn:Expr> "}" "else" "{" <els:Expr> "}" => Expr::If { cnd: Box::new(cnd), thn: Box::new(thn), els: Box::new(els) },
     ExprLogicalOr,
 }
 
