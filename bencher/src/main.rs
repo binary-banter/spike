@@ -156,7 +156,7 @@ fn main() {
 
     let mut test_data = doc!();
 
-    for entry in WalkDir::new("../../programs/good")
+    for entry in WalkDir::new("./programs/good")
         .into_iter()
         .filter_map(|e| e.ok())
         .filter(|f| f.file_type().is_file())
@@ -165,7 +165,7 @@ fn main() {
         let (input, _, _, program) = split_test_raw(&content);
         let mut io = TestIO::new(input);
 
-        let mut path = diff_paths(entry.path(), "../../programs/good").unwrap();
+        let mut path = diff_paths(entry.path(), "./programs/good").unwrap();
         path.set_extension("");
         let path = path
             .to_str()
@@ -179,7 +179,7 @@ fn main() {
     let db = client.database("rust-compiler-construction");
     let benches = db.collection("benches");
 
-    let repo = Repository::open("../..").unwrap();
+    let repo = Repository::open(".").unwrap();
     let oid = repo.head().unwrap().target().unwrap();
     let commit = repo.find_commit(oid).unwrap();
 
