@@ -2,7 +2,6 @@ use clap::Parser;
 use compiler::elf::ElfFile;
 use compiler::interpreter::x86var::IStats;
 use compiler::interpreter::{TestIO, IO};
-use compiler::parser::parse_program;
 use compiler::utils::split_test::split_test_raw;
 use git2::{Commit, Repository};
 use mongodb::bson;
@@ -18,6 +17,7 @@ use std::fs::File;
 use std::path::Path;
 use tempdir::TempDir;
 use walkdir::WalkDir;
+use compiler::passes::parse::parse_program;
 
 /// Stats gathered by the bencher.
 // #[derive(Check)]

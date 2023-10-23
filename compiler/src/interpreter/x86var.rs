@@ -4,10 +4,10 @@ use crate::language::x86var::{
     Block, Cnd, Instr, Reg, VarArg, X86Concluded, X86Selected, CALLEE_SAVED, CALLER_SAVED,
 };
 use crate::passes::uniquify::UniqueSym;
-use nom::AsBytes;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::mem;
+use zerocopy::AsBytes;
 
 #[derive(Default)]
 pub struct Status {
