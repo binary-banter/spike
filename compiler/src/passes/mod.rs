@@ -11,3 +11,5 @@ pub mod reveal_functions;
 pub mod select;
 pub mod type_check;
 pub mod uniquify;
+pub mod parse;
+

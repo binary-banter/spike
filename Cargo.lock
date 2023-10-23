@@ -532,6 +532,7 @@ dependencies = [
  "bitflags 2.4.1",
  "clap",
  "itertools",
+ "lalrpop-util",
  "miette",
  "nom",
  "once_cell",

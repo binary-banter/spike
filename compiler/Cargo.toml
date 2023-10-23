@@ -17,6 +17,7 @@ serde = { version = "1.0.189", features = ["derive"] }
 clap = { version = "4.3.21", features = ["derive"] }
 miette = { version = "5.10.0", features = ["fancy"] }
 zerocopy = {version = "0.7.8", features = ["derive"] }
+lalrpop-util = { version = "0.20.1", features = ["lexer", "unicode"] }
 
 [dev-dependencies]
 test_each_file = "0.1.0"

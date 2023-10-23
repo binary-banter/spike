@@ -1,7 +1,6 @@
 use crate::MainError::{IOResult, RegexError};
 use clap::Parser;
 use compiler::compile;
-use compiler::parser::PrettyParseError;
 use compiler::passes::type_check::TypeError;
 use miette::Diagnostic;
 use regex::Regex;
@@ -9,6 +8,7 @@ use std::io::Read;
 use std::path::Path;
 use std::{fs, io};
 use thiserror::Error;
+use compiler::passes::parse::PrettyParseError;
 
 #[derive(Debug, Error, Diagnostic)]
 enum MainError {

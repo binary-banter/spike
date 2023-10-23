@@ -227,8 +227,8 @@ fn expect_type<'p>(
 
 #[cfg(test)]
 mod tests {
-    use crate::parser::parse_program;
     use test_each_file::test_each_file;
+    use crate::passes::parse::parse_program;
 
     fn check([test]: [&str; 1], should_fail: bool) {
         let mut test = test.split('#');

@@ -1,10 +1,64 @@
 use std::str::FromStr;
+use crate::language::lvar::*;
+use crate::passes::parse::PrgParsed;
+use crate::passes::type_check::Type;
 
 grammar;
 
-pub Term: i32 = {
-    <n:Num> => n,
-    "(" <t:Term> ")" => t,
+match {
+    r"[0-9]+",
+    "fn",
+    "main",
+    "(",
+    ")",
+    "Int",
+    "{",
+    "}",
+    "->",
+    "+",
+    "-",
+    "*",
+    "/",
+    "%",
+
+    r"\s+" => {},
+}
+
+pub Program: PrgParsed<'input> = {
+    <defs: Def*> => PrgParsed{ defs, entry: "main" }
+}
+
+pub Def: Def<&'input str> = {
+    Fn
+}
+
+pub Fn: Def<&'input str> = {
+    "fn" "main" "(" ")" "->" "Int" "{" <bdy: Expr> "}" => Def::Fn { sym: "main", params: vec![], typ: Type::Int, bdy }
+}
+
+Tier<Op,NextTier>: Expr<&'input str> = {
+    <e1:Tier<Op,NextTier>> <op:Op> <e2:NextTier> => Expr::Prim{op, args: vec![e1, e2] },
+    NextTier
 };
 
-Num: i32 = <s:r"[0-9]+"> => i32::from_str(s).unwrap();
+Expr = ExprAdditive;
+ExprAdditive = Tier<AdditiveOp, ExprMultiplicative>;
+ExprMultiplicative = Tier<MultiplicativeOp, ExprAtom>;
+
+AdditiveOp: Op = {
+    "+" => Op::Plus,
+    "-" => Op::Minus,
+};
+MultiplicativeOp: Op = {
+   "*" => Op::Mul,
+   "/" => Op::Div,
+   "%" => Op::Mod,
+};
+
+
+pub ExprAtom: Expr<&'input str> = {
+    Num => Expr::Lit{ val: Lit::Int { val: <> }},
+    "(" <Expr> ")",
+};
+
+Num: i64 = <s:r"[0-9]+"> => i64::from_str(s).unwrap();
