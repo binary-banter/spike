@@ -536,7 +536,6 @@ dependencies = [
  "miette",
  "once_cell",
  "petgraph",
- "regex",
  "serde",
  "tempdir",
  "test_each_file",
