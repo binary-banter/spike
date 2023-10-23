@@ -20,6 +20,8 @@ match {
     "->",
     "=",
     ";",
+    ",",
+    ":",
 
     // Identifier
     r"[_a-zA-Z][_a-zA-Z0-9]*",
@@ -69,8 +71,10 @@ pub Program: PrgParsed<'input> = {
 Def: Def<&'input str> = Fn;
 
 Fn: Def<&'input str> = {
-    "fn" <sym:Ident> "(" ")" "->" <typ:Type> "{" <bdy: Expr> "}" => Def::Fn { sym, params: vec![], typ, bdy }
+    "fn" <sym:Ident> "(" <params:Comma<Param>> ")" "->" <typ:Type> "{" <bdy: Expr> "}" => Def::Fn { sym, params, typ, bdy }
 }
+
+Param = <Ident> ":" <Type>;
 
 Type: Type = {
     "Int" => Type::Int,
@@ -130,6 +134,7 @@ ExprUnary: Expr<&'input str> = {
 ExprCall: Expr<&'input str> = {
     "read" "(" ")" => Expr::Prim{ op: Op::Read, args: vec![] },
     "print" "(" <e: Expr> ")" => Expr::Prim{ op: Op::Print, args: vec![e] },
+    <fun:ExprAtom> "(" <args:Comma<Expr>> ")" => Expr::Apply{ fun: Box::new(fun), args },
     ExprAtom,
 }
 
@@ -148,3 +153,14 @@ Bool: bool = {
     "true" => true,
     "false" => false,
 }
+
+Comma<T>: Vec<T> = {
+    <v:(<T> ",")*> <e:T?> => match e {
+        None=> v,
+        Some(e) => {
+            let mut v = v;
+            v.push(e);
+            v
+        }
+    }
+};

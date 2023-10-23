@@ -2,7 +2,11 @@
 34
 #
 fn fib(n: Int) -> Int {
-    (if (<= n 1) (if (== n 0) 0 1) (+ fib((- n 1)) fib((- n 2))))
+    if n <= 1 {
+        if n  == 0 { 0 } else { 1 }
+    } else {
+        fib(n - 1) + fib(n - 2)
+    }
 }
 fn main() -> Int {
     fib(9)

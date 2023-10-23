@@ -1,17 +1,18 @@
+#[rustfmt::skip]
+#[allow(clippy::all)]
 mod grammar;
 
+use crate::language::lvar::PrgParsed;
+use crate::passes::parse::grammar::ProgramParser;
 use miette::{Diagnostic, SourceSpan};
 use thiserror::Error;
-use crate::language::lvar::PrgParsed;
-use crate::passes::parse::grammar::{ProgramParser};
-
 
 #[derive(Error, Debug, Diagnostic)]
 #[error("Parse error!")]
 #[diagnostic(
-code(oops::my::bad),
-url(docsrs),
-help("try doing it better next time?")
+    code(oops::my::bad),
+    url(docsrs),
+    help("try doing it better next time?")
 )]
 pub struct PrettyParseError {
     #[source_code]
