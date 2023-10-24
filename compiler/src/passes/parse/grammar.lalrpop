@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use crate::language::lvar::*;
+use crate::passes::parse::*;
 use crate::passes::parse::PrgParsed;
 use crate::passes::type_check::Type;
 
@@ -11,6 +11,8 @@ match {
     "let",
     "if",
     "else",
+    "loop",
+    "break",
 
     // Structural tokens
     "(",
@@ -40,10 +42,12 @@ match {
     // Types
     "Int",
     "Bool",
+    "Unit",
 
     // Literals
     "true",
     "false",
+    "unit",
     r"[0-9]+",
 
     // Logical operators
@@ -79,6 +83,7 @@ Param = <Ident> ":" <Type>;
 Type: Type = {
     "Int" => Type::Int,
     "Bool" => Type::Bool,
+    "Unit" => Type::Unit,
 }
 
 BinaryOps<Op,Next>: Expr<&'input str> = {
@@ -91,6 +96,8 @@ Expr = ExprStmt;
 ExprStmt: Expr<&'input str> = {
     "let" <sym:Ident> "=" <bnd:ExprLogicalOr> ";" <bdy:ExprStmt> => Expr::Let { sym, bnd: Box::new(bnd), bdy: Box::new(bdy) },
     "if" <cnd:ExprLogicalOr> "{" <thn:Expr> "}" "else" "{" <els:Expr> "}" => Expr::If { cnd: Box::new(cnd), thn: Box::new(thn), els: Box::new(els) },
+    "loop" "{" <bdy:ExprStmt> "}" => Expr::Loop { bdy: Box::new(bdy) },
+    "break" <e:Expr?> => Expr::Break { e: e.map(Box::new) },
     ExprLogicalOr,
 }
 

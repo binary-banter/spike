@@ -1,5 +1,5 @@
 use crate::language::alvar::Atom;
-use crate::language::lvar::Op;
+use crate::passes::parse::Op;
 use crate::passes::uniquify::UniqueSym;
 use std::collections::HashMap;
 

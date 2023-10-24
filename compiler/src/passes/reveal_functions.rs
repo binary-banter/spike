@@ -1,4 +1,4 @@
-use crate::language::lvar::{Def, Expr, PrgUniquified};
+use crate::passes::parse::{Def, Expr, PrgUniquified};
 use crate::language::rlvar::{PrgRevealed, RDef, RExpr};
 use crate::passes::uniquify::UniqueSym;
 use crate::utils::push_map::PushMap;
@@ -71,13 +71,15 @@ fn reveal_expr<'p>(expr: Expr<UniqueSym<'p>>, scope: &mut PushMap<UniqueSym<'p>,
                 .map(|arg| reveal_expr(arg, scope))
                 .collect(),
         },
+        Expr::Loop { .. } => todo!(),
+        Expr::Break { .. } => todo!(),
     }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::interpreter::TestIO;
-    use crate::language::lvar::PrgUniquified;
+    use crate::passes::parse::PrgUniquified;
     use crate::utils::split_test::split_test;
     use test_each_file::test_each_file;
 

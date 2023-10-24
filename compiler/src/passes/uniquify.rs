@@ -3,7 +3,7 @@
 //! This is useful because in later passes we will be changing the structure of the program,
 //! and after selecting instructions we will only have a list of X86 instructions left.
 
-use crate::language::lvar::{Def, Expr, PrgTypeChecked, PrgUniquified};
+use crate::passes::parse::{Def, Expr, PrgTypeChecked, PrgUniquified};
 use crate::utils::push_map::PushMap;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
@@ -92,6 +92,8 @@ fn uniquify_expression<'p>(
                 .map(|arg| uniquify_expression(arg, scope))
                 .collect(),
         },
+        Expr::Loop { .. } => todo!(),
+        Expr::Break { .. } => todo!(),
     }
 }
 

@@ -1,4 +1,4 @@
-use crate::language::lvar::{Def, Expr, Lit, Op, PrgParsed, PrgTypeChecked};
+use crate::passes::parse::{Def, Expr, Lit, Op, PrgParsed, PrgTypeChecked};
 use crate::passes::type_check::TypeError::*;
 use crate::utils::expect::expect;
 use crate::utils::push_map::PushMap;
@@ -12,6 +12,7 @@ use thiserror::Error;
 pub enum Type {
     Int,
     Bool,
+    Unit,
     Fn { typ: Box<Type>, args: Vec<Type> },
 }
 
@@ -20,6 +21,7 @@ impl Display for Type {
         match self {
             Type::Int => write!(f, "Int"),
             Type::Bool => write!(f, "Bool"),
+            Type::Unit => write!(f, "Unit"),
             Type::Fn { typ, args } => write!(f, "fn({}) -> {}", args.iter().format(", "), typ),
         }
     }
@@ -30,8 +32,6 @@ impl Display for Type {
 pub enum TypeError {
     #[error("Variable '{sym}' was not declared yet.")]
     UndeclaredVar { sym: String },
-    #[error("Operation '{op}' had incorrect arity of {arity}.")]
-    IncorrectArity { op: Op, arity: usize },
     #[error("Types were mismatched. Expected '{expect}', but found '{got}'.")]
     TypeMismatchExpect { expect: Type, got: Type },
     #[error("Types were mismatched. Expected function, but found '{got}'.")]
@@ -163,10 +163,7 @@ fn type_check_expr<'p>(
                 expect_type(e2, scope, Type::Bool)?;
                 Ok(Type::Bool)
             }
-            _ => Err(IncorrectArity {
-                op: *op,
-                arity: args.len(),
-            }),
+            _ => panic!("Found incorrect operator during type checking"),
         },
         Expr::Let { sym, bnd, bdy } => {
             let t = type_check_expr(bnd, scope)?;
@@ -196,6 +193,9 @@ fn type_check_expr<'p>(
             }
             got => Err(TypeMismatchExpectFn { got }),
         },
+        Expr::Loop { .. } => todo!(),
+        Expr::Break { .. } => todo!(),
+        Expr::Lit { val: Lit::Unit } => todo!(),
     }
 }
 

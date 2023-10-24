@@ -1,5 +1,5 @@
 use crate::interpreter::IO;
-use crate::language::lvar::Lit;
+use crate::passes::parse::Lit;
 use crate::language::x86var::{
     Block, Cnd, Instr, Reg, VarArg, X86Concluded, X86Selected, CALLEE_SAVED, CALLER_SAVED,
 };

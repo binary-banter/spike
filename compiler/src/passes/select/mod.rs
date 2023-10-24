@@ -7,7 +7,7 @@ pub mod io;
 
 use crate::language::alvar::Atom;
 use crate::language::cvar::{CExpr, PrgExplicated, Tail};
-use crate::language::lvar::Op;
+use crate::passes::parse::Op;
 use crate::language::x86var::{
     Block, Cnd, Instr, VarArg, X86Selected, ARG_PASSING_REGS, CALLEE_SAVED_NO_STACK,
 };

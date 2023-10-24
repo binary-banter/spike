@@ -1,4 +1,4 @@
-use crate::language::lvar::{Def, Expr, Lit, Op, PrgUniquified};
+use crate::passes::parse::{Def, Expr, Lit, Op, PrgUniquified};
 use crate::passes::type_check::Type;
 use crate::passes::uniquify::UniqueSym;
 use std::collections::HashMap;

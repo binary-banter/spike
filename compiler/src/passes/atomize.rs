@@ -120,7 +120,7 @@ fn rco_atom(expr: RExpr) -> (Atom, Option<(UniqueSym, AExpr)>) {
 #[cfg(test)]
 mod tests {
     use crate::interpreter::TestIO;
-    use crate::language::lvar::PrgGenericVar;
+    use crate::passes::parse::PrgGenericVar;
     use crate::utils::split_test::split_test;
     use test_each_file::test_each_file;
 

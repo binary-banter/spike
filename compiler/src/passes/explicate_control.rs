@@ -6,7 +6,7 @@
 use crate::language::alvar::ADef;
 use crate::language::alvar::{AExpr, Atom, PrgAtomized};
 use crate::language::cvar::{CExpr, PrgExplicated, Tail};
-use crate::language::lvar::{Lit, Op};
+use crate::passes::parse::{Lit, Op};
 use crate::passes::uniquify::{gen_sym, UniqueSym};
 use std::collections::HashMap;
 
@@ -247,6 +247,7 @@ fn explicate_pred<'p>(
                 val: Lit::Int { .. },
             },
         } => unreachable!(),
+        AExpr::Atom { atm: Atom::Val { val: Lit::Unit } } => todo!()
     }
 }
 

@@ -1,9 +1,8 @@
 pub mod cvar;
-pub mod lvar;
 pub mod value;
 pub mod x86var;
 
-use crate::language::lvar::Lit;
+use crate::passes::parse::Lit;
 use std::io::stdin;
 use std::vec::IntoIter;
 

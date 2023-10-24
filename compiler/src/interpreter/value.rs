@@ -1,4 +1,4 @@
-use crate::language::lvar::Lit;
+use crate::passes::parse::Lit;
 use std::fmt::{Display, Formatter};
 use std::hash::Hash;
 use std::str::FromStr;
@@ -7,6 +7,7 @@ use std::str::FromStr;
 pub enum Val<A: Copy + Hash + Eq> {
     Int { val: i64 },
     Bool { val: bool },
+    Unit,
     Function { sym: A },
 }
 
@@ -16,6 +17,7 @@ impl<A: Copy + Hash + Eq> Val<A> {
             Val::Int { val } => val,
             Val::Bool { .. } => panic!(),
             Val::Function { .. } => panic!(),
+            Val::Unit => panic!(),
         }
     }
 
@@ -24,6 +26,7 @@ impl<A: Copy + Hash + Eq> Val<A> {
             Val::Int { .. } => panic!(),
             Val::Bool { val } => val,
             Val::Function { .. } => panic!(),
+            Val::Unit => panic!(),
         }
     }
 
@@ -32,6 +35,7 @@ impl<A: Copy + Hash + Eq> Val<A> {
             Val::Int { .. } => panic!(),
             Val::Bool { .. } => panic!(),
             Val::Function { sym } => sym,
+            Val::Unit => panic!(),
         }
     }
 }
@@ -41,6 +45,7 @@ impl From<Lit> for i64 {
         match value {
             Lit::Int { val } => val,
             Lit::Bool { val } => val as i64,
+            Lit::Unit => 0,
         }
     }
 }
@@ -65,12 +70,13 @@ impl<A: Copy + Hash + Eq + Display> Display for Val<A> {
             Val::Int { val } => write!(f, "{val}"),
             Val::Bool { val } => {
                 if *val {
-                    write!(f, "t")
+                    write!(f, "true")
                 } else {
-                    write!(f, "f")
+                    write!(f, "false")
                 }
             }
             Val::Function { sym, .. } => write!(f, "pointer to `{sym}``"),
+            Val::Unit => write!(f, "unit")
         }
     }
 }

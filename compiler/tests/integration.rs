@@ -1,7 +1,7 @@
 #![cfg(unix)]
 
 use compiler::elf::ElfFile;
-use compiler::language::lvar::Lit;
+use compiler::passes::parse::Lit;
 use compiler::utils::split_test::split_test;
 use std::fs::OpenOptions;
 use std::io::{BufRead, Write};

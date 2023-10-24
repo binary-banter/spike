@@ -1,5 +1,5 @@
 use crate::interpreter::value::Val;
-use crate::language::lvar::{Lit, PrgParsed};
+use crate::passes::parse::{Lit, PrgParsed};
 use crate::passes::parse::parse_program;
 use std::hash::Hash;
 

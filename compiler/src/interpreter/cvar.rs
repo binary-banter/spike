@@ -2,7 +2,7 @@ use crate::interpreter::value::Val;
 use crate::interpreter::IO;
 use crate::language::alvar::Atom;
 use crate::language::cvar::{CExpr, PrgExplicated, Tail};
-use crate::language::lvar::{Lit, Op};
+use crate::passes::parse::{Lit, Op};
 use crate::passes::uniquify::UniqueSym;
 use crate::utils::push_map::PushMap;
 

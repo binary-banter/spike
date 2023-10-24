@@ -1,6 +1,6 @@
 use crate::interpreter::value::Val;
 use crate::interpreter::IO;
-use crate::language::lvar::{Def, Expr, Lit, Op, PrgGenericVar};
+use crate::passes::parse::{Def, Expr, Lit, Op, PrgGenericVar};
 use crate::utils::push_map::PushMap;
 use std::fmt::Debug;
 use std::hash::Hash;
@@ -149,6 +149,8 @@ impl<A: Copy + Hash + Eq + Debug> PrgGenericVar<A> {
                     .collect();
                 self.interpret_fn(sym, args, scope, io)
             }
+            Expr::Loop { .. } => todo!(),
+            Expr::Break { .. } => todo!(),
         }
     }
 }
@@ -165,7 +167,7 @@ mod tests {
         let result = program.type_check().unwrap().interpret(&mut io);
 
         assert_eq!(result, expected_return.into());
-        assert_eq!(io.outputs, expected_output);
+        assert_eq!(io.outputs(), &expected_output);
     }
 
     test_each_file! { for ["test"] in "./programs/good" as interpreter => interpret }
