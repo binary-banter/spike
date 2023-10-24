@@ -3,6 +3,6 @@
 #
 fn main() -> Int {
     loop {
-        (break 5) + print(3)
+        (let x = (break 5); 2) + print(3)
     }
 }
