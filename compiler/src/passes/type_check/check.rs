@@ -1,31 +1,12 @@
-use crate::passes::parse::{Def, Expr, Lit, Op, PrgParsed, PrgTypeChecked};
-use crate::passes::type_check::TypeError::*;
+use crate::passes::parse::{Def, Expr, Lit, Op, PrgParsed};
 use crate::utils::expect::expect;
 use crate::utils::push_map::PushMap;
-use itertools::Itertools;
 use miette::Diagnostic;
 use std::collections::{HashMap, HashSet};
-use std::fmt::{Display, Formatter};
 use thiserror::Error;
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum Type {
-    Int,
-    Bool,
-    Unit,
-    Fn { typ: Box<Type>, args: Vec<Type> },
-}
-
-impl Display for Type {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Type::Int => write!(f, "Int"),
-            Type::Bool => write!(f, "Bool"),
-            Type::Unit => write!(f, "Unit"),
-            Type::Fn { typ, args } => write!(f, "fn({}) -> {}", args.iter().format(", "), typ),
-        }
-    }
-}
+use crate::passes::type_check::*;
+use crate::passes::type_check::check::TypeError::*;
+use crate::passes::type_check::PrgTypeChecked;
 
 #[derive(Debug, Error, Diagnostic)]
 #[diagnostic()]
@@ -227,8 +208,8 @@ fn expect_type<'p>(
 
 #[cfg(test)]
 mod tests {
-    use crate::passes::parse::parse_program;
     use test_each_file::test_each_file;
+    use crate::passes::parse::parse::parse_program;
 
     fn check([test]: [&str; 1], should_fail: bool) {
         let mut test = test.split('#');

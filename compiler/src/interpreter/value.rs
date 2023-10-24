@@ -11,6 +11,17 @@ pub enum Val<A: Copy + Hash + Eq> {
     Function { sym: A },
 }
 
+impl<A: Copy + Hash + Eq> From<Lit> for Val<A> {
+    fn from(value: Lit) -> Self {
+        match value {
+            Lit::Int { val } => Val::Int { val },
+            Lit::Bool { val } => Val::Bool { val },
+            Lit::Unit => Val::Unit
+        }
+    }
+}
+
+
 impl<A: Copy + Hash + Eq> Val<A> {
     pub fn int(self) -> i64 {
         match self {

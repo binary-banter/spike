@@ -3,9 +3,10 @@
 //! This is useful because in later passes we will be changing the structure of the program,
 //! and after selecting instructions we will only have a list of X86 instructions left.
 
-use crate::passes::parse::{Def, Expr, PrgTypeChecked, PrgUniquified};
+use crate::passes::parse::{Def, Expr, PrgGenericVar};
 use crate::utils::push_map::PushMap;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use crate::passes::type_check::PrgTypeChecked;
 
 static COUNT: AtomicUsize = AtomicUsize::new(0);
 
@@ -128,3 +129,5 @@ mod tests {
 
     test_each_file! { for ["test"] in "./programs/good" as uniquify => unique }
 }
+
+pub type PrgUniquified<'p> = PrgGenericVar<UniqueSym<'p>>;
