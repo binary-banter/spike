@@ -61,7 +61,7 @@ pub enum Expr<A: Copy + Hash + Eq> {
         bdy: Box<Expr<A>>,
     },
     Break {
-        e: Option<Box<Expr<A>>>,
+        bdy: Option<Box<Expr<A>>>,
     }
 }
 

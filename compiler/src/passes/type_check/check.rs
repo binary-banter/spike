@@ -27,11 +27,50 @@ pub enum TypeError {
     ArgCountMismatch { expected: usize, got: usize },
     #[error("The program doesn't have a main function.")]
     NoMain,
+    #[error("Found a break outside of a loop.")]
+    BreakOutsideLoop,
+}
+
+struct Env<'a, 'p> {
+    scope: &'a mut PushMap<&'p str, Type>,
+    loop_type: &'a mut Option<Type>,
+    in_loop: bool,
+}
+
+impl<'a, 'p> Env<'a, 'p> {
+    pub fn push<O>(&mut self, k: &'p str, v: Type, sub: impl FnOnce(&mut Env<'_, 'p>) -> O) -> O {
+        self.scope.push(k, v, |scope| {
+            sub(&mut Env {
+                scope,
+                loop_type: self.loop_type,
+                in_loop: self.in_loop,
+            })
+        })
+    }
+
+    pub fn push_iter<O>(
+        &mut self,
+        iterator: impl Iterator<Item = (&'p str, Type)>,
+        sub: impl FnOnce(&mut Env<'_, 'p>) -> O,
+    ) -> O {
+        self.scope.push_iter(iterator, |scope| {
+            sub(&mut Env {
+                scope,
+                loop_type: self.loop_type,
+                in_loop: self.in_loop,
+            })
+        })
+    }
 }
 
 impl<'p> PrgParsed<'p> {
     pub fn type_check(self) -> Result<PrgTypeChecked<'p>, TypeError> {
         let mut scope = uncover_fns(&self)?;
+        let mut env = Env {
+            scope: &mut scope,
+            loop_type: &mut None,
+            in_loop: false,
+        };
 
         let defs = self
             .defs
@@ -42,9 +81,8 @@ impl<'p> PrgParsed<'p> {
                     ref params,
                     ref bdy,
                     ref typ,
-                } => scope
-                    .push_iter(params.iter().cloned(), |scope| {
-                        expect_type(bdy, scope, typ.clone())
+                } => env.push_iter(params.iter().cloned(), |env| {
+                        expect_type(bdy, typ.clone(), env)
                     })
                     .map(|_| (sym, def)),
             })
@@ -97,64 +135,62 @@ fn uncover_fns<'p>(program: &PrgParsed<'p>) -> Result<PushMap<&'p str, Type>, Ty
 
 fn type_check_expr<'p>(
     expr: &Expr<&'p str>,
-    scope: &mut PushMap<&'p str, Type>,
+    env: &mut Env<'_, 'p>,
 ) -> Result<Type, TypeError> {
     match expr {
-        Expr::Lit {
-            val: Lit::Bool { .. },
-        } => Ok(Type::Bool),
-        Expr::Lit {
-            val: Lit::Int { .. },
-        } => Ok(Type::Int),
-        Expr::Var { sym } => scope.get(sym).cloned().ok_or(UndeclaredVar {
+        Expr::Lit { val} => match val {
+            Lit::Int { .. } => Ok(Type::Int),
+            Lit::Bool { .. } => Ok(Type::Bool),
+            Lit::Unit => Ok(Type::Unit),
+        }
+        Expr::Var { sym } => env.scope.get(sym).cloned().ok_or(UndeclaredVar {
             sym: (*sym).to_string(),
         }),
         Expr::Prim { op, args } => match (op, args.as_slice()) {
             (Op::Plus | Op::Minus | Op::Mul | Op::Mod | Op::Div, [e1, e2]) => {
-                expect_type(e1, scope, Type::Int)?;
-                expect_type(e2, scope, Type::Int)?;
+                expect_type(e1, Type::Int, env)?;
+                expect_type(e2, Type::Int, env)?;
                 Ok(Type::Int)
             }
             (Op::Minus, [e1]) => {
-                expect_type(e1, scope, Type::Int)?;
+                expect_type(e1, Type::Int, env)?;
                 Ok(Type::Int)
             }
             (Op::Read, []) => Ok(Type::Int),
             (Op::Print, [e1]) => {
                 // todo: Eventually `Print` should become a function call, not an `Expr`.
-                // type_check_expr(e1, scope)
-                expect_type(e1, scope, Type::Int)?;
+                expect_type(e1, Type::Int, env)?;
                 Ok(Type::Int)
             }
             (Op::GT | Op::GE | Op::LT | Op::LE, [e1, e2]) => {
-                expect_type(e1, scope, Type::Int)?;
-                expect_type(e2, scope, Type::Int)?;
+                expect_type(e1, Type::Int, env)?;
+                expect_type(e2, Type::Int, env)?;
                 Ok(Type::Bool)
             }
             (Op::EQ | Op::NE, [e1, e2]) => {
-                expect_type_eq(e1, e2, scope)?;
+                expect_type_eq(e1, e2, env)?;
                 Ok(Type::Bool)
             }
             (Op::Not, [e1]) => {
-                expect_type(e1, scope, Type::Bool)?;
+                expect_type(e1,  Type::Bool, env)?;
                 Ok(Type::Bool)
             }
             (Op::LAnd | Op::LOr | Op::Xor, [e1, e2]) => {
-                expect_type(e1, scope, Type::Bool)?;
-                expect_type(e2, scope, Type::Bool)?;
+                expect_type(e1, Type::Bool, env)?;
+                expect_type(e2, Type::Bool, env)?;
                 Ok(Type::Bool)
             }
             _ => panic!("Found incorrect operator during type checking"),
         },
         Expr::Let { sym, bnd, bdy } => {
-            let t = type_check_expr(bnd, scope)?;
-            scope.push(sym, t, |scope| type_check_expr(bdy, scope))
+            let t = type_check_expr(bnd, env)?;
+            env.push(sym, t, |env| type_check_expr(bdy, env) )
         }
         Expr::If { cnd, thn, els } => {
-            expect_type(cnd, scope, Type::Bool)?;
-            expect_type_eq(thn, els, scope)
+            expect_type(cnd, Type::Bool, env)?;
+            expect_type_eq(thn, els, env)
         }
-        Expr::Apply { fun, args } => match type_check_expr(fun, scope)? {
+        Expr::Apply { fun, args } => match type_check_expr(fun, env)? {
             Type::Fn {
                 typ,
                 args: expected_types,
@@ -167,36 +203,63 @@ fn type_check_expr<'p>(
                 }
 
                 for (arg, arg_typ) in args.iter().zip(expected_types.iter()) {
-                    expect_type(arg, scope, arg_typ.clone())?;
+                    expect_type(arg, arg_typ.clone(), env)?;
                 }
 
                 Ok(*typ)
             }
             got => Err(TypeMismatchExpectFn { got }),
         },
-        Expr::Loop { .. } => todo!(),
-        Expr::Break { .. } => todo!(),
-        Expr::Lit { val: Lit::Unit } => todo!(),
+        Expr::Loop { bdy } => {
+            let mut loop_type = None;
+            let mut env = Env {
+                scope: env.scope,
+                loop_type: &mut loop_type,
+                in_loop: true,
+            };
+            type_check_expr(bdy, &mut env)?;
+            Ok(loop_type.unwrap_or(Type::Never))
+        }
+        Expr::Break { bdy } => {
+            expect(env.in_loop, BreakOutsideLoop)?;
+
+            let bdy_type = match bdy {
+                None => {
+                    Type::Unit
+                },
+                Some(bdy) => {
+                    type_check_expr(bdy, env)?
+                },
+            };
+
+            if let Some(loop_type) = env.loop_type {
+                expect(*loop_type == bdy_type, TypeMismatchEqual { t1: loop_type.clone(), t2: bdy_type.clone() })?;
+            } else {
+                *env.loop_type = Some(bdy_type);
+            }
+
+            Ok(Type::Never)
+        },
     }
 }
 
 fn expect_type_eq<'p>(
     e1: &Expr<&'p str>,
     e2: &Expr<&'p str>,
-    scope: &mut PushMap<&'p str, Type>,
+    env: &mut Env<'_, 'p>,
 ) -> Result<Type, TypeError> {
-    let t1 = type_check_expr(e1, scope)?;
-    let t2 = type_check_expr(e2, scope)?;
+    let t1 = type_check_expr(e1, env)?;
+    let t2 = type_check_expr(e2, env)?;
     expect(t1 == t2, TypeMismatchEqual { t1: t1.clone(), t2 })?;
     Ok(t1)
 }
 
 fn expect_type<'p>(
     expr: &Expr<&'p str>,
-    scope: &mut PushMap<&'p str, Type>,
     expected: Type,
+    env: &mut Env<'_, 'p>,
 ) -> Result<(), TypeError> {
-    let t = type_check_expr(expr, scope)?;
+    let t = type_check_expr(expr, env)?;
     expect(
         t == expected,
         TypeMismatchExpect {

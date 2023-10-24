@@ -11,6 +11,7 @@ pub enum Type {
     Int,
     Bool,
     Unit,
+    Never,
     Fn { typ: Box<Type>, args: Vec<Type> },
 }
 
@@ -20,6 +21,7 @@ impl Display for Type {
             Type::Int => write!(f, "Int"),
             Type::Bool => write!(f, "Bool"),
             Type::Unit => write!(f, "Unit"),
+            Type::Never => write!(f, "Never"),
             Type::Fn { typ, args } => write!(f, "fn({}) -> {}", args.iter().format(", "), typ),
         }
     }

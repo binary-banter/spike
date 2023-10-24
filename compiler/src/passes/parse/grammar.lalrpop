@@ -43,6 +43,7 @@ match {
     "Int",
     "Bool",
     "Unit",
+    "Never",
 
     // Literals
     "true",
@@ -75,7 +76,7 @@ pub Program: PrgParsed<'input> = {
 Def: Def<&'input str> = Fn;
 
 Fn: Def<&'input str> = {
-    "fn" <sym:Ident> "(" <params:Comma<Param>> ")" "->" <typ:Type> "{" <bdy: Expr> "}" => Def::Fn { sym, params, typ, bdy }
+    "fn" <sym:Ident> "(" <params:Comma<Param>> ")" <typ:("->" <Type>)?> "{" <bdy: Expr> "}" => Def::Fn { sym, params, typ: typ.unwrap_or(Type::Unit), bdy }
 }
 
 Param = <Ident> ":" <Type>;
@@ -84,6 +85,7 @@ Type: Type = {
     "Int" => Type::Int,
     "Bool" => Type::Bool,
     "Unit" => Type::Unit,
+    "Never" => Type::Never,
 }
 
 BinaryOps<Op,Next>: Expr<&'input str> = {
@@ -97,7 +99,7 @@ ExprStmt: Expr<&'input str> = {
     "let" <sym:Ident> "=" <bnd:ExprLogicalOr> ";" <bdy:ExprStmt> => Expr::Let { sym, bnd: Box::new(bnd), bdy: Box::new(bdy) },
     "if" <cnd:ExprLogicalOr> "{" <thn:Expr> "}" "else" "{" <els:Expr> "}" => Expr::If { cnd: Box::new(cnd), thn: Box::new(thn), els: Box::new(els) },
     "loop" "{" <bdy:ExprStmt> "}" => Expr::Loop { bdy: Box::new(bdy) },
-    "break" <e:Expr?> => Expr::Break { e: e.map(Box::new) },
+    "break" <bdy:Expr?> => Expr::Break { bdy: bdy.map(Box::new) },
     ExprLogicalOr,
 }
 
@@ -148,6 +150,7 @@ ExprCall: Expr<&'input str> = {
 ExprAtom: Expr<&'input str> = {
     Num => Expr::Lit{ val: Lit::Int { val: <> }},
     Bool => Expr::Lit { val: Lit::Bool { val: <> }},
+    "unit" => Expr::Lit { val: Lit::Unit },
     Ident => Expr::Var { sym: <> },
     "(" <Expr> ")",
 }

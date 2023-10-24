@@ -1,0 +1,10 @@
+##
+unit
+#
+fn test() -> Never {
+    loop { 1 }
+}
+
+fn main() -> Unit {
+    unit
+}
