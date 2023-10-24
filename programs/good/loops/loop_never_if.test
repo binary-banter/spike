@@ -1,0 +1,17 @@
+##
+unit
+#
+fn test() -> Unit {
+    loop {
+        if false {
+            break
+        } else {
+            let x = (loop { 5 });
+            unit
+        }
+    }
+}
+
+fn main() -> Unit {
+    unit
+}

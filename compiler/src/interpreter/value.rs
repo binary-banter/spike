@@ -68,6 +68,7 @@ impl FromStr for Lit {
         Ok(match s {
             "false" => Lit::Bool { val: false },
             "true" => Lit::Bool { val: true },
+            "unit" => Lit::Unit,
             s => Lit::Int {
                 val: s.parse().map_err(|_| ())?,
             },
