@@ -2,7 +2,7 @@ use clap::Parser;
 use compiler::elf::ElfFile;
 use compiler::interpreter::x86var::IStats;
 use compiler::interpreter::{TestIO, IO};
-use compiler::parser::parse_program;
+use compiler::passes::parse::parse_program;
 use compiler::utils::split_test::split_test_raw;
 use git2::{Commit, Repository};
 use mongodb::bson;

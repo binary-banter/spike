@@ -1,3 +1,7 @@
+use lalrpop::Configuration;
+
 fn main() {
-    todo!()
+    Configuration::new()
+        .process_file("./compiler/src/passes/parse/grammar.lalrpop")
+        .unwrap();
 }

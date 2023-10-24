@@ -2,9 +2,9 @@
 42
 #
 fn add(x: Int, y: Int) -> Int {
-    (+ x y)
+    x + y
 }
 
 fn main() -> Int {
-    (+ 40 2)
+    40 + 2
 }

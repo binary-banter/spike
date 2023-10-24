@@ -1,4 +1,4 @@
 ###
 fn main() -> Int {
-    (let (y 3) x)
+    true + 1
 }

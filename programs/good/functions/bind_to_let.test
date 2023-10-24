@@ -2,9 +2,10 @@
 42
 #
 fn add(x: Int, y: Int) -> Int {
-    (+ x y)
+    x + y
 }
 
 fn main() -> Int {
-    (let (add2 add) add(40, 2))
+    let add2 = add;
+    add2(40, 2)
 }

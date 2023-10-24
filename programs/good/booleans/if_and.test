@@ -2,5 +2,9 @@
 42
 #
 fn main() -> Int {
-    (if (&& t t) 42 13)
+    if true && true {
+        42
+    } else {
+        13
+    }
 }

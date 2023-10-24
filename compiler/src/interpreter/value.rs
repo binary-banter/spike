@@ -50,8 +50,8 @@ impl FromStr for Lit {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(match s {
-            "f" => Lit::Bool { val: false },
-            "t" => Lit::Bool { val: true },
+            "false" => Lit::Bool { val: false },
+            "true" => Lit::Bool { val: true },
             s => Lit::Int {
                 val: s.parse().map_err(|_| ())?,
             },

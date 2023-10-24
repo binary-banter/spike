@@ -4,5 +4,6 @@
 #
 fn main() -> Int {
     let x = 42;
-    x
+    let y = x;
+    y
 }

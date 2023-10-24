@@ -1,6 +1,6 @@
 ##
-t
+true
 #
 fn main() -> Bool {
-    (! f)
+    !false
 }

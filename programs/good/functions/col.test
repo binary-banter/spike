@@ -4,17 +4,26 @@
 0
 #
 fn div(n: Int) -> Int {
-    (/ n 2)
+    n / 2
 }
 
 fn mul(n: Int) -> Int {
-    (+ 1 (* 3 n))
+    1 + 3 * n
 }
 
 fn col(n: Int) -> Bool {
-    (if (== n 1) t (let (fun (if (== (% n 2) 0) div mul)) col((print fun(n)))))
+    if n == 1 {
+        true
+    } else {
+        let fun = (if n % 2 == 0 { div } else { mul });
+        col(print(fun(n)))
+    }
 }
 
 fn main() -> Int {
-    (if col(25) 0 1)
+    if col(25) {
+        0
+    } else {
+        1
+    }
 }

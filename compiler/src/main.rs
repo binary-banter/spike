@@ -1,10 +1,9 @@
-use crate::MainError::{IOResult, RegexError};
+use crate::MainError::IOResult;
 use clap::Parser;
 use compiler::compile;
-use compiler::parser::PrettyParseError;
+use compiler::passes::parse::PrettyParseError;
 use compiler::passes::type_check::TypeError;
 use miette::Diagnostic;
-use regex::Regex;
 use std::io::Read;
 use std::path::Path;
 use std::{fs, io};
@@ -21,9 +20,6 @@ enum MainError {
     #[error(transparent)]
     #[diagnostic()]
     IOResult(#[from] io::Error),
-    #[error(transparent)]
-    #[diagnostic()]
-    RegexError(#[from] regex::Error),
 }
 
 #[derive(Parser, Debug)]
@@ -53,18 +49,11 @@ fn main() -> miette::Result<()> {
         .map_or_else(read_from_stdin, fs::read_to_string)
         .map_err(IOResult)?;
 
-    let file_regex = Regex::new(r"(?<name>[^\\/]+)(?:\.jj)$").map_err(RegexError)?;
-
-    let output = args.output.unwrap_or_else(|| {
-        args.input
-            .as_ref()
-            .and_then(|s| {
-                file_regex
-                    .captures(s)
-                    .and_then(|c| c.name("name"))
-                    .map(|m| m.as_str())
-            })
-            .map_or_else(|| "output".to_string(), str::to_string)
+    let output: &str = args.output.as_deref().unwrap_or_else(|| {
+        args.input.as_ref().map_or_else(
+            || "output",
+            |s| Path::new(s).file_stem().unwrap().to_str().unwrap(),
+        )
     });
 
     compile(&program, Path::new(&output))

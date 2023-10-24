@@ -2,5 +2,6 @@
 42
 #
 fn main() -> Int {
-    (let (x (if t 42 13)) x)
+    let x = (if true { 42 } else { 13 });
+    x
 }

@@ -1,0 +1,166 @@
+use std::str::FromStr;
+use crate::language::lvar::*;
+use crate::passes::parse::PrgParsed;
+use crate::passes::type_check::Type;
+
+grammar;
+
+match {
+    // Keywords
+    "fn",
+    "let",
+    "if",
+    "else",
+
+    // Structural tokens
+    "(",
+    ")",
+    "{",
+    "}",
+    "->",
+    "=",
+    ";",
+    ",",
+    ":",
+
+    // Identifier
+    r"[_a-zA-Z][_a-zA-Z0-9]*",
+
+    // Integer operators
+    "+",
+    "-",
+    "*",
+    "/",
+    "%",
+
+    // Cursed build-in functions
+    "read",
+    "print",
+
+    // Types
+    "Int",
+    "Bool",
+
+    // Literals
+    "true",
+    "false",
+    r"[0-9]+",
+
+    // Logical operators
+    "^",
+    "&&",
+    "||",
+    "!",
+
+    // Compartive operators
+    "==",
+    "!=",
+    ">",
+    ">=",
+    "<",
+    "<=",
+
+    // Whitespaces
+    r"\s+" => {},
+}
+
+pub Program: PrgParsed<'input> = {
+    <defs: Def*> => PrgParsed{ defs, entry: "main" }
+}
+
+Def: Def<&'input str> = Fn;
+
+Fn: Def<&'input str> = {
+    "fn" <sym:Ident> "(" <params:Comma<Param>> ")" "->" <typ:Type> "{" <bdy: Expr> "}" => Def::Fn { sym, params, typ, bdy }
+}
+
+Param = <Ident> ":" <Type>;
+
+Type: Type = {
+    "Int" => Type::Int,
+    "Bool" => Type::Bool,
+}
+
+BinaryOps<Op,Next>: Expr<&'input str> = {
+    <e1:BinaryOps<Op,Next>> <op:Op> <e2:Next> => Expr::Prim{op, args: vec![e1, e2] },
+    Next,
+}
+
+Expr = ExprStmt;
+
+ExprStmt: Expr<&'input str> = {
+    "let" <sym:Ident> "=" <bnd:ExprLogicalOr> ";" <bdy:ExprStmt> => Expr::Let { sym, bnd: Box::new(bnd), bdy: Box::new(bdy) },
+    "if" <cnd:ExprLogicalOr> "{" <thn:Expr> "}" "else" "{" <els:Expr> "}" => Expr::If { cnd: Box::new(cnd), thn: Box::new(thn), els: Box::new(els) },
+    ExprLogicalOr,
+}
+
+ExprLogicalOr = BinaryOps<LogicalOrOp, ExprLogicalAnd>;
+ExprLogicalAnd = BinaryOps<LogicalAndOp, ExprComparative>;
+ExprComparative = BinaryOps<ComparativeOp, ExprXor>;
+ExprXor = BinaryOps<XorOp, ExprAdditive>;
+ExprAdditive = BinaryOps<AdditiveOp, ExprMultiplicative>;
+ExprMultiplicative = BinaryOps<MultiplicativeOp, ExprUnary>;
+
+LogicalOrOp: Op = "||" => Op::LOr;
+LogicalAndOp: Op = "&&" => Op::LAnd;
+ComparativeOp: Op = {
+    "==" => Op::EQ,
+    "!=" => Op::NE,
+    ">" => Op::GT,
+    ">=" => Op::GE,
+    "<" => Op::LT,
+    "<=" => Op::LE,
+}
+XorOp: Op = "^" => Op::Xor;
+AdditiveOp: Op = {
+    "+" => Op::Plus,
+    "-" => Op::Minus,
+}
+MultiplicativeOp: Op = {
+   "*" => Op::Mul,
+   "/" => Op::Div,
+   "%" => Op::Mod,
+}
+UnaryOp: Op = {
+    "-" => Op::Minus,
+    "!" => Op::Not,
+}
+
+ExprUnary: Expr<&'input str> = {
+    <op:UnaryOp> <e:ExprUnary> => Expr::Prim{op, args: vec![e]},
+    ExprCall,
+}
+
+ExprCall: Expr<&'input str> = {
+    "read" "(" ")" => Expr::Prim{ op: Op::Read, args: vec![] },
+    "print" "(" <e: Expr> ")" => Expr::Prim{ op: Op::Print, args: vec![e] },
+    <fun:ExprAtom> "(" <args:Comma<Expr>> ")" => Expr::Apply{ fun: Box::new(fun), args },
+    ExprAtom,
+}
+
+ExprAtom: Expr<&'input str> = {
+    Num => Expr::Lit{ val: Lit::Int { val: <> }},
+    Bool => Expr::Lit { val: Lit::Bool { val: <> }},
+    Ident => Expr::Var { sym: <> },
+    "(" <Expr> ")",
+}
+
+Ident: &'input str = r"[_a-zA-Z][_a-zA-Z0-9]*";
+
+Num: i64 = <s:r"[0-9]+"> => i64::from_str(s).unwrap();
+
+Bool: bool = {
+    "true" => true,
+    "false" => false,
+}
+
+Comma<T>: Vec<T> = {
+    <v:(<T> ",")*> <e:T?> => match e {
+        None=> v,
+        Some(e) => {
+            let mut v = v;
+            v.push(e);
+            v
+        }
+    }
+};
