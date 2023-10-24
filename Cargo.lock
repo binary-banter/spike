@@ -534,7 +534,6 @@ dependencies = [
  "itertools",
  "lalrpop-util",
  "miette",
- "once_cell",
  "petgraph",
  "serde",
  "tempdir",

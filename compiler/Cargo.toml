@@ -5,17 +5,16 @@ edition = "2021"
 authors = ["joooooooonaaaaa", "juuuuuuuuuuuuuuuuuuliaaaaaaaaaa"]
 
 [dependencies]
-thiserror = "1.0.46"
-once_cell = "1.18.0"
-tempdir = "0.3.7"
-bitflags = "2.4.0"
+thiserror = "1.0.50"
+bitflags = "2.4.1"
 petgraph = "0.6.4"
 itertools = "0.11.0"
 serde = { version = "1.0.189", features = ["derive"] }
-clap = { version = "4.3.21", features = ["derive"] }
+clap = { version = "4.4.6", features = ["derive"] }
 miette = { version = "5.10.0", features = ["fancy"] }
-zerocopy = {version = "0.7.8", features = ["derive"] }
+zerocopy = {version = "0.7.11", features = ["derive"] }
 lalrpop-util = { version = "0.20.1", features = ["lexer", "unicode"] }
 
 [dev-dependencies]
 test_each_file = "0.1.0"
+tempdir = "0.3.7"
