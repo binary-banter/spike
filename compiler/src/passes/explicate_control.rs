@@ -247,7 +247,9 @@ fn explicate_pred<'p>(
                 val: Lit::Int { .. },
             },
         } => unreachable!(),
-        AExpr::Atom { atm: Atom::Val { val: Lit::Unit } } => todo!()
+        AExpr::Atom {
+            atm: Atom::Val { val: Lit::Unit },
+        } => todo!(),
     }
 }
 

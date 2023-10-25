@@ -1,8 +1,8 @@
 pub mod check;
 
-use std::fmt::{Display, Formatter};
 use crate::passes::parse::PrgGenericVar;
 use itertools::Itertools;
+use std::fmt::{Display, Formatter};
 
 pub type PrgTypeChecked<'p> = PrgGenericVar<&'p str>;
 

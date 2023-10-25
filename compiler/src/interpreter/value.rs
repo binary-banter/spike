@@ -16,11 +16,10 @@ impl<A: Copy + Hash + Eq> From<Lit> for Val<A> {
         match value {
             Lit::Int { val } => Val::Int { val },
             Lit::Bool { val } => Val::Bool { val },
-            Lit::Unit => Val::Unit
+            Lit::Unit => Val::Unit,
         }
     }
 }
-
 
 impl<A: Copy + Hash + Eq> Val<A> {
     pub fn int(self) -> i64 {
@@ -88,7 +87,7 @@ impl<A: Copy + Hash + Eq + Display> Display for Val<A> {
                 }
             }
             Val::Function { sym, .. } => write!(f, "pointer to `{sym}``"),
-            Val::Unit => write!(f, "unit")
+            Val::Unit => write!(f, "unit"),
         }
     }
 }

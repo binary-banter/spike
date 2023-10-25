@@ -4,8 +4,8 @@ mod grammar;
 pub mod interpreter;
 pub mod parse;
 
-use std::collections::HashMap;
 use crate::passes::type_check::Type;
+use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 use std::hash::Hash;
 
@@ -62,7 +62,7 @@ pub enum Expr<A: Copy + Hash + Eq> {
     },
     Break {
         bdy: Option<Box<Expr<A>>>,
-    }
+    },
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -90,7 +90,7 @@ pub enum Op {
 pub enum Lit {
     Int { val: i64 },
     Bool { val: bool },
-    Unit
+    Unit,
 }
 
 impl Lit {
@@ -120,7 +120,7 @@ impl Display for Lit {
                     write!(f, "false")
                 }
             }
-            Lit::Unit => write!(f, "unit")
+            Lit::Unit => write!(f, "unit"),
         }
     }
 }

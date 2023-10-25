@@ -21,15 +21,13 @@ impl<A: Copy + Hash + Eq> ControlFlow<A> {
 }
 
 macro_rules! b {
-    ($e: expr) => {
-        {
-            let e = $e;
-            match e {
-                ControlFlow::Break(_) => return e,
-                ControlFlow::Val(x) => x,
-            }
+    ($e: expr) => {{
+        let e = $e;
+        match e {
+            ControlFlow::Break(_) => return e,
+            ControlFlow::Val(x) => x,
         }
-    }
+    }};
 }
 
 impl<A: Copy + Hash + Eq + Debug> PrgGenericVar<A> {
@@ -176,18 +174,18 @@ impl<A: Copy + Hash + Eq + Debug> PrgGenericVar<A> {
                     .collect();
                 self.interpret_fn(sym, args, scope, io)
             }
-            Expr::Loop { bdy } => {
-                loop {
-                    let x = self.interpret_expr(bdy, scope, io);
-                    if let ControlFlow::Break(x) = x {
-                        return ControlFlow::Val(x)
-                    }
+            Expr::Loop { bdy } => loop {
+                let x = self.interpret_expr(bdy, scope, io);
+                if let ControlFlow::Break(x) = x {
+                    return ControlFlow::Val(x);
                 }
             },
-            Expr::Break { bdy } => return ControlFlow::Break(match bdy {
-                Some(bdy) => b!(self.interpret_expr(bdy, scope, io)),
-                None => Val::Unit,
-            }),
+            Expr::Break { bdy } => {
+                return ControlFlow::Break(match bdy {
+                    Some(bdy) => b!(self.interpret_expr(bdy, scope, io)),
+                    None => Val::Unit,
+                })
+            }
         })
     }
 }

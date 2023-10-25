@@ -1,12 +1,12 @@
 use crate::passes::parse::{Def, Expr, Lit, Op, PrgParsed};
+use crate::passes::type_check::check::TypeError::*;
+use crate::passes::type_check::PrgTypeChecked;
+use crate::passes::type_check::*;
 use crate::utils::expect::expect;
 use crate::utils::push_map::PushMap;
 use miette::Diagnostic;
 use std::collections::{HashMap, HashSet};
 use thiserror::Error;
-use crate::passes::type_check::*;
-use crate::passes::type_check::check::TypeError::*;
-use crate::passes::type_check::PrgTypeChecked;
 
 #[derive(Debug, Error, Diagnostic)]
 #[diagnostic()]
@@ -81,7 +81,8 @@ impl<'p> PrgParsed<'p> {
                     ref params,
                     ref bdy,
                     ref typ,
-                } => env.push_iter(params.iter().cloned(), |env| {
+                } => env
+                    .push_iter(params.iter().cloned(), |env| {
                         expect_type(bdy, typ.clone(), env)
                     })
                     .map(|_| (sym, def)),
@@ -133,16 +134,13 @@ fn uncover_fns<'p>(program: &PrgParsed<'p>) -> Result<PushMap<&'p str, Type>, Ty
     Ok(PushMap::from(globals))
 }
 
-fn type_check_expr<'p>(
-    expr: &Expr<&'p str>,
-    env: &mut Env<'_, 'p>,
-) -> Result<Type, TypeError> {
+fn type_check_expr<'p>(expr: &Expr<&'p str>, env: &mut Env<'_, 'p>) -> Result<Type, TypeError> {
     match expr {
-        Expr::Lit { val} => match val {
+        Expr::Lit { val } => match val {
             Lit::Int { .. } => Ok(Type::Int),
             Lit::Bool { .. } => Ok(Type::Bool),
             Lit::Unit => Ok(Type::Unit),
-        }
+        },
         Expr::Var { sym } => env.scope.get(sym).cloned().ok_or(UndeclaredVar {
             sym: (*sym).to_string(),
         }),
@@ -172,7 +170,7 @@ fn type_check_expr<'p>(
                 Ok(Type::Bool)
             }
             (Op::Not, [e1]) => {
-                expect_type(e1,  Type::Bool, env)?;
+                expect_type(e1, Type::Bool, env)?;
                 Ok(Type::Bool)
             }
             (Op::LAnd | Op::LOr | Op::Xor, [e1, e2]) => {
@@ -184,7 +182,7 @@ fn type_check_expr<'p>(
         },
         Expr::Let { sym, bnd, bdy } => {
             let t = type_check_expr(bnd, env)?;
-            env.push(sym, t, |env| type_check_expr(bdy, env) )
+            env.push(sym, t, |env| type_check_expr(bdy, env))
         }
         Expr::If { cnd, thn, els } => {
             expect_type(cnd, Type::Bool, env)?;
@@ -224,22 +222,24 @@ fn type_check_expr<'p>(
             expect(env.in_loop, BreakOutsideLoop)?;
 
             let bdy_type = match bdy {
-                None => {
-                    Type::Unit
-                },
-                Some(bdy) => {
-                    type_check_expr(bdy, env)?
-                },
+                None => Type::Unit,
+                Some(bdy) => type_check_expr(bdy, env)?,
             };
 
             if let Some(loop_type) = env.loop_type {
-                expect(*loop_type == bdy_type, TypeMismatchEqual { t1: loop_type.clone(), t2: bdy_type.clone() })?;
+                expect(
+                    *loop_type == bdy_type,
+                    TypeMismatchEqual {
+                        t1: loop_type.clone(),
+                        t2: bdy_type.clone(),
+                    },
+                )?;
             } else {
                 *env.loop_type = Some(bdy_type);
             }
 
             Ok(Type::Never)
-        },
+        }
     }
 }
 
@@ -271,8 +271,8 @@ fn expect_type<'p>(
 
 #[cfg(test)]
 mod tests {
-    use test_each_file::test_each_file;
     use crate::passes::parse::parse::parse_program;
+    use test_each_file::test_each_file;
 
     fn check([test]: [&str; 1], should_fail: bool) {
         let mut test = test.split('#');

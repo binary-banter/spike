@@ -4,9 +4,10 @@
 //! and after selecting instructions we will only have a list of X86 instructions left.
 
 use crate::passes::parse::{Def, Expr, PrgGenericVar};
-use crate::utils::push_map::PushMap;
-use std::sync::atomic::{AtomicUsize, Ordering};
 use crate::passes::type_check::PrgTypeChecked;
+use crate::utils::push_map::PushMap;
+use derive_more::Display;
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 static COUNT: AtomicUsize = AtomicUsize::new(0);
 
@@ -98,7 +99,8 @@ fn uniquify_expression<'p>(
     }
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Debug, Hash, Ord, PartialOrd)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Hash, Ord, PartialOrd, Display)]
+#[display(fmt = "{sym}.{id}")]
 pub struct UniqueSym<'p> {
     pub sym: &'p str,
     pub id: usize,

@@ -1,7 +1,7 @@
-use miette::{Diagnostic, SourceSpan};
-use thiserror::Error;
 use crate::passes::parse::grammar::ProgramParser;
 use crate::passes::parse::PrgParsed;
+use miette::{Diagnostic, SourceSpan};
+use thiserror::Error;
 
 #[derive(Error, Debug, Diagnostic)]
 #[error("Parse error!")]

@@ -1,7 +1,9 @@
+#![allow(clippy::module_inception)]
+
 use crate::elf::ElfFile;
+use crate::passes::parse::parse::parse_program;
 use std::fs::File;
 use std::path::Path;
-use crate::passes::parse::parse::parse_program;
 
 pub mod elf;
 pub mod interpreter;

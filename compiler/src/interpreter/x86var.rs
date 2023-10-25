@@ -1,8 +1,8 @@
 use crate::interpreter::IO;
-use crate::passes::parse::Lit;
 use crate::language::x86var::{
     Block, Cnd, Instr, Reg, VarArg, X86Concluded, X86Selected, CALLEE_SAVED, CALLER_SAVED,
 };
+use crate::passes::parse::Lit;
 use crate::passes::uniquify::UniqueSym;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
