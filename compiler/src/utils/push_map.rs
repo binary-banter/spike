@@ -1,8 +1,10 @@
+use derive_more::Index;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::hash::Hash;
 use std::ops::Index;
 
+#[derive(Index)]
 pub struct PushMap<K: Hash + Eq + Clone, V>(HashMap<K, V>);
 
 impl<K: Hash + Eq + Clone, V> Default for PushMap<K, V> {
@@ -78,17 +80,5 @@ impl<K: Hash + Eq + Clone + Debug, V> PushMap<K, V> {
         }
 
         o
-    }
-}
-
-impl<K: Hash + Eq + Clone + Debug, V> Index<&K> for PushMap<K, V> {
-    type Output = V;
-
-    fn index(&self, index: &K) -> &Self::Output {
-        assert!(
-            self.0.contains_key(index),
-            "Expected to find {index:?} in push map."
-        );
-        &self.0[index]
     }
 }
