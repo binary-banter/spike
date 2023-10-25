@@ -1,28 +1,21 @@
 pub mod check;
 
 use crate::passes::parse::PrgGenericVar;
+use derive_more::Display;
 use itertools::Itertools;
-use std::fmt::{Display, Formatter};
 
 pub type PrgTypeChecked<'p> = PrgGenericVar<&'p str>;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Display)]
 pub enum Type {
+    #[display(fmt = "Int")]
     Int,
+    #[display(fmt = "Bool")]
     Bool,
+    #[display(fmt = "Unit")]
     Unit,
+    #[display(fmt = "Never")]
     Never,
+    #[display(fmt = "fn({}) -> {typ}", r#"args.iter().format(", ")"#)]
     Fn { typ: Box<Type>, args: Vec<Type> },
-}
-
-impl Display for Type {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Type::Int => write!(f, "Int"),
-            Type::Bool => write!(f, "Bool"),
-            Type::Unit => write!(f, "Unit"),
-            Type::Never => write!(f, "Never"),
-            Type::Fn { typ, args } => write!(f, "fn({}) -> {}", args.iter().format(", "), typ),
-        }
-    }
 }

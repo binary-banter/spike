@@ -5,8 +5,8 @@ pub mod interpreter;
 pub mod parse;
 
 use crate::passes::type_check::Type;
+use derive_more::Display;
 use std::collections::HashMap;
-use std::fmt::{Display, Formatter};
 use std::hash::Hash;
 
 #[derive(Debug, PartialEq)]
@@ -86,10 +86,13 @@ pub enum Op {
     NE,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Display)]
 pub enum Lit {
+    #[display(fmt = "{val}")]
     Int { val: i64 },
+    #[display(fmt = "{}", r#"if *val { "true" } else { "false" }"#)]
     Bool { val: bool },
+    #[display(fmt = "unit")]
     Unit,
 }
 
@@ -105,22 +108,6 @@ impl Lit {
         match self {
             Lit::Bool { val } => val,
             _ => panic!(),
-        }
-    }
-}
-
-impl Display for Lit {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Lit::Int { val } => write!(f, "{val}"),
-            Lit::Bool { val } => {
-                if *val {
-                    write!(f, "true")
-                } else {
-                    write!(f, "false")
-                }
-            }
-            Lit::Unit => write!(f, "unit"),
         }
     }
 }

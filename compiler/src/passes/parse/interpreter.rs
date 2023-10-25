@@ -2,16 +2,16 @@ use crate::interpreter::value::Val;
 use crate::interpreter::IO;
 use crate::passes::parse::{Def, Expr, Lit, Op, PrgGenericVar};
 use crate::utils::push_map::PushMap;
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 use std::hash::Hash;
 
 #[derive(Copy, Clone)]
-pub enum ControlFlow<A: Copy + Hash + Eq> {
+pub enum ControlFlow<A: Copy + Hash + Eq + Display> {
     Val(Val<A>),
     Break(Val<A>),
 }
 
-impl<A: Copy + Hash + Eq> ControlFlow<A> {
+impl<A: Copy + Hash + Eq + Display> ControlFlow<A> {
     pub fn val(self) -> Val<A> {
         match self {
             ControlFlow::Val(v) => v,
@@ -30,7 +30,7 @@ macro_rules! b {
     }};
 }
 
-impl<A: Copy + Hash + Eq + Debug> PrgGenericVar<A> {
+impl<A: Copy + Hash + Eq + Debug + Display> PrgGenericVar<A> {
     pub fn interpret(&self, io: &mut impl IO) -> Val<A> {
         let mut scope = PushMap::from_iter(
             self.defs
