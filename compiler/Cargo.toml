@@ -15,6 +15,7 @@ miette = { version = "5.10.0", features = ["fancy"] }
 zerocopy = { version = "0.7.11", features = ["derive"] }
 lalrpop-util = { version = "0.20", features = ["lexer", "unicode"] }
 derive_more = "0.99.17"
+functor_derive = "0.2.2"
 
 [dev-dependencies]
 test_each_file = "0.1.0"
