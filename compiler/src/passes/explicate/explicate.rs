@@ -1,16 +1,10 @@
-//! This pass compiles `ALVarProgram`s  into `CLVarProgram`.
-//!
-//! This pass makes the order of execution explicit in their syntax.
-//! This is achieved by flattening the nested expressions into a sequence of statements.
-
-use crate::language::cvar::{CExpr, PrgExplicated, Tail};
 use crate::passes::parse::{Def, Lit, Op};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use std::collections::HashMap;
 use crate::passes::atomize::{AExpr, Atom, PrgAtomized};
+use crate::passes::explicate::{CExpr, PrgExplicated, Tail};
 
 impl<'p> PrgAtomized<'p> {
-    /// See module-level documentation.
     pub fn explicate(self) -> PrgExplicated<'p> {
         let mut blocks = HashMap::new();
         let fn_params = self
@@ -42,6 +36,8 @@ fn explicate_def<'p>(def: Def<UniqueSym<'p>, AExpr<'p>>, blocks: &mut HashMap<Un
     }
 }
 
+// if read() > 100 { let x = break 100; unit } else { unit }
+
 fn explicate_tail<'p>(expr: AExpr<'p>, blocks: &mut HashMap<UniqueSym<'p>, Tail<'p>>) -> Tail<'p> {
     match expr {
         AExpr::Atom { atm } => Tail::Return {
@@ -65,10 +61,12 @@ fn explicate_tail<'p>(expr: AExpr<'p>, blocks: &mut HashMap<UniqueSym<'p>, Tail<
         AExpr::FunRef { sym } => Tail::Return {
             expr: CExpr::FunRef { sym },
         },
-        AExpr::Loop { .. } => todo!(),
+        AExpr::Loop { bdy } => todo!(),
         AExpr::Break { .. } => todo!(),
     }
 }
+
+//   def explicate_effect(expr: Expr, cnt: Tail, blocks: HashMap[String, Tail]) : Tail = expr match {
 
 fn explicate_assign<'p>(
     sym: UniqueSym<'p>,

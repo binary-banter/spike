@@ -45,6 +45,7 @@ pub enum Expr<A: Copy + Hash + Eq> {
     },
     Let {
         sym: A,
+        mutable: bool,
         bnd: Box<Expr<A>>,
         bdy: Box<Expr<A>>,
     },
@@ -62,6 +63,15 @@ pub enum Expr<A: Copy + Hash + Eq> {
     },
     Break {
         bdy: Option<Box<Expr<A>>>,
+    },
+    Seq {
+        stmt: Box<Expr<A>>,
+        cnt: Box<Expr<A>>,
+    },
+    Assign {
+        sym: A,
+        bnd: Box<Expr<A>>,
+        bdy: Box<Expr<A>>,
     },
 }
 
@@ -110,4 +120,16 @@ impl Lit {
             _ => panic!(),
         }
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::utils::split_test::split_test;
+    use test_each_file::test_each_file;
+
+    fn parse([test]: [&str; 1]) {
+        split_test(test);
+    }
+
+    test_each_file! { for ["test"] in "./programs/good" as parse => parse }
 }

@@ -5,9 +5,8 @@
 
 pub mod io;
 
-use crate::language::cvar::{CExpr, PrgExplicated, Tail};
 use crate::language::x86var::{
-    Block, Cnd, Instr, VarArg, X86Selected, ARG_PASSING_REGS, CALLEE_SAVED_NO_STACK,
+    ARG_PASSING_REGS, Block, CALLEE_SAVED_NO_STACK, Cnd, Instr, VarArg, X86Selected,
 };
 use crate::passes::parse::Op;
 use crate::passes::select::io::Std;
@@ -15,6 +14,7 @@ use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use crate::*;
 use std::collections::HashMap;
 use crate::passes::atomize::Atom;
+use crate::passes::explicate::{CExpr, PrgExplicated, Tail};
 
 impl<'p> PrgExplicated<'p> {
     /// See module-level documentation.

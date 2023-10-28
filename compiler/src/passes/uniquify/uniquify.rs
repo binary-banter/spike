@@ -63,13 +63,14 @@ fn uniquify_expression<'p>(
                 .map(|arg| uniquify_expression(arg, scope))
                 .collect(),
         },
-        Expr::Let { sym, bnd, bdy } => {
+        Expr::Let { sym, mutable, bnd, bdy } => {
             let unique_bnd = uniquify_expression(*bnd, scope);
             let unique_sym = gen_sym(sym);
             let unique_bdy = scope.push(sym, unique_sym, |scope| uniquify_expression(*bdy, scope));
 
             Expr::Let {
                 sym: unique_sym,
+                mutable,
                 bnd: Box::new(unique_bnd),
                 bdy: Box::new(unique_bdy),
             }
@@ -92,5 +93,7 @@ fn uniquify_expression<'p>(
         Expr::Break { bdy } => Expr::Break {
             bdy: bdy.map(|bdy| Box::new(uniquify_expression(*bdy, scope))),
         },
+        Expr::Seq { .. } => todo!(),
+        Expr::Assign { .. } => todo!(),
     }
 }

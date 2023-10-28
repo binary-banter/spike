@@ -1,4 +1,3 @@
-pub mod cvar;
 pub mod value;
 pub mod x86var;
 

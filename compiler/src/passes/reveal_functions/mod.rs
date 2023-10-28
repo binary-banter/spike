@@ -101,6 +101,7 @@ impl<'p> From<RExpr<'p>> for Expr<UniqueSym<'p>> {
             },
             RExpr::Let { sym, bnd, bdy } => Expr::Let {
                 sym,
+                mutable: true,
                 bnd: Box::new((*bnd).into()),
                 bdy: Box::new((*bdy).into()),
             },

@@ -93,6 +93,7 @@ impl<'p> From<AExpr<'p>> for Expr<UniqueSym<'p>> {
             },
             AExpr::Let { sym, bnd, bdy } => Expr::Let {
                 sym,
+                mutable: true,
                 bnd: Box::new((*bnd).into()),
                 bdy: Box::new((*bdy).into()),
             },

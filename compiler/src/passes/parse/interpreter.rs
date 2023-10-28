@@ -155,7 +155,7 @@ impl<A: Copy + Hash + Eq + Debug + Display> PrgGenericVar<A> {
                 }
                 _ => unreachable!(),
             },
-            Expr::Let { sym, bnd, bdy } => {
+            Expr::Let { sym, mutable, bnd, bdy } => {
                 let bnd = b!(self.interpret_expr(bnd, scope, io));
                 b!(scope.push(*sym, bnd, |scope| self.interpret_expr(bdy, scope, io)))
             }
@@ -186,6 +186,8 @@ impl<A: Copy + Hash + Eq + Debug + Display> PrgGenericVar<A> {
                     None => Val::Unit,
                 })
             }
+            Expr::Seq { .. } => todo!(),
+            Expr::Assign { .. } => todo!(),
         })
     }
 }

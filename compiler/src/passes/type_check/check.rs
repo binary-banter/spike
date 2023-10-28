@@ -180,7 +180,7 @@ fn type_check_expr<'p>(expr: &Expr<&'p str>, env: &mut Env<'_, 'p>) -> Result<Ty
             }
             _ => panic!("Found incorrect operator during type checking"),
         },
-        Expr::Let { sym, bnd, bdy } => {
+        Expr::Let { sym, mutable, bnd, bdy } => {
             let t = type_check_expr(bnd, env)?;
             env.push(sym, t, |env| type_check_expr(bdy, env))
         }
@@ -240,6 +240,8 @@ fn type_check_expr<'p>(expr: &Expr<&'p str>, env: &mut Env<'_, 'p>) -> Result<Ty
 
             Ok(Type::Never)
         }
+        Expr::Seq { .. } => todo!(),
+        Expr::Assign { .. } => todo!(),
     }
 }
 
