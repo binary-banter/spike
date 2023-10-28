@@ -1,6 +1,7 @@
 use crate::language::rlvar::{PrgRevealed, RDef, RExpr};
 use crate::passes::parse::{Def, Expr};
-use crate::passes::uniquify::{PrgUniquified, UniqueSym};
+use crate::passes::uniquify::PrgUniquified;
+use crate::utils::gen_sym::UniqueSym;
 use crate::utils::push_map::PushMap;
 
 impl<'p> PrgUniquified<'p> {

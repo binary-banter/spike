@@ -7,7 +7,7 @@ use crate::language::alvar::ADef;
 use crate::language::alvar::{AExpr, Atom, PrgAtomized};
 use crate::language::cvar::{CExpr, PrgExplicated, Tail};
 use crate::passes::parse::{Lit, Op};
-use crate::passes::uniquify::{gen_sym, UniqueSym};
+use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use std::collections::HashMap;
 
 impl<'p> PrgAtomized<'p> {

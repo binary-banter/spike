@@ -51,7 +51,7 @@ fn patch_args<'p>(src: Arg, dst: Arg, op: fn(Arg, Arg) -> Instr<'p, Arg>) -> Vec
 mod tests {
     use crate::interpreter::TestIO;
     use crate::language::x86var::X86Selected;
-    use crate::passes::uniquify::gen_sym;
+    use crate::utils::gen_sym::gen_sym;
     use crate::utils::split_test::split_test;
     use crate::{block, callq_direct, movq, reg};
     use test_each_file::test_each_file;

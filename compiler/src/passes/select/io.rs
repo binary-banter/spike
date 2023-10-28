@@ -1,6 +1,6 @@
 use crate::language::x86var::Reg;
 use crate::language::x86var::{Block, Cnd, VarArg};
-use crate::passes::uniquify::{gen_sym, UniqueSym};
+use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use crate::{
     addq, block, cmpq, deref, divq, imm, jcc, jmp, movq, mulq, negq, popq, pushq, reg, retq, subq,
     syscall,

@@ -1,17 +1,14 @@
 ##
 unit
 #
-fn test() -> Unit {
+fn main() -> Unit {
     loop {
-        if false {
-            break
+        if true {
+            let x = (break);
+            unit
         } else {
             let x = (loop { 5 });
             unit
         }
     }
-}
-
-fn main() -> Unit {
-    unit
 }

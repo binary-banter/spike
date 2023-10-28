@@ -3,7 +3,7 @@
 //! This pass is responsible for assigning all the program variables to locations on the stack.
 
 use crate::language::x86var::{Arg, Block, Instr, VarArg, X86Assigned, X86Colored};
-use crate::passes::uniquify::UniqueSym;
+use crate::utils::gen_sym::UniqueSym;
 use crate::{
     addq, andq, callq_direct, callq_indirect, cmpq, divq, jcc, jmp, load_lbl, movq, mulq, negq,
     notq, orq, popq, pushq, retq, setcc, subq, syscall, xorq,
@@ -79,7 +79,7 @@ fn assign_instr<'p>(
 mod tests {
     use crate::interpreter::TestIO;
     use crate::language::x86var::X86Selected;
-    use crate::passes::uniquify::gen_sym;
+    use crate::utils::gen_sym::gen_sym;
     use crate::utils::split_test::split_test;
     use crate::{block, callq_direct, movq, reg};
     use test_each_file::test_each_file;

@@ -1,6 +1,6 @@
 use crate::language::alvar::Atom;
 use crate::passes::parse::Op;
-use crate::passes::uniquify::UniqueSym;
+use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
 
 #[derive(Debug, PartialEq)]

@@ -3,7 +3,7 @@ use crate::interpreter::IO;
 use crate::language::alvar::Atom;
 use crate::language::cvar::{CExpr, PrgExplicated, Tail};
 use crate::passes::parse::{Lit, Op};
-use crate::passes::uniquify::UniqueSym;
+use crate::utils::gen_sym::UniqueSym;
 use crate::utils::push_map::PushMap;
 
 impl<'p> PrgExplicated<'p> {

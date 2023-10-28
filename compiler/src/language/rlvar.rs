@@ -1,6 +1,7 @@
 use crate::passes::parse::{Def, Expr, Lit, Op};
 use crate::passes::type_check::Type;
-use crate::passes::uniquify::{PrgUniquified, UniqueSym};
+use crate::passes::uniquify::PrgUniquified;
+use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
 
 #[derive(Debug, PartialEq)]

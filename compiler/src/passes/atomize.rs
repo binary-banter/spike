@@ -8,7 +8,7 @@
 
 use crate::language::alvar::{ADef, AExpr, Atom, PrgAtomized};
 use crate::language::rlvar::{PrgRevealed, RDef, RExpr};
-use crate::passes::uniquify::{gen_sym, UniqueSym};
+use crate::utils::gen_sym::{gen_sym, UniqueSym};
 
 impl<'p> PrgRevealed<'p> {
     /// See module-level documentation.

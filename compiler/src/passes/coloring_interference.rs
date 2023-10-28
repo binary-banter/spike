@@ -1,5 +1,5 @@
 use crate::language::x86var::{Arg, InterferenceGraph, LArg, Reg, X86Colored, X86WithInterference};
-use crate::passes::uniquify::UniqueSym;
+use crate::utils::gen_sym::UniqueSym;
 use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
 
