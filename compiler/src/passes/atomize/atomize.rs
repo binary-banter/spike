@@ -1,17 +1,9 @@
-//! This pass compiles `ULVarProgram`s  into `ALVarProgram` in which the arguments of operations are atomic expressions.
-//!
-//! This is accomplished by introducing new temporary variables, assigning
-//! the complex operand to those new variables, and then using them in place
-//! of the complex operand.
-//!
-//! We consider `Int`s and `Var`s atomic.
-
-use crate::language::alvar::{ADef, AExpr, Atom, PrgAtomized};
-use crate::language::rlvar::{PrgRevealed, RDef, RExpr};
+use crate::passes::atomize::{AExpr, Atom, PrgAtomized};
+use crate::passes::parse::Def;
+use crate::passes::reveal_functions::{PrgRevealed, RDef, RExpr};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 
 impl<'p> PrgRevealed<'p> {
-    /// See module-level documentation.
     pub fn atomize(self) -> PrgAtomized<'p> {
         PrgAtomized {
             defs: self
@@ -24,11 +16,11 @@ impl<'p> PrgRevealed<'p> {
                             params,
                             typ,
                             bdy,
-                        } => ADef::Fn {
+                        } => Def::Fn {
                             sym,
                             params,
                             typ,
-                            bdy: rco_expr(bdy),
+                            bdy: atomize_expr(bdy),
                         },
                     };
                     (sym, def)
@@ -39,7 +31,7 @@ impl<'p> PrgRevealed<'p> {
     }
 }
 
-fn rco_expr(expr: RExpr) -> AExpr {
+fn atomize_expr(expr: RExpr) -> AExpr {
     match expr {
         RExpr::Lit { val } => AExpr::Atom {
             atm: Atom::Val { val },
@@ -48,7 +40,7 @@ fn rco_expr(expr: RExpr) -> AExpr {
             atm: Atom::Var { sym },
         },
         RExpr::Prim { op, args } => {
-            let (args, extras): (Vec<_>, Vec<_>) = args.into_iter().map(rco_atom).unzip();
+            let (args, extras): (Vec<_>, Vec<_>) = args.into_iter().map(atomize_atom).unzip();
 
             extras
                 .into_iter()
@@ -61,18 +53,18 @@ fn rco_expr(expr: RExpr) -> AExpr {
         }
         RExpr::Let { sym, bnd, bdy } => AExpr::Let {
             sym,
-            bnd: Box::new(rco_expr(*bnd)),
-            bdy: Box::new(rco_expr(*bdy)),
+            bnd: Box::new(atomize_expr(*bnd)),
+            bdy: Box::new(atomize_expr(*bdy)),
         },
         RExpr::If { cnd, thn, els } => AExpr::If {
-            cnd: Box::new(rco_expr(*cnd)),
-            thn: Box::new(rco_expr(*thn)),
-            els: Box::new(rco_expr(*els)),
+            cnd: Box::new(atomize_expr(*cnd)),
+            thn: Box::new(atomize_expr(*thn)),
+            els: Box::new(atomize_expr(*els)),
         },
         RExpr::Apply { fun, args } => {
-            let (args, extras): (Vec<_>, Vec<_>) = args.into_iter().map(rco_atom).unzip();
+            let (args, extras): (Vec<_>, Vec<_>) = args.into_iter().map(atomize_atom).unzip();
 
-            let (fun, fun_expr) = rco_atom(*fun);
+            let (fun, fun_expr) = atomize_atom(*fun);
 
             fun_expr
                 .into_iter()
@@ -102,7 +94,7 @@ fn rco_expr(expr: RExpr) -> AExpr {
     }
 }
 
-fn rco_atom(expr: RExpr) -> (Atom, Option<(UniqueSym, AExpr)>) {
+fn atomize_atom(expr: RExpr) -> (Atom, Option<(UniqueSym, AExpr)>) {
     match expr {
         RExpr::Lit { val } => (Atom::Val { val }, None),
         RExpr::Var { sym } => (Atom::Var { sym }, None),
@@ -112,7 +104,7 @@ fn rco_atom(expr: RExpr) -> (Atom, Option<(UniqueSym, AExpr)>) {
         | RExpr::Apply { .. }
         | RExpr::FunRef { .. } => {
             let tmp = gen_sym("tmp");
-            (Atom::Var { sym: tmp }, Some((tmp, rco_expr(expr))))
+            (Atom::Var { sym: tmp }, Some((tmp, atomize_expr(expr))))
         }
     }
 }

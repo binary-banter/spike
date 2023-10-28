@@ -20,9 +20,9 @@ impl<'p> PrgTypeChecked<'p> {
 }
 
 fn uniquify_def<'p>(
-    def: Def<&'p str>,
+    def: Def<&'p str, Expr<&'p str>>,
     scope: &mut PushMap<&'p str, UniqueSym<'p>>,
-) -> Def<UniqueSym<'p>> {
+) -> Def<UniqueSym<'p>, Expr<UniqueSym<'p>>> {
     match def {
         Def::Fn {
             sym,

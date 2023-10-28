@@ -1,7 +1,7 @@
-use crate::language::alvar::Atom;
 use crate::passes::parse::Op;
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
+use crate::passes::atomize::Atom;
 
 #[derive(Debug, PartialEq)]
 pub struct PrgExplicated<'p> {

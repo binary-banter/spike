@@ -1,5 +1,5 @@
 // auto-generated: "lalrpop 0.20.1"
-// sha3: 64c166fbc73816d41147ecc4223f3fc5110879e198b167ca6ced0e0af6d31919
+// sha3: e3be941400b2b2d077a1b55d8b5fca46e77420fd6308940cf885f36782760a51
 use std::str::FromStr;
 use crate::passes::parse::*;
 use crate::passes::parse::PrgParsed;
@@ -40,8 +40,8 @@ mod __parse__Program {
         Variant8(bool),
         Variant9(Vec<Expr<&'input str>>),
         Variant10(Vec<(&'input str, Type)>),
-        Variant11(Def<&'input str>),
-        Variant12(alloc::vec::Vec<Def<&'input str>>),
+        Variant11(Def<&'input str, Expr<&'input str>>),
+        Variant12(alloc::vec::Vec<Def<&'input str, Expr<&'input str>>>),
         Variant13(core::option::Option<Expr<&'input str>>),
         Variant14(i64),
         Variant15(core::option::Option<(&'input str, Type)>),
@@ -1861,7 +1861,7 @@ mod __parse__Program {
       'input,
     >(
         __symbols: &mut alloc::vec::Vec<(usize,__Symbol<'input>,usize)>
-    ) -> (usize, Def<&'input str>, usize)
+    ) -> (usize, Def<&'input str, Expr<&'input str>>, usize)
      {
         match __symbols.pop() {
             Some((__l, __Symbol::Variant11(__v), __r)) => (__l, __v, __r),
@@ -1949,7 +1949,7 @@ mod __parse__Program {
       'input,
     >(
         __symbols: &mut alloc::vec::Vec<(usize,__Symbol<'input>,usize)>
-    ) -> (usize, alloc::vec::Vec<Def<&'input str>>, usize)
+    ) -> (usize, alloc::vec::Vec<Def<&'input str, Expr<&'input str>>>, usize)
      {
         match __symbols.pop() {
             Some((__l, __Symbol::Variant12(__v), __r)) => (__l, __v, __r),
@@ -3822,7 +3822,7 @@ fn __action1<
     'input,
 >(
     input: &'input str,
-    (_, defs, _): (usize, alloc::vec::Vec<Def<&'input str>>, usize),
+    (_, defs, _): (usize, alloc::vec::Vec<Def<&'input str, Expr<&'input str>>>, usize),
 ) -> PrgParsed<'input>
 {
     PrgParsed{ defs, entry: "main" }
@@ -3834,8 +3834,8 @@ fn __action2<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Def<&'input str>, usize),
-) -> Def<&'input str>
+    (_, __0, _): (usize, Def<&'input str, Expr<&'input str>>, usize),
+) -> Def<&'input str, Expr<&'input str>>
 {
     __0
 }
@@ -3855,7 +3855,7 @@ fn __action3<
     (_, _, _): (usize, &'input str, usize),
     (_, bdy, _): (usize, Expr<&'input str>, usize),
     (_, _, _): (usize, &'input str, usize),
-) -> Def<&'input str>
+) -> Def<&'input str, Expr<&'input str>>
 {
     Def::Fn { sym, params, typ: typ.unwrap_or(Type::Unit), bdy }
 }
@@ -4733,7 +4733,7 @@ fn __action71<
     input: &'input str,
     __lookbehind: &usize,
     __lookahead: &usize,
-) -> alloc::vec::Vec<Def<&'input str>>
+) -> alloc::vec::Vec<Def<&'input str, Expr<&'input str>>>
 {
     alloc::vec![]
 }
@@ -4744,8 +4744,8 @@ fn __action72<
     'input,
 >(
     input: &'input str,
-    (_, v, _): (usize, alloc::vec::Vec<Def<&'input str>>, usize),
-) -> alloc::vec::Vec<Def<&'input str>>
+    (_, v, _): (usize, alloc::vec::Vec<Def<&'input str, Expr<&'input str>>>, usize),
+) -> alloc::vec::Vec<Def<&'input str, Expr<&'input str>>>
 {
     v
 }
@@ -4756,8 +4756,8 @@ fn __action73<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Def<&'input str>, usize),
-) -> alloc::vec::Vec<Def<&'input str>>
+    (_, __0, _): (usize, Def<&'input str, Expr<&'input str>>, usize),
+) -> alloc::vec::Vec<Def<&'input str, Expr<&'input str>>>
 {
     alloc::vec![__0]
 }
@@ -4768,9 +4768,9 @@ fn __action74<
     'input,
 >(
     input: &'input str,
-    (_, v, _): (usize, alloc::vec::Vec<Def<&'input str>>, usize),
-    (_, e, _): (usize, Def<&'input str>, usize),
-) -> alloc::vec::Vec<Def<&'input str>>
+    (_, v, _): (usize, alloc::vec::Vec<Def<&'input str, Expr<&'input str>>>, usize),
+    (_, e, _): (usize, Def<&'input str, Expr<&'input str>>, usize),
+) -> alloc::vec::Vec<Def<&'input str, Expr<&'input str>>>
 {
     { let mut v = v; v.push(e); v }
 }
@@ -4968,7 +4968,7 @@ fn __action88<
     __7: (usize, &'input str, usize),
     __8: (usize, Expr<&'input str>, usize),
     __9: (usize, &'input str, usize),
-) -> Def<&'input str>
+) -> Def<&'input str, Expr<&'input str>>
 {
     let __start0 = __5.0;
     let __end0 = __6.2;
@@ -5007,7 +5007,7 @@ fn __action89<
     __5: (usize, &'input str, usize),
     __6: (usize, Expr<&'input str>, usize),
     __7: (usize, &'input str, usize),
-) -> Def<&'input str>
+) -> Def<&'input str, Expr<&'input str>>
 {
     let __start0 = __4.2;
     let __end0 = __5.0;
@@ -5267,7 +5267,7 @@ fn __action99<
     'input,
 >(
     input: &'input str,
-    __0: (usize, alloc::vec::Vec<Def<&'input str>>, usize),
+    __0: (usize, alloc::vec::Vec<Def<&'input str, Expr<&'input str>>>, usize),
 ) -> PrgParsed<'input>
 {
     let __start0 = __0.0;

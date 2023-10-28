@@ -3,12 +3,11 @@
 //! This pass makes the order of execution explicit in their syntax.
 //! This is achieved by flattening the nested expressions into a sequence of statements.
 
-use crate::language::alvar::ADef;
-use crate::language::alvar::{AExpr, Atom, PrgAtomized};
 use crate::language::cvar::{CExpr, PrgExplicated, Tail};
-use crate::passes::parse::{Lit, Op};
+use crate::passes::parse::{Def, Lit, Op};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use std::collections::HashMap;
+use crate::passes::atomize::{AExpr, Atom, PrgAtomized};
 
 impl<'p> PrgAtomized<'p> {
     /// See module-level documentation.
@@ -18,7 +17,7 @@ impl<'p> PrgAtomized<'p> {
             .defs
             .iter()
             .map(|(fn_sym, def)| match def {
-                ADef::Fn { params, .. } => (*fn_sym, params.iter().map(|(sym, _)| *sym).collect()),
+                Def::Fn { params, .. } => (*fn_sym, params.iter().map(|(sym, _)| *sym).collect()),
             })
             .collect();
 
@@ -34,9 +33,9 @@ impl<'p> PrgAtomized<'p> {
     }
 }
 
-fn explicate_def<'p>(def: ADef<'p>, blocks: &mut HashMap<UniqueSym<'p>, Tail<'p>>) {
+fn explicate_def<'p>(def: Def<UniqueSym<'p>, AExpr<'p>>, blocks: &mut HashMap<UniqueSym<'p>, Tail<'p>>) {
     match def {
-        ADef::Fn { sym, bdy, .. } => {
+        Def::Fn { sym, bdy, .. } => {
             let tail = explicate_tail(bdy, blocks);
             blocks.insert(sym, tail);
         }

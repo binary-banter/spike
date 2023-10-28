@@ -11,23 +11,23 @@ use std::hash::Hash;
 
 #[derive(Debug, PartialEq)]
 pub struct PrgParsed<'p> {
-    pub defs: Vec<Def<&'p str>>,
+    pub defs: Vec<Def<&'p str, Expr<&'p str>>>,
     pub entry: &'p str,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct PrgGenericVar<A: Copy + Hash + Eq> {
-    pub defs: HashMap<A, Def<A>>,
+    pub defs: HashMap<A, Def<A, Expr<A>>>,
     pub entry: A,
 }
 
 #[derive(Debug, PartialEq)]
-pub enum Def<A: Copy + Hash + Eq> {
+pub enum Def<A: Copy + Hash + Eq, B> {
     Fn {
         sym: A,
         params: Vec<(A, Type)>,
         typ: Type,
-        bdy: Expr<A>,
+        bdy: B,
     },
 }
 

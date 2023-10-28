@@ -73,9 +73,9 @@ pub Program: PrgParsed<'input> = {
     <defs: Def*> => PrgParsed{ defs, entry: "main" }
 }
 
-Def: Def<&'input str> = Fn;
+Def: Def<&'input str, Expr<&'input str>> = Fn;
 
-Fn: Def<&'input str> = {
+Fn: Def<&'input str, Expr<&'input str>> = {
     "fn" <sym:Ident> "(" <params:Comma<Param>> ")" <typ:("->" <Type>)?> "{" <bdy: Expr> "}" => Def::Fn { sym, params, typ: typ.unwrap_or(Type::Unit), bdy }
 }
 
