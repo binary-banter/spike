@@ -72,8 +72,16 @@ fn reveal_expr<'p>(expr: Expr<UniqueSym<'p>>, scope: &mut PushMap<UniqueSym<'p>,
                 .map(|arg| reveal_expr(arg, scope))
                 .collect(),
         },
-        Expr::Loop { .. } => todo!(),
-        Expr::Break { .. } => todo!(),
+        Expr::Loop { bdy } => {
+            RExpr::Loop {
+                bdy: Box::new(reveal_expr(*bdy, scope))
+            }
+        },
+        Expr::Break { bdy } => {
+            RExpr::Break {
+                bdy: bdy.map(|bdy| Box::new(reveal_expr(*bdy, scope)))
+            }
+        },
     }
 }
 
