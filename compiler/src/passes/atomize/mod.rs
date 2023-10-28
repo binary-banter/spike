@@ -107,8 +107,12 @@ impl<'p> From<AExpr<'p>> for Expr<UniqueSym<'p>> {
                 args: args.into_iter().map(Into::into).collect(),
             },
             AExpr::FunRef { sym } => Expr::Var { sym },
-            AExpr::Loop { bdy } => Expr::Loop { bdy: Box::new((*bdy).into()) },
-            AExpr::Break { bdy } => Expr::Break { bdy: Some(Box::new(bdy.into())) },
+            AExpr::Loop { bdy } => Expr::Loop {
+                bdy: Box::new((*bdy).into()),
+            },
+            AExpr::Break { bdy } => Expr::Break {
+                bdy: Some(Box::new(bdy.into())),
+            },
         }
     }
 }

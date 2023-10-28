@@ -69,17 +69,11 @@ fn atomize_expr(expr: RExpr) -> AExpr {
             fun_expr
                 .into_iter()
                 .chain(extras.into_iter().flatten())
-                .rfold(
-                    AExpr::Apply {
-                        fun,
-                        args,
-                    },
-                    |bdy, (sym, bnd)| AExpr::Let {
-                        sym,
-                        bnd: Box::new(bnd),
-                        bdy: Box::new(bdy),
-                    },
-                )
+                .rfold(AExpr::Apply { fun, args }, |bdy, (sym, bnd)| AExpr::Let {
+                    sym,
+                    bnd: Box::new(bnd),
+                    bdy: Box::new(bdy),
+                })
         }
         RExpr::FunRef { sym } => {
             let tmp = gen_sym("tmp");
@@ -91,21 +85,27 @@ fn atomize_expr(expr: RExpr) -> AExpr {
                 }),
             }
         }
-        RExpr::Loop { bdy } => AExpr::Loop { bdy: Box::new(atomize_expr(*bdy))},
+        RExpr::Loop { bdy } => AExpr::Loop {
+            bdy: Box::new(atomize_expr(*bdy)),
+        },
         RExpr::Break { bdy } => {
             let (atm, extras) = match bdy {
                 Some(bdy) => atomize_atom(*bdy),
-                None => return AExpr::Break { bdy: Atom::Val { val: Lit::Unit }},
+                None => {
+                    return AExpr::Break {
+                        bdy: Atom::Val { val: Lit::Unit },
+                    }
+                }
             };
 
             extras
                 .into_iter()
-                .rfold(AExpr::Break { bdy: atm}, |bdy, (sym, bnd)| AExpr::Let {
+                .rfold(AExpr::Break { bdy: atm }, |bdy, (sym, bnd)| AExpr::Let {
                     sym,
                     bnd: Box::new(bnd),
                     bdy: Box::new(bdy),
                 })
-        },
+        }
     }
 }
 
@@ -119,7 +119,7 @@ fn atomize_atom(expr: RExpr) -> (Atom, Option<(UniqueSym, AExpr)>) {
         | RExpr::Apply { .. }
         | RExpr::FunRef { .. }
         | RExpr::Loop { .. }
-        |  RExpr::Break { .. } => {
+        | RExpr::Break { .. } => {
             let tmp = gen_sym("tmp");
             (Atom::Var { sym: tmp }, Some((tmp, atomize_expr(expr))))
         }

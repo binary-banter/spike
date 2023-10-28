@@ -155,7 +155,12 @@ impl<A: Copy + Hash + Eq + Debug + Display> PrgGenericVar<A> {
                 }
                 _ => unreachable!(),
             },
-            Expr::Let { sym, mutable, bnd, bdy } => {
+            Expr::Let {
+                sym,
+                mutable,
+                bnd,
+                bdy,
+            } => {
                 let bnd = b!(self.interpret_expr(bnd, scope, io));
                 b!(scope.push(*sym, bnd, |scope| self.interpret_expr(bdy, scope, io)))
             }

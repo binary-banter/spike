@@ -1,10 +1,10 @@
 pub mod explicate;
 pub mod interpret;
 
-use std::collections::HashMap;
 use crate::passes::atomize::Atom;
 use crate::passes::parse::Op;
 use crate::utils::gen_sym::UniqueSym;
+use std::collections::HashMap;
 
 #[derive(Debug, PartialEq)]
 pub struct PrgExplicated<'p> {
@@ -35,18 +35,8 @@ pub enum Tail<'p> {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum CExpr<'p> {
-    Atom {
-        atm: Atom<'p>,
-    },
-    Prim {
-        op: Op,
-        args: Vec<Atom<'p>>,
-    },
-    Apply {
-        fun: Atom<'p>,
-        args: Vec<Atom<'p>>,
-    },
-    FunRef {
-        sym: UniqueSym<'p>,
-    },
+    Atom { atm: Atom<'p> },
+    Prim { op: Op, args: Vec<Atom<'p>> },
+    Apply { fun: Atom<'p>, args: Vec<Atom<'p>> },
+    FunRef { sym: UniqueSym<'p> },
 }

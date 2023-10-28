@@ -63,7 +63,12 @@ fn uniquify_expression<'p>(
                 .map(|arg| uniquify_expression(arg, scope))
                 .collect(),
         },
-        Expr::Let { sym, mutable, bnd, bdy } => {
+        Expr::Let {
+            sym,
+            mutable,
+            bnd,
+            bdy,
+        } => {
             let unique_bnd = uniquify_expression(*bnd, scope);
             let unique_sym = gen_sym(sym);
             let unique_bdy = scope.push(sym, unique_sym, |scope| uniquify_expression(*bdy, scope));

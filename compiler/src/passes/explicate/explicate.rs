@@ -1,8 +1,8 @@
+use crate::passes::atomize::{AExpr, Atom, PrgAtomized};
+use crate::passes::explicate::{CExpr, PrgExplicated, Tail};
 use crate::passes::parse::{Def, Lit, Op};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use std::collections::HashMap;
-use crate::passes::atomize::{AExpr, Atom, PrgAtomized};
-use crate::passes::explicate::{CExpr, PrgExplicated, Tail};
 
 impl<'p> PrgAtomized<'p> {
     pub fn explicate(self) -> PrgExplicated<'p> {
@@ -27,7 +27,10 @@ impl<'p> PrgAtomized<'p> {
     }
 }
 
-fn explicate_def<'p>(def: Def<UniqueSym<'p>, AExpr<'p>>, blocks: &mut HashMap<UniqueSym<'p>, Tail<'p>>) {
+fn explicate_def<'p>(
+    def: Def<UniqueSym<'p>, AExpr<'p>>,
+    blocks: &mut HashMap<UniqueSym<'p>, Tail<'p>>,
+) {
     match def {
         Def::Fn { sym, bdy, .. } => {
             let tail = explicate_tail(bdy, blocks);

@@ -1,10 +1,10 @@
 pub mod reveal_functions;
 
-use std::collections::HashMap;
 use crate::passes::parse::{Def, Expr, Lit, Op};
 use crate::passes::type_check::Type;
 use crate::passes::uniquify::PrgUniquified;
 use crate::utils::gen_sym::UniqueSym;
+use std::collections::HashMap;
 
 #[derive(Debug, PartialEq)]
 pub struct PrgRevealed<'p> {
@@ -115,8 +115,12 @@ impl<'p> From<RExpr<'p>> for Expr<UniqueSym<'p>> {
                 args: args.into_iter().map(Into::into).collect(),
             },
             RExpr::Var { sym } | RExpr::FunRef { sym } => Expr::Var { sym },
-            RExpr::Loop { bdy } => Expr::Loop { bdy: Box::new((*bdy).into()) },
-            RExpr::Break { bdy } => Expr::Break { bdy: bdy.map(|bdy| Box::new((*bdy).into())) },
+            RExpr::Loop { bdy } => Expr::Loop {
+                bdy: Box::new((*bdy).into()),
+            },
+            RExpr::Break { bdy } => Expr::Break {
+                bdy: bdy.map(|bdy| Box::new((*bdy).into())),
+            },
         }
     }
 }
