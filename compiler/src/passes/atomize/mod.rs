@@ -31,11 +31,17 @@ pub enum AExpr<'p> {
         els: Box<AExpr<'p>>,
     },
     Apply {
-        fun: Box<Atom<'p>>,
+        fun: Atom<'p>,
         args: Vec<Atom<'p>>,
     },
     FunRef {
         sym: UniqueSym<'p>,
+    },
+    Loop {
+        bdy: Box<AExpr<'p>>,
+    },
+    Break {
+        bdy: Atom<'p>,
     },
 }
 
@@ -96,10 +102,12 @@ impl<'p> From<AExpr<'p>> for Expr<UniqueSym<'p>> {
                 els: Box::new((*els).into()),
             },
             AExpr::Apply { fun, args } => Expr::Apply {
-                fun: Box::new((*fun).into()),
+                fun: Box::new(fun.into()),
                 args: args.into_iter().map(Into::into).collect(),
             },
             AExpr::FunRef { sym } => Expr::Var { sym },
+            AExpr::Loop { bdy } => Expr::Loop { bdy: Box::new((*bdy).into()) },
+            AExpr::Break { bdy } => Expr::Break { bdy: Some(Box::new(bdy.into())) },
         }
     }
 }

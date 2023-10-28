@@ -1,5 +1,5 @@
 use crate::passes::atomize::{AExpr, Atom, PrgAtomized};
-use crate::passes::parse::Def;
+use crate::passes::parse::{Def, Lit};
 use crate::passes::reveal_functions::{PrgRevealed, RDef, RExpr};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 
@@ -71,7 +71,7 @@ fn atomize_expr(expr: RExpr) -> AExpr {
                 .chain(extras.into_iter().flatten())
                 .rfold(
                     AExpr::Apply {
-                        fun: Box::new(fun),
+                        fun,
                         args,
                     },
                     |bdy, (sym, bnd)| AExpr::Let {
@@ -91,8 +91,21 @@ fn atomize_expr(expr: RExpr) -> AExpr {
                 }),
             }
         }
-        RExpr::Loop { .. } => todo!(),
-        RExpr::Break { .. } => todo!(),
+        RExpr::Loop { bdy } => AExpr::Loop { bdy: Box::new(atomize_expr(*bdy))},
+        RExpr::Break { bdy } => {
+            let (atm, extras) = match bdy {
+                Some(bdy) => atomize_atom(*bdy),
+                None => return AExpr::Break { bdy: Atom::Val { val: Lit::Unit }},
+            };
+
+            extras
+                .into_iter()
+                .rfold(AExpr::Break { bdy: atm}, |bdy, (sym, bnd)| AExpr::Let {
+                    sym,
+                    bnd: Box::new(bnd),
+                    bdy: Box::new(bdy),
+                })
+        },
     }
 }
 
@@ -104,13 +117,12 @@ fn atomize_atom(expr: RExpr) -> (Atom, Option<(UniqueSym, AExpr)>) {
         | RExpr::Let { .. }
         | RExpr::If { .. }
         | RExpr::Apply { .. }
-        | RExpr::FunRef { .. } => {
+        | RExpr::FunRef { .. }
+        | RExpr::Loop { .. }
+        |  RExpr::Break { .. } => {
             let tmp = gen_sym("tmp");
             (Atom::Var { sym: tmp }, Some((tmp, atomize_expr(expr))))
         }
-
-        RExpr::Loop { .. } => todo!(),
-        RExpr::Break { .. } => todo!(),
     }
 }
 

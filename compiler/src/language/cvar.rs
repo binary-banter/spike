@@ -40,7 +40,7 @@ pub enum CExpr<'p> {
         args: Vec<Atom<'p>>,
     },
     Apply {
-        fun: Box<Atom<'p>>,
+        fun: Atom<'p>,
         args: Vec<Atom<'p>>,
     },
     FunRef {

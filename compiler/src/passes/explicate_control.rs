@@ -65,6 +65,8 @@ fn explicate_tail<'p>(expr: AExpr<'p>, blocks: &mut HashMap<UniqueSym<'p>, Tail<
         AExpr::FunRef { sym } => Tail::Return {
             expr: CExpr::FunRef { sym },
         },
+        AExpr::Loop { .. } => todo!(),
+        AExpr::Break { .. } => todo!(),
     }
 }
 
@@ -120,6 +122,8 @@ fn explicate_assign<'p>(
                 blocks,
             )
         }
+        AExpr::Loop { .. } => todo!(),
+        AExpr::Break { .. } => todo!(),
     }
 }
 
@@ -249,6 +253,8 @@ fn explicate_pred<'p>(
         AExpr::Atom {
             atm: Atom::Val { val: Lit::Unit },
         } => todo!(),
+        AExpr::Loop { .. } => todo!(),
+        AExpr::Break { .. } => todo!(),
     }
 }
 
