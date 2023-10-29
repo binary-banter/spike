@@ -4,8 +4,8 @@ use crate::language::x86var::{
 };
 use crate::utils::gen_sym::UniqueSym;
 
-use std::collections::{HashMap, HashSet};
 use std::collections::hash_map::Entry;
+use std::collections::{HashMap, HashSet};
 
 impl<'p> X86Selected<'p> {
     pub fn add_liveness(self) -> LX86VarProgram<'p> {
