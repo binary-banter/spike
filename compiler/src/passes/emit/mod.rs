@@ -1,5 +1,3 @@
-//! This code will assemble the instructions into a sequence of bytes (machine code).
-
 mod binary;
 mod mul_div;
 mod push_pop;
@@ -20,7 +18,6 @@ use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
 
 impl<'p> X86Concluded<'p> {
-    //! See module-level documentation.
     pub fn emit(self) -> (usize, Vec<u8>) {
         let mut machine_code = Vec::new();
 

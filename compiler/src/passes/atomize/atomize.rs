@@ -109,7 +109,6 @@ fn atomize_expr(expr: RExpr) -> AExpr {
 fn atomize_atom(expr: RExpr) -> (Atom, Option<(UniqueSym, AExpr)>) {
     match expr {
         RExpr::Lit { val } => (Atom::Val { val }, None),
-        RExpr::Var { sym } => (Atom::Var { sym }, None),
         RExpr::Prim { .. }
         | RExpr::Let { .. }
         | RExpr::If { .. }
@@ -118,7 +117,8 @@ fn atomize_atom(expr: RExpr) -> (Atom, Option<(UniqueSym, AExpr)>) {
         | RExpr::Loop { .. }
         | RExpr::Break { .. }
         | RExpr::Seq { .. }
-        | RExpr::Assign { .. } => {
+        | RExpr::Assign { .. }
+        | RExpr::Var { .. } => {
             let tmp = gen_sym("tmp");
             (Atom::Var { sym: tmp }, Some((tmp, atomize_expr(expr))))
         }

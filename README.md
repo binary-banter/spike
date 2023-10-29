@@ -27,3 +27,25 @@ Run with specified input path and specified output path:
 ```sh
 cargo run -- input.jj -o output && ./output ; echo $?
 ```
+
+# Fixes
+* [ ] Updated README, with 3 new colors!
+* [ ] Add documentation where necessary.
+* [ ] Improve error handling for parsing pass.
+* [ ] Improve error handling for type checking pass.
+* [ ] Improve algorithm for colouring the interference graph.
+* [ ] Add read and write functionality to the bencher to update locally.
+* [ ] Lots, and lots, of refactoring!
+
+# Upcoming Language Features
+* [ ] Implement comments in code.
+* [ ] Algebraic Data Types (Enums and Structs).
+* [ ] First-class functions.
+
+# Upcoming Optimizations
+* [ ] Dead code.
+* [ ] Constant folding.
+* [ ] And probably more...
+
+# Lofty Goals
+* [ ] Make the compiler suggest hints.

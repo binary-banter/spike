@@ -5,6 +5,7 @@ use crate::language::x86var::{
 use crate::utils::gen_sym::UniqueSym;
 
 use std::collections::{HashMap, HashSet};
+use std::collections::hash_map::Entry;
 
 impl<'p> X86Selected<'p> {
     pub fn add_liveness(self) -> LX86VarProgram<'p> {
@@ -22,7 +23,19 @@ impl<'p> X86Selected<'p> {
 
             for (sym, block) in &self.blocks {
                 let (new_liveness, before) = block_liveness(block, &before_map);
-                before_map.insert(*sym, before);
+
+                match before_map.entry(*sym) {
+                    Entry::Occupied(mut e) => {
+                        if e.get() != &before {
+                            changed = true;
+                            e.insert(before);
+                        }
+                    }
+                    Entry::Vacant(e) => {
+                        changed = true;
+                        e.insert(before);
+                    }
+                }
 
                 match liveness.get(sym) {
                     None => {
@@ -78,14 +91,13 @@ fn block_liveness<'p>(
 
         handle_instr(instr, before_map, |arg, op| match (arg, op) {
             (VarArg::Imm { .. }, _) => {}
-            (VarArg::Reg { reg }, ReadWriteOp::Read) => {
+            (VarArg::Reg { reg }, ReadWriteOp::Read | ReadWriteOp::ReadWrite) => {
                 live.insert(LArg::Reg { reg: *reg });
             }
-            (VarArg::Reg { .. } | VarArg::XVar { .. }, ReadWriteOp::ReadWrite) => {}
             (VarArg::Reg { reg }, ReadWriteOp::Write) => {
                 live.remove(&LArg::Reg { reg: *reg });
             }
-            (VarArg::XVar { sym }, ReadWriteOp::Read) => {
+            (VarArg::XVar { sym }, ReadWriteOp::Read | ReadWriteOp::ReadWrite) => {
                 live.insert(LArg::Var { sym: *sym });
             }
             (VarArg::XVar { sym }, ReadWriteOp::Write) => {
