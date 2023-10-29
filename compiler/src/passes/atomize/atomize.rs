@@ -88,24 +88,13 @@ fn atomize_expr(expr: RExpr) -> AExpr {
         RExpr::Loop { bdy } => AExpr::Loop {
             bdy: Box::new(atomize_expr(*bdy)),
         },
-        RExpr::Break { bdy } => {
-            let (atm, extras) = match bdy {
-                Some(bdy) => atomize_atom(*bdy),
-                None => {
-                    return AExpr::Break {
-                        bdy: Atom::Val { val: Lit::Unit },
-                    }
-                }
-            };
-
-            extras
-                .into_iter()
-                .rfold(AExpr::Break { bdy: atm }, |bdy, (sym, bnd)| AExpr::Let {
-                    sym,
-                    bnd: Box::new(bnd),
-                    bdy: Box::new(bdy),
-                })
-        }
+        RExpr::Break { bdy } => AExpr::Break {
+            bdy: bdy
+                .map(|bdy| Box::new(atomize_expr(*bdy)))
+                .unwrap_or(Box::new(AExpr::Atom {
+                    atm: Atom::Val { val: Lit::Unit },
+                })),
+        },
         RExpr::Seq { stmt, cnt } => AExpr::Seq {
             stmt: Box::new(atomize_expr(*stmt)),
             cnt: Box::new(atomize_expr(*cnt)),

@@ -41,7 +41,7 @@ pub enum AExpr<'p> {
         bdy: Box<AExpr<'p>>,
     },
     Break {
-        bdy: Atom<'p>,
+        bdy: Box<AExpr<'p>>,
     },
     Seq {
         stmt: Box<AExpr<'p>>,
@@ -119,7 +119,7 @@ impl<'p> From<AExpr<'p>> for Expr<UniqueSym<'p>> {
                 bdy: Box::new((*bdy).into()),
             },
             AExpr::Break { bdy } => Expr::Break {
-                bdy: Some(Box::new(bdy.into())),
+                bdy: Some(Box::new((*bdy).into())),
             },
             AExpr::Seq { stmt, cnt } => Expr::Seq {
                 stmt: Box::new((*stmt).into()),

@@ -4,9 +4,20 @@ use crate::passes::parse::{Def, Lit, Op};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use std::collections::HashMap;
 
+struct Env<'a, 'p> {
+    blocks: &'a mut HashMap<UniqueSym<'p>, Tail<'p>>,
+    /// (block to jump to, variable to write to)
+    break_target: Option<(UniqueSym<'p>, UniqueSym<'p>)>,
+}
+
 impl<'p> PrgAtomized<'p> {
     pub fn explicate(self) -> PrgExplicated<'p> {
         let mut blocks = HashMap::new();
+        let mut env = Env {
+            blocks: &mut blocks,
+            break_target: None,
+        };
+
         let fn_params = self
             .defs
             .iter()
@@ -16,7 +27,7 @@ impl<'p> PrgAtomized<'p> {
             .collect();
 
         for (_, def) in self.defs {
-            explicate_def(def, &mut blocks);
+            explicate_def(def, &mut env);
         }
 
         PrgExplicated {
@@ -27,37 +38,34 @@ impl<'p> PrgAtomized<'p> {
     }
 }
 
-fn explicate_def<'p>(
-    def: Def<UniqueSym<'p>, AExpr<'p>>,
-    blocks: &mut HashMap<UniqueSym<'p>, Tail<'p>>,
-) {
+fn explicate_def<'p>(def: Def<UniqueSym<'p>, AExpr<'p>>, env: &mut Env<'_, 'p>) {
     match def {
         Def::Fn { sym, bdy, .. } => {
-            let tail = explicate_tail(bdy, blocks);
-            blocks.insert(sym, tail);
+            let tail = explicate_tail(bdy, env);
+            env.blocks.insert(sym, tail);
         }
     }
 }
 
-fn explicate_tail<'p>(expr: AExpr<'p>, blocks: &mut HashMap<UniqueSym<'p>, Tail<'p>>) -> Tail<'p> {
+fn explicate_tail<'p>(expr: AExpr<'p>, env: &mut Env<'_, 'p>) -> Tail<'p> {
     let tmp = gen_sym("return");
     let tail = Tail::Return {
         expr: CExpr::Atom {
             atm: Atom::Var { sym: tmp },
         },
     };
-    explicate_assign(tmp, expr, tail, blocks)
+    explicate_assign(tmp, expr, tail, env)
 }
 
 fn explicate_assign<'p>(
     sym: UniqueSym<'p>,
     bnd: AExpr<'p>,
     tail: Tail<'p>,
-    blocks: &mut HashMap<UniqueSym<'p>, Tail<'p>>,
+    env: &mut Env<'_, 'p>,
 ) -> Tail<'p> {
     let mut create_block = |goto: Tail<'p>| {
         let sym = gen_sym("tmp");
-        blocks.insert(sym, goto);
+        env.blocks.insert(sym, goto);
         sym
     };
 
@@ -86,27 +94,48 @@ fn explicate_assign<'p>(
             sym: sym_,
             bnd: bnd_,
             bdy: bdy_,
-        } => explicate_assign(
-            sym_,
-            *bnd_,
-            explicate_assign(sym, *bdy_, tail, blocks),
-            blocks,
-        ),
+        } => explicate_assign(sym_, *bnd_, explicate_assign(sym, *bdy_, tail, env), env),
         AExpr::If { cnd, thn, els } => {
             let tb = create_block(tail);
             explicate_pred(
                 *cnd,
-                explicate_assign(sym, *thn, Tail::Goto { lbl: tb }, blocks),
-                explicate_assign(sym, *els, Tail::Goto { lbl: tb }, blocks),
-                blocks,
+                explicate_assign(sym, *thn, Tail::Goto { lbl: tb }, env),
+                explicate_assign(sym, *els, Tail::Goto { lbl: tb }, env),
+                env,
             )
         }
-        AExpr::Loop { .. } => todo!(),
-        AExpr::Break { .. } => todo!(),
-        AExpr::Seq { stmt, cnt } => {
-            let tmp = gen_sym("tmp");
-            explicate_assign(tmp, *stmt, explicate_assign(sym, *cnt, tail, blocks), blocks)
-        },
+        AExpr::Loop { bdy } => {
+            let loop_block_sym = gen_sym("tmp");
+            let tail = create_block(tail);
+            let mut env = Env {
+                blocks: env.blocks,
+                break_target: Some((tail, sym)),
+            };
+
+            let loop_block = explicate_assign(
+                gen_sym("ignore"),
+                *bdy,
+                Tail::Goto {
+                    lbl: loop_block_sym,
+                },
+                &mut env,
+            );
+            env.blocks.insert(loop_block_sym, loop_block);
+            Tail::Goto {
+                lbl: loop_block_sym,
+            }
+        }
+        AExpr::Break { bdy } => {
+            let (break_sym, break_var) = env.break_target.unwrap();
+            let break_goto = Tail::Goto { lbl: break_sym };
+            explicate_assign(break_var, *bdy, break_goto, env)
+        }
+        AExpr::Seq { stmt, cnt } => explicate_assign(
+            gen_sym("ignore"),
+            *stmt,
+            explicate_assign(sym, *cnt, tail, env),
+            env,
+        ),
         AExpr::Assign {
             sym: sym_,
             bnd: bnd_,
@@ -119,9 +148,9 @@ fn explicate_assign<'p>(
                     atm: Atom::Val { val: Lit::Unit },
                 },
                 tail,
-                blocks,
+                env,
             ),
-            blocks,
+            env,
         ),
     }
 }
@@ -130,11 +159,11 @@ fn explicate_pred<'p>(
     cnd: AExpr<'p>,
     thn: Tail<'p>,
     els: Tail<'p>,
-    blocks: &mut HashMap<UniqueSym<'p>, Tail<'p>>,
+    env: &mut Env<'_, 'p>,
 ) -> Tail<'p> {
     let mut create_block = |goto: Tail<'p>| {
         let sym = gen_sym("tmp");
-        blocks.insert(sym, goto);
+        env.blocks.insert(sym, goto);
         sym
     };
 
@@ -166,7 +195,7 @@ fn explicate_pred<'p>(
             }
         }
         AExpr::Prim { op, args } => match op {
-            Op::Not => explicate_pred(AExpr::Atom { atm: args[0] }, els, thn, blocks),
+            Op::Not => explicate_pred(AExpr::Atom { atm: args[0] }, els, thn, env),
             Op::EQ | Op::NE | Op::GT | Op::GE | Op::LT | Op::LE => Tail::IfStmt {
                 cnd: CExpr::Prim { op, args },
                 thn: create_block(thn),
@@ -183,9 +212,9 @@ fn explicate_pred<'p>(
                         },
                         thn,
                         els,
-                        blocks,
+                        env,
                     ),
-                    blocks,
+                    env,
                 )
             }
             Op::Read | Op::Print | Op::Plus | Op::Minus | Op::Mul | Op::Mod | Op::Div => {
@@ -193,7 +222,7 @@ fn explicate_pred<'p>(
             }
         },
         AExpr::Let { sym, bnd, bdy } => {
-            explicate_assign(sym, *bnd, explicate_pred(*bdy, thn, els, blocks), blocks)
+            explicate_assign(sym, *bnd, explicate_pred(*bdy, thn, els, env), env)
         }
         AExpr::If {
             cnd: cnd_sub,
@@ -209,15 +238,15 @@ fn explicate_pred<'p>(
                     *thn_sub,
                     Tail::Goto { lbl: thn },
                     Tail::Goto { lbl: els },
-                    blocks,
+                    env,
                 ),
                 explicate_pred(
                     *els_sub,
                     Tail::Goto { lbl: thn },
                     Tail::Goto { lbl: els },
-                    blocks,
+                    env,
                 ),
-                blocks,
+                env,
             )
         }
         AExpr::Apply { fun, args } => {
@@ -231,17 +260,19 @@ fn explicate_pred<'p>(
                     },
                     thn,
                     els,
-                    blocks,
+                    env,
                 ),
-                blocks,
+                env,
             )
         }
         AExpr::Loop { .. } => todo!(),
         AExpr::Break { .. } => todo!(),
-        AExpr::Seq { stmt, cnt } => {
-            let sym = gen_sym("tmp");
-            explicate_assign(sym, *stmt, explicate_pred(*cnt, thn, els, blocks), blocks)
-        },
+        AExpr::Seq { stmt, cnt } => explicate_assign(
+            gen_sym("ignore"),
+            *stmt,
+            explicate_pred(*cnt, thn, els, env),
+            env,
+        ),
         // cargo format should get some help
         AExpr::FunRef { .. }
         | AExpr::Atom {
