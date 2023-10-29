@@ -265,8 +265,11 @@ fn explicate_pred<'p>(
                 env,
             )
         }
-        AExpr::Loop { .. } => todo!(),
-        AExpr::Break { .. } => todo!(),
+        AExpr::Loop { .. } => {
+            let tmp = gen_sym("tmp");
+            let cnd_ = AExpr::Atom { atm: Atom::Var { sym: tmp }};
+            explicate_assign(tmp, cnd, explicate_pred(cnd_, thn, els, env), env)
+        },
         AExpr::Seq { stmt, cnt } => explicate_assign(
             gen_sym("ignore"),
             *stmt,
@@ -283,6 +286,7 @@ fn explicate_pred<'p>(
         | AExpr::Atom {
             atm: Atom::Val { val: Lit::Unit },
         }
-        | AExpr::Assign { .. } => unreachable!(),
+        | AExpr::Assign { .. }
+        | AExpr::Break { .. } => unreachable!(),
     }
 }
