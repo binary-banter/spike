@@ -64,7 +64,7 @@ fn explicate_tail<'p>(expr: AExpr<'p>, blocks: &mut HashMap<UniqueSym<'p>, Tail<
         AExpr::FunRef { sym } => Tail::Return {
             expr: CExpr::FunRef { sym },
         },
-        AExpr::Loop { bdy } => todo!(),
+        AExpr::Loop { .. } => todo!(),
         AExpr::Break { .. } => todo!(),
     }
 }

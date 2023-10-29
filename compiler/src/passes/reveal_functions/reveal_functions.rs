@@ -54,9 +54,9 @@ fn reveal_expr<'p>(expr: Expr<UniqueSym<'p>>, scope: &mut PushMap<UniqueSym<'p>,
         },
         Expr::Let {
             sym,
-            mutable,
             bnd,
             bdy,
+            ..
         } => {
             let bnd = Box::new(reveal_expr(*bnd, scope));
             scope.remove(sym, |scope| RExpr::Let {

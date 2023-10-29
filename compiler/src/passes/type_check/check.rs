@@ -1,4 +1,4 @@
-use crate::passes::parse::{Def, Expr, Lit, Op, Param, PrgParsed};
+use crate::passes::parse::{Def, Expr, Lit, Op, PrgParsed};
 use crate::passes::type_check::check::TypeError::*;
 use crate::passes::type_check::PrgTypeChecked;
 use crate::passes::type_check::*;
@@ -74,6 +74,7 @@ impl<'p> PrgParsed<'p> {
             in_loop: false,
         };
 
+        // Typecheck all definitions and collect them.
         let defs = self
             .defs
             .into_iter()
@@ -100,6 +101,7 @@ impl<'p> PrgParsed<'p> {
     }
 }
 
+/// Returns a `PushMap` with all the functions in scope.
 fn uncover_fns<'p>(program: &PrgParsed<'p>) -> Result<PushMap<&'p str, (bool, Type)>, TypeError> {
     let mut globals = HashMap::new();
 
