@@ -46,6 +46,14 @@ pub enum RExpr<'p> {
     Break {
         bdy: Option<Box<RExpr<'p>>>,
     },
+    Seq {
+        stmt: Box<RExpr<'p>>,
+        cnt: Box<RExpr<'p>>,
+    },
+    Assign {
+        sym: UniqueSym<'p>,
+        bnd: Box<RExpr<'p>>,
+    },
 }
 
 impl<'p> From<PrgRevealed<'p>> for PrgUniquified<'p> {
@@ -110,6 +118,35 @@ impl<'p> From<RExpr<'p>> for Expr<UniqueSym<'p>> {
             RExpr::Break { bdy } => Expr::Break {
                 bdy: bdy.map(|bdy| Box::new((*bdy).into())),
             },
+            RExpr::Seq { stmt, cnt } => Expr::Seq {
+                stmt: Box::new((*stmt).into()),
+                cnt: Box::new((*cnt).into()),
+            },
+            RExpr::Assign { sym, bnd } => Expr::Assign {
+                sym,
+                bnd: Box::new((*bnd).into()),
+            },
         }
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::interpreter::TestIO;
+    use crate::passes::uniquify::PrgUniquified;
+    use crate::utils::split_test::split_test;
+    use test_each_file::test_each_file;
+
+    fn reveal([test]: [&str; 1]) {
+        let (input, expected_output, expected_return, program) = split_test(test);
+        let uniquified_program: PrgUniquified =
+            program.type_check().unwrap().uniquify().reveal().into();
+        let mut io = TestIO::new(input);
+        let result = uniquified_program.interpret(&mut io);
+
+        assert_eq!(result, expected_return.into(), "Incorrect program result.");
+        assert_eq!(io.outputs(), &expected_output, "Incorrect program output.");
+    }
+
+    test_each_file! { for ["test"] in "./programs/good" as reveal => reveal }
 }

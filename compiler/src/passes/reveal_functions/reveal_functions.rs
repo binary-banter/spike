@@ -83,28 +83,13 @@ fn reveal_expr<'p>(expr: Expr<UniqueSym<'p>>, scope: &mut PushMap<UniqueSym<'p>,
         Expr::Break { bdy } => RExpr::Break {
             bdy: bdy.map(|bdy| Box::new(reveal_expr(*bdy, scope))),
         },
-        Expr::Seq { .. } => todo!(),
-        Expr::Assign { .. } => todo!(),
+        Expr::Seq { stmt, cnt } => RExpr::Seq {
+            stmt: Box::new(reveal_expr(*stmt, scope)),
+            cnt: Box::new(reveal_expr(*cnt, scope)),
+        },
+        Expr::Assign { sym, bnd } => RExpr::Assign {
+            sym,
+            bnd: Box::new(reveal_expr(*bnd, scope)),
+        },
     }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::interpreter::TestIO;
-    use crate::passes::uniquify::PrgUniquified;
-    use crate::utils::split_test::split_test;
-    use test_each_file::test_each_file;
-
-    fn reveal([test]: [&str; 1]) {
-        let (input, expected_output, expected_return, program) = split_test(test);
-        let uniquified_program: PrgUniquified =
-            program.type_check().unwrap().uniquify().reveal().into();
-        let mut io = TestIO::new(input);
-        let result = uniquified_program.interpret(&mut io);
-
-        assert_eq!(result, expected_return.into(), "Incorrect program result.");
-        assert_eq!(io.outputs(), &expected_output, "Incorrect program output.");
-    }
-
-    test_each_file! { for ["test"] in "./programs/good" as reveal => reveal }
 }

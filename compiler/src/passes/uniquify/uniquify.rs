@@ -97,7 +97,13 @@ fn uniquify_expression<'p>(
         Expr::Break { bdy } => Expr::Break {
             bdy: bdy.map(|bdy| Box::new(uniquify_expression(*bdy, scope))),
         },
-        Expr::Seq { .. } => todo!(),
-        Expr::Assign { .. } => todo!(),
+        Expr::Seq { stmt, cnt } => Expr::Seq {
+            stmt: Box::new(uniquify_expression(*stmt, scope)),
+            cnt: Box::new(uniquify_expression(*cnt, scope)),
+        },
+        Expr::Assign { sym, bnd } => Expr::Assign {
+            sym: scope[sym],
+            bnd: Box::new(uniquify_expression(*bnd, scope)),
+        },
     }
 }

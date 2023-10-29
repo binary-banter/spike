@@ -1,5 +1,5 @@
 ##
-6
+42
 #
 fn test(mut x: Int) -> Int {
     x = 42;
