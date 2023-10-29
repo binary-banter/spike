@@ -12,6 +12,7 @@ match {
     "if",
     "else",
     "loop",
+    "while",
     "break",
     "mut",
 
@@ -71,16 +72,32 @@ match {
 }
 
 pub Program: PrgParsed<'input> = {
-    <defs: Def*> => PrgParsed{ defs, entry: "main" }
+    <defs: Def*> => PrgParsed {
+        defs,
+        entry: "main"
+    }
 }
 
-Def: Def<&'input str, Expr<&'input str>> = Fn;
+Def: Def<&'input str, Expr<&'input str>> = {
+    Fn,
+}
 
 Fn: Def<&'input str, Expr<&'input str>> = {
-    "fn" <sym:Ident> "(" <params:Comma<Param>> ")" <typ:("->" <Type>)?> "{" <bdy: Expr> "}" => Def::Fn { sym, params, typ: typ.unwrap_or(Type::Unit), bdy }
+    "fn" <sym:Ident> "(" <params:Comma<Param>> ")" <typ:("->" <Type>)?> "{" <bdy: Expr> "}" => Def::Fn {
+        sym,
+        params,
+        typ: typ.unwrap_or(Type::Unit),
+        bdy
+    }
 }
 
-Param: Param<&'input str> = <mutable:"mut"?> <sym:Ident> ":" <typ:Type> => Param { mutable: mutable.is_some(), sym, typ };
+Param: Param<&'input str> = {
+    <mutable:"mut"?> <sym:Ident> ":" <typ:Type> => Param {
+        mutable: mutable.is_some(),
+        sym,
+        typ,
+    }
+}
 
 Type: Type = {
     "Int" => Type::Int,
@@ -89,28 +106,81 @@ Type: Type = {
     "Never" => Type::Never,
 }
 
-BinaryOps<Op,Next>: Expr<&'input str> = {
-    <e1:BinaryOps<Op,Next>> <op:Op> <e2:Next> => Expr::Prim{op, args: vec![e1, e2] },
-    Next,
-}
-
+// We have the following precedence:
+// ExprStmt
+// ExprInStmt
+// ExprLogicalOr
+// ExprLogicalAnd
+// ExprComparative
+// ExprXor
+// ExprAdditive
+// ExprMultiplicative
+// ExprUnary
+// ExprCall
+// ExprAtom
+// Num/Bool/Ident
 Expr = ExprStmt;
 
 ExprStmt: Expr<&'input str> = {
-    //TODO yeet this?
-    "let" <mutable:"mut"?> <sym:Ident> "=" <bnd:ExprLogicalOr> ";" => Expr::Let { sym, mutable: mutable.is_some(), bnd: Box::new(bnd), bdy: Box::new(Expr::Lit { val: Lit::Unit }) },
-    "let" <mutable:"mut"?> <sym:Ident> "=" <bnd:ExprLogicalOr> ";" <bdy:ExprStmt> => Expr::Let { sym, mutable: mutable.is_some(), bnd: Box::new(bnd), bdy: Box::new(bdy) },
-    <stmt:ExprInStmt> ";" => Expr::Seq { stmt: Box::new(stmt), cnt: Box::new(Expr::Lit { val: Lit::Unit }) },
-    <stmt:ExprInStmt> ";" <cnt:ExprStmt> => Expr::Seq { stmt: Box::new(stmt), cnt: Box::new(cnt) },
+    // TODO yeet this?
+    "let" <mutable:"mut"?> <sym:Ident> "=" <bnd:ExprLogicalOr> ";" => Expr::Let {
+        sym,
+        mutable: mutable.is_some(),
+        bnd: Box::new(bnd),
+        bdy: Box::new(Expr::Lit { val: Lit::Unit }),
+    },
+    "let" <mutable:"mut"?> <sym:Ident> "=" <bnd:ExprLogicalOr> ";" <bdy:ExprStmt> => Expr::Let {
+        sym,
+        mutable: mutable.is_some(),
+        bnd: Box::new(bnd),
+        bdy: Box::new(bdy),
+    },
+    <stmt:ExprInStmt> ";" => Expr::Seq {
+        stmt: Box::new(stmt),
+        cnt: Box::new(Expr::Lit { val: Lit::Unit }),
+    },
+    <stmt:ExprInStmt> ";" <cnt:ExprStmt> => Expr::Seq {
+        stmt: Box::new(stmt),
+        cnt: Box::new(cnt),
+    },
     ExprInStmt,
 }
 
 ExprInStmt: Expr<&'input str> = {
-    <sym:Ident> "=" <bnd:ExprLogicalOr> => Expr::Assign { sym, bnd: Box::new(bnd) },
-    "if" <cnd:ExprLogicalOr> "{" <thn:Expr> "}" "else" "{" <els:Expr> "}" => Expr::If { cnd: Box::new(cnd), thn: Box::new(thn), els: Box::new(els) },
-    "loop" "{" <bdy:Expr> "}" => Expr::Loop { bdy: Box::new(bdy) },
-    "break" <bdy:ExprLogicalOr?> => Expr::Break { bdy: bdy.map(Box::new) },
+    <sym:Ident> "=" <bnd:ExprLogicalOr> => Expr::Assign {
+        sym,
+        bnd: Box::new(bnd),
+    },
+    "if" <cnd:ExprLogicalOr> "{" <thn:Expr> "}" "else" "{" <els:Expr> "}" => Expr::If {
+        cnd: Box::new(cnd),
+        thn: Box::new(thn),
+        els: Box::new(els),
+    },
+    "loop" "{" <bdy:Expr> "}" => Expr::Loop {
+        bdy: Box::new(bdy),
+    },
+    "while" <cnd:ExprLogicalOr> "{" <bdy:Expr> "}" => Expr::Loop {
+        bdy: Box::new(Expr::If {
+            cnd: Box::new(cnd),
+            thn: Box::new(bdy),
+            els: Box::new(Expr::Seq {
+                stmt: Box::new(Expr::Break { bdy: None }),
+                cnt: Box::new(Expr::Lit { val: Lit::Unit }),
+            }),
+        }),
+    },
+    "break" <bdy:ExprLogicalOr?> => Expr::Break {
+        bdy: bdy.map(Box::new),
+    },
     ExprLogicalOr,
+}
+
+BinaryOps<Op,Next>: Expr<&'input str> = {
+    <e1:BinaryOps<Op,Next>> <op:Op> <e2:Next> => Expr::Prim {
+        op,
+        args: vec![e1, e2],
+    },
+    Next,
 }
 
 ExprLogicalOr = BinaryOps<LogicalOrOp, ExprLogicalAnd>;
@@ -146,14 +216,26 @@ UnaryOp: Op = {
 }
 
 ExprUnary: Expr<&'input str> = {
-    <op:UnaryOp> <e:ExprUnary> => Expr::Prim{op, args: vec![e]},
+    <op:UnaryOp> <e:ExprUnary> => Expr::Prim {
+        op,
+        args: vec![e],
+    },
     ExprCall,
 }
 
 ExprCall: Expr<&'input str> = {
-    "read" "(" ")" => Expr::Prim{ op: Op::Read, args: vec![] },
-    "print" "(" <e: Expr> ")" => Expr::Prim{ op: Op::Print, args: vec![e] },
-    <fun:ExprAtom> "(" <args:Comma<Expr>> ")" => Expr::Apply{ fun: Box::new(fun), args },
+    "read" "(" ")" => Expr::Prim {
+        op: Op::Read,
+        args: vec![],
+    },
+    "print" "(" <e: Expr> ")" => Expr::Prim {
+        op: Op::Print,
+        args: vec![e],
+    },
+    <fun:ExprAtom> "(" <args:Comma<Expr>> ")" => Expr::Apply {
+        fun: Box::new(fun),
+        args,
+    },
     ExprAtom,
 }
 
@@ -183,4 +265,4 @@ Comma<T>: Vec<T> = {
             v
         }
     }
-};
+}
