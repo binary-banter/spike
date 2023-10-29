@@ -34,7 +34,11 @@ fn uniquify_def<'p>(
             |scope| {
                 let params = params
                     .iter()
-                    .map(|param| Param { sym: scope[&param.sym], mutable: param.mutable, typ: param.typ.clone() })
+                    .map(|param| Param {
+                        sym: scope[&param.sym],
+                        mutable: param.mutable,
+                        typ: param.typ.clone(),
+                    })
                     .collect();
                 let bdy = uniquify_expression(bdy, scope);
                 Def::Fn {

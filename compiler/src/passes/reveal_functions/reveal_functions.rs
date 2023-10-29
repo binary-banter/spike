@@ -52,12 +52,7 @@ fn reveal_expr<'p>(expr: Expr<UniqueSym<'p>>, scope: &mut PushMap<UniqueSym<'p>,
                 .map(|arg| reveal_expr(arg, scope))
                 .collect(),
         },
-        Expr::Let {
-            sym,
-            bnd,
-            bdy,
-            ..
-        } => {
+        Expr::Let { sym, bnd, bdy, .. } => {
             let bnd = Box::new(reveal_expr(*bnd, scope));
             scope.remove(sym, |scope| RExpr::Let {
                 sym,

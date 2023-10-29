@@ -127,8 +127,8 @@ impl<'p> From<AExpr<'p>> for Expr<UniqueSym<'p>> {
             },
             AExpr::Assign { sym, bnd } => Expr::Assign {
                 sym,
-                bnd: Box::new((*bnd).into())
-            }
+                bnd: Box::new((*bnd).into()),
+            },
         }
     }
 }

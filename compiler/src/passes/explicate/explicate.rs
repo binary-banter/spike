@@ -40,36 +40,14 @@ fn explicate_def<'p>(
 }
 
 fn explicate_tail<'p>(expr: AExpr<'p>, blocks: &mut HashMap<UniqueSym<'p>, Tail<'p>>) -> Tail<'p> {
-    match expr {
-        AExpr::Atom { atm } => Tail::Return {
-            expr: CExpr::Atom { atm },
+    let tmp = gen_sym("return");
+    let tail = Tail::Return {
+        expr: CExpr::Atom {
+            atm: Atom::Var { sym: tmp },
         },
-        AExpr::Prim { op, args } => Tail::Return {
-            expr: CExpr::Prim { op, args },
-        },
-        AExpr::Let { sym, bnd, bdy } => {
-            explicate_assign(sym, *bnd, explicate_tail(*bdy, blocks), blocks)
-        }
-        AExpr::If { cnd, thn, els } => explicate_pred(
-            *cnd,
-            explicate_tail(*thn, blocks),
-            explicate_tail(*els, blocks),
-            blocks,
-        ),
-        AExpr::Apply { fun, args } => Tail::Return {
-            expr: CExpr::Apply { fun, args },
-        },
-        AExpr::FunRef { sym } => Tail::Return {
-            expr: CExpr::FunRef { sym },
-        },
-        AExpr::Loop { .. } => todo!(),
-        AExpr::Break { .. } => todo!(),
-        AExpr::Seq { .. } => todo!(),
-        AExpr::Assign { .. } => todo!(),
-    }
+    };
+    explicate_assign(tmp, expr, tail, blocks)
 }
-
-//   def explicate_effect(expr: Expr, cnt: Tail, blocks: HashMap[String, Tail]) : Tail = expr match {
 
 fn explicate_assign<'p>(
     sym: UniqueSym<'p>,
@@ -125,8 +103,26 @@ fn explicate_assign<'p>(
         }
         AExpr::Loop { .. } => todo!(),
         AExpr::Break { .. } => todo!(),
-        AExpr::Seq { .. } => todo!(),
-        AExpr::Assign { .. } => todo!(),
+        AExpr::Seq { stmt, cnt } => {
+            let tmp = gen_sym("tmp");
+            explicate_assign(tmp, *stmt, explicate_assign(sym, *cnt, tail, blocks), blocks)
+        },
+        AExpr::Assign {
+            sym: sym_,
+            bnd: bnd_,
+        } => explicate_assign(
+            sym_,
+            *bnd_,
+            explicate_assign(
+                sym,
+                AExpr::Atom {
+                    atm: Atom::Val { val: Lit::Unit },
+                },
+                tail,
+                blocks,
+            ),
+            blocks,
+        ),
     }
 }
 
@@ -158,7 +154,6 @@ fn explicate_pred<'p>(
             thn: create_block(thn),
             els: create_block(els),
         },
-
         AExpr::Atom {
             atm: Atom::Val {
                 val: Lit::Bool { val },
@@ -170,7 +165,6 @@ fn explicate_pred<'p>(
                 els
             }
         }
-
         AExpr::Prim { op, args } => match op {
             Op::Not => explicate_pred(AExpr::Atom { atm: args[0] }, els, thn, blocks),
             Op::EQ | Op::NE | Op::GT | Op::GE | Op::LT | Op::LE => Tail::IfStmt {
@@ -194,16 +188,13 @@ fn explicate_pred<'p>(
                     blocks,
                 )
             }
-
             Op::Read | Op::Print | Op::Plus | Op::Minus | Op::Mul | Op::Mod | Op::Div => {
                 unreachable!()
             }
         },
-
         AExpr::Let { sym, bnd, bdy } => {
             explicate_assign(sym, *bnd, explicate_pred(*bdy, thn, els, blocks), blocks)
         }
-
         AExpr::If {
             cnd: cnd_sub,
             thn: thn_sub,
@@ -229,7 +220,6 @@ fn explicate_pred<'p>(
                 blocks,
             )
         }
-
         AExpr::Apply { fun, args } => {
             let tmp = gen_sym("tmp");
             explicate_assign(
@@ -246,45 +236,22 @@ fn explicate_pred<'p>(
                 blocks,
             )
         }
-
+        AExpr::Loop { .. } => todo!(),
+        AExpr::Break { .. } => todo!(),
+        AExpr::Seq { stmt, cnt } => {
+            let sym = gen_sym("tmp");
+            explicate_assign(sym, *stmt, explicate_pred(*cnt, thn, els, blocks), blocks)
+        },
+        // cargo format should get some help
         AExpr::FunRef { .. }
         | AExpr::Atom {
             atm: Atom::Val {
                 val: Lit::Int { .. },
             },
-        } => unreachable!(),
-        AExpr::Atom {
+        }
+        | AExpr::Atom {
             atm: Atom::Val { val: Lit::Unit },
-        } => todo!(),
-        AExpr::Loop { .. } => todo!(),
-        AExpr::Break { .. } => todo!(),
-        AExpr::Seq { .. } => todo!(),
-        AExpr::Assign { .. } => todo!(),
+        }
+        | AExpr::Assign { .. } => unreachable!(),
     }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::interpreter::TestIO;
-    use crate::utils::split_test::split_test;
-    use test_each_file::test_each_file;
-
-    fn explicated([test]: [&str; 1]) {
-        let (input, expected_output, expected_return, program) = split_test(test);
-        let program = program
-            .type_check()
-            .unwrap()
-            .uniquify()
-            .reveal()
-            .atomize()
-            .explicate();
-
-        let mut io = TestIO::new(input);
-        let result = program.interpret(&mut io);
-
-        assert_eq!(result, expected_return.into(), "Incorrect program result.");
-        assert_eq!(io.outputs(), &expected_output, "Incorrect program output.");
-    }
-
-    test_each_file! { for ["test"] in "./programs/good" as explicate => explicated }
 }

@@ -40,3 +40,29 @@ pub enum CExpr<'p> {
     Apply { fun: Atom<'p>, args: Vec<Atom<'p>> },
     FunRef { sym: UniqueSym<'p> },
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::interpreter::TestIO;
+    use crate::utils::split_test::split_test;
+    use test_each_file::test_each_file;
+
+    fn explicated([test]: [&str; 1]) {
+        let (input, expected_output, expected_return, program) = split_test(test);
+        let program = program
+            .type_check()
+            .unwrap()
+            .uniquify()
+            .reveal()
+            .atomize()
+            .explicate();
+
+        let mut io = TestIO::new(input);
+        let result = program.interpret(&mut io);
+
+        assert_eq!(result, expected_return.into(), "Incorrect program result.");
+        assert_eq!(io.outputs(), &expected_output, "Incorrect program output.");
+    }
+
+    test_each_file! { for ["test"] in "./programs/good" as explicate => explicated }
+}

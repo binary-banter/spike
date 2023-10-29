@@ -40,7 +40,12 @@ struct Env<'a, 'p> {
 }
 
 impl<'a, 'p> Env<'a, 'p> {
-    pub fn push<O>(&mut self, k: &'p str, v: (bool, Type), sub: impl FnOnce(&mut Env<'_, 'p>) -> O) -> O {
+    pub fn push<O>(
+        &mut self,
+        k: &'p str,
+        v: (bool, Type),
+        sub: impl FnOnce(&mut Env<'_, 'p>) -> O,
+    ) -> O {
         self.scope.push(k, v, |scope| {
             sub(&mut Env {
                 scope,
@@ -85,9 +90,10 @@ impl<'p> PrgParsed<'p> {
                     ref bdy,
                     ref typ,
                 } => env
-                    .push_iter(params.iter().map(|p| (p.sym, (p.mutable, p.typ.clone()))), |env| {
-                        expect_type(bdy, typ.clone(), env)
-                    })
+                    .push_iter(
+                        params.iter().map(|p| (p.sym, (p.mutable, p.typ.clone()))),
+                        |env| expect_type(bdy, typ.clone(), env),
+                    )
                     .map(|_| (sym, def)),
             })
             .collect::<Result<HashMap<_, _>, _>>()?;
@@ -145,9 +151,14 @@ fn type_check_expr<'p>(expr: &Expr<&'p str>, env: &mut Env<'_, 'p>) -> Result<Ty
             Lit::Bool { .. } => Ok(Type::Bool),
             Lit::Unit => Ok(Type::Unit),
         },
-        Expr::Var { sym } => env.scope.get(sym).map(|(_, t)| t).cloned().ok_or(UndeclaredVar {
-            sym: sym.to_string(),
-        }),
+        Expr::Var { sym } => env
+            .scope
+            .get(sym)
+            .map(|(_, t)| t)
+            .cloned()
+            .ok_or(UndeclaredVar {
+                sym: sym.to_string(),
+            }),
         Expr::Prim { op, args } => match (op, args.as_slice()) {
             (Op::Plus | Op::Minus | Op::Mul | Op::Mod | Op::Div, [e1, e2]) => {
                 expect_type(e1, Type::Int, env)?;
@@ -252,15 +263,20 @@ fn type_check_expr<'p>(expr: &Expr<&'p str>, env: &mut Env<'_, 'p>) -> Result<Ty
         Expr::Seq { stmt, cnt } => {
             type_check_expr(stmt, env)?;
             type_check_expr(cnt, env)
-        },
+        }
         Expr::Assign { sym, bnd } => {
             let (mutable, typ) = env.scope.get(sym).cloned().ok_or(UndeclaredVar {
                 sym: sym.to_string(),
             })?;
-            expect(mutable, ModifyImmutable { sym: sym.to_string() })?;
+            expect(
+                mutable,
+                ModifyImmutable {
+                    sym: sym.to_string(),
+                },
+            )?;
             expect_type(bnd, typ, env)?;
             Ok(Type::Unit)
-        },
+        }
     }
 }
 
