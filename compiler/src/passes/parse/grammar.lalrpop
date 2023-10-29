@@ -80,7 +80,7 @@ Fn: Def<&'input str, Expr<&'input str>> = {
     "fn" <sym:Ident> "(" <params:Comma<Param>> ")" <typ:("->" <Type>)?> "{" <bdy: Expr> "}" => Def::Fn { sym, params, typ: typ.unwrap_or(Type::Unit), bdy }
 }
 
-Param = <Ident> ":" <Type>;
+Param: Param<&'input str> = <mutable:"mut"?> <sym:Ident> ":" <typ:Type> => Param { mutable: mutable.is_some(), sym, typ };
 
 Type: Type = {
     "Int" => Type::Int,
@@ -97,6 +97,7 @@ BinaryOps<Op,Next>: Expr<&'input str> = {
 Expr = ExprStmt;
 
 ExprStmt: Expr<&'input str> = {
+    //TODO yeet this?
     "let" <mutable:"mut"?> <sym:Ident> "=" <bnd:ExprLogicalOr> ";" => Expr::Let { sym, mutable: mutable.is_some(), bnd: Box::new(bnd), bdy: Box::new(Expr::Lit { val: Lit::Unit }) },
     "let" <mutable:"mut"?> <sym:Ident> "=" <bnd:ExprLogicalOr> ";" <bdy:ExprStmt> => Expr::Let { sym, mutable: mutable.is_some(), bnd: Box::new(bnd), bdy: Box::new(bdy) },
     <stmt:ExprInStmt> ";" => Expr::Seq { stmt: Box::new(stmt), cnt: Box::new(Expr::Lit { val: Lit::Unit }) },
@@ -105,7 +106,7 @@ ExprStmt: Expr<&'input str> = {
 }
 
 ExprInStmt: Expr<&'input str> = {
-    <sym:Ident> "=" <bnd:ExprLogicalOr> => Expr::Assign { sym, bnd: Box::new(bnd), bdy: Box::new(Expr::Lit { val: Lit::Unit }) },
+    <sym:Ident> "=" <bnd:ExprLogicalOr> => Expr::Assign { sym, bnd: Box::new(bnd) },
     "if" <cnd:ExprLogicalOr> "{" <thn:Expr> "}" "else" "{" <els:Expr> "}" => Expr::If { cnd: Box::new(cnd), thn: Box::new(thn), els: Box::new(els) },
     "loop" "{" <bdy:Expr> "}" => Expr::Loop { bdy: Box::new(bdy) },
     "break" <bdy:ExprLogicalOr?> => Expr::Break { bdy: bdy.map(Box::new) },

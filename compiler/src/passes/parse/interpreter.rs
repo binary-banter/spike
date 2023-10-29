@@ -49,7 +49,7 @@ impl<A: Copy + Hash + Eq + Debug + Display> PrgGenericVar<A> {
     ) -> Val<A> {
         match &self.defs[&sym] {
             Def::Fn { params, bdy, .. } => scope.push_iter(
-                params.iter().zip(args.iter()).map(|((k, _), v)| (*k, *v)),
+                params.iter().zip(args.iter()).map(|(param, v)| (param.sym, *v)),
                 |scope| self.interpret_expr(bdy, scope, io).val(),
             ),
         }
@@ -157,9 +157,9 @@ impl<A: Copy + Hash + Eq + Debug + Display> PrgGenericVar<A> {
             },
             Expr::Let {
                 sym,
-                mutable,
                 bnd,
                 bdy,
+                ..
             } => {
                 let bnd = b!(self.interpret_expr(bnd, scope, io));
                 b!(scope.push(*sym, bnd, |scope| self.interpret_expr(bdy, scope, io)))
@@ -191,8 +191,15 @@ impl<A: Copy + Hash + Eq + Debug + Display> PrgGenericVar<A> {
                     None => Val::Unit,
                 })
             }
-            Expr::Seq { .. } => todo!(),
-            Expr::Assign { .. } => todo!(),
+            Expr::Seq { stmt, cnt } => {
+                b!(self.interpret_expr(stmt, scope, io));
+                b!(self.interpret_expr(cnt, scope, io))
+            },
+            Expr::Assign { sym, bnd } => {
+                let bnd = b!(self.interpret_expr(bnd, scope, io));
+                scope.0.insert(*sym, bnd);
+                Val::Unit
+            },
         })
     }
 }

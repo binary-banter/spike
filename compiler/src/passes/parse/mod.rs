@@ -25,10 +25,17 @@ pub struct PrgGenericVar<A: Copy + Hash + Eq> {
 pub enum Def<A: Copy + Hash + Eq, B> {
     Fn {
         sym: A,
-        params: Vec<(A, Type)>,
+        params: Vec<Param<A>>,
         typ: Type,
         bdy: B,
     },
+}
+
+#[derive(Debug, PartialEq)]
+pub struct Param<A: Copy + Hash + Eq> {
+    pub sym: A,
+    pub typ: Type,
+    pub mutable: bool,
 }
 
 #[derive(Debug, PartialEq)]
@@ -71,7 +78,6 @@ pub enum Expr<A: Copy + Hash + Eq> {
     Assign {
         sym: A,
         bnd: Box<Expr<A>>,
-        bdy: Box<Expr<A>>,
     },
 }
 

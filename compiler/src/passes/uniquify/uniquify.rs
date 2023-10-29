@@ -1,4 +1,4 @@
-use crate::passes::parse::{Def, Expr};
+use crate::passes::parse::{Def, Expr, Param};
 use crate::passes::type_check::PrgTypeChecked;
 use crate::passes::uniquify::PrgUniquified;
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
@@ -30,12 +30,11 @@ fn uniquify_def<'p>(
             typ,
             bdy,
         } => scope.push_iter(
-            params.iter().map(|(sym, _)| (*sym, gen_sym(sym))),
+            params.iter().map(|param| (param.sym, gen_sym(param.sym))),
             |scope| {
                 let params = params
                     .iter()
-                    .cloned()
-                    .map(|(p, t)| (scope[&p], t))
+                    .map(|param| Param { sym: scope[&param.sym], mutable: param.mutable, typ: param.typ.clone() })
                     .collect();
                 let bdy = uniquify_expression(bdy, scope);
                 Def::Fn {

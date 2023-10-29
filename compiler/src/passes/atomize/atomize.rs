@@ -1,6 +1,6 @@
 use crate::passes::atomize::{AExpr, Atom, PrgAtomized};
 use crate::passes::parse::{Def, Lit};
-use crate::passes::reveal_functions::{PrgRevealed, RDef, RExpr};
+use crate::passes::reveal_functions::{PrgRevealed, RExpr};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 
 impl<'p> PrgRevealed<'p> {
@@ -11,7 +11,7 @@ impl<'p> PrgRevealed<'p> {
                 .into_iter()
                 .map(|(sym, def)| {
                     let def = match def {
-                        RDef::Fn {
+                        Def::Fn {
                             sym,
                             params,
                             typ,

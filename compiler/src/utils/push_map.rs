@@ -5,7 +5,7 @@ use std::hash::Hash;
 use std::ops::Index;
 
 #[derive(Index)]
-pub struct PushMap<K: Hash + Eq + Clone, V>(HashMap<K, V>);
+pub struct PushMap<K: Hash + Eq + Clone, V>(pub HashMap<K, V>);
 
 impl<K: Hash + Eq + Clone, V> Default for PushMap<K, V> {
     fn default() -> Self {

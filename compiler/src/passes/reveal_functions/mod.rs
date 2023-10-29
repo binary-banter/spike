@@ -8,18 +8,8 @@ use std::collections::HashMap;
 
 #[derive(Debug, PartialEq)]
 pub struct PrgRevealed<'p> {
-    pub defs: HashMap<UniqueSym<'p>, RDef<'p>>,
+    pub defs: HashMap<UniqueSym<'p>, Def<UniqueSym<'p>, RExpr<'p>>>,
     pub entry: UniqueSym<'p>,
-}
-
-#[derive(Debug, PartialEq)]
-pub enum RDef<'p> {
-    Fn {
-        sym: UniqueSym<'p>,
-        params: Vec<(UniqueSym<'p>, Type)>,
-        typ: Type,
-        bdy: RExpr<'p>,
-    },
 }
 
 #[derive(Debug, PartialEq)]
@@ -73,10 +63,10 @@ impl<'p> From<PrgRevealed<'p>> for PrgUniquified<'p> {
 }
 
 //TODO also functor time?
-impl<'p> From<RDef<'p>> for Def<UniqueSym<'p>, Expr<UniqueSym<'p>>> {
-    fn from(value: RDef<'p>) -> Self {
+impl<'p> From<Def<UniqueSym<'p>, RExpr<'p>>> for Def<UniqueSym<'p>, Expr<UniqueSym<'p>>> {
+    fn from(value: Def<UniqueSym<'p>, RExpr<'p>>) -> Self {
         match value {
-            RDef::Fn {
+            Def::Fn {
                 sym,
                 params,
                 typ,

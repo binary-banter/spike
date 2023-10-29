@@ -11,7 +11,7 @@ impl<'p> PrgAtomized<'p> {
             .defs
             .iter()
             .map(|(fn_sym, def)| match def {
-                Def::Fn { params, .. } => (*fn_sym, params.iter().map(|(sym, _)| *sym).collect()),
+                Def::Fn { params, .. } => (*fn_sym, params.iter().map(|param| param.sym).collect()),
             })
             .collect();
 

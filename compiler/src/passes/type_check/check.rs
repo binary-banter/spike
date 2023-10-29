@@ -1,4 +1,4 @@
-use crate::passes::parse::{Def, Expr, Lit, Op, PrgParsed};
+use crate::passes::parse::{Def, Expr, Lit, Op, Param, PrgParsed};
 use crate::passes::type_check::check::TypeError::*;
 use crate::passes::type_check::PrgTypeChecked;
 use crate::passes::type_check::*;
@@ -29,16 +29,18 @@ pub enum TypeError {
     NoMain,
     #[error("Found a break outside of a loop.")]
     BreakOutsideLoop,
+    #[error("Tried to modify immutable variable 'var'")]
+    ModifyImmutable { sym: String },
 }
 
 struct Env<'a, 'p> {
-    scope: &'a mut PushMap<&'p str, Type>,
+    scope: &'a mut PushMap<&'p str, (bool, Type)>,
     loop_type: &'a mut Option<Type>,
     in_loop: bool,
 }
 
 impl<'a, 'p> Env<'a, 'p> {
-    pub fn push<O>(&mut self, k: &'p str, v: Type, sub: impl FnOnce(&mut Env<'_, 'p>) -> O) -> O {
+    pub fn push<O>(&mut self, k: &'p str, v: (bool, Type), sub: impl FnOnce(&mut Env<'_, 'p>) -> O) -> O {
         self.scope.push(k, v, |scope| {
             sub(&mut Env {
                 scope,
@@ -50,7 +52,7 @@ impl<'a, 'p> Env<'a, 'p> {
 
     pub fn push_iter<O>(
         &mut self,
-        iterator: impl Iterator<Item = (&'p str, Type)>,
+        iterator: impl Iterator<Item = (&'p str, (bool, Type))>,
         sub: impl FnOnce(&mut Env<'_, 'p>) -> O,
     ) -> O {
         self.scope.push_iter(iterator, |scope| {
@@ -82,7 +84,7 @@ impl<'p> PrgParsed<'p> {
                     ref bdy,
                     ref typ,
                 } => env
-                    .push_iter(params.iter().cloned(), |env| {
+                    .push_iter(params.iter().map(|p| (p.sym, (p.mutable, p.typ.clone()))), |env| {
                         expect_type(bdy, typ.clone(), env)
                     })
                     .map(|_| (sym, def)),
@@ -98,7 +100,7 @@ impl<'p> PrgParsed<'p> {
     }
 }
 
-fn uncover_fns<'p>(program: &PrgParsed<'p>) -> Result<PushMap<&'p str, Type>, TypeError> {
+fn uncover_fns<'p>(program: &PrgParsed<'p>) -> Result<PushMap<&'p str, (bool, Type)>, TypeError> {
     let mut globals = HashMap::new();
 
     for def in &program.defs {
@@ -111,10 +113,10 @@ fn uncover_fns<'p>(program: &PrgParsed<'p>) -> Result<PushMap<&'p str, Type>, Ty
             } => {
                 let signature = Type::Fn {
                     typ: Box::new(typ.clone()),
-                    args: args.iter().map(|(_, t)| t.clone()).collect(),
+                    args: args.iter().map(|param| param.typ.clone()).collect(),
                 };
                 expect(
-                    globals.insert(*sym, signature).is_none(),
+                    globals.insert(*sym, (false, signature)).is_none(),
                     DuplicateFunction {
                         sym: sym.to_string(),
                     },
@@ -122,7 +124,7 @@ fn uncover_fns<'p>(program: &PrgParsed<'p>) -> Result<PushMap<&'p str, Type>, Ty
 
                 let mut arg_syms = HashSet::new();
                 expect(
-                    args.iter().all(|(sym, _)| arg_syms.insert(sym)),
+                    args.iter().all(|param| arg_syms.insert(param.sym)),
                     DuplicateArg {
                         sym: sym.to_string(),
                     },
@@ -141,8 +143,8 @@ fn type_check_expr<'p>(expr: &Expr<&'p str>, env: &mut Env<'_, 'p>) -> Result<Ty
             Lit::Bool { .. } => Ok(Type::Bool),
             Lit::Unit => Ok(Type::Unit),
         },
-        Expr::Var { sym } => env.scope.get(sym).cloned().ok_or(UndeclaredVar {
-            sym: (*sym).to_string(),
+        Expr::Var { sym } => env.scope.get(sym).map(|(_, t)| t).cloned().ok_or(UndeclaredVar {
+            sym: sym.to_string(),
         }),
         Expr::Prim { op, args } => match (op, args.as_slice()) {
             (Op::Plus | Op::Minus | Op::Mul | Op::Mod | Op::Div, [e1, e2]) => {
@@ -187,7 +189,7 @@ fn type_check_expr<'p>(expr: &Expr<&'p str>, env: &mut Env<'_, 'p>) -> Result<Ty
             bdy,
         } => {
             let t = type_check_expr(bnd, env)?;
-            env.push(sym, t, |env| type_check_expr(bdy, env))
+            env.push(sym, (*mutable, t), |env| type_check_expr(bdy, env))
         }
         Expr::If { cnd, thn, els } => {
             expect_type(cnd, Type::Bool, env)?;
@@ -245,8 +247,18 @@ fn type_check_expr<'p>(expr: &Expr<&'p str>, env: &mut Env<'_, 'p>) -> Result<Ty
 
             Ok(Type::Never)
         }
-        Expr::Seq { .. } => todo!(),
-        Expr::Assign { .. } => todo!(),
+        Expr::Seq { stmt, cnt } => {
+            type_check_expr(stmt, env)?;
+            type_check_expr(cnt, env)
+        },
+        Expr::Assign { sym, bnd } => {
+            let (mutable, typ) = env.scope.get(sym).cloned().ok_or(UndeclaredVar {
+                sym: sym.to_string(),
+            })?;
+            expect(mutable, ModifyImmutable { sym: sym.to_string() })?;
+            expect_type(bnd, typ, env)?;
+            Ok(Type::Unit)
+        },
     }
 }
 
