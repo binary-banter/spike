@@ -35,8 +35,8 @@ impl<'p> LX86VarProgram<'p> {
                         // In case a variable is only read but never written to, we still need to add it to the graph
                         (VarArg::XVar { sym }, ReadWriteOp::Read) => {
                             graph.add_node(LArg::Var { sym: *sym });
-                            return
-                        },
+                            return;
+                        }
                         _ => return,
                     };
 

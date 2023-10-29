@@ -267,9 +267,11 @@ fn explicate_pred<'p>(
         }
         AExpr::Loop { .. } => {
             let tmp = gen_sym("tmp");
-            let cnd_ = AExpr::Atom { atm: Atom::Var { sym: tmp }};
+            let cnd_ = AExpr::Atom {
+                atm: Atom::Var { sym: tmp },
+            };
             explicate_assign(tmp, cnd, explicate_pred(cnd_, thn, els, env), env)
-        },
+        }
         AExpr::Seq { stmt, cnt } => explicate_assign(
             gen_sym("ignore"),
             *stmt,
