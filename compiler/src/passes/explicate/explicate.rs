@@ -39,8 +39,6 @@ fn explicate_def<'p>(
     }
 }
 
-// if read() > 100 { let x = break 100; unit } else { unit }
-
 fn explicate_tail<'p>(expr: AExpr<'p>, blocks: &mut HashMap<UniqueSym<'p>, Tail<'p>>) -> Tail<'p> {
     match expr {
         AExpr::Atom { atm } => Tail::Return {
@@ -66,6 +64,8 @@ fn explicate_tail<'p>(expr: AExpr<'p>, blocks: &mut HashMap<UniqueSym<'p>, Tail<
         },
         AExpr::Loop { .. } => todo!(),
         AExpr::Break { .. } => todo!(),
+        AExpr::Seq { .. } => todo!(),
+        AExpr::Assign { .. } => todo!(),
     }
 }
 
@@ -125,6 +125,8 @@ fn explicate_assign<'p>(
         }
         AExpr::Loop { .. } => todo!(),
         AExpr::Break { .. } => todo!(),
+        AExpr::Seq { .. } => todo!(),
+        AExpr::Assign { .. } => todo!(),
     }
 }
 
@@ -256,6 +258,8 @@ fn explicate_pred<'p>(
         } => todo!(),
         AExpr::Loop { .. } => todo!(),
         AExpr::Break { .. } => todo!(),
+        AExpr::Seq { .. } => todo!(),
+        AExpr::Assign { .. } => todo!(),
     }
 }
 

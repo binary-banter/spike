@@ -106,8 +106,14 @@ fn atomize_expr(expr: RExpr) -> AExpr {
                     bdy: Box::new(bdy),
                 })
         }
-        RExpr::Seq { .. } => todo!(),
-        RExpr::Assign { .. } => todo!(),
+        RExpr::Seq { stmt, cnt } => AExpr::Seq {
+            stmt: Box::new(atomize_expr(*stmt)),
+            cnt: Box::new(atomize_expr(*cnt)),
+        },
+        RExpr::Assign { sym, bnd } => AExpr::Assign {
+            sym,
+            bnd: Box::new(atomize_expr(*bnd)),
+        },
     }
 }
 
