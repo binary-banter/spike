@@ -282,11 +282,8 @@ fn explicate_pred<'p>(
         AExpr::FunRef { .. }
         | AExpr::Atom {
             atm: Atom::Val {
-                val: Lit::Int { .. },
+                val: Lit::Int { .. } | Lit::Unit,
             },
-        }
-        | AExpr::Atom {
-            atm: Atom::Val { val: Lit::Unit },
         }
         | AExpr::Assign { .. }
         | AExpr::Break { .. } => unreachable!(),
