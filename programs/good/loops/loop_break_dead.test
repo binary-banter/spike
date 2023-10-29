@@ -1,0 +1,9 @@
+##
+5
+#
+fn main() -> Int {
+    loop {
+        break 5;
+        print(3);
+    }
+}
