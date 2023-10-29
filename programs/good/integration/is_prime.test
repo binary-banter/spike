@@ -1,0 +1,35 @@
+2 3 4 5 6 7 8 9 10 11 12 13 0
+#
+1 1 0 1 0 1 0 0 0 1 0 1
+#
+unit
+#
+fn is_prime(n: Int) -> Bool {
+    let mut i = 2;
+    loop {
+        if i == n {
+            break true;
+        } else {
+            if n % i == 0 {
+                break false;
+            } else {
+                i = i + 1;
+            }
+        }
+    }
+}
+
+fn main() {
+    loop {
+        let n = read();
+        if n == 0 {
+            break;
+        } else {
+            if is_prime(n) {
+                print(1);
+            } else {
+                print(0);
+            }
+        }
+    }
+}

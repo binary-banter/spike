@@ -1,0 +1,8 @@
+##
+5
+#
+fn main() -> Int {
+    loop {
+        (let x = (break 5); 2) + print(3)
+    }
+}

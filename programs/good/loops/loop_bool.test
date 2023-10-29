@@ -1,0 +1,8 @@
+##
+5
+#
+fn main() -> Int {
+    loop {
+        break 5
+    }
+}

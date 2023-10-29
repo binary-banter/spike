@@ -1,6 +1,6 @@
 use crate::interpreter::value::Val;
-use crate::language::lvar::{Lit, PrgParsed};
-use crate::passes::parse::parse_program;
+use crate::passes::parse::parse::parse_program;
+use crate::passes::parse::{Lit, PrgParsed};
 use std::hash::Hash;
 
 pub fn split_test_raw(test: &str) -> (Vec<Lit>, Vec<Lit>, Lit, &str) {

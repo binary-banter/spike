@@ -10,3 +10,7 @@ members = [
 default-members = [
     "compiler"
 ]
+
+[profile.release]
+opt-level = 3
+lto = true

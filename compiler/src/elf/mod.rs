@@ -7,7 +7,6 @@ use std::io::Write;
 use std::mem::size_of;
 use zerocopy::AsBytes;
 
-#[allow(clippy::module_inception)]
 mod header;
 mod program;
 mod section;

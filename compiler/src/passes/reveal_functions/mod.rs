@@ -1,22 +1,14 @@
-use crate::language::lvar::{Def, Expr, Lit, Op, PrgUniquified};
-use crate::passes::type_check::Type;
-use crate::passes::uniquify::UniqueSym;
+pub mod reveal_functions;
+
+use crate::passes::parse::{Def, Expr, Lit, Op};
+use crate::passes::uniquify::PrgUniquified;
+use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
 
 #[derive(Debug, PartialEq)]
 pub struct PrgRevealed<'p> {
-    pub defs: HashMap<UniqueSym<'p>, RDef<'p>>,
+    pub defs: HashMap<UniqueSym<'p>, Def<UniqueSym<'p>, RExpr<'p>>>,
     pub entry: UniqueSym<'p>,
-}
-
-#[derive(Debug, PartialEq)]
-pub enum RDef<'p> {
-    Fn {
-        sym: UniqueSym<'p>,
-        params: Vec<(UniqueSym<'p>, Type)>,
-        typ: Type,
-        bdy: RExpr<'p>,
-    },
 }
 
 #[derive(Debug, PartialEq)]
@@ -48,6 +40,20 @@ pub enum RExpr<'p> {
         fun: Box<RExpr<'p>>,
         args: Vec<RExpr<'p>>,
     },
+    Loop {
+        bdy: Box<RExpr<'p>>,
+    },
+    Break {
+        bdy: Option<Box<RExpr<'p>>>,
+    },
+    Seq {
+        stmt: Box<RExpr<'p>>,
+        cnt: Box<RExpr<'p>>,
+    },
+    Assign {
+        sym: UniqueSym<'p>,
+        bnd: Box<RExpr<'p>>,
+    },
 }
 
 impl<'p> From<PrgRevealed<'p>> for PrgUniquified<'p> {
@@ -63,10 +69,11 @@ impl<'p> From<PrgRevealed<'p>> for PrgUniquified<'p> {
     }
 }
 
-impl<'p> From<RDef<'p>> for Def<UniqueSym<'p>> {
-    fn from(value: RDef<'p>) -> Self {
+//TODO also functor time?
+impl<'p> From<Def<UniqueSym<'p>, RExpr<'p>>> for Def<UniqueSym<'p>, Expr<UniqueSym<'p>>> {
+    fn from(value: Def<UniqueSym<'p>, RExpr<'p>>) -> Self {
         match value {
-            RDef::Fn {
+            Def::Fn {
                 sym,
                 params,
                 typ,
@@ -91,6 +98,7 @@ impl<'p> From<RExpr<'p>> for Expr<UniqueSym<'p>> {
             },
             RExpr::Let { sym, bnd, bdy } => Expr::Let {
                 sym,
+                mutable: true,
                 bnd: Box::new((*bnd).into()),
                 bdy: Box::new((*bdy).into()),
             },
@@ -104,6 +112,41 @@ impl<'p> From<RExpr<'p>> for Expr<UniqueSym<'p>> {
                 args: args.into_iter().map(Into::into).collect(),
             },
             RExpr::Var { sym } | RExpr::FunRef { sym } => Expr::Var { sym },
+            RExpr::Loop { bdy } => Expr::Loop {
+                bdy: Box::new((*bdy).into()),
+            },
+            RExpr::Break { bdy } => Expr::Break {
+                bdy: bdy.map(|bdy| Box::new((*bdy).into())),
+            },
+            RExpr::Seq { stmt, cnt } => Expr::Seq {
+                stmt: Box::new((*stmt).into()),
+                cnt: Box::new((*cnt).into()),
+            },
+            RExpr::Assign { sym, bnd } => Expr::Assign {
+                sym,
+                bnd: Box::new((*bnd).into()),
+            },
         }
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::interpreter::TestIO;
+    use crate::passes::uniquify::PrgUniquified;
+    use crate::utils::split_test::split_test;
+    use test_each_file::test_each_file;
+
+    fn reveal([test]: [&str; 1]) {
+        let (input, expected_output, expected_return, program) = split_test(test);
+        let uniquified_program: PrgUniquified =
+            program.type_check().unwrap().uniquify().reveal().into();
+        let mut io = TestIO::new(input);
+        let result = uniquified_program.interpret(&mut io);
+
+        assert_eq!(result, expected_return.into(), "Incorrect program result.");
+        assert_eq!(io.outputs(), &expected_output, "Incorrect program output.");
+    }
+
+    test_each_file! { for ["test"] in "./programs/good" as reveal => reveal }
 }

@@ -1,9 +1,11 @@
+use derive_more::Index;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::hash::Hash;
 use std::ops::Index;
 
-pub struct PushMap<K: Hash + Eq + Clone, V>(HashMap<K, V>);
+#[derive(Index)]
+pub struct PushMap<K: Hash + Eq + Clone, V>(pub HashMap<K, V>);
 
 impl<K: Hash + Eq + Clone, V> Default for PushMap<K, V> {
     fn default() -> Self {
@@ -30,10 +32,10 @@ impl<K: Hash + Eq + Clone + Debug, V> PushMap<K, V> {
         self.0.get(k)
     }
 
-    pub fn push<O>(&mut self, k: K, v: V, scope: impl FnOnce(&mut Self) -> O) -> O {
+    pub fn push<O>(&mut self, k: K, v: V, sub: impl FnOnce(&mut Self) -> O) -> O {
         let old = self.0.insert(k.clone(), v);
 
-        let o = scope(self);
+        let o = sub(self);
 
         if let Some(old) = old {
             self.0.insert(k, old);
@@ -61,13 +63,13 @@ impl<K: Hash + Eq + Clone + Debug, V> PushMap<K, V> {
     pub fn push_iter<O>(
         &mut self,
         iterator: impl Iterator<Item = (K, V)>,
-        scope: impl FnOnce(&mut Self) -> O,
+        sub: impl FnOnce(&mut Self) -> O,
     ) -> O {
         let old = iterator
             .map(|(k, v)| (k.clone(), self.0.insert(k, v)))
             .collect::<Vec<_>>();
 
-        let o = scope(self);
+        let o = sub(self);
 
         for (k, old) in old {
             if let Some(old) = old {
@@ -78,17 +80,5 @@ impl<K: Hash + Eq + Clone + Debug, V> PushMap<K, V> {
         }
 
         o
-    }
-}
-
-impl<K: Hash + Eq + Clone + Debug, V> Index<&K> for PushMap<K, V> {
-    type Output = V;
-
-    fn index(&self, index: &K) -> &Self::Output {
-        assert!(
-            self.0.contains_key(index),
-            "Expected to find {index:?} in push map."
-        );
-        &self.0[index]
     }
 }

@@ -1,12 +1,12 @@
 use crate::passes::select::io::Std;
-use crate::passes::uniquify::UniqueSym;
-use crate::{
-    addq, andq, callq_direct, callq_indirect, cmpq, divq, jcc, jmp, load_lbl, movq, mulq, negq,
-    notq, orq, popq, pushq, retq, setcc, subq, syscall, xorq,
-};
+use crate::utils::gen_sym::UniqueSym;
+use derive_more::Display;
+use functor_derive::Functor;
+use itertools::Itertools;
 use petgraph::graphmap::GraphMap;
 use petgraph::Undirected;
 use std::collections::{HashMap, HashSet};
+use std::fmt::Display;
 
 #[derive(Debug, PartialEq)]
 pub struct X86Concluded<'p> {
@@ -31,7 +31,11 @@ pub struct X86Assigned<'p> {
     pub std: Std<'p>,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Display)]
+#[display(
+    fmt = "{}",
+    r#"blocks.iter().map(|(sym, block)| format!("{sym}:\n{block}")).format("\n")"#
+)]
 pub struct X86Selected<'p> {
     pub blocks: HashMap<UniqueSym<'p>, Block<'p, VarArg<'p>>>,
     pub entry: UniqueSym<'p>,
@@ -64,8 +68,9 @@ pub struct X86Colored<'p> {
 
 pub type InterferenceGraph<'p> = GraphMap<LArg<'p>, (), Undirected>;
 
-#[derive(Debug, PartialEq, Clone)]
-pub struct Block<'p, A> {
+#[derive(Debug, PartialEq, Clone, Display, Functor)]
+#[display(fmt = "\t{}", r#"instrs.iter().format("\n\t")"#)]
+pub struct Block<'p, A: Display> {
     pub instrs: Vec<Instr<'p, A>>,
 }
 
@@ -74,7 +79,7 @@ pub struct LBlock<'p> {
     pub instrs: Vec<(Instr<'p, VarArg<'p>>, HashSet<LArg<'p>>)>,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Display)]
 pub enum Cnd {
     Above,
     AboveOrEqual,
@@ -96,43 +101,71 @@ pub enum Cnd {
     Sign,
 }
 
-#[derive(Clone, Debug, PartialEq)]
-pub enum Instr<'p, A> {
+#[derive(Clone, Debug, PartialEq, Display, Functor)]
+pub enum Instr<'p, A: Display> {
+    #[display(fmt = "addq\t{src}\t{dst}")]
     Addq { src: A, dst: A },
+    #[display(fmt = "subq\t{src}\t{dst}")]
     Subq { src: A, dst: A },
+    #[display(fmt = "divq\t{divisor}")]
     Divq { divisor: A },
+    #[display(fmt = "mulq\t{src}")]
     Mulq { src: A },
+    #[display(fmt = "negq\t{dst}")]
     Negq { dst: A },
+    #[display(fmt = "movq\t{src}\t{dst}")]
     Movq { src: A, dst: A },
+    #[display(fmt = "pushq\t{src}")]
     Pushq { src: A },
+    #[display(fmt = "popq\t{dst}")]
     Popq { dst: A },
+    #[display(fmt = "retq")]
     Retq,
+    #[display(fmt = "syscall\t// arity: {arity}")]
     Syscall { arity: usize },
+    #[display(fmt = "cmpq\t{src}\t{dst}")]
     Cmpq { src: A, dst: A },
+    #[display(fmt = "jmp\t{lbl}")]
     Jmp { lbl: UniqueSym<'p> },
+    #[display(fmt = "jcc\t{cnd}\t{lbl}")]
     Jcc { lbl: UniqueSym<'p>, cnd: Cnd },
+    #[display(fmt = "andq {src}\t{dst}")]
     Andq { src: A, dst: A },
+    #[display(fmt = "orq {src}\t{dst}")]
     Orq { src: A, dst: A },
+    #[display(fmt = "xorq\t{src}\t{dst}")]
     Xorq { src: A, dst: A },
+    #[display(fmt = "notq\t{dst}")]
     Notq { dst: A },
+    #[display(fmt = "setcc\t{cnd}")]
     Setcc { cnd: Cnd }, //TODO allow setting other byteregs
+    #[display(fmt = "loadlbl\t{sym}\t{dst}")]
     LoadLbl { sym: UniqueSym<'p>, dst: A },
+    #[display(fmt = "call_direct\t{lbl}\t// arity: {arity}")]
     CallqDirect { lbl: UniqueSym<'p>, arity: usize },
+    #[display(fmt = "call_indirect\t{src}\t// arity: {arity}")]
     CallqIndirect { src: A, arity: usize },
 }
 
-#[derive(Debug, PartialEq, Clone, Copy, Hash, Eq)]
+#[derive(Debug, PartialEq, Clone, Copy, Hash, Eq, Display)]
 pub enum VarArg<'p> {
+    #[display(fmt = "${val}")]
     Imm { val: i64 },
+    #[display(fmt = "%{reg}")]
     Reg { reg: Reg },
+    #[display(fmt = "[%{reg} + ${off}]")]
     Deref { reg: Reg, off: i64 },
+    #[display(fmt = "{sym}")]
     XVar { sym: UniqueSym<'p> },
 }
 
-#[derive(Debug, PartialEq, Copy, Clone, Hash, Eq)]
+#[derive(Debug, PartialEq, Copy, Clone, Hash, Eq, Display)]
 pub enum Arg {
+    #[display(fmt = "${val}")]
     Imm { val: i64 },
+    #[display(fmt = "%{reg}")]
     Reg { reg: Reg },
+    #[display(fmt = "[%{reg} + ${off}]")]
     Deref { reg: Reg, off: i64 },
 }
 
@@ -187,7 +220,7 @@ pub const SYSCALL_REGS: [Reg; 7] = [
 /// caller-saved:   rax rcx rdx rsi rdi r8 r9 r10 r11
 /// callee-saved:   rsp rbp rbx r12 r13 r14 r15
 /// arg-passing:    rdi rsi rdx rcx r8 r9
-#[derive(Debug, PartialEq, Clone, Copy, Eq, Hash, Ord, PartialOrd)]
+#[derive(Debug, PartialEq, Clone, Copy, Eq, Hash, Ord, PartialOrd, Display)]
 #[allow(clippy::upper_case_acronyms)]
 pub enum Reg {
     RSP,
@@ -211,11 +244,7 @@ pub enum Reg {
 impl<'p> From<X86Concluded<'p>> for X86Selected<'p> {
     fn from(value: X86Concluded<'p>) -> Self {
         X86Selected {
-            blocks: value
-                .blocks
-                .into_iter()
-                .map(|(n, b)| (n, b.into()))
-                .collect(),
+            blocks: value.blocks.fmap(|v| v.fmap(Into::into)),
             entry: value.entry,
             std: value.std,
         }
@@ -225,11 +254,7 @@ impl<'p> From<X86Concluded<'p>> for X86Selected<'p> {
 impl<'p> From<X86Patched<'p>> for X86Selected<'p> {
     fn from(value: X86Patched<'p>) -> Self {
         X86Selected {
-            blocks: value
-                .blocks
-                .into_iter()
-                .map(|(n, b)| (n, b.into()))
-                .collect(),
+            blocks: value.blocks.fmap(|v| v.fmap(Into::into)),
             entry: value.entry,
             std: value.std,
         }
@@ -239,21 +264,9 @@ impl<'p> From<X86Patched<'p>> for X86Selected<'p> {
 impl<'p> From<X86Assigned<'p>> for X86Selected<'p> {
     fn from(value: X86Assigned<'p>) -> Self {
         X86Selected {
-            blocks: value
-                .blocks
-                .into_iter()
-                .map(|(n, b)| (n, b.into()))
-                .collect(),
+            blocks: value.blocks.fmap(|v| v.fmap(Into::into)),
             entry: value.entry,
             std: value.std,
-        }
-    }
-}
-
-impl<'p> From<Block<'p, Arg>> for Block<'p, VarArg<'p>> {
-    fn from(value: Block<'p, Arg>) -> Self {
-        Block {
-            instrs: value.instrs.into_iter().map(From::from).collect(),
         }
     }
 }
@@ -262,34 +275,6 @@ impl<'p> From<LBlock<'p>> for Block<'p, VarArg<'p>> {
     fn from(value: LBlock<'p>) -> Self {
         Block {
             instrs: value.instrs.into_iter().map(|(instr, _)| instr).collect(),
-        }
-    }
-}
-
-impl<'p> From<Instr<'p, Arg>> for Instr<'p, VarArg<'p>> {
-    fn from(value: Instr<'p, Arg>) -> Self {
-        match value {
-            Instr::Addq { src, dst } => addq!(src.into(), dst.into()),
-            Instr::Subq { src, dst } => subq!(src.into(), dst.into()),
-            Instr::Negq { dst } => negq!(dst.into()),
-            Instr::Movq { src, dst } => movq!(src.into(), dst.into()),
-            Instr::Pushq { src } => pushq!(src.into()),
-            Instr::Popq { dst } => popq!(dst.into()),
-            Instr::CallqDirect { lbl, arity } => callq_direct!(lbl, arity),
-            Instr::Retq => retq!(),
-            Instr::Jmp { lbl } => jmp!(lbl),
-            Instr::Syscall { arity } => syscall!(arity),
-            Instr::Divq { divisor } => divq!(divisor.into()),
-            Instr::Jcc { lbl, cnd } => jcc!(lbl, cnd),
-            Instr::Mulq { src } => mulq!(src.into()),
-            Instr::Cmpq { src, dst } => cmpq!(src.into(), dst.into()),
-            Instr::Andq { src, dst } => andq!(src.into(), dst.into()),
-            Instr::Orq { src, dst } => orq!(src.into(), dst.into()),
-            Instr::Xorq { src, dst } => xorq!(src.into(), dst.into()),
-            Instr::Notq { dst } => notq!(dst.into()),
-            Instr::Setcc { cnd } => setcc!(cnd),
-            Instr::LoadLbl { sym, dst } => load_lbl!(sym, dst.into()),
-            Instr::CallqIndirect { src, arity } => callq_indirect!(src.into(), arity),
         }
     }
 }

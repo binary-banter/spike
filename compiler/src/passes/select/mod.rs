@@ -5,14 +5,14 @@
 
 pub mod io;
 
-use crate::language::alvar::Atom;
-use crate::language::cvar::{CExpr, PrgExplicated, Tail};
-use crate::language::lvar::Op;
 use crate::language::x86var::{
     Block, Cnd, Instr, VarArg, X86Selected, ARG_PASSING_REGS, CALLEE_SAVED_NO_STACK,
 };
+use crate::passes::atomize::Atom;
+use crate::passes::explicate::{CExpr, PrgExplicated, Tail};
+use crate::passes::parse::Op;
 use crate::passes::select::io::Std;
-use crate::passes::uniquify::{gen_sym, UniqueSym};
+use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use crate::*;
 use std::collections::HashMap;
 
@@ -200,7 +200,7 @@ fn select_cmp(op: Op) -> Cnd {
 #[cfg(test)]
 mod tests {
     use crate::interpreter::TestIO;
-    use crate::passes::uniquify::gen_sym;
+    use crate::utils::gen_sym::gen_sym;
     use crate::utils::split_test::split_test;
     use crate::{block, callq_direct, movq, reg};
     use test_each_file::test_each_file;

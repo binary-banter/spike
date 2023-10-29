@@ -5,4 +5,5 @@ edition = "2021"
 authors = ["joooooooonaaaaa", "juuuuuuuuuuuuuuuuuuliaaaaaaaaaa"]
 
 [dependencies]
-lalrpop = "0.20.1"
+lalrpop = "0.20"
+

@@ -1,11 +1,12 @@
 use crate::interpreter::IO;
-use crate::language::lvar::Lit;
 use crate::language::x86var::{
     Block, Cnd, Instr, Reg, VarArg, X86Concluded, X86Selected, CALLEE_SAVED, CALLER_SAVED,
 };
-use crate::passes::uniquify::UniqueSym;
+use crate::passes::parse::Lit;
+use crate::utils::gen_sym::UniqueSym;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::fmt::Debug;
 use std::mem;
 use zerocopy::AsBytes;
 
@@ -61,7 +62,7 @@ impl<'p> X86Concluded<'p> {
                 .blocks
                 .clone()
                 .into_iter()
-                .map(|(sym, block)| (sym, block.into()))
+                .map(|(sym, block)| (sym, block.fmap(Into::into)))
                 .collect(),
             io,
             regs,

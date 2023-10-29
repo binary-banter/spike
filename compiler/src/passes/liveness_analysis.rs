@@ -2,7 +2,7 @@ use crate::language::x86var::{
     Block, Instr, LArg, LBlock, LX86VarProgram, Reg, VarArg, X86Selected, ARG_PASSING_REGS,
     CALLER_SAVED, SYSCALL_REGS,
 };
-use crate::passes::uniquify::UniqueSym;
+use crate::utils::gen_sym::UniqueSym;
 
 use std::collections::{HashMap, HashSet};
 

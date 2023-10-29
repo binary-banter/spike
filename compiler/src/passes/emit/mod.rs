@@ -16,7 +16,7 @@ use crate::passes::emit::mul_div::{encode_muldiv_instr, MulDivOpInfo};
 use crate::passes::emit::push_pop::{encode_push_pop, POPQ_INFO, PUSHQ_INFO};
 use crate::passes::emit::special::encode_setcc;
 use crate::passes::emit::unary::{encode_unary_instr, CALLQ_INDIRECT_INFO, NEGQ_INFO};
-use crate::passes::uniquify::UniqueSym;
+use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
 
 impl<'p> X86Concluded<'p> {

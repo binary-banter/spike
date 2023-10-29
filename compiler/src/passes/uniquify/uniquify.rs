@@ -1,16 +1,10 @@
-//! This pass deals with the shadowing of variables by renaming every variable to a unique name.
-//! The names need to be globally unique, not just in their scope.
-//! This is useful because in later passes we will be changing the structure of the program,
-//! and after selecting instructions we will only have a list of X86 instructions left.
-
-use crate::language::lvar::{Def, Expr, PrgTypeChecked, PrgUniquified};
+use crate::passes::parse::{Def, Expr, Param};
+use crate::passes::type_check::PrgTypeChecked;
+use crate::passes::uniquify::PrgUniquified;
+use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use crate::utils::push_map::PushMap;
-use std::sync::atomic::{AtomicUsize, Ordering};
-
-static COUNT: AtomicUsize = AtomicUsize::new(0);
 
 impl<'p> PrgTypeChecked<'p> {
-    /// See module-level documentation.
     pub fn uniquify(self) -> PrgUniquified<'p> {
         let mut scope = PushMap::from_iter(self.defs.iter().map(|(&sym, _)| (sym, gen_sym(sym))));
 
@@ -26,9 +20,9 @@ impl<'p> PrgTypeChecked<'p> {
 }
 
 fn uniquify_def<'p>(
-    def: Def<&'p str>,
+    def: Def<&'p str, Expr<&'p str>>,
     scope: &mut PushMap<&'p str, UniqueSym<'p>>,
-) -> Def<UniqueSym<'p>> {
+) -> Def<UniqueSym<'p>, Expr<UniqueSym<'p>>> {
     match def {
         Def::Fn {
             sym,
@@ -36,12 +30,15 @@ fn uniquify_def<'p>(
             typ,
             bdy,
         } => scope.push_iter(
-            params.iter().map(|(sym, _)| (*sym, gen_sym(sym))),
+            params.iter().map(|param| (param.sym, gen_sym(param.sym))),
             |scope| {
                 let params = params
                     .iter()
-                    .cloned()
-                    .map(|(p, t)| (scope[&p], t))
+                    .map(|param| Param {
+                        sym: scope[&param.sym],
+                        mutable: param.mutable,
+                        typ: param.typ.clone(),
+                    })
                     .collect();
                 let bdy = uniquify_expression(bdy, scope);
                 Def::Fn {
@@ -69,13 +66,19 @@ fn uniquify_expression<'p>(
                 .map(|arg| uniquify_expression(arg, scope))
                 .collect(),
         },
-        Expr::Let { sym, bnd, bdy } => {
+        Expr::Let {
+            sym,
+            mutable,
+            bnd,
+            bdy,
+        } => {
             let unique_bnd = uniquify_expression(*bnd, scope);
             let unique_sym = gen_sym(sym);
             let unique_bdy = scope.push(sym, unique_sym, |scope| uniquify_expression(*bdy, scope));
 
             Expr::Let {
                 sym: unique_sym,
+                mutable,
                 bnd: Box::new(unique_bnd),
                 bdy: Box::new(unique_bdy),
             }
@@ -92,37 +95,19 @@ fn uniquify_expression<'p>(
                 .map(|arg| uniquify_expression(arg, scope))
                 .collect(),
         },
+        Expr::Loop { bdy } => Expr::Loop {
+            bdy: Box::new(uniquify_expression(*bdy, scope)),
+        },
+        Expr::Break { bdy } => Expr::Break {
+            bdy: bdy.map(|bdy| Box::new(uniquify_expression(*bdy, scope))),
+        },
+        Expr::Seq { stmt, cnt } => Expr::Seq {
+            stmt: Box::new(uniquify_expression(*stmt, scope)),
+            cnt: Box::new(uniquify_expression(*cnt, scope)),
+        },
+        Expr::Assign { sym, bnd } => Expr::Assign {
+            sym: scope[sym],
+            bnd: Box::new(uniquify_expression(*bnd, scope)),
+        },
     }
-}
-
-#[derive(Copy, Clone, Eq, PartialEq, Debug, Hash, Ord, PartialOrd)]
-pub struct UniqueSym<'p> {
-    pub sym: &'p str,
-    pub id: usize,
-}
-
-pub fn gen_sym(sym: &str) -> UniqueSym<'_> {
-    UniqueSym {
-        sym,
-        id: COUNT.fetch_add(1, Ordering::Relaxed),
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::interpreter::TestIO;
-    use crate::utils::split_test::split_test;
-    use test_each_file::test_each_file;
-
-    fn unique([test]: [&str; 1]) {
-        let (input, expected_output, expected_return, program) = split_test(test);
-        let uniquified_program = program.type_check().unwrap().uniquify();
-        let mut io = TestIO::new(input);
-        let result = uniquified_program.interpret(&mut io);
-
-        assert_eq!(result, expected_return.into(), "Incorrect program result.");
-        assert_eq!(io.outputs(), &expected_output, "Incorrect program output.");
-    }
-
-    test_each_file! { for ["test"] in "./programs/good" as uniquify => unique }
 }

@@ -4,7 +4,7 @@
 //! Note that we will refer to the body of the `PX86Program` program as the 'core' block.
 
 use crate::language::x86var::{X86Concluded, X86Patched};
-use crate::passes::uniquify::gen_sym;
+use crate::utils::gen_sym::gen_sym;
 use crate::{addq, block, callq_direct, imm, movq, popq, pushq, reg, subq};
 
 impl<'p> X86Patched<'p> {

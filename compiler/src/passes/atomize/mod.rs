@@ -1,22 +1,14 @@
-use crate::language::lvar::{Def, Expr, Lit, Op, PrgUniquified};
-use crate::passes::type_check::Type;
-use crate::passes::uniquify::UniqueSym;
+pub mod atomize;
+
+use crate::passes::parse::{Def, Expr, Lit, Op};
+use crate::passes::uniquify::PrgUniquified;
+use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
 
 #[derive(Debug, PartialEq)]
 pub struct PrgAtomized<'p> {
-    pub defs: HashMap<UniqueSym<'p>, ADef<'p>>,
+    pub defs: HashMap<UniqueSym<'p>, Def<UniqueSym<'p>, AExpr<'p>>>,
     pub entry: UniqueSym<'p>,
-}
-
-#[derive(Debug, PartialEq)]
-pub enum ADef<'p> {
-    Fn {
-        sym: UniqueSym<'p>,
-        params: Vec<(UniqueSym<'p>, Type)>,
-        typ: Type,
-        bdy: AExpr<'p>,
-    },
 }
 
 #[derive(Debug, PartialEq)]
@@ -39,11 +31,25 @@ pub enum AExpr<'p> {
         els: Box<AExpr<'p>>,
     },
     Apply {
-        fun: Box<Atom<'p>>,
+        fun: Atom<'p>,
         args: Vec<Atom<'p>>,
     },
     FunRef {
         sym: UniqueSym<'p>,
+    },
+    Loop {
+        bdy: Box<AExpr<'p>>,
+    },
+    Break {
+        bdy: Box<AExpr<'p>>,
+    },
+    Seq {
+        stmt: Box<AExpr<'p>>,
+        cnt: Box<AExpr<'p>>,
+    },
+    Assign {
+        sym: UniqueSym<'p>,
+        bnd: Box<AExpr<'p>>,
     },
 }
 
@@ -66,10 +72,11 @@ impl<'p> From<PrgAtomized<'p>> for PrgUniquified<'p> {
     }
 }
 
-impl<'p> From<ADef<'p>> for Def<UniqueSym<'p>> {
-    fn from(value: ADef<'p>) -> Self {
+// TODO functor time
+impl<'p> From<Def<UniqueSym<'p>, AExpr<'p>>> for Def<UniqueSym<'p>, Expr<UniqueSym<'p>>> {
+    fn from(value: Def<UniqueSym<'p>, AExpr<'p>>) -> Self {
         match value {
-            ADef::Fn {
+            Def::Fn {
                 sym,
                 params,
                 typ,
@@ -94,6 +101,7 @@ impl<'p> From<AExpr<'p>> for Expr<UniqueSym<'p>> {
             },
             AExpr::Let { sym, bnd, bdy } => Expr::Let {
                 sym,
+                mutable: true,
                 bnd: Box::new((*bnd).into()),
                 bdy: Box::new((*bdy).into()),
             },
@@ -103,10 +111,24 @@ impl<'p> From<AExpr<'p>> for Expr<UniqueSym<'p>> {
                 els: Box::new((*els).into()),
             },
             AExpr::Apply { fun, args } => Expr::Apply {
-                fun: Box::new((*fun).into()),
+                fun: Box::new(fun.into()),
                 args: args.into_iter().map(Into::into).collect(),
             },
             AExpr::FunRef { sym } => Expr::Var { sym },
+            AExpr::Loop { bdy } => Expr::Loop {
+                bdy: Box::new((*bdy).into()),
+            },
+            AExpr::Break { bdy } => Expr::Break {
+                bdy: Some(Box::new((*bdy).into())),
+            },
+            AExpr::Seq { stmt, cnt } => Expr::Seq {
+                stmt: Box::new((*stmt).into()),
+                cnt: Box::new((*cnt).into()),
+            },
+            AExpr::Assign { sym, bnd } => Expr::Assign {
+                sym,
+                bnd: Box::new((*bnd).into()),
+            },
         }
     }
 }
@@ -118,4 +140,30 @@ impl<'p> From<Atom<'p>> for Expr<UniqueSym<'p>> {
             Atom::Var { sym } => Expr::Var { sym },
         }
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::interpreter::TestIO;
+    use crate::passes::parse::PrgGenericVar;
+    use crate::utils::split_test::split_test;
+    use test_each_file::test_each_file;
+
+    fn atomize([test]: [&str; 1]) {
+        let (input, expected_output, expected_return, program) = split_test(test);
+        let program: PrgGenericVar<_> = program
+            .type_check()
+            .unwrap()
+            .uniquify()
+            .reveal()
+            .atomize()
+            .into();
+        let mut io = TestIO::new(input);
+        let result = program.interpret(&mut io);
+
+        assert_eq!(result, expected_return.into(), "Incorrect program result.");
+        assert_eq!(io.outputs(), &expected_output, "Incorrect program output.");
+    }
+
+    test_each_file! { for ["test"] in "./programs/good" as atomize => atomize }
 }

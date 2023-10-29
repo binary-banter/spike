@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use crate::language::lvar::*;
+use crate::passes::parse::*;
 use crate::passes::parse::PrgParsed;
 use crate::passes::type_check::Type;
 
@@ -11,6 +11,9 @@ match {
     "let",
     "if",
     "else",
+    "loop",
+    "break",
+    "mut",
 
     // Structural tokens
     "(",
@@ -40,10 +43,13 @@ match {
     // Types
     "Int",
     "Bool",
+    "Unit",
+    "Never",
 
     // Literals
     "true",
     "false",
+    "unit",
     r"[0-9]+",
 
     // Logical operators
@@ -68,17 +74,19 @@ pub Program: PrgParsed<'input> = {
     <defs: Def*> => PrgParsed{ defs, entry: "main" }
 }
 
-Def: Def<&'input str> = Fn;
+Def: Def<&'input str, Expr<&'input str>> = Fn;
 
-Fn: Def<&'input str> = {
-    "fn" <sym:Ident> "(" <params:Comma<Param>> ")" "->" <typ:Type> "{" <bdy: Expr> "}" => Def::Fn { sym, params, typ, bdy }
+Fn: Def<&'input str, Expr<&'input str>> = {
+    "fn" <sym:Ident> "(" <params:Comma<Param>> ")" <typ:("->" <Type>)?> "{" <bdy: Expr> "}" => Def::Fn { sym, params, typ: typ.unwrap_or(Type::Unit), bdy }
 }
 
-Param = <Ident> ":" <Type>;
+Param: Param<&'input str> = <mutable:"mut"?> <sym:Ident> ":" <typ:Type> => Param { mutable: mutable.is_some(), sym, typ };
 
 Type: Type = {
     "Int" => Type::Int,
     "Bool" => Type::Bool,
+    "Unit" => Type::Unit,
+    "Never" => Type::Never,
 }
 
 BinaryOps<Op,Next>: Expr<&'input str> = {
@@ -89,8 +97,19 @@ BinaryOps<Op,Next>: Expr<&'input str> = {
 Expr = ExprStmt;
 
 ExprStmt: Expr<&'input str> = {
-    "let" <sym:Ident> "=" <bnd:ExprLogicalOr> ";" <bdy:ExprStmt> => Expr::Let { sym, bnd: Box::new(bnd), bdy: Box::new(bdy) },
+    //TODO yeet this?
+    "let" <mutable:"mut"?> <sym:Ident> "=" <bnd:ExprLogicalOr> ";" => Expr::Let { sym, mutable: mutable.is_some(), bnd: Box::new(bnd), bdy: Box::new(Expr::Lit { val: Lit::Unit }) },
+    "let" <mutable:"mut"?> <sym:Ident> "=" <bnd:ExprLogicalOr> ";" <bdy:ExprStmt> => Expr::Let { sym, mutable: mutable.is_some(), bnd: Box::new(bnd), bdy: Box::new(bdy) },
+    <stmt:ExprInStmt> ";" => Expr::Seq { stmt: Box::new(stmt), cnt: Box::new(Expr::Lit { val: Lit::Unit }) },
+    <stmt:ExprInStmt> ";" <cnt:ExprStmt> => Expr::Seq { stmt: Box::new(stmt), cnt: Box::new(cnt) },
+    ExprInStmt,
+}
+
+ExprInStmt: Expr<&'input str> = {
+    <sym:Ident> "=" <bnd:ExprLogicalOr> => Expr::Assign { sym, bnd: Box::new(bnd) },
     "if" <cnd:ExprLogicalOr> "{" <thn:Expr> "}" "else" "{" <els:Expr> "}" => Expr::If { cnd: Box::new(cnd), thn: Box::new(thn), els: Box::new(els) },
+    "loop" "{" <bdy:Expr> "}" => Expr::Loop { bdy: Box::new(bdy) },
+    "break" <bdy:ExprLogicalOr?> => Expr::Break { bdy: bdy.map(Box::new) },
     ExprLogicalOr,
 }
 
@@ -141,6 +160,7 @@ ExprCall: Expr<&'input str> = {
 ExprAtom: Expr<&'input str> = {
     Num => Expr::Lit{ val: Lit::Int { val: <> }},
     Bool => Expr::Lit { val: Lit::Bool { val: <> }},
+    "unit" => Expr::Lit { val: Lit::Unit },
     Ident => Expr::Var { sym: <> },
     "(" <Expr> ")",
 }

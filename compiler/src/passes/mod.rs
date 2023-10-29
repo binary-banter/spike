@@ -4,7 +4,7 @@ pub mod coloring_interference;
 pub mod compute_interference;
 pub mod conclude;
 pub mod emit;
-pub mod explicate_control;
+pub mod explicate;
 pub mod liveness_analysis;
 pub mod parse;
 pub mod patch_instructions;

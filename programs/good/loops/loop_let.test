@@ -1,0 +1,9 @@
+##
+42
+#
+fn main() -> Int {
+    loop {
+        let x = 42;
+        break x
+    }
+}
