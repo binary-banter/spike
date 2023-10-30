@@ -1,8 +1,5 @@
-//! This pass compiles `X86VarProgram`s  into `AX86Program`.
-//!
-//! This pass is responsible for assigning all the program variables to locations on the stack.
-
-use crate::language::x86var::{Arg, Block, Instr, VarArg, X86Assigned, X86Colored};
+use crate::passes::interference::{Arg, X86Assigned, X86Colored};
+use crate::passes::select::{Block, Instr, VarArg};
 use crate::utils::gen_sym::UniqueSym;
 use crate::{
     addq, andq, callq_direct, callq_indirect, cmpq, divq, jcc, jmp, load_lbl, movq, mulq, negq,
@@ -11,7 +8,7 @@ use crate::{
 use std::collections::HashMap;
 
 impl<'p> X86Colored<'p> {
-    /// See module-level documentation.
+    #[must_use]
     pub fn assign_homes(self) -> X86Assigned<'p> {
         X86Assigned {
             blocks: self
@@ -78,7 +75,7 @@ fn assign_instr<'p>(
 #[cfg(test)]
 mod tests {
     use crate::interpreter::TestIO;
-    use crate::language::x86var::X86Selected;
+    use crate::passes::select::X86Selected;
     use crate::utils::gen_sym::gen_sym;
     use crate::utils::split_test::split_test;
     use crate::{block, callq_direct, movq, reg};

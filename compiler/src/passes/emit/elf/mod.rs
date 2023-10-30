@@ -1,27 +1,26 @@
 #![allow(non_camel_case_types)]
 #![allow(clippy::upper_case_acronyms)]
 
-use crate::elf::header::ElfHeader;
-use crate::elf::program::ProgramHeader;
-use std::io::Write;
-use std::mem::size_of;
-use zerocopy::AsBytes;
-
 mod header;
 mod program;
 mod section;
 
+use crate::passes::emit::elf::header::ElfHeader;
+use crate::passes::emit::elf::program::ProgramHeader;
+use std::io::Write;
+use std::mem::size_of;
+use zerocopy::AsBytes;
+
 pub const PRG_OFFSET: usize = 0x0040_0000;
 
-#[repr(C, packed)]
-pub struct ElfFile<'a> {
+pub struct ElfFile {
     header: ElfHeader,
     p_headers: Vec<ProgramHeader>,
-    program: &'a [u8],
+    program: Vec<u8>,
 }
 
-impl<'a> ElfFile<'a> {
-    pub fn new(entry: usize, program: &'a [u8]) -> Self {
+impl ElfFile {
+    pub fn new(entry: usize, program: Vec<u8>) -> Self {
         let p_headers = vec![ProgramHeader::new(0x1000, program.len() as u64)];
 
         Self {
@@ -41,6 +40,6 @@ impl<'a> ElfFile<'a> {
             w.write_all(&[0]).unwrap();
         }
 
-        w.write_all(self.program).unwrap();
+        w.write_all(&self.program).unwrap();
     }
 }

@@ -1,4 +1,4 @@
-use crate::elf::PRG_OFFSET;
+use crate::passes::emit::elf::PRG_OFFSET;
 use bitflags::bitflags;
 use std::mem::size_of;
 use zerocopy::AsBytes;

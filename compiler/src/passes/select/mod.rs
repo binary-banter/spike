@@ -1,200 +1,165 @@
-//! This pass begins the work of translating from `CVarProgram` to `X86`.
-//! The target language `X86VarProgram` of this pass is a variant of x86 that still uses variables.
-//!
-//! Just like a `CVarProgram` program, a `X86VarProgram` consists of a list of blocks.
-
-pub mod io;
-
-use crate::language::x86var::{
-    Block, Cnd, Instr, VarArg, X86Selected, ARG_PASSING_REGS, CALLEE_SAVED_NO_STACK,
-};
-use crate::passes::atomize::Atom;
-use crate::passes::explicate::{CExpr, PrgExplicated, Tail};
-use crate::passes::parse::Op;
 use crate::passes::select::io::Std;
-use crate::utils::gen_sym::{gen_sym, UniqueSym};
-use crate::*;
+use crate::utils::gen_sym::UniqueSym;
+use derive_more::Display;
+use functor_derive::Functor;
+use itertools::Itertools;
 use std::collections::HashMap;
+use std::fmt::Display;
 
-impl<'p> PrgExplicated<'p> {
-    /// See module-level documentation.
-    pub fn select(self) -> X86Selected<'p> {
-        let mut blocks = HashMap::new();
-        let std = Std::new(&mut blocks);
+pub mod interpreter;
+pub mod io;
+pub mod macros;
+pub mod select;
 
-        blocks.extend(
-            self.blocks
-                .into_iter()
-                .map(|(sym, block)| (sym, select_block(sym, block, &std, &self.fn_params))),
-        );
-
-        X86Selected {
-            blocks,
-            entry: self.entry,
-            std,
-        }
-    }
+#[derive(Debug, PartialEq, Display)]
+#[display(
+    fmt = "{}",
+    r#"blocks.iter().map(|(sym, block)| format!("{sym}:\n{block}")).format("\n")"#
+)]
+pub struct X86Selected<'p> {
+    pub blocks: HashMap<UniqueSym<'p>, Block<'p, VarArg<'p>>>,
+    pub entry: UniqueSym<'p>,
+    pub std: Std<'p>,
 }
 
-fn select_block<'p>(
-    sym: UniqueSym<'p>,
-    tail: Tail<'p>,
-    std: &Std<'p>,
-    fn_params: &HashMap<UniqueSym<'p>, Vec<UniqueSym<'p>>>,
-) -> Block<'p, VarArg<'p>> {
-    let mut instrs = Vec::new();
-
-    if let Some(params) = fn_params.get(&sym) {
-        instrs.push(pushq!(reg!(RBP)));
-        instrs.push(movq!(reg!(RSP), reg!(RBP)));
-        for reg in CALLEE_SAVED_NO_STACK.into_iter() {
-            instrs.push(pushq!(VarArg::Reg { reg }));
-        }
-
-        for (reg, param) in ARG_PASSING_REGS.into_iter().zip(params.iter()) {
-            instrs.push(movq!(VarArg::Reg { reg }, VarArg::XVar { sym: *param }));
-        }
-        assert!(
-            params.len() <= 6,
-            "Argument passing to stack is not yet implemented."
-        );
-    }
-
-    select_tail(tail, &mut instrs, std);
-
-    Block { instrs }
+#[derive(Debug, PartialEq, Clone, Display, Functor)]
+#[display(fmt = "\t{}", r#"instrs.iter().format("\n\t")"#)]
+pub struct Block<'p, A: Display> {
+    pub instrs: Vec<Instr<'p, A>>,
 }
 
-fn select_tail<'p>(tail: Tail<'p>, instrs: &mut Vec<Instr<'p, VarArg<'p>>>, std: &Std<'p>) {
-    match tail {
-        Tail::Return { expr } => {
-            instrs.extend(select_assign(reg!(RAX), expr, std));
-
-            for reg in CALLEE_SAVED_NO_STACK.into_iter().rev() {
-                instrs.push(popq!(VarArg::Reg { reg }));
-            }
-            instrs.push(popq!(reg!(RBP)));
-
-            instrs.push(retq!());
-        }
-        Tail::Seq { sym, bnd, tail } => {
-            instrs.extend(select_assign(var!(sym), bnd, std));
-            select_tail(*tail, instrs, std);
-        }
-        Tail::IfStmt { cnd, thn, els } => match cnd {
-            CExpr::Prim { op, args } => {
-                let tmp = gen_sym("tmp");
-                instrs.extend(vec![
-                    movq!(select_atom(&args[0]), var!(tmp)),
-                    cmpq!(select_atom(&args[1]), var!(tmp)),
-                    jcc!(thn, select_cmp(op)),
-                    jmp!(els),
-                ])
-            }
-            _ => unreachable!(),
-        },
-        Tail::Goto { lbl } => {
-            instrs.push(jmp!(lbl));
-        }
-    }
+#[derive(Copy, Clone, Debug, PartialEq, Display)]
+pub enum Cnd {
+    Above,
+    AboveOrEqual,
+    Below,
+    BelowOrEqual,
+    Carry,
+    EQ,
+    GT,
+    GE,
+    LT,
+    LE,
+    NotCarry,
+    NE,
+    NotOverflow,
+    NotSign,
+    Overflow,
+    ParityEven,
+    ParityOdd,
+    Sign,
 }
 
-fn select_assign<'p>(
-    dst: VarArg<'p>,
-    expr: CExpr<'p>,
-    std: &Std<'p>,
-) -> Vec<Instr<'p, VarArg<'p>>> {
-    match expr {
-        CExpr::Atom {
-            atm: Atom::Val { val },
-        } => vec![movq!(imm!(val), dst)],
-        CExpr::Atom {
-            atm: Atom::Var { sym },
-        } => vec![movq!(var!(sym), dst)],
-        CExpr::Prim { op, args } => match (op, args.as_slice()) {
-            (Op::Plus, [a0, a1]) => vec![movq!(select_atom(a0), dst), addq!(select_atom(a1), dst)],
-            (Op::Minus, [a0, a1]) => vec![movq!(select_atom(a0), dst), subq!(select_atom(a1), dst)],
-            (Op::Minus, [a0]) => vec![movq!(select_atom(a0), dst), negq!(dst)],
-            (Op::Mul, [a0, a1]) => vec![
-                movq!(select_atom(a1), reg!(RAX)),
-                movq!(select_atom(a0), reg!(RBX)),
-                mulq!(reg!(RBX)),
-                movq!(reg!(RAX), dst),
-            ],
-            (Op::Div, [a0, a1]) => vec![
-                movq!(imm!(0), reg!(RDX)),
-                movq!(select_atom(a0), reg!(RAX)),
-                movq!(select_atom(a1), reg!(RBX)),
-                divq!(reg!(RBX)),
-                movq!(reg!(RAX), dst),
-            ],
-            (Op::Mod, [a0, a1]) => vec![
-                movq!(imm!(0), reg!(RDX)),
-                movq!(select_atom(a0), reg!(RAX)),
-                movq!(select_atom(a1), reg!(RBX)),
-                divq!(reg!(RBX)),
-                movq!(reg!(RDX), dst),
-            ],
-            (Op::Read, []) => {
-                vec![callq_direct!(std.read_int, 0), movq!(reg!(RAX), dst)]
-            }
-            (Op::Print, [a0]) => vec![
-                movq!(select_atom(a0), reg!(RDI)),
-                callq_direct!(std.print_int, 1),
-                movq!(select_atom(a0), dst),
-            ],
-            (Op::LAnd, [a0, a1]) => vec![movq!(select_atom(a0), dst), andq!(select_atom(a1), dst)],
-            (Op::LOr, [a0, a1]) => vec![movq!(select_atom(a0), dst), orq!(select_atom(a1), dst)],
-            (Op::Not, [a0]) => vec![movq!(select_atom(a0), dst), xorq!(imm!(1), dst)],
-            (Op::Xor, [a0, a1]) => vec![movq!(select_atom(a0), dst), xorq!(select_atom(a1), dst)],
-            (op @ (Op::GT | Op::GE | Op::EQ | Op::LE | Op::LT | Op::NE), [a0, a1]) => {
-                let tmp = gen_sym("tmp");
-                vec![
-                    movq!(select_atom(a0), var!(tmp)),
-                    cmpq!(select_atom(a1), var!(tmp)),
-                    movq!(imm!(0), reg!(RAX)),
-                    setcc!(select_cmp(op)),
-                    movq!(reg!(RAX), dst),
-                ]
-            }
-            _ => panic!("Encountered Prim with incorrect arity during select instructions pass."),
-        },
-        CExpr::FunRef { sym } => vec![load_lbl!(sym, dst)],
-        CExpr::Apply { fun, args } => {
-            let mut instrs = vec![];
-
-            for (arg, reg) in args.iter().zip(ARG_PASSING_REGS.into_iter()) {
-                instrs.push(movq!(select_atom(arg), VarArg::Reg { reg }));
-            }
-            assert!(
-                args.len() <= 6,
-                "Argument passing to stack is not yet implemented."
-            );
-
-            instrs.push(callq_indirect!(select_atom(&fun), args.len()));
-            instrs.push(movq!(reg!(RAX), dst));
-            instrs
-        }
-    }
+#[derive(Clone, Debug, PartialEq, Display, Functor)]
+pub enum Instr<'p, A: Display> {
+    #[display(fmt = "addq\t{src}\t{dst}")]
+    Addq { src: A, dst: A },
+    #[display(fmt = "subq\t{src}\t{dst}")]
+    Subq { src: A, dst: A },
+    #[display(fmt = "divq\t{divisor}")]
+    Divq { divisor: A },
+    #[display(fmt = "mulq\t{src}")]
+    Mulq { src: A },
+    #[display(fmt = "negq\t{dst}")]
+    Negq { dst: A },
+    #[display(fmt = "movq\t{src}\t{dst}")]
+    Movq { src: A, dst: A },
+    #[display(fmt = "pushq\t{src}")]
+    Pushq { src: A },
+    #[display(fmt = "popq\t{dst}")]
+    Popq { dst: A },
+    #[display(fmt = "retq")]
+    Retq,
+    #[display(fmt = "syscall\t// arity: {arity}")]
+    Syscall { arity: usize },
+    #[display(fmt = "cmpq\t{src}\t{dst}")]
+    Cmpq { src: A, dst: A },
+    #[display(fmt = "jmp\t{lbl}")]
+    Jmp { lbl: UniqueSym<'p> },
+    #[display(fmt = "jcc\t{cnd}\t{lbl}")]
+    Jcc { lbl: UniqueSym<'p>, cnd: Cnd },
+    #[display(fmt = "andq {src}\t{dst}")]
+    Andq { src: A, dst: A },
+    #[display(fmt = "orq {src}\t{dst}")]
+    Orq { src: A, dst: A },
+    #[display(fmt = "xorq\t{src}\t{dst}")]
+    Xorq { src: A, dst: A },
+    #[display(fmt = "notq\t{dst}")]
+    Notq { dst: A },
+    #[display(fmt = "setcc\t{cnd}")]
+    Setcc { cnd: Cnd }, //TODO allow setting other byteregs
+    #[display(fmt = "loadlbl\t{sym}\t{dst}")]
+    LoadLbl { sym: UniqueSym<'p>, dst: A },
+    #[display(fmt = "call_direct\t{lbl}\t// arity: {arity}")]
+    CallqDirect { lbl: UniqueSym<'p>, arity: usize },
+    #[display(fmt = "call_indirect\t{src}\t// arity: {arity}")]
+    CallqIndirect { src: A, arity: usize },
 }
 
-fn select_atom<'p>(expr: &Atom<'p>) -> VarArg<'p> {
-    match expr {
-        Atom::Val { val } => imm!(*val),
-        Atom::Var { sym } => var!(*sym),
-    }
+#[derive(Debug, PartialEq, Clone, Copy, Hash, Eq, Display)]
+pub enum VarArg<'p> {
+    #[display(fmt = "${val}")]
+    Imm { val: i64 },
+    #[display(fmt = "%{reg}")]
+    Reg { reg: Reg },
+    #[display(fmt = "[%{reg} + ${off}]")]
+    Deref { reg: Reg, off: i64 },
+    #[display(fmt = "{sym}")]
+    XVar { sym: UniqueSym<'p> },
 }
 
-fn select_cmp(op: Op) -> Cnd {
-    match op {
-        Op::GT => Cnd::GT,
-        Op::GE => Cnd::GE,
-        Op::EQ => Cnd::EQ,
-        Op::LE => Cnd::LE,
-        Op::LT => Cnd::LT,
-        Op::NE => Cnd::NE,
-        _ => unreachable!(),
-    }
+pub const CALLER_SAVED: [Reg; 9] = [
+    Reg::RAX,
+    Reg::RCX,
+    Reg::RDX,
+    Reg::RSI,
+    Reg::RDI,
+    Reg::R8,
+    Reg::R9,
+    Reg::R10,
+    Reg::R11,
+];
+pub const CALLEE_SAVED: [Reg; 7] = [
+    Reg::RSP,
+    Reg::RBP,
+    Reg::RBX,
+    Reg::R12,
+    Reg::R13,
+    Reg::R14,
+    Reg::R15,
+];
+pub const CALLEE_SAVED_NO_STACK: [Reg; 5] = [Reg::RBX, Reg::R12, Reg::R13, Reg::R14, Reg::R15];
+
+pub const ARG_PASSING_REGS: [Reg; 6] = [Reg::RDI, Reg::RSI, Reg::RDX, Reg::RCX, Reg::R8, Reg::R9];
+pub const SYSCALL_REGS: [Reg; 7] = [
+    Reg::RAX,
+    Reg::RDI,
+    Reg::RSI,
+    Reg::RDX,
+    Reg::RCX,
+    Reg::R8,
+    Reg::R9,
+];
+
+#[derive(Debug, PartialEq, Clone, Copy, Eq, Hash, Ord, PartialOrd, Display)]
+#[allow(clippy::upper_case_acronyms)]
+pub enum Reg {
+    RSP,
+    RBP,
+    RAX,
+    RBX,
+    RCX,
+    RDX,
+    RSI,
+    RDI,
+    R8,
+    R9,
+    R10,
+    R11,
+    R12,
+    R13,
+    R14,
+    R15,
 }
 
 #[cfg(test)]

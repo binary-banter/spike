@@ -5,6 +5,7 @@ use crate::utils::gen_sym::UniqueSym;
 use crate::utils::push_map::PushMap;
 
 impl<'p> PrgUniquified<'p> {
+    #[must_use]
     pub fn reveal(self) -> PrgRevealed<'p> {
         let mut scope = PushMap::from_iter(self.defs.keys().map(|s| (*s, ())));
 
@@ -76,7 +77,7 @@ fn reveal_expr<'p>(expr: Expr<UniqueSym<'p>>, scope: &mut PushMap<UniqueSym<'p>,
             bdy: Box::new(reveal_expr(*bdy, scope)),
         },
         Expr::Break { bdy } => RExpr::Break {
-            bdy: bdy.map(|bdy| Box::new(reveal_expr(*bdy, scope))),
+            bdy: Box::new(reveal_expr(*bdy, scope)),
         },
         Expr::Seq { stmt, cnt } => RExpr::Seq {
             stmt: Box::new(reveal_expr(*stmt, scope)),
@@ -85,6 +86,10 @@ fn reveal_expr<'p>(expr: Expr<UniqueSym<'p>>, scope: &mut PushMap<UniqueSym<'p>,
         Expr::Assign { sym, bnd } => RExpr::Assign {
             sym,
             bnd: Box::new(reveal_expr(*bnd, scope)),
+        },
+        Expr::Continue => RExpr::Continue,
+        Expr::Return { bdy } => RExpr::Return {
+            bdy: Box::new(reveal_expr(*bdy, scope)),
         },
     }
 }

@@ -1,5 +1,5 @@
-use crate::elf::program::ProgramHeader;
-use crate::elf::section::SectionHeader;
+use crate::passes::emit::elf::program::ProgramHeader;
+use crate::passes::emit::elf::section::SectionHeader;
 use std::mem::size_of;
 use zerocopy::AsBytes;
 

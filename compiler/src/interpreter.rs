@@ -2,7 +2,63 @@ use crate::passes::parse::Lit;
 use derive_more::Display;
 use std::fmt::Display;
 use std::hash::Hash;
-use std::str::FromStr;
+use std::io::stdin;
+use std::vec::IntoIter;
+
+pub trait IO {
+    fn read(&mut self) -> Lit;
+    fn print(&mut self, v: Lit);
+}
+
+struct StdIO {}
+
+impl IO for StdIO {
+    fn read(&mut self) -> Lit {
+        print!("> ");
+        let mut input = String::new();
+        stdin()
+            .read_line(&mut input)
+            .expect("IO error or something");
+        input
+            .trim_end()
+            .parse()
+            .expect("Provided input was not a valid i64")
+    }
+
+    fn print(&mut self, v: Lit) {
+        println!("{v}");
+    }
+}
+
+pub struct TestIO {
+    inputs: IntoIter<Lit>,
+    outputs: Vec<Lit>,
+}
+
+impl TestIO {
+    pub fn new(inputs: Vec<Lit>) -> Self {
+        Self {
+            inputs: inputs.into_iter(),
+            outputs: Vec::new(),
+        }
+    }
+
+    pub fn outputs(&self) -> &Vec<Lit> {
+        &self.outputs
+    }
+}
+
+impl IO for TestIO {
+    fn read(&mut self) -> Lit {
+        self.inputs
+            .next()
+            .expect("Test tried to read more input than were available.")
+    }
+
+    fn print(&mut self, v: Lit) {
+        self.outputs.push(v);
+    }
+}
 
 #[derive(Eq, PartialEq, Copy, Clone, Debug, Display)]
 pub enum Val<A: Copy + Hash + Eq + Display> {
@@ -52,30 +108,5 @@ impl<A: Copy + Hash + Eq + Display> Val<A> {
             Val::Function { sym } => sym,
             Val::Unit => panic!(),
         }
-    }
-}
-
-impl From<Lit> for i64 {
-    fn from(value: Lit) -> Self {
-        match value {
-            Lit::Int { val } => val,
-            Lit::Bool { val } => val as i64,
-            Lit::Unit => 0,
-        }
-    }
-}
-
-impl FromStr for Lit {
-    type Err = ();
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(match s {
-            "false" => Lit::Bool { val: false },
-            "true" => Lit::Bool { val: true },
-            "unit" => Lit::Unit,
-            s => Lit::Int {
-                val: s.parse().map_err(|_| ())?,
-            },
-        })
     }
 }

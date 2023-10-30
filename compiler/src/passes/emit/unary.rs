@@ -1,6 +1,6 @@
-use crate::language::x86var::Arg;
 use crate::passes::emit;
-use crate::passes::emit::Reg;
+use crate::passes::interference::Arg;
+use crate::passes::select::Reg;
 
 pub struct UnaryOpInfo {
     pub op: u8,
@@ -47,7 +47,6 @@ pub fn encode_unary_instr(op_info: UnaryOpInfo, dst: &Arg) -> Vec<u8> {
 #[cfg(test)]
 mod tests {
     mod neg {
-        use crate::language::x86var::Reg;
         use crate::*;
 
         check!(nreg1, negq!(reg!(RSP)), vec![0x48, 0xF7, 0xDC]);

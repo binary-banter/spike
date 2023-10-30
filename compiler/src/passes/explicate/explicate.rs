@@ -8,14 +8,18 @@ struct Env<'a, 'p> {
     blocks: &'a mut HashMap<UniqueSym<'p>, Tail<'p>>,
     /// (block to jump to, variable to write to)
     break_target: Option<(UniqueSym<'p>, UniqueSym<'p>)>,
+    /// block to jump to
+    continue_target: Option<UniqueSym<'p>>,
 }
 
 impl<'p> PrgAtomized<'p> {
+    #[must_use]
     pub fn explicate(self) -> PrgExplicated<'p> {
         let mut blocks = HashMap::new();
         let mut env = Env {
             blocks: &mut blocks,
             break_target: None,
+            continue_target: None,
         };
 
         let fn_params = self
@@ -110,6 +114,7 @@ fn explicate_assign<'p>(
             let mut env = Env {
                 blocks: env.blocks,
                 break_target: Some((tail, sym)),
+                continue_target: Some(loop_block_sym),
             };
 
             let loop_block = explicate_assign(
@@ -152,6 +157,18 @@ fn explicate_assign<'p>(
             ),
             env,
         ),
+        AExpr::Continue => Tail::Goto {
+            lbl: env.continue_target.unwrap(),
+        },
+        AExpr::Return { bdy } => {
+            let tmp = gen_sym("return");
+            let tail = Tail::Return {
+                expr: CExpr::Atom {
+                    atm: Atom::Var { sym: tmp },
+                },
+            };
+            explicate_assign(tmp, *bdy, tail, env)
+        }
     }
 }
 
@@ -282,13 +299,12 @@ fn explicate_pred<'p>(
         AExpr::FunRef { .. }
         | AExpr::Atom {
             atm: Atom::Val {
-                val: Lit::Int { .. },
+                val: Lit::Int { .. } | Lit::Unit,
             },
         }
-        | AExpr::Atom {
-            atm: Atom::Val { val: Lit::Unit },
-        }
         | AExpr::Assign { .. }
-        | AExpr::Break { .. } => unreachable!(),
+        | AExpr::Break { .. }
+        | AExpr::Continue
+        | AExpr::Return { .. } => unreachable!(),
     }
 }

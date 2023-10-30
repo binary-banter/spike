@@ -1,12 +1,10 @@
-//! This pass compiles `AX86Program`s  into `PX86Program`.
-//!
-//! This pass makes sure that no instructions use more than one argument that is dereferenced.
-
-use crate::language::x86var::{Arg, Block, Instr, X86Assigned, X86Patched};
+use crate::passes::interference::{Arg, X86Assigned};
+use crate::passes::patch_instructions::X86Patched;
+use crate::passes::select::{Block, Instr};
 use crate::{addq, movq, reg, subq};
 
 impl<'p> X86Assigned<'p> {
-    /// See module-level documentation.
+    #[must_use]
     pub fn patch(self) -> X86Patched<'p> {
         X86Patched {
             blocks: self
@@ -50,7 +48,7 @@ fn patch_args<'p>(src: Arg, dst: Arg, op: fn(Arg, Arg) -> Instr<'p, Arg>) -> Vec
 #[cfg(test)]
 mod tests {
     use crate::interpreter::TestIO;
-    use crate::language::x86var::X86Selected;
+    use crate::passes::select::X86Selected;
     use crate::utils::gen_sym::gen_sym;
     use crate::utils::split_test::split_test;
     use crate::{block, callq_direct, movq, reg};

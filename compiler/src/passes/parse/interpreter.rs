@@ -1,4 +1,4 @@
-use crate::interpreter::value::Val;
+use crate::interpreter::Val;
 use crate::interpreter::IO;
 use crate::passes::parse::{Def, Expr, Lit, Op, PrgGenericVar};
 use crate::utils::push_map::PushMap;
@@ -9,23 +9,17 @@ use std::hash::Hash;
 pub enum ControlFlow<A: Copy + Hash + Eq + Display> {
     Val(Val<A>),
     Break(Val<A>),
+    Return(Val<A>),
+    Continue,
 }
 
-impl<A: Copy + Hash + Eq + Display> ControlFlow<A> {
-    pub fn val(self) -> Val<A> {
-        match self {
-            ControlFlow::Val(v) => v,
-            ControlFlow::Break(_) => panic!("Sterf"),
-        }
-    }
-}
-
+/// This macro unwraps values and bubbles up continues, breaks and returns.
 macro_rules! b {
     ($e: expr) => {{
         let e = $e;
         match e {
-            ControlFlow::Break(_) => return e,
-            ControlFlow::Val(x) => x,
+            ControlFlow::Val(val) => val,
+            ControlFlow::Break(_) | ControlFlow::Return(_) | ControlFlow::Continue => return e,
         }
     }};
 }
@@ -53,7 +47,10 @@ impl<A: Copy + Hash + Eq + Debug + Display> PrgGenericVar<A> {
                     .iter()
                     .zip(args.iter())
                     .map(|(param, v)| (param.sym, *v)),
-                |scope| self.interpret_expr(bdy, scope, io).val(),
+                |scope| match self.interpret_expr(bdy, scope, io) {
+                    ControlFlow::Return(val) | ControlFlow::Val(val) => val,
+                    ControlFlow::Continue | ControlFlow::Break(_) => unreachable!(),
+                },
             ),
         }
     }
@@ -171,23 +168,23 @@ impl<A: Copy + Hash + Eq + Debug + Display> PrgGenericVar<A> {
             }
             Expr::Apply { fun, args } => {
                 let sym = b!(self.interpret_expr(fun, scope, io)).fun();
-                let args = args
-                    .iter()
-                    .map(|arg| self.interpret_expr(arg, scope, io).val())
-                    .collect();
-                self.interpret_fn(sym, args, scope, io)
+
+                let mut fn_args = Vec::new();
+                for arg in args {
+                    fn_args.push(b!(self.interpret_expr(arg, scope, io)));
+                }
+
+                self.interpret_fn(sym, fn_args, scope, io)
             }
             Expr::Loop { bdy } => loop {
-                let x = self.interpret_expr(bdy, scope, io);
-                if let ControlFlow::Break(x) = x {
-                    return ControlFlow::Val(x);
+                match self.interpret_expr(bdy, scope, io) {
+                    ControlFlow::Return(val) => return ControlFlow::Return(val),
+                    ControlFlow::Break(val) => return ControlFlow::Val(val),
+                    ControlFlow::Continue | ControlFlow::Val(_) => {}
                 }
             },
             Expr::Break { bdy } => {
-                return ControlFlow::Break(match bdy {
-                    Some(bdy) => b!(self.interpret_expr(bdy, scope, io)),
-                    None => Val::Unit,
-                })
+                return ControlFlow::Break(b!(self.interpret_expr(bdy, scope, io)))
             }
             Expr::Seq { stmt, cnt } => {
                 b!(self.interpret_expr(stmt, scope, io));
@@ -197,6 +194,10 @@ impl<A: Copy + Hash + Eq + Debug + Display> PrgGenericVar<A> {
                 let bnd = b!(self.interpret_expr(bnd, scope, io));
                 scope.0.insert(*sym, bnd);
                 Val::Unit
+            }
+            Expr::Continue => return ControlFlow::Continue,
+            Expr::Return { bdy } => {
+                return ControlFlow::Return(b!(self.interpret_expr(bdy, scope, io)))
             }
         })
     }

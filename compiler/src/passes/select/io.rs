@@ -1,5 +1,5 @@
-use crate::language::x86var::Reg;
-use crate::language::x86var::{Block, Cnd, VarArg};
+use crate::passes::select::Cnd;
+use crate::passes::select::{Block, VarArg};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use crate::{
     addq, block, cmpq, deref, divq, imm, jcc, jmp, movq, mulq, negq, popq, pushq, reg, retq, subq,
@@ -7,7 +7,7 @@ use crate::{
 };
 use std::collections::HashMap;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Std<'p> {
     pub exit: UniqueSym<'p>,
     pub print_int: UniqueSym<'p>,

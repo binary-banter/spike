@@ -1,27 +1,28 @@
-//! This code will assemble the instructions into a sequence of bytes (machine code).
-
 mod binary;
+pub mod elf;
 mod mul_div;
 mod push_pop;
 mod special;
 mod unary;
 
-use crate::elf::PRG_OFFSET;
 use crate::imm;
-use crate::language::x86var::{Arg, Block, Cnd, Instr, Reg, X86Concluded};
+use crate::passes::conclude::X86Concluded;
 use crate::passes::emit::binary::{
     encode_binary_instr, ADDQ_INFO, ANDQ_INFO, CMPQ_INFO, MOVQ_INFO, ORQ_INFO, SUBQ_INFO, XORQ_INFO,
 };
+use crate::passes::emit::elf::{ElfFile, PRG_OFFSET};
 use crate::passes::emit::mul_div::{encode_muldiv_instr, MulDivOpInfo};
 use crate::passes::emit::push_pop::{encode_push_pop, POPQ_INFO, PUSHQ_INFO};
 use crate::passes::emit::special::encode_setcc;
 use crate::passes::emit::unary::{encode_unary_instr, CALLQ_INDIRECT_INFO, NEGQ_INFO};
+use crate::passes::interference::Arg;
+use crate::passes::select::{Block, Cnd, Instr, Reg};
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
 
 impl<'p> X86Concluded<'p> {
-    //! See module-level documentation.
-    pub fn emit(self) -> (usize, Vec<u8>) {
+    #[must_use]
+    pub fn emit(self) -> ElfFile {
         let mut machine_code = Vec::new();
 
         let mut rel_jumps = HashMap::new();
@@ -47,7 +48,7 @@ impl<'p> X86Concluded<'p> {
             machine_code[addr..addr + 4].copy_from_slice(&target.to_le_bytes());
         }
 
-        (addresses[&self.entry], machine_code)
+        ElfFile::new(addresses[&self.entry], machine_code)
     }
 }
 
@@ -92,7 +93,7 @@ fn emit_instr<'p>(
         }
         Instr::Jcc { lbl, cnd } => {
             rel_jumps.insert(machine_code.len() + 2, *lbl);
-            vec![0x0F, encode_cnd(cnd), 0x00, 0x00, 0x00, 0x00]
+            vec![0x0F, encode_cnd(*cnd), 0x00, 0x00, 0x00, 0x00]
         }
         Instr::Retq => vec![0xC3],
         Instr::Syscall { .. } => vec![0x0F, 0x05],
@@ -140,7 +141,7 @@ fn encode_reg(reg: &Reg) -> (u8, u8) {
     }
 }
 
-fn encode_cnd(cnd: &Cnd) -> u8 {
+fn encode_cnd(cnd: Cnd) -> u8 {
     match cnd {
         Cnd::Above => 0x87,
         Cnd::AboveOrEqual | Cnd::NotCarry => 0x83,

@@ -1,4 +1,4 @@
-use crate::interpreter::value::Val;
+use crate::interpreter::Val;
 use crate::interpreter::IO;
 use crate::passes::atomize::Atom;
 use crate::passes::explicate::{CExpr, PrgExplicated, Tail};
@@ -31,17 +31,6 @@ impl<'p> PrgExplicated<'p> {
                 }
             }
             Tail::Goto { lbl } => self.interpret_tail(&self.blocks[lbl], scope, io),
-        }
-    }
-
-    pub fn interpret_atom(
-        &self,
-        atom: &Atom<'p>,
-        scope: &PushMap<UniqueSym<'p>, Val<UniqueSym<'p>>>,
-    ) -> Val<UniqueSym<'p>> {
-        match atom {
-            Atom::Val { val } => (*val).into(),
-            Atom::Var { sym } => scope[sym],
         }
     }
 
@@ -157,6 +146,18 @@ impl<'p> PrgExplicated<'p> {
                     self.interpret_tail(&self.blocks[&fn_sym], scope, io)
                 })
             }
+        }
+    }
+
+    #[must_use]
+    pub fn interpret_atom(
+        &self,
+        atom: &Atom<'p>,
+        scope: &PushMap<UniqueSym<'p>, Val<UniqueSym<'p>>>,
+    ) -> Val<UniqueSym<'p>> {
+        match atom {
+            Atom::Val { val } => (*val).into(),
+            Atom::Var { sym } => scope[sym],
         }
     }
 }

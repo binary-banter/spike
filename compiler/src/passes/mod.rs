@@ -1,11 +1,8 @@
-pub mod assign_homes;
 pub mod atomize;
-pub mod coloring_interference;
-pub mod compute_interference;
 pub mod conclude;
 pub mod emit;
 pub mod explicate;
-pub mod liveness_analysis;
+pub mod interference;
 pub mod parse;
 pub mod patch_instructions;
 pub mod reveal_functions;

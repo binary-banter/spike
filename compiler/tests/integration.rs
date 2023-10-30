@@ -1,6 +1,5 @@
 #![cfg(unix)]
 
-use compiler::elf::ElfFile;
 use compiler::passes::parse::Lit;
 use compiler::utils::split_test::split_test;
 use std::fs::OpenOptions;
@@ -16,7 +15,15 @@ fn integration([test]: [&str; 1]) {
     let (input, expected_output, expected_return, program) = split_test(test);
     let expected_return: i64 = expected_return.into();
 
-    let (entry, program) = program
+    let input_path = tempdir.path().join("output");
+    let mut output = OpenOptions::new()
+        .write(true)
+        .create(true)
+        .mode(0o777)
+        .open(&input_path)
+        .unwrap();
+
+    program
         .type_check()
         .unwrap()
         .uniquify()
@@ -30,18 +37,9 @@ fn integration([test]: [&str; 1]) {
         .assign_homes()
         .patch()
         .conclude()
-        .emit();
+        .emit()
+        .write(&mut output);
 
-    let input_path = tempdir.path().join("output");
-    let mut output = OpenOptions::new()
-        .write(true)
-        .create(true)
-        .mode(0o777)
-        .open(&input_path)
-        .unwrap();
-
-    let elf = ElfFile::new(entry, &program);
-    elf.write(&mut output);
     drop(output);
 
     // Wait for file to be readable

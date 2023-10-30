@@ -1,0 +1,7 @@
+##
+42
+#
+fn main() -> Int {
+    let mut x = 2;
+    x + (x = 40; x)
+}

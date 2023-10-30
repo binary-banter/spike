@@ -1,14 +1,10 @@
-//! This pass compiles `PX86Program`s  into `X86Program`.
-//!
-//! This pass generates the entry and exit point for the program wrapped around the body of the `PX86Program` program.
-//! Note that we will refer to the body of the `PX86Program` program as the 'core' block.
-
-use crate::language::x86var::{X86Concluded, X86Patched};
+use crate::passes::conclude::X86Concluded;
+use crate::passes::patch_instructions::X86Patched;
 use crate::utils::gen_sym::gen_sym;
-use crate::{addq, block, callq_direct, imm, movq, popq, pushq, reg, subq};
+use crate::*;
 
 impl<'p> X86Patched<'p> {
-    /// See module-level documentation.
+    #[must_use]
     pub fn conclude(mut self) -> X86Concluded<'p> {
         let entry = gen_sym("main");
         self.blocks.insert(
@@ -36,7 +32,7 @@ impl<'p> X86Patched<'p> {
 #[cfg(test)]
 mod tests {
     use crate::interpreter::TestIO;
-    use crate::language::x86var::X86Selected;
+    use crate::passes::select::X86Selected;
     use crate::utils::split_test::split_test;
     use test_each_file::test_each_file;
 

@@ -1,4 +1,4 @@
-use crate::interpreter::value::Val;
+use crate::interpreter::Val;
 use crate::passes::parse::parse::parse_program;
 use crate::passes::parse::{Lit, PrgParsed};
 use std::hash::Hash;
@@ -27,6 +27,7 @@ pub fn split_test_raw(test: &str) -> (Vec<Lit>, Vec<Lit>, Lit, &str) {
     (input, expected_output, expected_return, program)
 }
 
+#[must_use]
 pub fn split_test(test: &str) -> (Vec<Lit>, Vec<Lit>, Lit, PrgParsed) {
     let (input, expected_output, expected_return, program) = split_test_raw(test);
     let program = parse_program(program).unwrap();

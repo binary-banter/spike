@@ -1,5 +1,5 @@
-use crate::language::x86var::Arg;
 use crate::passes::emit;
+use crate::passes::interference::Arg;
 
 pub struct PushPopInfo {
     pub op_reg: u8,
@@ -63,7 +63,6 @@ pub fn encode_push_pop(op_info: PushPopInfo, reg: &Arg) -> Vec<u8> {
 
 #[cfg(test)]
 mod tests {
-    use crate::language::x86var::Reg;
     use crate::*;
 
     mod push {

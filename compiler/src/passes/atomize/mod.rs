@@ -43,6 +43,7 @@ pub enum AExpr<'p> {
     Break {
         bdy: Box<AExpr<'p>>,
     },
+    Continue,
     Seq {
         stmt: Box<AExpr<'p>>,
         cnt: Box<AExpr<'p>>,
@@ -50,6 +51,9 @@ pub enum AExpr<'p> {
     Assign {
         sym: UniqueSym<'p>,
         bnd: Box<AExpr<'p>>,
+    },
+    Return {
+        bdy: Box<AExpr<'p>>,
     },
 }
 
@@ -119,7 +123,7 @@ impl<'p> From<AExpr<'p>> for Expr<UniqueSym<'p>> {
                 bdy: Box::new((*bdy).into()),
             },
             AExpr::Break { bdy } => Expr::Break {
-                bdy: Some(Box::new((*bdy).into())),
+                bdy: Box::new((*bdy).into()),
             },
             AExpr::Seq { stmt, cnt } => Expr::Seq {
                 stmt: Box::new((*stmt).into()),
@@ -128,6 +132,10 @@ impl<'p> From<AExpr<'p>> for Expr<UniqueSym<'p>> {
             AExpr::Assign { sym, bnd } => Expr::Assign {
                 sym,
                 bnd: Box::new((*bnd).into()),
+            },
+            AExpr::Continue => Expr::Continue,
+            AExpr::Return { bdy } => Expr::Return {
+                bdy: Box::new((*bdy).into()),
             },
         }
     }

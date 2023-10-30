@@ -1,9 +1,10 @@
 use crate::passes::atomize::{AExpr, Atom, PrgAtomized};
-use crate::passes::parse::{Def, Lit};
+use crate::passes::parse::Def;
 use crate::passes::reveal_functions::{PrgRevealed, RExpr};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 
 impl<'p> PrgRevealed<'p> {
+    #[must_use]
     pub fn atomize(self) -> PrgAtomized<'p> {
         PrgAtomized {
             defs: self
@@ -89,11 +90,7 @@ fn atomize_expr(expr: RExpr) -> AExpr {
             bdy: Box::new(atomize_expr(*bdy)),
         },
         RExpr::Break { bdy } => AExpr::Break {
-            bdy: bdy
-                .map(|bdy| Box::new(atomize_expr(*bdy)))
-                .unwrap_or(Box::new(AExpr::Atom {
-                    atm: Atom::Val { val: Lit::Unit },
-                })),
+            bdy: Box::new(atomize_expr(*bdy)),
         },
         RExpr::Seq { stmt, cnt } => AExpr::Seq {
             stmt: Box::new(atomize_expr(*stmt)),
@@ -103,24 +100,18 @@ fn atomize_expr(expr: RExpr) -> AExpr {
             sym,
             bnd: Box::new(atomize_expr(*bnd)),
         },
+        RExpr::Continue => AExpr::Continue,
+        RExpr::Return { bdy } => AExpr::Return {
+            bdy: Box::new(atomize_expr(*bdy)),
+        },
     }
 }
 
 fn atomize_atom(expr: RExpr) -> (Atom, Option<(UniqueSym, AExpr)>) {
-    match expr {
-        RExpr::Lit { val } => (Atom::Val { val }, None),
-        RExpr::Var { sym } => (Atom::Var { sym }, None),
-        RExpr::Prim { .. }
-        | RExpr::Let { .. }
-        | RExpr::If { .. }
-        | RExpr::Apply { .. }
-        | RExpr::FunRef { .. }
-        | RExpr::Loop { .. }
-        | RExpr::Break { .. }
-        | RExpr::Seq { .. }
-        | RExpr::Assign { .. } => {
-            let tmp = gen_sym("tmp");
-            (Atom::Var { sym: tmp }, Some((tmp, atomize_expr(expr))))
-        }
+    if let RExpr::Lit { val } = expr {
+        (Atom::Val { val }, None)
+    } else {
+        let tmp = gen_sym("tmp");
+        (Atom::Var { sym: tmp }, Some((tmp, atomize_expr(expr))))
     }
 }
