@@ -123,26 +123,15 @@ Type: Type = {
 Expr = ExprStmt;
 
 ExprStmt: Expr<&'input str> = {
-    // TODO yeet this?
-    "let" <mutable:"mut"?> <sym:Ident> "=" <bnd:ExprLogicalOr> ";" => Expr::Let {
+    "let" <mutable:"mut"?> <sym:Ident> "=" <bnd:ExprLogicalOr> ";" <bdy:ExprStmt?> => Expr::Let {
         sym,
         mutable: mutable.is_some(),
         bnd: Box::new(bnd),
-        bdy: Box::new(Expr::Lit { val: Lit::Unit }),
+        bdy: Box::new(bdy.unwrap_or(Expr::Lit { val: Lit::Unit })),
     },
-    "let" <mutable:"mut"?> <sym:Ident> "=" <bnd:ExprLogicalOr> ";" <bdy:ExprStmt> => Expr::Let {
-        sym,
-        mutable: mutable.is_some(),
-        bnd: Box::new(bnd),
-        bdy: Box::new(bdy),
-    },
-    <stmt:ExprInStmt> ";" => Expr::Seq {
+    <stmt:ExprInStmt> ";" <cnt:ExprStmt?> => Expr::Seq {
         stmt: Box::new(stmt),
-        cnt: Box::new(Expr::Lit { val: Lit::Unit }),
-    },
-    <stmt:ExprInStmt> ";" <cnt:ExprStmt> => Expr::Seq {
-        stmt: Box::new(stmt),
-        cnt: Box::new(cnt),
+        cnt: Box::new(cnt.unwrap_or(Expr::Lit { val: Lit::Unit })),
     },
     ExprInStmt,
 }
