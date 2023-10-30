@@ -157,6 +157,11 @@ ExprInStmt: Expr<&'input str> = {
         thn: Box::new(thn),
         els: Box::new(els),
     },
+    "if" <cnd:ExprLogicalOr> "{" <thn:Expr> "}" => Expr::If {
+        cnd: Box::new(cnd),
+        thn: Box::new(thn),
+        els: Box::new(Expr::Lit { val: Lit::Unit }),
+    },
     "loop" "{" <bdy:Expr> "}" => Expr::Loop {
         bdy: Box::new(bdy),
     },
