@@ -8,7 +8,6 @@ use std::os::unix::prelude::OpenOptionsExt;
 use std::process::{Command, Stdio};
 use tempdir::TempDir;
 use test_each_file::test_each_file;
-use compiler::passes::emit::elf::ElfFile;
 
 fn integration([test]: [&str; 1]) {
     let tempdir = TempDir::new("rust-compiler-construction-integration").unwrap();
@@ -16,7 +15,15 @@ fn integration([test]: [&str; 1]) {
     let (input, expected_output, expected_return, program) = split_test(test);
     let expected_return: i64 = expected_return.into();
 
-    let (entry, program) = program
+    let input_path = tempdir.path().join("output");
+    let mut output = OpenOptions::new()
+        .write(true)
+        .create(true)
+        .mode(0o777)
+        .open(&input_path)
+        .unwrap();
+
+    program
         .type_check()
         .unwrap()
         .uniquify()
@@ -30,18 +37,9 @@ fn integration([test]: [&str; 1]) {
         .assign_homes()
         .patch()
         .conclude()
-        .emit();
+        .emit()
+        .write(&mut output);
 
-    let input_path = tempdir.path().join("output");
-    let mut output = OpenOptions::new()
-        .write(true)
-        .create(true)
-        .mode(0o777)
-        .open(&input_path)
-        .unwrap();
-
-    let elf = ElfFile::new(entry, &program);
-    elf.write(&mut output);
     drop(output);
 
     // Wait for file to be readable

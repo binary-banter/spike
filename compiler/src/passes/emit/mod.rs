@@ -1,15 +1,16 @@
 mod binary;
+pub mod elf;
 mod mul_div;
 mod push_pop;
 mod special;
 mod unary;
-pub mod elf;
 
 use crate::imm;
 use crate::passes::conclude::X86Concluded;
 use crate::passes::emit::binary::{
     encode_binary_instr, ADDQ_INFO, ANDQ_INFO, CMPQ_INFO, MOVQ_INFO, ORQ_INFO, SUBQ_INFO, XORQ_INFO,
 };
+use crate::passes::emit::elf::{ElfFile, PRG_OFFSET};
 use crate::passes::emit::mul_div::{encode_muldiv_instr, MulDivOpInfo};
 use crate::passes::emit::push_pop::{encode_push_pop, POPQ_INFO, PUSHQ_INFO};
 use crate::passes::emit::special::encode_setcc;
@@ -18,11 +19,10 @@ use crate::passes::interference::Arg;
 use crate::passes::select::{Block, Cnd, Instr, Reg};
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
-use crate::passes::emit::elf::PRG_OFFSET;
 
 impl<'p> X86Concluded<'p> {
     #[must_use]
-    pub fn emit(self) -> (usize, Vec<u8>) {
+    pub fn emit(self) -> ElfFile {
         let mut machine_code = Vec::new();
 
         let mut rel_jumps = HashMap::new();
@@ -48,7 +48,7 @@ impl<'p> X86Concluded<'p> {
             machine_code[addr..addr + 4].copy_from_slice(&target.to_le_bytes());
         }
 
-        (addresses[&self.entry], machine_code)
+        ElfFile::new(addresses[&self.entry], machine_code)
     }
 }
 

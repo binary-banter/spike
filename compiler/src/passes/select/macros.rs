@@ -1,4 +1,3 @@
-
 #[macro_export]
 macro_rules! block {
         ($($instr:expr),*) => {
@@ -213,7 +212,7 @@ macro_rules! var {
 macro_rules! deref {
     ($reg:ident, $off:expr) => {
         $crate::passes::interference::Arg::Deref {
-            reg: crate::passes::select::Reg::$reg,
+            reg: $crate::passes::select::Reg::$reg,
             off: $off,
         }
         .into()
