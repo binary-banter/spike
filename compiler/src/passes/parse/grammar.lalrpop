@@ -17,6 +17,9 @@ match {
     "continue",
     "return",
     "mut",
+    "struct",
+    "enum",
+    "switch",
 
     // Structural tokens
     "(",
@@ -28,6 +31,9 @@ match {
     ";",
     ",",
     ":",
+    ".",
+    "::",
+    "=>",
 
     // Identifier
     r"[_a-zA-Z][_a-zA-Z0-9]*",
@@ -87,16 +93,20 @@ pub Program: PrgParsed<'input> = {
 }
 
 Def: Def<&'input str, Expr<&'input str>> = {
-    Fn,
-}
-
-Fn: Def<&'input str, Expr<&'input str>> = {
+    "struct" <sym:Ident> "{" <fields:Comma<(<Ident> ":" <Type>)>> "}" => Def::Struct {
+        sym,
+        fields,
+    },
+    "enum" <sym:Ident> "{" <variants:Comma<(<Ident> ":" <Type>)>> "}" => Def::Enum {
+        sym,
+        variants,
+    },
     "fn" <sym:Ident> "(" <params:Comma<Param>> ")" <typ:("->" <Type>)?> "{" <bdy: Expr> "}" => Def::Fn {
         sym,
         params,
         typ: typ.unwrap_or(Type::Unit),
         bdy
-    }
+    },
 }
 
 Param: Param<&'input str> = {
@@ -166,6 +176,9 @@ ExprInStmt: Expr<&'input str> = {
             }),
         }),
     },
+    "switch" <enm:ExprLogicalOr> "{" <arms:Comma<(<Ident> "(" <Ident> ")" "=>" <Expr> )>> "}"  => Expr::Switch {
+        enm, arms
+     },
     "break" <bdy:ExprLogicalOr?> => Expr::Break {
         bdy: Box::new(bdy.unwrap_or(Expr::Lit { val: Lit::Unit })),
     },
@@ -241,10 +254,19 @@ ExprCall: Expr<&'input str> = {
 }
 
 ExprAtom: Expr<&'input str> = {
-    Num => Expr::Lit{ val: Lit::Int { val: <> }},
-    Bool => Expr::Lit { val: Lit::Bool { val: <> }},
+    <val:Num> => Expr::Lit{ val: Lit::Int { val }},
+    <val:Bool> => Expr::Lit { val: Lit::Bool { val }},
     "unit" => Expr::Lit { val: Lit::Unit },
-    Ident => Expr::Var { sym: <> },
+    <sym:Ident> => Expr::Var { sym },
+    <sym:Ident> "{" <fields:Comma<(<Ident> ":" <Expr>)>> "}" => Expr::Struct {
+        sym,
+        fields,
+    },
+    <enum_sym:Ident> "::" <variant_sym:Ident> "(" <bdy:Expr> ")" => Expr::Variant {
+        enum_sym,
+        variant_sym,
+        bdy,
+    },
     "(" <Expr> ")",
 }
 

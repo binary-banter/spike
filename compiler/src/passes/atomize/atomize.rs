@@ -23,6 +23,8 @@ impl<'p> PrgRevealed<'p> {
                             typ,
                             bdy: atomize_expr(bdy),
                         },
+                        Def::Struct { .. } => todo!(),
+                        Def::Enum { .. } => todo!(),
                     };
                     (sym, def)
                 })

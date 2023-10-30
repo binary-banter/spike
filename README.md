@@ -38,7 +38,7 @@ cargo run -- input.jj -o output && ./output ; echo $?
 * [x] Lots, and lots, of refactoring!
 
 # Upcoming Language Features
-* [ ] Implement comments in code.
+* [x] Implement comments in code.
 * [ ] Algebraic Data Types (Enums and Structs).
 * [ ] First-class functions.
 
@@ -49,3 +49,5 @@ cargo run -- input.jj -o output && ./output ; echo $?
 
 # Lofty Goals
 * [ ] Make the compiler suggest hints.
+* [ ] Nested definitions.
+* [ ] Match statements.

@@ -26,6 +26,8 @@ impl<'p> PrgUniquified<'p> {
                             typ,
                             bdy: reveal_expr(bdy, &mut scope),
                         },
+                        Def::Struct { .. } => todo!(),
+                        Def::Enum { .. } => todo!(),
                     };
 
                     (sym, def)
@@ -91,5 +93,7 @@ fn reveal_expr<'p>(expr: Expr<UniqueSym<'p>>, scope: &mut PushMap<UniqueSym<'p>,
         Expr::Return { bdy } => RExpr::Return {
             bdy: Box::new(reveal_expr(*bdy, scope)),
         },
+        Expr::Struct { .. } => todo!(),
+        Expr::Variant { .. } => todo!(),
     }
 }

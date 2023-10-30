@@ -1,0 +1,24 @@
+#
+#
+unit
+#
+
+struct Sest {
+
+}
+
+enum Test {
+    Variant1 usize,
+    Variant2 bool,
+    Variant3 Test,
+}
+
+
+Test::Variant1(15)
+Test::Variant2(true)
+Test::Variant3(Sest { a: true, b: 18 })
+
+let x = Test::Variant1(true);
+Variant1 -> lol
+
+let y = Sest;

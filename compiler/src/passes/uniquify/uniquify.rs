@@ -50,6 +50,8 @@ fn uniquify_def<'p>(
                 }
             },
         ),
+        Def::Struct { .. } => todo!(),
+        Def::Enum { .. } => todo!(),
     }
 }
 
@@ -114,5 +116,7 @@ fn uniquify_expression<'p>(
         Expr::Return { bdy } => Expr::Return {
             bdy: Box::new(uniquify_expression(*bdy, scope)),
         },
+        Expr::Struct { .. } => todo!(),
+        Expr::Variant { .. } => todo!(),
     }
 }

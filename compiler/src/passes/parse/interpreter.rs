@@ -52,6 +52,8 @@ impl<A: Copy + Hash + Eq + Debug + Display> PrgGenericVar<A> {
                     ControlFlow::Continue | ControlFlow::Break(_) => unreachable!(),
                 },
             ),
+            Def::Struct { .. } => todo!(),
+            Def::Enum { .. } => todo!(),
         }
     }
 
@@ -199,6 +201,8 @@ impl<A: Copy + Hash + Eq + Debug + Display> PrgGenericVar<A> {
             Expr::Return { bdy } => {
                 return ControlFlow::Return(b!(self.interpret_expr(bdy, scope, io)))
             }
+            Expr::Struct { .. } => todo!(),
+            Expr::Variant { .. } => todo!(),
         })
     }
 }

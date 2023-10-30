@@ -91,6 +91,8 @@ impl<'p> From<Def<UniqueSym<'p>, AExpr<'p>>> for Def<UniqueSym<'p>, Expr<UniqueS
                 typ,
                 bdy: bdy.into(),
             },
+            Def::Struct { .. } => todo!(),
+            Def::Enum { .. } => todo!(),
         }
     }
 }

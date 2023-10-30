@@ -86,6 +86,8 @@ impl<'p> PrgParsed<'p> {
                         },
                     )
                     .map(|()| (sym, def)),
+                Def::Struct { .. } => todo!(),
+                Def::Enum { .. } => todo!(),
             })
             .collect::<Result<HashMap<_, _>, _>>()?;
 
@@ -129,6 +131,8 @@ fn uncover_fns<'p>(program: &PrgParsed<'p>) -> Result<PushMap<&'p str, (bool, Ty
                     },
                 )?;
             }
+            Def::Struct { .. } => todo!(),
+            Def::Enum { .. } => todo!(),
         }
     }
 
@@ -271,6 +275,8 @@ fn type_check_expr<'p>(expr: &Expr<&'p str>, env: &mut Env<'_, 'p>) -> Result<Ty
             expect_type(bdy, env.return_type.clone(), env)?;
             Ok(Type::Never)
         }
+        Expr::Struct { .. } => todo!(),
+        Expr::Variant { .. } => todo!(),
     }
 }
 

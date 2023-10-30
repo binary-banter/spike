@@ -88,6 +88,8 @@ impl<'p> From<Def<UniqueSym<'p>, RExpr<'p>>> for Def<UniqueSym<'p>, Expr<UniqueS
                 typ,
                 bdy: bdy.into(),
             },
+            Def::Struct { .. } => todo!(),
+            Def::Enum { .. } => todo!(),
         }
     }
 }
