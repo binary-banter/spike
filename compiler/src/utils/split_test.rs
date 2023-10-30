@@ -1,4 +1,4 @@
-use crate::interpreter::value::Val;
+use crate::interpreter::Val;
 use crate::passes::parse::parse::parse_program;
 use crate::passes::parse::{Lit, PrgParsed};
 use std::hash::Hash;

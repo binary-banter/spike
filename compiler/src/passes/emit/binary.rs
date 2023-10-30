@@ -1,5 +1,5 @@
-use crate::language::x86var::Arg;
 use crate::passes::emit::encode_reg;
+use crate::passes::interference::Arg;
 use crate::passes::select::Reg;
 
 pub struct BinaryOpInfo {

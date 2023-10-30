@@ -1,4 +1,4 @@
-use crate::interpreter::value::Val;
+use crate::interpreter::Val;
 use crate::interpreter::IO;
 use crate::passes::parse::{Def, Expr, Lit, Op, PrgGenericVar};
 use crate::utils::push_map::PushMap;

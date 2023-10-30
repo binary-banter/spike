@@ -1,11 +1,11 @@
 #![allow(non_camel_case_types)]
 #![allow(clippy::upper_case_acronyms)]
 
-use crate::elf::header::ElfHeader;
-use crate::elf::program::ProgramHeader;
 use std::io::Write;
 use std::mem::size_of;
 use zerocopy::AsBytes;
+use crate::passes::emit::elf::header::ElfHeader;
+use crate::passes::emit::elf::program::ProgramHeader;
 
 mod header;
 mod program;

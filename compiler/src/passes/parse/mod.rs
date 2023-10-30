@@ -8,6 +8,7 @@ use crate::passes::type_check::Type;
 use derive_more::Display;
 use std::collections::HashMap;
 use std::hash::Hash;
+use std::str::FromStr;
 
 #[derive(Debug, PartialEq)]
 pub struct PrgParsed<'p> {
@@ -130,6 +131,31 @@ impl Lit {
         } else {
             panic!()
         }
+    }
+}
+
+impl From<Lit> for i64 {
+    fn from(value: Lit) -> Self {
+        match value {
+            Lit::Int { val } => val,
+            Lit::Bool { val } => val as i64,
+            Lit::Unit => 0,
+        }
+    }
+}
+
+impl FromStr for Lit {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(match s {
+            "false" => Lit::Bool { val: false },
+            "true" => Lit::Bool { val: true },
+            "unit" => Lit::Unit,
+            s => Lit::Int {
+                val: s.parse().map_err(|_| ())?,
+            },
+        })
     }
 }
 

@@ -1,8 +1,8 @@
-use crate::language::x86var::{Arg, InterferenceGraph, LArg, X86Colored, X86WithInterference};
+use crate::passes::interference::{Arg, InterferenceGraph, LArg, X86Colored, X86WithInterference};
+use crate::passes::select::Reg;
 use crate::utils::gen_sym::UniqueSym;
 use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
-use crate::passes::select::Reg;
 
 impl<'p> X86WithInterference<'p> {
     #[must_use]

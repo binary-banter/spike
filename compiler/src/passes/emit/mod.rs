@@ -3,9 +3,10 @@ mod mul_div;
 mod push_pop;
 mod special;
 mod unary;
+pub mod elf;
 
-use crate::elf::PRG_OFFSET;
 use crate::imm;
+use crate::passes::conclude::X86Concluded;
 use crate::passes::emit::binary::{
     encode_binary_instr, ADDQ_INFO, ANDQ_INFO, CMPQ_INFO, MOVQ_INFO, ORQ_INFO, SUBQ_INFO, XORQ_INFO,
 };
@@ -13,10 +14,11 @@ use crate::passes::emit::mul_div::{encode_muldiv_instr, MulDivOpInfo};
 use crate::passes::emit::push_pop::{encode_push_pop, POPQ_INFO, PUSHQ_INFO};
 use crate::passes::emit::special::encode_setcc;
 use crate::passes::emit::unary::{encode_unary_instr, CALLQ_INDIRECT_INFO, NEGQ_INFO};
+use crate::passes::interference::Arg;
+use crate::passes::select::{Block, Cnd, Instr, Reg};
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
-use crate::language::x86var::{Arg, X86Concluded};
-use crate::passes::select::{Block, Cnd, Instr, Reg};
+use crate::passes::emit::elf::PRG_OFFSET;
 
 impl<'p> X86Concluded<'p> {
     #[must_use]

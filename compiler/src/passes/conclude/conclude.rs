@@ -1,6 +1,7 @@
-use crate::*;
-use crate::language::x86var::{X86Concluded, X86Patched};
+use crate::passes::conclude::X86Concluded;
+use crate::passes::patch_instructions::X86Patched;
 use crate::utils::gen_sym::gen_sym;
+use crate::*;
 
 impl<'p> X86Patched<'p> {
     #[must_use]
@@ -31,9 +32,9 @@ impl<'p> X86Patched<'p> {
 #[cfg(test)]
 mod tests {
     use crate::interpreter::TestIO;
+    use crate::passes::select::X86Selected;
     use crate::utils::split_test::split_test;
     use test_each_file::test_each_file;
-    use crate::passes::select::X86Selected;
 
     fn conclude([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);

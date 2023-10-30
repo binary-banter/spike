@@ -1,6 +1,5 @@
 #![cfg(unix)]
 
-use compiler::elf::ElfFile;
 use compiler::passes::parse::Lit;
 use compiler::utils::split_test::split_test;
 use std::fs::OpenOptions;
@@ -9,6 +8,7 @@ use std::os::unix::prelude::OpenOptionsExt;
 use std::process::{Command, Stdio};
 use tempdir::TempDir;
 use test_each_file::test_each_file;
+use compiler::passes::emit::elf::ElfFile;
 
 fn integration([test]: [&str; 1]) {
     let tempdir = TempDir::new("rust-compiler-construction-integration").unwrap();

@@ -1,7 +1,7 @@
-use crate::elf::program::ProgramHeader;
-use crate::elf::section::SectionHeader;
 use std::mem::size_of;
 use zerocopy::AsBytes;
+use crate::passes::emit::elf::program::ProgramHeader;
+use crate::passes::emit::elf::section::SectionHeader;
 
 #[repr(C, packed)]
 #[derive(AsBytes, Copy, Clone)]

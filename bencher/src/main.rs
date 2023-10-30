@@ -1,6 +1,6 @@
 use clap::Parser;
 use compiler::elf::ElfFile;
-use compiler::interpreter::x86var::IStats;
+use compiler::interpreter::interpreter::IStats;
 use compiler::interpreter::{TestIO, IO};
 use compiler::passes::parse::parse::parse_program;
 use compiler::utils::split_test::split_test_raw;

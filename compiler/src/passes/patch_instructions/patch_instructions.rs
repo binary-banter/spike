@@ -1,6 +1,7 @@
-use crate::language::x86var::{Arg, X86Assigned, X86Patched};
-use crate::{addq, movq, reg, subq};
+use crate::passes::interference::{Arg, X86Assigned};
+use crate::passes::patch_instructions::X86Patched;
 use crate::passes::select::{Block, Instr};
+use crate::{addq, movq, reg, subq};
 
 impl<'p> X86Assigned<'p> {
     #[must_use]
@@ -47,11 +48,11 @@ fn patch_args<'p>(src: Arg, dst: Arg, op: fn(Arg, Arg) -> Instr<'p, Arg>) -> Vec
 #[cfg(test)]
 mod tests {
     use crate::interpreter::TestIO;
+    use crate::passes::select::X86Selected;
     use crate::utils::gen_sym::gen_sym;
     use crate::utils::split_test::split_test;
     use crate::{block, callq_direct, movq, reg};
     use test_each_file::test_each_file;
-    use crate::passes::select::X86Selected;
 
     fn patch_instructions([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);

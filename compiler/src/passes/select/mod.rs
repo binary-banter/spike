@@ -1,19 +1,20 @@
-use std::collections::HashMap;
-use std::fmt::Display;
-use derive_more::Display;
-use functor_derive::Functor;
 use crate::passes::select::io::Std;
 use crate::utils::gen_sym::UniqueSym;
+use derive_more::Display;
+use functor_derive::Functor;
 use itertools::Itertools;
+use std::collections::HashMap;
+use std::fmt::Display;
 
+pub mod interpreter;
 pub mod io;
-pub mod select;
 pub mod macros;
+pub mod select;
 
 #[derive(Debug, PartialEq, Display)]
 #[display(
-fmt = "{}",
-r#"blocks.iter().map(|(sym, block)| format!("{sym}:\n{block}")).format("\n")"#
+    fmt = "{}",
+    r#"blocks.iter().map(|(sym, block)| format!("{sym}:\n{block}")).format("\n")"#
 )]
 pub struct X86Selected<'p> {
     pub blocks: HashMap<UniqueSym<'p>, Block<'p, VarArg<'p>>>,
@@ -106,7 +107,6 @@ pub enum VarArg<'p> {
     #[display(fmt = "{sym}")]
     XVar { sym: UniqueSym<'p> },
 }
-
 
 pub const CALLER_SAVED: [Reg; 9] = [
     Reg::RAX,
