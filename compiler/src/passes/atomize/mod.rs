@@ -43,6 +43,7 @@ pub enum AExpr<'p> {
     Break {
         bdy: Box<AExpr<'p>>,
     },
+    Continue,
     Seq {
         stmt: Box<AExpr<'p>>,
         cnt: Box<AExpr<'p>>,
@@ -129,6 +130,7 @@ impl<'p> From<AExpr<'p>> for Expr<UniqueSym<'p>> {
                 sym,
                 bnd: Box::new((*bnd).into()),
             },
+            AExpr::Continue => Expr::Continue,
         }
     }
 }

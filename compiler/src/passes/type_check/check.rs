@@ -273,6 +273,7 @@ fn type_check_expr<'p>(expr: &Expr<&'p str>, env: &mut Env<'_, 'p>) -> Result<Ty
             expect_type(bnd, typ, env)?;
             Ok(Type::Unit)
         }
+        Expr::Continue => Ok(Type::Never),
     }
 }
 

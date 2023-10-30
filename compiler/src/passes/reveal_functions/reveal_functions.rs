@@ -87,5 +87,6 @@ fn reveal_expr<'p>(expr: Expr<UniqueSym<'p>>, scope: &mut PushMap<UniqueSym<'p>,
             sym,
             bnd: Box::new(reveal_expr(*bnd, scope)),
         },
+        Expr::Continue => RExpr::Continue,
     }
 }

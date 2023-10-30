@@ -9,13 +9,14 @@ use std::hash::Hash;
 pub enum ControlFlow<A: Copy + Hash + Eq + Display> {
     Val(Val<A>),
     Break(Val<A>),
+    Continue,
 }
 
 impl<A: Copy + Hash + Eq + Display> ControlFlow<A> {
     pub fn val(self) -> Val<A> {
         match self {
             ControlFlow::Val(v) => v,
-            ControlFlow::Break(_) => panic!("Sterf"),
+            ControlFlow::Break(_) | ControlFlow::Continue => panic!("Sterf"),
         }
     }
 }
@@ -24,8 +25,8 @@ macro_rules! b {
     ($e: expr) => {{
         let e = $e;
         match e {
-            ControlFlow::Break(_) => return e,
-            ControlFlow::Val(x) => x,
+            ControlFlow::Break(_) | ControlFlow::Continue => return e,
+            ControlFlow::Val(val) => val,
         }
     }};
 }
@@ -178,9 +179,8 @@ impl<A: Copy + Hash + Eq + Debug + Display> PrgGenericVar<A> {
                 self.interpret_fn(sym, args, scope, io)
             }
             Expr::Loop { bdy } => loop {
-                let x = self.interpret_expr(bdy, scope, io);
-                if let ControlFlow::Break(x) = x {
-                    return ControlFlow::Val(x);
+                if let ControlFlow::Break(val) = self.interpret_expr(bdy, scope, io) {
+                    return ControlFlow::Val(val);
                 }
             },
             Expr::Break { bdy } => {
@@ -195,6 +195,7 @@ impl<A: Copy + Hash + Eq + Debug + Display> PrgGenericVar<A> {
                 scope.0.insert(*sym, bnd);
                 Val::Unit
             }
+            Expr::Continue => return ControlFlow::Continue,
         })
     }
 }

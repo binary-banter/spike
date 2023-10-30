@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use crate::passes::parse::{Def, Expr, Lit, Op, Param}
+use crate::passes::parse::{Def, Expr, Lit, Op, Param};
 use crate::passes::parse::PrgParsed;
 use crate::passes::type_check::Type;
 
@@ -14,6 +14,7 @@ match {
     "loop",
     "while",
     "break",
+    "continue",
     "mut",
 
     // Structural tokens
@@ -172,6 +173,7 @@ ExprInStmt: Expr<&'input str> = {
     "break" <bdy:ExprLogicalOr?> => Expr::Break {
         bdy: Box::new(bdy.unwrap_or(Expr::Lit { val: Lit::Unit })),
     },
+    "continue" => Expr::Continue,
     ExprLogicalOr,
 }
 

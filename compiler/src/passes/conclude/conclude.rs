@@ -3,6 +3,7 @@ use crate::utils::gen_sym::gen_sym;
 use crate::{addq, block, callq_direct, imm, movq, popq, pushq, reg, subq};
 
 impl<'p> X86Patched<'p> {
+    #[must_use]
     pub fn conclude(mut self) -> X86Concluded<'p> {
         let entry = gen_sym("main");
         self.blocks.insert(

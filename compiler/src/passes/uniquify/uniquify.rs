@@ -110,5 +110,6 @@ fn uniquify_expression<'p>(
             sym: scope[sym],
             bnd: Box::new(uniquify_expression(*bnd, scope)),
         },
+        Expr::Continue => Expr::Continue,
     }
 }

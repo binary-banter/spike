@@ -18,6 +18,7 @@ use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
 
 impl<'p> X86Concluded<'p> {
+    #[must_use]
     pub fn emit(self) -> (usize, Vec<u8>) {
         let mut machine_code = Vec::new();
 

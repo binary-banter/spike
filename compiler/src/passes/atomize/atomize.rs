@@ -4,6 +4,7 @@ use crate::passes::reveal_functions::{PrgRevealed, RExpr};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 
 impl<'p> PrgRevealed<'p> {
+    #[must_use]
     pub fn atomize(self) -> PrgAtomized<'p> {
         PrgAtomized {
             defs: self
@@ -99,6 +100,7 @@ fn atomize_expr(expr: RExpr) -> AExpr {
             sym,
             bnd: Box::new(atomize_expr(*bnd)),
         },
+        RExpr::Continue => AExpr::Continue,
     }
 }
 
@@ -114,7 +116,8 @@ fn atomize_atom(expr: RExpr) -> (Atom, Option<(UniqueSym, AExpr)>) {
         | RExpr::Break { .. }
         | RExpr::Seq { .. }
         | RExpr::Assign { .. }
-        | RExpr::Var { .. } => {
+        | RExpr::Var { .. }
+        | RExpr::Continue => {
             let tmp = gen_sym("tmp");
             (Atom::Var { sym: tmp }, Some((tmp, atomize_expr(expr))))
         }

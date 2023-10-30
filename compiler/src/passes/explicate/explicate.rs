@@ -1,4 +1,5 @@
 use crate::passes::atomize::{AExpr, Atom, PrgAtomized};
+use crate::passes::explicate::Tail::Goto;
 use crate::passes::explicate::{CExpr, PrgExplicated, Tail};
 use crate::passes::parse::{Def, Lit, Op};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
@@ -8,6 +9,8 @@ struct Env<'a, 'p> {
     blocks: &'a mut HashMap<UniqueSym<'p>, Tail<'p>>,
     /// (block to jump to, variable to write to)
     break_target: Option<(UniqueSym<'p>, UniqueSym<'p>)>,
+    /// block to jump to
+    continue_target: Option<UniqueSym<'p>>,
 }
 
 impl<'p> PrgAtomized<'p> {
@@ -17,6 +20,7 @@ impl<'p> PrgAtomized<'p> {
         let mut env = Env {
             blocks: &mut blocks,
             break_target: None,
+            continue_target: None,
         };
 
         let fn_params = self
@@ -111,6 +115,7 @@ fn explicate_assign<'p>(
             let mut env = Env {
                 blocks: env.blocks,
                 break_target: Some((tail, sym)),
+                continue_target: Some(loop_block_sym),
             };
 
             let loop_block = explicate_assign(
@@ -153,6 +158,9 @@ fn explicate_assign<'p>(
             ),
             env,
         ),
+        AExpr::Continue => Goto {
+            lbl: env.continue_target.unwrap(),
+        },
     }
 }
 
@@ -287,6 +295,7 @@ fn explicate_pred<'p>(
             },
         }
         | AExpr::Assign { .. }
-        | AExpr::Break { .. } => unreachable!(),
+        | AExpr::Break { .. }
+        | AExpr::Continue => unreachable!(),
     }
 }
