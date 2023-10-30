@@ -15,6 +15,7 @@ match {
     "while",
     "break",
     "continue",
+    "return",
     "mut",
 
     // Structural tokens
@@ -160,6 +161,9 @@ ExprInStmt: Expr<&'input str> = {
         }),
     },
     "break" <bdy:ExprLogicalOr?> => Expr::Break {
+        bdy: Box::new(bdy.unwrap_or(Expr::Lit { val: Lit::Unit })),
+    },
+    "return" <bdy:ExprLogicalOr?> => Expr::Return {
         bdy: Box::new(bdy.unwrap_or(Expr::Lit { val: Lit::Unit })),
     },
     "continue" => Expr::Continue,

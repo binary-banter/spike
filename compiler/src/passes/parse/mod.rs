@@ -73,6 +73,9 @@ pub enum Expr<A: Copy + Hash + Eq> {
         bdy: Box<Expr<A>>,
     },
     Continue,
+    Return {
+        bdy: Box<Expr<A>>,
+    },
     Seq {
         stmt: Box<Expr<A>>,
         cnt: Box<Expr<A>>,

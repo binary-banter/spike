@@ -35,7 +35,7 @@ cargo run -- input.jj -o output && ./output ; echo $?
 * [ ] Improve error handling for type checking pass.
 * [ ] Improve algorithm for colouring the interference graph.
 * [ ] Add read and write functionality to the bencher to update locally.
-* [ ] Lots, and lots, of refactoring!
+* [x] Lots, and lots, of refactoring!
 
 # Upcoming Language Features
 * [ ] Implement comments in code.

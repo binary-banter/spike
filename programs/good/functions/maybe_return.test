@@ -1,0 +1,16 @@
+#
+42 13
+#
+unit
+#
+fn add(x: Int, y: Int) -> Int {
+    if x + y != 13 {
+        return 42;
+    };
+    x + y
+}
+
+fn main() {
+    print(add(0, 1));
+    print(add(5, 8));
+}

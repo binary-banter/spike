@@ -111,5 +111,6 @@ fn uniquify_expression<'p>(
             bnd: Box::new(uniquify_expression(*bnd, scope)),
         },
         Expr::Continue => Expr::Continue,
+        Expr::Return { .. } => todo!(),
     }
 }
