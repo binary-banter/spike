@@ -152,15 +152,10 @@ ExprInStmt: Expr<&'input str> = {
         sym,
         bnd: Box::new(bnd),
     },
-    "if" <cnd:ExprLogicalOr> "{" <thn:Expr> "}" "else" "{" <els:Expr> "}" => Expr::If {
+    "if" <cnd:ExprLogicalOr> "{" <thn:Expr> "}" <els:("else" "{" <Expr> "}")?> => Expr::If {
         cnd: Box::new(cnd),
         thn: Box::new(thn),
-        els: Box::new(els),
-    },
-    "if" <cnd:ExprLogicalOr> "{" <thn:Expr> "}" => Expr::If {
-        cnd: Box::new(cnd),
-        thn: Box::new(thn),
-        els: Box::new(Expr::Lit { val: Lit::Unit }),
+        els: Box::new(els.unwrap_or(Expr::Lit { val: Lit::Unit })),
     },
     "loop" "{" <bdy:Expr> "}" => Expr::Loop {
         bdy: Box::new(bdy),
