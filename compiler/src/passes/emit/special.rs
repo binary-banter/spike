@@ -1,4 +1,4 @@
-use crate::language::x86var::Cnd;
+use crate::passes::select::Cnd;
 
 pub fn encode_setcc(cnd: &Cnd) -> Vec<u8> {
     let cnd = match cnd {

@@ -1,7 +1,4 @@
 use crate::interpreter::IO;
-use crate::language::x86var::{
-    Block, Cnd, Instr, Reg, VarArg, X86Concluded, X86Selected, CALLEE_SAVED, CALLER_SAVED,
-};
 use crate::passes::parse::Lit;
 use crate::utils::gen_sym::UniqueSym;
 use serde::{Deserialize, Serialize};
@@ -9,6 +6,8 @@ use std::collections::HashMap;
 use std::fmt::Debug;
 use std::mem;
 use zerocopy::AsBytes;
+use crate::language::x86var::X86Concluded;
+use crate::passes::select::{Block, CALLEE_SAVED, CALLER_SAVED, Cnd, Instr, Reg, VarArg, X86Selected};
 
 #[derive(Default)]
 pub struct Status {

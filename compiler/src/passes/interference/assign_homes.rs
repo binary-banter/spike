@@ -1,10 +1,11 @@
-use crate::language::x86var::{Arg, Block, Instr, VarArg, X86Assigned, X86Colored};
 use crate::utils::gen_sym::UniqueSym;
 use crate::{
     addq, andq, callq_direct, callq_indirect, cmpq, divq, jcc, jmp, load_lbl, movq, mulq, negq,
     notq, orq, popq, pushq, retq, setcc, subq, syscall, xorq,
 };
 use std::collections::HashMap;
+use crate::language::x86var::{Arg, X86Assigned, X86Colored};
+use crate::passes::select::{Block, Instr, VarArg};
 
 impl<'p> X86Colored<'p> {
     #[must_use]
@@ -74,11 +75,11 @@ fn assign_instr<'p>(
 #[cfg(test)]
 mod tests {
     use crate::interpreter::TestIO;
-    use crate::language::x86var::X86Selected;
     use crate::utils::gen_sym::gen_sym;
     use crate::utils::split_test::split_test;
     use crate::{block, callq_direct, movq, reg};
     use test_each_file::test_each_file;
+    use crate::passes::select::X86Selected;
 
     fn assign_homes([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);

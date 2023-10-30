@@ -1,6 +1,6 @@
 use crate::language::x86var::Arg;
 use crate::passes::emit::encode_reg;
-use crate::passes::emit::Reg;
+use crate::passes::select::Reg;
 
 pub struct BinaryOpInfo {
     /// Opcode when src = Reg and dst = Reg | Deref.
@@ -145,7 +145,6 @@ pub fn encode_binary_instr(op_info: BinaryOpInfo, src: &Arg, dst: &Arg) -> Vec<u
 
 #[cfg(test)]
 mod tests {
-    use crate::language::x86var::Reg;
     use crate::*;
 
     mod add {

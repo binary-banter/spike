@@ -1,11 +1,9 @@
-use crate::language::x86var::{
-    Block, Instr, LArg, LBlock, LX86VarProgram, Reg, VarArg, X86Selected, ARG_PASSING_REGS,
-    CALLER_SAVED, SYSCALL_REGS,
-};
+use crate::language::x86var::{LArg, LBlock, LX86VarProgram};
 use crate::utils::gen_sym::UniqueSym;
 
 use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet};
+use crate::passes::select::{ARG_PASSING_REGS, Block, CALLER_SAVED, Instr, Reg, SYSCALL_REGS, VarArg, X86Selected};
 
 impl<'p> X86Selected<'p> {
     #[must_use]

@@ -63,7 +63,6 @@ pub fn encode_push_pop(op_info: PushPopInfo, reg: &Arg) -> Vec<u8> {
 
 #[cfg(test)]
 mod tests {
-    use crate::language::x86var::Reg;
     use crate::*;
 
     mod push {
