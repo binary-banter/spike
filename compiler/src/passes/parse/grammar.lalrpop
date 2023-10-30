@@ -71,6 +71,12 @@ match {
 
     // Whitespaces
     r"\s+" => {},
+
+    // Line comments
+    r"//[^\n]*\n" => {},
+
+    // Block comments
+    r"/\*([^*]|(\*[^/]))*\*/" => {},
 }
 
 pub Program: PrgParsed<'input> = {

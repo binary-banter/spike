@@ -1,0 +1,8 @@
+#
+#
+42
+#
+fn main() -> Int {
+    // Return the meaning of life
+    20 + 22
+}
