@@ -1,8 +1,7 @@
 use clap::Parser;
-use compiler::elf::ElfFile;
-use compiler::interpreter::interpreter::IStats;
 use compiler::interpreter::{TestIO, IO};
 use compiler::passes::parse::parse::parse_program;
+use compiler::passes::select::interpreter::IStats;
 use compiler::utils::split_test::split_test_raw;
 use git2::{Commit, Repository};
 use mongodb::bson;
@@ -277,11 +276,8 @@ impl Stats {
 
         let (_, interpreter_stats) = prg_concluded.interpret_with_stats(io);
 
-        let (entry, program) = prg_concluded.emit();
-
-        let elf = ElfFile::new(entry, &program);
         let mut file = File::create(&output).unwrap();
-        elf.write(&mut file);
+        prg_concluded.emit().write(&mut file);
 
         let bencher_stats = BStats::new(&output);
 
