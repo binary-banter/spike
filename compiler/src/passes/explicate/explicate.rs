@@ -1,5 +1,4 @@
 use crate::passes::atomize::{AExpr, Atom, PrgAtomized};
-use crate::passes::explicate::Tail::Goto;
 use crate::passes::explicate::{CExpr, PrgExplicated, Tail};
 use crate::passes::parse::{Def, Lit, Op};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
@@ -158,9 +157,18 @@ fn explicate_assign<'p>(
             ),
             env,
         ),
-        AExpr::Continue => Goto {
+        AExpr::Continue => Tail::Goto {
             lbl: env.continue_target.unwrap(),
         },
+        AExpr::Return { bdy } => {
+            let tmp = gen_sym("return");
+            let tail = Tail::Return {
+                expr: CExpr::Atom {
+                    atm: Atom::Var { sym: tmp },
+                },
+            };
+            explicate_assign(tmp, *bdy, tail, env)
+        }
     }
 }
 
@@ -296,6 +304,7 @@ fn explicate_pred<'p>(
         }
         | AExpr::Assign { .. }
         | AExpr::Break { .. }
-        | AExpr::Continue => unreachable!(),
+        | AExpr::Continue
+        | AExpr::Return { .. } => unreachable!(),
     }
 }

@@ -46,6 +46,9 @@ pub enum RExpr<'p> {
     Break {
         bdy: Box<RExpr<'p>>,
     },
+    Return {
+        bdy: Box<RExpr<'p>>,
+    },
     Continue,
     Seq {
         stmt: Box<RExpr<'p>>,
@@ -128,6 +131,9 @@ impl<'p> From<RExpr<'p>> for Expr<UniqueSym<'p>> {
                 bnd: Box::new((*bnd).into()),
             },
             RExpr::Continue => Expr::Continue,
+            RExpr::Return { bdy } => Expr::Return {
+                bdy: Box::new((*bdy).into()),
+            },
         }
     }
 }

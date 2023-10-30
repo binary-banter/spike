@@ -36,6 +36,7 @@ struct Env<'a, 'p> {
     scope: &'a mut PushMap<&'p str, (bool, Type)>,
     loop_type: &'a mut Option<Type>,
     in_loop: bool,
+    return_type: &'a Type,
 }
 
 impl<'a, 'p> Env<'a, 'p> {
@@ -50,20 +51,7 @@ impl<'a, 'p> Env<'a, 'p> {
                 scope,
                 loop_type: self.loop_type,
                 in_loop: self.in_loop,
-            })
-        })
-    }
-
-    pub fn push_iter<O>(
-        &mut self,
-        iterator: impl Iterator<Item = (&'p str, (bool, Type))>,
-        sub: impl FnOnce(&mut Env<'_, 'p>) -> O,
-    ) -> O {
-        self.scope.push_iter(iterator, |scope| {
-            sub(&mut Env {
-                scope,
-                loop_type: self.loop_type,
-                in_loop: self.in_loop,
+                return_type: self.return_type,
             })
         })
     }
@@ -72,11 +60,6 @@ impl<'a, 'p> Env<'a, 'p> {
 impl<'p> PrgParsed<'p> {
     pub fn type_check(self) -> Result<PrgTypeChecked<'p>, TypeError> {
         let mut scope = uncover_fns(&self)?;
-        let mut env = Env {
-            scope: &mut scope,
-            loop_type: &mut None,
-            in_loop: false,
-        };
 
         // Typecheck all definitions and collect them.
         let defs = self
@@ -88,10 +71,19 @@ impl<'p> PrgParsed<'p> {
                     ref params,
                     ref bdy,
                     ref typ,
-                } => env
+                } => scope
                     .push_iter(
                         params.iter().map(|p| (p.sym, (p.mutable, p.typ.clone()))),
-                        |env| expect_type(bdy, typ.clone(), env),
+                        |scope| {
+                            let mut env = Env {
+                                scope,
+                                loop_type: &mut None,
+                                in_loop: false,
+                                return_type: typ,
+                            };
+
+                            expect_type(bdy, typ.clone(), &mut env)
+                        },
                     )
                     .map(|()| (sym, def)),
             })
@@ -233,6 +225,7 @@ fn type_check_expr<'p>(expr: &Expr<&'p str>, env: &mut Env<'_, 'p>) -> Result<Ty
                 scope: env.scope,
                 loop_type: &mut loop_type,
                 in_loop: true,
+                return_type: env.return_type,
             };
             type_check_expr(bdy, &mut env)?;
             Ok(loop_type.unwrap_or(Type::Never))
@@ -275,10 +268,9 @@ fn type_check_expr<'p>(expr: &Expr<&'p str>, env: &mut Env<'_, 'p>) -> Result<Ty
         }
         Expr::Continue => Ok(Type::Never),
         Expr::Return { bdy } => {
-            // TODO: check bdy has type of function!
-
+            expect_type(bdy, env.return_type.clone(), env)?;
             Ok(Type::Never)
-        },
+        }
     }
 }
 

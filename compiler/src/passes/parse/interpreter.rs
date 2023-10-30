@@ -177,7 +177,7 @@ impl<A: Copy + Hash + Eq + Debug + Display> PrgGenericVar<A> {
                 self.interpret_fn(sym, fn_args, scope, io)
             }
             Expr::Loop { bdy } => loop {
-                match self.interpret_expr(bdy, scope, io){
+                match self.interpret_expr(bdy, scope, io) {
                     ControlFlow::Return(val) => return ControlFlow::Return(val),
                     ControlFlow::Break(val) => return ControlFlow::Val(val),
                     ControlFlow::Continue | ControlFlow::Val(_) => {}
@@ -196,7 +196,9 @@ impl<A: Copy + Hash + Eq + Debug + Display> PrgGenericVar<A> {
                 Val::Unit
             }
             Expr::Continue => return ControlFlow::Continue,
-            Expr::Return { bdy } => return ControlFlow::Return(b!(self.interpret_expr(bdy, scope, io)))
+            Expr::Return { bdy } => {
+                return ControlFlow::Return(b!(self.interpret_expr(bdy, scope, io)))
+            }
         })
     }
 }

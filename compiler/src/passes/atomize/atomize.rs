@@ -101,25 +101,17 @@ fn atomize_expr(expr: RExpr) -> AExpr {
             bnd: Box::new(atomize_expr(*bnd)),
         },
         RExpr::Continue => AExpr::Continue,
+        RExpr::Return { bdy } => AExpr::Return {
+            bdy: Box::new(atomize_expr(*bdy)),
+        },
     }
 }
 
 fn atomize_atom(expr: RExpr) -> (Atom, Option<(UniqueSym, AExpr)>) {
-    match expr {
-        RExpr::Lit { val } => (Atom::Val { val }, None),
-        RExpr::Prim { .. }
-        | RExpr::Let { .. }
-        | RExpr::If { .. }
-        | RExpr::Apply { .. }
-        | RExpr::FunRef { .. }
-        | RExpr::Loop { .. }
-        | RExpr::Break { .. }
-        | RExpr::Seq { .. }
-        | RExpr::Assign { .. }
-        | RExpr::Var { .. }
-        | RExpr::Continue => {
-            let tmp = gen_sym("tmp");
-            (Atom::Var { sym: tmp }, Some((tmp, atomize_expr(expr))))
-        }
+    if let RExpr::Lit { val } = expr {
+        (Atom::Val { val }, None)
+    } else {
+        let tmp = gen_sym("tmp");
+        (Atom::Var { sym: tmp }, Some((tmp, atomize_expr(expr))))
     }
 }

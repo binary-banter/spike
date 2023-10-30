@@ -52,6 +52,9 @@ pub enum AExpr<'p> {
         sym: UniqueSym<'p>,
         bnd: Box<AExpr<'p>>,
     },
+    Return {
+        bdy: Box<AExpr<'p>>,
+    },
 }
 
 #[derive(Debug, PartialEq, Copy, Clone)]
@@ -131,6 +134,9 @@ impl<'p> From<AExpr<'p>> for Expr<UniqueSym<'p>> {
                 bnd: Box::new((*bnd).into()),
             },
             AExpr::Continue => Expr::Continue,
+            AExpr::Return { bdy } => Expr::Return {
+                bdy: Box::new((*bdy).into()),
+            },
         }
     }
 }
