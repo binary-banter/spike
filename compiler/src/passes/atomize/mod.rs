@@ -119,7 +119,7 @@ impl<'p> From<AExpr<'p>> for Expr<UniqueSym<'p>> {
                 bdy: Box::new((*bdy).into()),
             },
             AExpr::Break { bdy } => Expr::Break {
-                bdy: Some(Box::new((*bdy).into())),
+                bdy: Box::new((*bdy).into()),
             },
             AExpr::Seq { stmt, cnt } => Expr::Seq {
                 stmt: Box::new((*stmt).into()),

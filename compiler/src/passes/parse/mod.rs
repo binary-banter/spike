@@ -1,5 +1,5 @@
 #[rustfmt::skip]
-#[allow(clippy::all)]
+#[allow(clippy::all, clippy::pedantic)]
 mod grammar;
 pub mod interpreter;
 pub mod parse;
@@ -69,7 +69,7 @@ pub enum Expr<A: Copy + Hash + Eq> {
         bdy: Box<Expr<A>>,
     },
     Break {
-        bdy: Option<Box<Expr<A>>>,
+        bdy: Box<Expr<A>>,
     },
     Seq {
         stmt: Box<Expr<A>>,
@@ -113,17 +113,21 @@ pub enum Lit {
 }
 
 impl Lit {
+    #[must_use]
     pub fn int(self) -> i64 {
-        match self {
-            Lit::Int { val } => val,
-            _ => panic!(),
+        if let Lit::Int { val } = self {
+            val
+        } else {
+            panic!()
         }
     }
 
+    #[must_use]
     pub fn bool(self) -> bool {
-        match self {
-            Lit::Bool { val } => val,
-            _ => panic!(),
+        if let Lit::Bool { val } = self {
+            val
+        } else {
+            panic!()
         }
     }
 }
@@ -134,7 +138,7 @@ mod tests {
     use test_each_file::test_each_file;
 
     fn parse([test]: [&str; 1]) {
-        split_test(test);
+        let _ = split_test(test);
     }
 
     test_each_file! { for ["test"] in "./programs/good" as parse => parse }

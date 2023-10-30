@@ -7,7 +7,7 @@ use crate::{
 };
 use std::collections::HashMap;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Std<'p> {
     pub exit: UniqueSym<'p>,
     pub print_int: UniqueSym<'p>,

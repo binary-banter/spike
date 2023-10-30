@@ -184,10 +184,7 @@ impl<A: Copy + Hash + Eq + Debug + Display> PrgGenericVar<A> {
                 }
             },
             Expr::Break { bdy } => {
-                return ControlFlow::Break(match bdy {
-                    Some(bdy) => b!(self.interpret_expr(bdy, scope, io)),
-                    None => Val::Unit,
-                })
+                return ControlFlow::Break(b!(self.interpret_expr(bdy, scope, io)))
             }
             Expr::Seq { stmt, cnt } => {
                 b!(self.interpret_expr(stmt, scope, io));

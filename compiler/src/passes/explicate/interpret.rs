@@ -34,17 +34,6 @@ impl<'p> PrgExplicated<'p> {
         }
     }
 
-    pub fn interpret_atom(
-        &self,
-        atom: &Atom<'p>,
-        scope: &PushMap<UniqueSym<'p>, Val<UniqueSym<'p>>>,
-    ) -> Val<UniqueSym<'p>> {
-        match atom {
-            Atom::Val { val } => (*val).into(),
-            Atom::Var { sym } => scope[sym],
-        }
-    }
-
     pub fn interpret_expr(
         &self,
         expr: &CExpr<'p>,
@@ -157,6 +146,18 @@ impl<'p> PrgExplicated<'p> {
                     self.interpret_tail(&self.blocks[&fn_sym], scope, io)
                 })
             }
+        }
+    }
+
+    #[must_use]
+    pub fn interpret_atom(
+        &self,
+        atom: &Atom<'p>,
+        scope: &PushMap<UniqueSym<'p>, Val<UniqueSym<'p>>>,
+    ) -> Val<UniqueSym<'p>> {
+        match atom {
+            Atom::Val { val } => (*val).into(),
+            Atom::Var { sym } => scope[sym],
         }
     }
 }

@@ -8,6 +8,7 @@ use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet};
 
 impl<'p> X86Selected<'p> {
+    #[must_use]
     pub fn add_liveness(self) -> LX86VarProgram<'p> {
         // let graph = create_graph(&self.blocks);
 
@@ -40,12 +41,12 @@ impl<'p> X86Selected<'p> {
                 match liveness.get(sym) {
                     None => {
                         liveness.insert(*sym, new_liveness);
-                        changed = true
+                        changed = true;
                     }
                     Some(old_liveness) => {
                         if *old_liveness != new_liveness {
                             liveness.insert(*sym, new_liveness);
-                            changed = true
+                            changed = true;
                         }
                     }
                 }

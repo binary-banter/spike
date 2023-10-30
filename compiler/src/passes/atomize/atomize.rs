@@ -1,5 +1,5 @@
 use crate::passes::atomize::{AExpr, Atom, PrgAtomized};
-use crate::passes::parse::{Def, Lit};
+use crate::passes::parse::Def;
 use crate::passes::reveal_functions::{PrgRevealed, RExpr};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 
@@ -89,11 +89,7 @@ fn atomize_expr(expr: RExpr) -> AExpr {
             bdy: Box::new(atomize_expr(*bdy)),
         },
         RExpr::Break { bdy } => AExpr::Break {
-            bdy: bdy
-                .map(|bdy| Box::new(atomize_expr(*bdy)))
-                .unwrap_or(Box::new(AExpr::Atom {
-                    atm: Atom::Val { val: Lit::Unit },
-                })),
+            bdy: Box::new(atomize_expr(*bdy)),
         },
         RExpr::Seq { stmt, cnt } => AExpr::Seq {
             stmt: Box::new(atomize_expr(*stmt)),

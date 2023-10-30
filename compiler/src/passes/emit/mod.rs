@@ -89,7 +89,7 @@ fn emit_instr<'p>(
         }
         Instr::Jcc { lbl, cnd } => {
             rel_jumps.insert(machine_code.len() + 2, *lbl);
-            vec![0x0F, encode_cnd(cnd), 0x00, 0x00, 0x00, 0x00]
+            vec![0x0F, encode_cnd(*cnd), 0x00, 0x00, 0x00, 0x00]
         }
         Instr::Retq => vec![0xC3],
         Instr::Syscall { .. } => vec![0x0F, 0x05],
@@ -137,7 +137,7 @@ fn encode_reg(reg: &Reg) -> (u8, u8) {
     }
 }
 
-fn encode_cnd(cnd: &Cnd) -> u8 {
+fn encode_cnd(cnd: Cnd) -> u8 {
     match cnd {
         Cnd::Above => 0x87,
         Cnd::AboveOrEqual | Cnd::NotCarry => 0x83,

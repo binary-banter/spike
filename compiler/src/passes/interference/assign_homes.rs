@@ -1,7 +1,3 @@
-//! This pass compiles `X86VarProgram`s  into `AX86Program`.
-//!
-//! This pass is responsible for assigning all the program variables to locations on the stack.
-
 use crate::language::x86var::{Arg, Block, Instr, VarArg, X86Assigned, X86Colored};
 use crate::utils::gen_sym::UniqueSym;
 use crate::{
@@ -11,7 +7,7 @@ use crate::{
 use std::collections::HashMap;
 
 impl<'p> X86Colored<'p> {
-    /// See module-level documentation.
+    #[must_use]
     pub fn assign_homes(self) -> X86Assigned<'p> {
         X86Assigned {
             blocks: self

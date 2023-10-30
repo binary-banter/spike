@@ -1,12 +1,8 @@
-//! This pass compiles `AX86Program`s  into `PX86Program`.
-//!
-//! This pass makes sure that no instructions use more than one argument that is dereferenced.
-
 use crate::language::x86var::{Arg, Block, Instr, X86Assigned, X86Patched};
 use crate::{addq, movq, reg, subq};
 
 impl<'p> X86Assigned<'p> {
-    /// See module-level documentation.
+    #[must_use]
     pub fn patch(self) -> X86Patched<'p> {
         X86Patched {
             blocks: self

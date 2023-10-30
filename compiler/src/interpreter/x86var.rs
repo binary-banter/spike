@@ -72,7 +72,7 @@ impl<'p> X86Concluded<'p> {
             block_ids,
             read_buffer: Vec::new(),
             write_buffer: Vec::new(),
-            status: Default::default(),
+            status: Status::default(),
             stats: IStats::default(),
         };
 
@@ -135,10 +135,10 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
             self.stats.instructions_executed += 1;
             match instr {
                 Instr::Addq { src, dst } => {
-                    self.set_arg(dst, self.get_arg(src) + self.get_arg(dst))
+                    self.set_arg(dst, self.get_arg(src) + self.get_arg(dst));
                 }
                 Instr::Subq { src, dst } => {
-                    self.set_arg(dst, self.get_arg(dst) - self.get_arg(src))
+                    self.set_arg(dst, self.get_arg(dst) - self.get_arg(src));
                 }
                 Instr::Negq { dst } => self.set_arg(dst, -self.get_arg(dst)),
                 Instr::Movq { src, dst } => self.set_arg(dst, self.get_arg(src)),
@@ -181,8 +181,8 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                 Instr::Divq { divisor } => {
                     let rax = self.regs[&Reg::RAX];
                     let rdx = self.regs[&Reg::RDX];
-                    let dividend = ((rdx as i128) << 64) | rax as i128;
-                    let divisor = self.get_arg(divisor) as i128;
+                    let dividend = (i128::from(rdx) << 64) | i128::from(rax);
+                    let divisor = i128::from(self.get_arg(divisor));
 
                     self.regs.insert(Reg::RAX, (dividend / divisor) as i64);
                     self.regs.insert(Reg::RDX, (dividend % divisor) as i64);
@@ -226,16 +226,16 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                     }
                 }
                 Instr::Andq { src, dst } => {
-                    self.set_arg(dst, self.get_arg(src) & self.get_arg(dst))
+                    self.set_arg(dst, self.get_arg(src) & self.get_arg(dst));
                 }
                 Instr::Orq { src, dst } => self.set_arg(dst, self.get_arg(src) | self.get_arg(dst)),
                 Instr::Xorq { src, dst } => {
-                    self.set_arg(dst, self.get_arg(src) ^ self.get_arg(dst))
+                    self.set_arg(dst, self.get_arg(src) ^ self.get_arg(dst));
                 }
                 Instr::Notq { dst } => self.set_arg(dst, !self.get_arg(dst)),
                 Instr::Setcc { cnd } => {
                     let rax = self.regs[&Reg::RAX];
-                    let cnd = self.evaluate_cnd(*cnd) as i64;
+                    let cnd = i64::from(self.evaluate_cnd(*cnd));
                     self.regs.insert(Reg::RAX, rax & !0xFF | cnd);
                 }
                 Instr::LoadLbl { sym, dst } => {
@@ -288,7 +288,7 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
             Cnd::LE => self.status.zero || self.status.sign != self.status.overflow,
             Cnd::NE => !self.status.zero,
             Cnd::NotOverflow => !self.status.overflow,
-            Cnd::NotSign => self.status.sign,
+            Cnd::NotSign => !self.status.sign,
             Cnd::Overflow => self.status.overflow,
             Cnd::ParityEven => self.status.parity_even,
             Cnd::ParityOdd => !self.status.parity_even,

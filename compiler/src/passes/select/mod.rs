@@ -1,8 +1,3 @@
-//! This pass begins the work of translating from `CVarProgram` to `X86`.
-//! The target language `X86VarProgram` of this pass is a variant of x86 that still uses variables.
-//!
-//! Just like a `CVarProgram` program, a `X86VarProgram` consists of a list of blocks.
-
 pub mod io;
 
 use crate::language::x86var::{
@@ -17,7 +12,7 @@ use crate::*;
 use std::collections::HashMap;
 
 impl<'p> PrgExplicated<'p> {
-    /// See module-level documentation.
+    #[must_use]
     pub fn select(self) -> X86Selected<'p> {
         let mut blocks = HashMap::new();
         let std = Std::new(&mut blocks);
@@ -47,7 +42,7 @@ fn select_block<'p>(
     if let Some(params) = fn_params.get(&sym) {
         instrs.push(pushq!(reg!(RBP)));
         instrs.push(movq!(reg!(RSP), reg!(RBP)));
-        for reg in CALLEE_SAVED_NO_STACK.into_iter() {
+        for reg in CALLEE_SAVED_NO_STACK {
             instrs.push(pushq!(VarArg::Reg { reg }));
         }
 
@@ -89,7 +84,7 @@ fn select_tail<'p>(tail: Tail<'p>, instrs: &mut Vec<Instr<'p, VarArg<'p>>>, std:
                     cmpq!(select_atom(&args[1]), var!(tmp)),
                     jcc!(thn, select_cmp(op)),
                     jmp!(els),
-                ])
+                ]);
             }
             _ => unreachable!(),
         },

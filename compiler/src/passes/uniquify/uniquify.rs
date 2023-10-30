@@ -5,6 +5,7 @@ use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use crate::utils::push_map::PushMap;
 
 impl<'p> PrgTypeChecked<'p> {
+    #[must_use]
     pub fn uniquify(self) -> PrgUniquified<'p> {
         let mut scope = PushMap::from_iter(self.defs.iter().map(|(&sym, _)| (sym, gen_sym(sym))));
 
@@ -99,7 +100,7 @@ fn uniquify_expression<'p>(
             bdy: Box::new(uniquify_expression(*bdy, scope)),
         },
         Expr::Break { bdy } => Expr::Break {
-            bdy: bdy.map(|bdy| Box::new(uniquify_expression(*bdy, scope))),
+            bdy: Box::new(uniquify_expression(*bdy, scope)),
         },
         Expr::Seq { stmt, cnt } => Expr::Seq {
             stmt: Box::new(uniquify_expression(*stmt, scope)),

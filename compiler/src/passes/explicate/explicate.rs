@@ -11,6 +11,7 @@ struct Env<'a, 'p> {
 }
 
 impl<'p> PrgAtomized<'p> {
+    #[must_use]
     pub fn explicate(self) -> PrgExplicated<'p> {
         let mut blocks = HashMap::new();
         let mut env = Env {

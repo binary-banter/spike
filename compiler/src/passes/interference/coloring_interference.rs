@@ -4,6 +4,7 @@ use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
 
 impl<'p> X86WithInterference<'p> {
+    #[must_use]
     pub fn color_interference(self) -> X86Colored<'p> {
         let (color_map, stack_space) = color_graph(self.interference);
 
@@ -17,6 +18,7 @@ impl<'p> X86WithInterference<'p> {
     }
 }
 
+#[must_use]
 fn color_graph(graph: InterferenceGraph) -> (HashMap<UniqueSym, Arg>, usize) {
     let mut queue = Vec::new();
     let mut node_map = HashMap::<LArg, isize>::new();

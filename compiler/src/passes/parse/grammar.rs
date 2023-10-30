@@ -1,5 +1,5 @@
 // auto-generated: "lalrpop 0.20.1"
-// sha3: 19eaac2958ee7627671379b88ee4fd1bbd2700d0b51bbf42e8cfb929dab502b9
+// sha3: c9e9fedb1e07d89e4fbaef0611beb45686afea48b8df51c64ffcd5ddf109995e
 use std::str::FromStr;
 use crate::passes::parse::*;
 use crate::passes::parse::PrgParsed;
@@ -4597,7 +4597,7 @@ fn __action18<
             cnd: Box::new(cnd),
             thn: Box::new(bdy),
             els: Box::new(Expr::Seq {
-                stmt: Box::new(Expr::Break { bdy: None }),
+                stmt: Box::new(Expr::Break { bdy: Box::new(Expr::Lit { val: Lit::Unit }) }),
                 cnt: Box::new(Expr::Lit { val: Lit::Unit }),
             }),
         }),
@@ -4615,7 +4615,7 @@ fn __action19<
 ) -> Expr<&'input str>
 {
     Expr::Break {
-        bdy: bdy.map(Box::new),
+        bdy: Box::new(bdy.unwrap_or(Expr::Lit { val: Lit::Unit })),
     }
 }
 

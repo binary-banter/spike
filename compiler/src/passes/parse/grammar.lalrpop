@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use crate::passes::parse::*;
+use crate::passes::parse::{Def, Expr, Lit, Op, Param}
 use crate::passes::parse::PrgParsed;
 use crate::passes::type_check::Type;
 
@@ -164,13 +164,13 @@ ExprInStmt: Expr<&'input str> = {
             cnd: Box::new(cnd),
             thn: Box::new(bdy),
             els: Box::new(Expr::Seq {
-                stmt: Box::new(Expr::Break { bdy: None }),
+                stmt: Box::new(Expr::Break { bdy: Box::new(Expr::Lit { val: Lit::Unit }) }),
                 cnt: Box::new(Expr::Lit { val: Lit::Unit }),
             }),
         }),
     },
     "break" <bdy:ExprLogicalOr?> => Expr::Break {
-        bdy: bdy.map(Box::new),
+        bdy: Box::new(bdy.unwrap_or(Expr::Lit { val: Lit::Unit })),
     },
     ExprLogicalOr,
 }

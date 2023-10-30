@@ -5,6 +5,7 @@ use crate::passes::interference::liveness_analysis::{handle_instr, ReadWriteOp};
 use std::collections::HashMap;
 
 impl<'p> LX86VarProgram<'p> {
+    #[must_use]
     pub fn compute_interference(self) -> X86WithInterference<'p> {
         X86WithInterference {
             interference: self.build_graph(),
