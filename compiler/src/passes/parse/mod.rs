@@ -3,8 +3,9 @@
 mod grammar;
 pub mod interpreter;
 pub mod parse;
+pub mod types;
 
-use crate::passes::type_check::Type;
+use types::Type;
 use derive_more::Display;
 use std::collections::HashMap;
 use std::fmt::Display;

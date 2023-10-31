@@ -1,9 +1,9 @@
 // auto-generated: "lalrpop 0.20.1"
-// sha3: e9e4f127de7e594bfbff1ed057e6c2b73803f8a76b27077595e85d7d80bd8cf2
+// sha3: d292ac2ba40c3500191128d676157d4fbb7dff376a7d00ae49cf91c17a971c0c
 use std::str::FromStr;
 use crate::passes::parse::{Def, Expr, Lit, Op, Param};
 use crate::passes::parse::PrgParsed;
-use crate::passes::type_check::Type;
+use crate::passes::parse::Type;
 #[allow(unused_extern_crates)]
 extern crate lalrpop_util as __lalrpop_util;
 #[allow(unused_imports)]
@@ -18,7 +18,7 @@ mod __parse__Program {
     use std::str::FromStr;
     use crate::passes::parse::{Def, Expr, Lit, Op, Param};
     use crate::passes::parse::PrgParsed;
-    use crate::passes::type_check::Type;
+    use crate::passes::parse::Type;
     #[allow(unused_extern_crates)]
     extern crate lalrpop_util as __lalrpop_util;
     #[allow(unused_imports)]
@@ -7404,7 +7404,7 @@ mod __intern_token {
     use std::str::FromStr;
     use crate::passes::parse::{Def, Expr, Lit, Op, Param};
     use crate::passes::parse::PrgParsed;
-    use crate::passes::type_check::Type;
+    use crate::passes::parse::Type;
     #[allow(unused_extern_crates)]
     extern crate lalrpop_util as __lalrpop_util;
     #[allow(unused_imports)]

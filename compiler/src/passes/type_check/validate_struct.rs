@@ -1,0 +1,63 @@
+use std::collections::{HashMap, HashSet};
+use crate::passes::parse::{Def, Expr};
+use crate::passes::parse::types::Type;
+use crate::passes::type_check::check::{Env, EnvEntry};
+use crate::passes::type_check::error::TypeError::{UndeclaredVar, UnknownStructField, VariableConstructDuplicateField, VariableConstructMissingField, VariableShouldBeStruct};
+use crate::passes::type_check::util;
+use crate::passes::type_check::error::TypeError;
+use crate::utils::expect::expect;
+
+pub fn validate_struct<'p>(
+    env: &mut Env<'_, 'p>,
+    sym: &'p str,
+    provided_fields: &Vec<(&str, Expr<&'p str>)>,
+) -> Result<Type<&'p str>, TypeError> {
+    let entry = env.scope.get(&sym).ok_or(UndeclaredVar {
+        sym: sym.to_string(),
+    })?;
+
+    let EnvEntry::Def {
+        def: Def::Struct {
+            fields: def_fields, ..
+        },
+    } = entry
+    else {
+        return Err(VariableShouldBeStruct {
+            sym: sym.to_string(),
+        });
+    };
+
+    let mut new_provided_fields = HashSet::new();
+    let def_fields = def_fields
+        .iter()
+        .map(|(k, v)| (*k, v))
+        .collect::<HashMap<_, _>>();
+
+    for (field, expr) in provided_fields {
+        expect(
+            new_provided_fields.insert(field),
+            VariableConstructDuplicateField {
+                sym: field.to_string(),
+            },
+        )?;
+
+        if let Some(typ) = def_fields.get(field) {
+            util::expect_type(expr, (*typ).clone(), env)?;
+        } else {
+            return Err(UnknownStructField {
+                sym: field.to_string(),
+            });
+        }
+    }
+
+    for (field, _) in &def_fields {
+        expect(
+            new_provided_fields.contains(field),
+            VariableConstructMissingField {
+                sym: field.to_string(),
+            },
+        )?;
+    }
+
+    Ok(Type::Var { sym })
+}

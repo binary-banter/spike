@@ -1,7 +1,7 @@
 use std::str::FromStr;
 use crate::passes::parse::{Def, Expr, Lit, Op, Param};
 use crate::passes::parse::PrgParsed;
-use crate::passes::type_check::Type;
+use crate::passes::parse::Type;
 
 grammar;
 

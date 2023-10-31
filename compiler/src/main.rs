@@ -2,7 +2,7 @@ use crate::MainError::IOResult;
 use clap::Parser;
 use compiler::compile;
 use compiler::passes::parse::parse::PrettyParseError;
-use compiler::passes::type_check::check::TypeError;
+use compiler::passes::type_check::error::TypeError;
 use miette::Diagnostic;
 use std::io::Read;
 use std::path::Path;
