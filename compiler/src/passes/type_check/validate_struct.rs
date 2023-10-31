@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 use crate::passes::parse::{Def, Expr};
 use crate::passes::parse::types::Type;
 use crate::passes::type_check::check::{Env, EnvEntry};
-use crate::passes::type_check::error::TypeError::{UndeclaredVar, UnknownStructField, VariableConstructDuplicateField, VariableConstructMissingField, VariableShouldBeStruct};
+use crate::passes::type_check::error::TypeError::*;
 use crate::passes::type_check::util;
 use crate::passes::type_check::error::TypeError;
 use crate::utils::expect::expect;

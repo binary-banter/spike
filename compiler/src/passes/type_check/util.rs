@@ -2,7 +2,7 @@ use crate::passes::parse::Expr;
 use crate::passes::parse::types::Type;
 use crate::passes::type_check::check::Env;
 use crate::passes::type_check::validate_expr;
-use crate::passes::type_check::error::TypeError::{TypeMismatchEqual, TypeMismatchExpect};
+use crate::passes::type_check::error::TypeError::*;
 use crate::passes::type_check::error::TypeError;
 use crate::utils::expect::expect;
 

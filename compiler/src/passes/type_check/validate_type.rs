@@ -1,5 +1,5 @@
 use crate::passes::type_check::check::EnvEntry;
-use crate::passes::type_check::error::TypeError::UndeclaredVar;
+use crate::passes::type_check::error::TypeError::*;
 use crate::passes::type_check::error::TypeError;
 use crate::passes::parse::types::Type;
 use crate::utils::expect::expect;

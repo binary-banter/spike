@@ -5,6 +5,7 @@ mod uncover_globals;
 mod validate_struct;
 mod util;
 pub mod error;
+mod validate_prim;
 
 use crate::passes::parse::PrgGenericVar;
 
