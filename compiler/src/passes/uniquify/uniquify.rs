@@ -38,14 +38,14 @@ fn uniquify_def<'p>(
                     .map(|param| Param {
                         sym: scope[&param.sym],
                         mutable: param.mutable,
-                        typ: param.typ.clone(),
+                        typ: param.typ.clone().fmap(|v| todo!()),
                     })
                     .collect();
                 let bdy = uniquify_expression(bdy, scope);
                 Def::Fn {
                     sym: scope[&sym],
                     params,
-                    typ,
+                    typ: typ.fmap(|v| todo!()),
                     bdy,
                 }
             },

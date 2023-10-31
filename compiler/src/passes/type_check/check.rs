@@ -13,11 +13,14 @@ pub enum TypeError {
     #[error("Variable '{sym}' was not declared yet.")]
     UndeclaredVar { sym: String },
     #[error("Types were mismatched. Expected '{expect}', but found '{got}'.")]
-    TypeMismatchExpect { expect: Type, got: Type },
+    TypeMismatchExpect {
+        expect: Type<String>,
+        got: Type<String>,
+    },
     #[error("Types were mismatched. Expected function, but found '{got}'.")]
-    TypeMismatchExpectFn { got: Type },
+    TypeMismatchExpectFn { got: Type<String> },
     #[error("Types were mismatched. Expected '{t1}' and '{t2}' to be equal.")]
-    TypeMismatchEqual { t1: Type, t2: Type },
+    TypeMismatchEqual { t1: Type<String>, t2: Type<String> },
     #[error("There are multiple functions named `{sym}`.")]
     DuplicateFunction { sym: String },
     #[error("Function `{sym}` has duplicate argument names.")]
@@ -28,22 +31,34 @@ pub enum TypeError {
     NoMain,
     #[error("Found a break outside of a loop.")]
     BreakOutsideLoop,
-    #[error("Tried to modify immutable variable 'var'")]
+    #[error("Tried to modify immutable variable '{sym}'")]
     ModifyImmutable { sym: String },
+    #[error("The variable {sym} refers to a definition.'")]
+    VariableRefersToDef { sym: String },
 }
 
 struct Env<'a, 'p> {
-    scope: &'a mut PushMap<&'p str, (bool, Type)>,
-    loop_type: &'a mut Option<Type>,
+    scope: &'a mut PushMap<&'p str, EnvEntry<'p>>,
+    loop_type: &'a mut Option<Type<&'p str>>,
     in_loop: bool,
-    return_type: &'a Type,
+    return_type: &'a Type<&'p str>,
+}
+
+enum EnvEntry<'p> {
+    Type{
+        mutable: bool,
+        typ: Type<&'p str>,
+    },
+    Def{
+        def: &'p Def<&'p str, Expr<&'p str>>
+    },
 }
 
 impl<'a, 'p> Env<'a, 'p> {
     pub fn push<O>(
         &mut self,
         k: &'p str,
-        v: (bool, Type),
+        v: EnvEntry<'p>,
         sub: impl FnOnce(&mut Env<'_, 'p>) -> O,
     ) -> O {
         self.scope.push(k, v, |scope| {
@@ -59,12 +74,12 @@ impl<'a, 'p> Env<'a, 'p> {
 
 impl<'p> PrgParsed<'p> {
     pub fn type_check(self) -> Result<PrgTypeChecked<'p>, TypeError> {
-        let mut scope = uncover_fns(&self)?;
+        let mut scope = uncover_globals(&self)?;
 
         // Typecheck all definitions and collect them.
-        let defs = self
+        self
             .defs
-            .into_iter()
+            .iter()
             .map(|def| match def {
                 Def::Fn {
                     sym,
@@ -73,7 +88,7 @@ impl<'p> PrgParsed<'p> {
                     ref typ,
                 } => scope
                     .push_iter(
-                        params.iter().map(|p| (p.sym, (p.mutable, p.typ.clone()))),
+                        params.iter().map(|p| (p.sym, EnvEntry::Type { mutable: p.mutable, typ: p.typ.clone()})),
                         |scope| {
                             let mut env = Env {
                                 scope,
@@ -84,12 +99,17 @@ impl<'p> PrgParsed<'p> {
 
                             expect_type(bdy, typ.clone(), &mut env)
                         },
-                    )
-                    .map(|()| (sym, def)),
-                Def::Struct { .. } => todo!(),
-                Def::Enum { .. } => todo!(),
+                    ),
+                Def::Struct { fields: types, .. } | Def::Enum { variants: types, .. } => {
+                    for (_, typ) in types {
+                        validate_type(typ, &scope)?;
+                    }
+                    Ok(())
+                },
             })
-            .collect::<Result<HashMap<_, _>, _>>()?;
+            .collect::<Result<(), _>>()?;
+
+        let defs = self.defs.into_iter().map(|def| (*def.sym(), def)).collect::<HashMap<_, _>>();
 
         expect(defs.contains_key("main"), NoMain)?;
 
@@ -100,8 +120,31 @@ impl<'p> PrgParsed<'p> {
     }
 }
 
+/// Verifies that the given type exists in the current scope.
+fn validate_type<'p>(typ: &'p Type<&'p str>, scope: &PushMap<&str, EnvEntry<'p>>) -> Result<(), TypeError> {
+    match typ {
+        Type::Int | Type::Bool | Type::Unit | Type::Never=> {}
+        Type::Fn { typ, params } => {
+            validate_type(typ, scope)?;
+
+            for typ in params {
+                validate_type(typ, scope)?;
+            }
+        }
+        Type::Var { sym } => {
+            expect(scope.contains(sym), UndeclaredVar {
+                sym: sym.to_string(),
+            })?;
+        }
+    }
+
+    Ok(())
+}
+
 /// Returns a `PushMap` with all the functions in scope.
-fn uncover_fns<'p>(program: &PrgParsed<'p>) -> Result<PushMap<&'p str, (bool, Type)>, TypeError> {
+fn uncover_globals<'p>(
+    program: &'p PrgParsed<'p>,
+) -> Result<PushMap<&'p str, EnvEntry<'p>>, TypeError> {
     let mut globals = HashMap::new();
 
     for def in &program.defs {
@@ -114,10 +157,10 @@ fn uncover_fns<'p>(program: &PrgParsed<'p>) -> Result<PushMap<&'p str, (bool, Ty
             } => {
                 let signature = Type::Fn {
                     typ: Box::new(typ.clone()),
-                    args: args.iter().map(|param| param.typ.clone()).collect(),
+                    params: args.iter().map(|param| param.typ.clone()).collect(),
                 };
                 expect(
-                    globals.insert(*sym, (false, signature)).is_none(),
+                    globals.insert(*sym, EnvEntry::Type{ mutable: false, typ: signature}).is_none(),
                     DuplicateFunction {
                         sym: (*sym).to_string(),
                     },
@@ -131,29 +174,34 @@ fn uncover_fns<'p>(program: &PrgParsed<'p>) -> Result<PushMap<&'p str, (bool, Ty
                     },
                 )?;
             }
-            Def::Struct { .. } => todo!(),
-            Def::Enum { .. } => todo!(),
+            def @ (Def::Struct { sym, .. } | Def::Enum { sym, .. }) => {
+                globals.insert(sym, EnvEntry::Def { def } );
+            },
         }
     }
 
     Ok(PushMap::from(globals))
 }
 
-fn type_check_expr<'p>(expr: &Expr<&'p str>, env: &mut Env<'_, 'p>) -> Result<Type, TypeError> {
+fn validate_expr<'p>(
+    expr: &Expr<&'p str>,
+    env: &mut Env<'_, 'p>,
+) -> Result<Type<&'p str>, TypeError> {
     match expr {
         Expr::Lit { val } => match val {
             Lit::Int { .. } => Ok(Type::Int),
             Lit::Bool { .. } => Ok(Type::Bool),
             Lit::Unit => Ok(Type::Unit),
         },
-        Expr::Var { sym } => env
-            .scope
-            .get(sym)
-            .map(|(_, t)| t)
-            .cloned()
-            .ok_or(UndeclaredVar {
-                sym: (*sym).to_string(),
-            }),
+        Expr::Var { sym } => {
+            let entry = env.scope.get(sym).ok_or(UndeclaredVar { sym: (*sym).to_string() })?;
+
+            if let EnvEntry::Type { typ, .. } = entry{
+                Ok(typ.clone())
+            } else {
+                Err(VariableRefersToDef { sym: (*sym).to_string() })
+            }
+        },
         Expr::Prim { op, args } => match (op, args.as_slice()) {
             (Op::Plus | Op::Minus | Op::Mul | Op::Mod | Op::Div, [e1, e2]) => {
                 expect_type(e1, Type::Int, env)?;
@@ -196,17 +244,17 @@ fn type_check_expr<'p>(expr: &Expr<&'p str>, env: &mut Env<'_, 'p>) -> Result<Ty
             bnd,
             bdy,
         } => {
-            let t = type_check_expr(bnd, env)?;
-            env.push(sym, (*mutable, t), |env| type_check_expr(bdy, env))
+            let typ = validate_expr(bnd, env)?;
+            env.push(sym, EnvEntry::Type{mutable: *mutable, typ}, |env| validate_expr(bdy, env))
         }
         Expr::If { cnd, thn, els } => {
             expect_type(cnd, Type::Bool, env)?;
             expect_type_eq(thn, els, env)
         }
-        Expr::Apply { fun, args } => match type_check_expr(fun, env)? {
+        Expr::Apply { fun, args } => match validate_expr(fun, env)? {
             Type::Fn {
                 typ,
-                args: expected_types,
+                params: expected_types,
             } => {
                 if expected_types.len() != args.len() {
                     return Err(ArgCountMismatch {
@@ -221,7 +269,9 @@ fn type_check_expr<'p>(expr: &Expr<&'p str>, env: &mut Env<'_, 'p>) -> Result<Ty
 
                 Ok(*typ)
             }
-            got => Err(TypeMismatchExpectFn { got }),
+            got => Err(TypeMismatchExpectFn {
+                got: got.fmap(str::to_string),
+            }),
         },
         Expr::Loop { bdy } => {
             let mut loop_type = None;
@@ -231,20 +281,20 @@ fn type_check_expr<'p>(expr: &Expr<&'p str>, env: &mut Env<'_, 'p>) -> Result<Ty
                 in_loop: true,
                 return_type: env.return_type,
             };
-            type_check_expr(bdy, &mut env)?;
+            validate_expr(bdy, &mut env)?;
             Ok(loop_type.unwrap_or(Type::Never))
         }
         Expr::Break { bdy } => {
             expect(env.in_loop, BreakOutsideLoop)?;
 
-            let bdy_type = type_check_expr(bdy, env)?;
+            let bdy_type = validate_expr(bdy, env)?;
 
             if let Some(loop_type) = env.loop_type {
                 expect(
                     *loop_type == bdy_type,
                     TypeMismatchEqual {
-                        t1: loop_type.clone(),
-                        t2: bdy_type,
+                        t1: loop_type.clone().fmap(str::to_string),
+                        t2: bdy_type.fmap(str::to_string),
                     },
                 )?;
             } else {
@@ -254,20 +304,22 @@ fn type_check_expr<'p>(expr: &Expr<&'p str>, env: &mut Env<'_, 'p>) -> Result<Ty
             Ok(Type::Never)
         }
         Expr::Seq { stmt, cnt } => {
-            type_check_expr(stmt, env)?;
-            type_check_expr(cnt, env)
+            validate_expr(stmt, env)?;
+            validate_expr(cnt, env)
         }
         Expr::Assign { sym, bnd } => {
-            let (mutable, typ) = env.scope.get(sym).cloned().ok_or(UndeclaredVar {
-                sym: (*sym).to_string(),
-            })?;
+            let entry = env.scope.get(sym).ok_or(UndeclaredVar { sym: (*sym).to_string() })?;
+
+            let EnvEntry::Type { typ, mutable } = entry else {
+                return Err(VariableRefersToDef { sym: (*sym).to_string() })
+            };
+
             expect(
-                mutable,
-                ModifyImmutable {
-                    sym: (*sym).to_string(),
-                },
+                *mutable,
+                ModifyImmutable { sym: (*sym).to_string() },
             )?;
-            expect_type(bnd, typ, env)?;
+
+            expect_type(bnd, typ.clone(), env)?;
             Ok(Type::Unit)
         }
         Expr::Continue => Ok(Type::Never),
@@ -286,24 +338,30 @@ fn expect_type_eq<'p>(
     e1: &Expr<&'p str>,
     e2: &Expr<&'p str>,
     env: &mut Env<'_, 'p>,
-) -> Result<Type, TypeError> {
-    let t1 = type_check_expr(e1, env)?;
-    let t2 = type_check_expr(e2, env)?;
-    expect(t1 == t2, TypeMismatchEqual { t1: t1.clone(), t2 })?;
+) -> Result<Type<&'p str>, TypeError> {
+    let t1 = validate_expr(e1, env)?;
+    let t2 = validate_expr(e2, env)?;
+    expect(
+        t1 == t2,
+        TypeMismatchEqual {
+            t1: t1.clone().fmap(str::to_string),
+            t2: t2.fmap(str::to_string),
+        },
+    )?;
     Ok(t1)
 }
 
 fn expect_type<'p>(
     expr: &Expr<&'p str>,
-    expected: Type,
+    expected: Type<&'p str>,
     env: &mut Env<'_, 'p>,
 ) -> Result<(), TypeError> {
-    let t = type_check_expr(expr, env)?;
+    let t = validate_expr(expr, env)?;
     expect(
         t == expected,
         TypeMismatchExpect {
-            got: t,
-            expect: expected,
+            got: t.fmap(str::to_string),
+            expect: expected.fmap(str::to_string),
         },
     )
 }

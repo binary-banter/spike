@@ -7,6 +7,7 @@ pub mod parse;
 use crate::passes::type_check::Type;
 use derive_more::Display;
 use std::collections::HashMap;
+use std::fmt::Display;
 use std::hash::Hash;
 use std::str::FromStr;
 
@@ -17,33 +18,43 @@ pub struct PrgParsed<'p> {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct PrgGenericVar<A: Copy + Hash + Eq> {
+pub struct PrgGenericVar<A: Copy + Hash + Eq + Display> {
     pub defs: HashMap<A, Def<A, Expr<A>>>,
     pub entry: A,
 }
 
 #[derive(Debug, PartialEq)]
-pub enum Def<A: Copy + Hash + Eq, B> {
+pub enum Def<A: Copy + Hash + Eq + Display, B> {
     Fn {
         sym: A,
         params: Vec<Param<A>>,
-        typ: Type,
+        typ: Type<A>,
         bdy: B,
     },
     Struct {
         sym: A,
-        fields: Vec<(A, Type)>,
+        fields: Vec<(A, Type<A>)>,
     },
     Enum {
         sym: A,
-        variants: Vec<(A, Type)>,
+        variants: Vec<(A, Type<A>)>,
     },
 }
 
+impl<A: Copy + Hash + Eq + Display, B> Def<A, B> {
+    pub fn sym(&self) -> &A {
+        match self {
+            Def::Fn { sym, .. } => sym,
+            Def::Struct { sym, .. } => sym,
+            Def::Enum { sym, .. } => sym,
+        }
+    }
+}
+
 #[derive(Debug, PartialEq)]
-pub struct Param<A: Copy + Hash + Eq> {
+pub struct Param<A: Copy + Hash + Eq + Display> {
     pub sym: A,
-    pub typ: Type,
+    pub typ: Type<A>,
     pub mutable: bool,
 }
 

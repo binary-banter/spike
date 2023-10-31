@@ -815,18 +815,18 @@ checksum = "a06f77d526c1a601b7c4cdd98f54b5eaabffc14d5f2f0296febdc7f357c6d3ba"
 
 [[package]]
 name = "functor_derive"
-version = "0.2.2"
+version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4e9314761e9d91c3a2283818f3ecc01f1b8136ec062bd0120126087395aa7309"
+checksum = "1c973b2ee52e4380ece2472b9126b878898cf3aabb7a54ed1fdc92d01ec1e280"
 dependencies = [
  "functor_derive_lib",
 ]
 
 [[package]]
 name = "functor_derive_lib"
-version = "0.2.2"
+version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2e2eb26e533f90d0887d9cdfbf59909d07e2c12abfa02c66d99e2447865ec069"
+checksum = "528dcee17708842e42ec482eb77946d0f80b0a23aec649f67f916a32f1275007"
 dependencies = [
  "proc-macro2",
  "quote",

@@ -118,11 +118,12 @@ Param: Param<&'input str> = {
     }
 }
 
-Type: Type = {
+Type: Type<&'input str> = {
     "Int" => Type::Int,
     "Bool" => Type::Bool,
     "Unit" => Type::Unit,
     "Never" => Type::Never,
+    <sym:Ident> => Type::Var { sym },
 }
 
 // We have the following precedence:
