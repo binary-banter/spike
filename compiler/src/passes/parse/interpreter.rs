@@ -203,6 +203,8 @@ impl<A: Copy + Hash + Eq + Debug + Display> PrgGenericVar<A> {
             }
             Expr::Struct { .. } => todo!(),
             Expr::Variant { .. } => todo!(),
+            Expr::AccessField { .. } => todo!(),
+            Expr::Switch { .. } => todo!(),
         })
     }
 }

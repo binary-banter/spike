@@ -95,5 +95,7 @@ fn reveal_expr<'p>(expr: Expr<UniqueSym<'p>>, scope: &mut PushMap<UniqueSym<'p>,
         },
         Expr::Struct { .. } => todo!(),
         Expr::Variant { .. } => todo!(),
+        Expr::AccessField { .. } => todo!(),
+        Expr::Switch { .. } => todo!(),
     }
 }

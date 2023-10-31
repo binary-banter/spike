@@ -118,5 +118,7 @@ fn uniquify_expression<'p>(
         },
         Expr::Struct { .. } => todo!(),
         Expr::Variant { .. } => todo!(),
+        Expr::AccessField { .. } => todo!(),
+        Expr::Switch { .. } => todo!(),
     }
 }

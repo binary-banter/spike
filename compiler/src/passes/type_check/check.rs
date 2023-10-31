@@ -277,6 +277,8 @@ fn type_check_expr<'p>(expr: &Expr<&'p str>, env: &mut Env<'_, 'p>) -> Result<Ty
         }
         Expr::Struct { .. } => todo!(),
         Expr::Variant { .. } => todo!(),
+        Expr::AccessField { .. } => todo!(),
+        Expr::Switch { .. } => todo!(),
     }
 }
 

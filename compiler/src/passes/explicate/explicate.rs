@@ -49,7 +49,7 @@ fn explicate_def<'p>(def: Def<UniqueSym<'p>, AExpr<'p>>, env: &mut Env<'_, 'p>) 
         Def::Fn { sym, bdy, .. } => {
             let tail = explicate_tail(bdy, env);
             env.blocks.insert(sym, tail);
-        },
+        }
         Def::Struct { .. } => todo!(),
         Def::Enum { .. } => todo!(),
     }

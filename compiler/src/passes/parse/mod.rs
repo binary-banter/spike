@@ -10,16 +10,6 @@ use std::collections::HashMap;
 use std::hash::Hash;
 use std::str::FromStr;
 
-struct Test {
-
-}
-
-fn test() {
-    match 1 + Test{} + 1 {
-
-    }
-}
-
 #[derive(Debug, PartialEq)]
 pub struct PrgParsed<'p> {
     pub defs: Vec<Def<&'p str, Expr<&'p str>>>,
@@ -42,12 +32,12 @@ pub enum Def<A: Copy + Hash + Eq, B> {
     },
     Struct {
         sym: A,
-        fields: Vec<(A, Type)>
+        fields: Vec<(A, Type)>,
     },
     Enum {
         sym: A,
-        variants: Vec<(A, Type)>
-    }
+        variants: Vec<(A, Type)>,
+    },
 }
 
 #[derive(Debug, PartialEq)]
@@ -117,8 +107,8 @@ pub enum Expr<A: Copy + Hash + Eq> {
     },
     Switch {
         enm: Box<Expr<A>>,
-        arms: Vec<(A, A, Box<Expr<A>>)>
-    }
+        arms: Vec<(A, A, Box<Expr<A>>)>,
+    },
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
