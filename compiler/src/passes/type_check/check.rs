@@ -33,8 +33,16 @@ pub enum TypeError {
     BreakOutsideLoop,
     #[error("Tried to modify immutable variable '{sym}'")]
     ModifyImmutable { sym: String },
-    #[error("The variable {sym} refers to a definition.'")]
-    VariableRefersToDef { sym: String },
+    #[error("The name {sym} should refer to a variable binding.'")]
+    VariableShouldBeExpr { sym: String },
+    #[error("The name `{sym}` should refer to a struct type.'")]
+    VariableShouldBeStruct { sym: String },
+    #[error("The field `{sym}` is not present in the struct definition.'")]
+    VariableConstructUnknownField { sym: String },
+    #[error("The field `{sym}` is missing in the struct.'")]
+    VariableConstructMissingField { sym: String },
+    #[error("The field `{sym}` was already provided earlier.'")]
+    VariableConstructDuplicateField { sym: String },
 }
 
 struct Env<'a, 'p> {
@@ -45,12 +53,12 @@ struct Env<'a, 'p> {
 }
 
 enum EnvEntry<'p> {
-    Type{
+    Type {
         mutable: bool,
         typ: Type<&'p str>,
     },
-    Def{
-        def: &'p Def<&'p str, Expr<&'p str>>
+    Def {
+        def: &'p Def<&'p str, Expr<&'p str>>,
     },
 }
 
@@ -77,39 +85,52 @@ impl<'p> PrgParsed<'p> {
         let mut scope = uncover_globals(&self)?;
 
         // Typecheck all definitions and collect them.
-        self
-            .defs
+        self.defs
             .iter()
             .map(|def| match def {
                 Def::Fn {
-                    sym,
                     ref params,
                     ref bdy,
                     ref typ,
-                } => scope
-                    .push_iter(
-                        params.iter().map(|p| (p.sym, EnvEntry::Type { mutable: p.mutable, typ: p.typ.clone()})),
-                        |scope| {
-                            let mut env = Env {
-                                scope,
-                                loop_type: &mut None,
-                                in_loop: false,
-                                return_type: typ,
-                            };
+                    ..
+                } => scope.push_iter(
+                    params.iter().map(|p| {
+                        (
+                            p.sym,
+                            EnvEntry::Type {
+                                mutable: p.mutable,
+                                typ: p.typ.clone(),
+                            },
+                        )
+                    }),
+                    |scope| {
+                        let mut env = Env {
+                            scope,
+                            loop_type: &mut None,
+                            in_loop: false,
+                            return_type: typ,
+                        };
 
-                            expect_type(bdy, typ.clone(), &mut env)
-                        },
-                    ),
-                Def::Struct { fields: types, .. } | Def::Enum { variants: types, .. } => {
+                        expect_type(bdy, typ.clone(), &mut env)
+                    },
+                ),
+                Def::Struct { fields: types, .. }
+                | Def::Enum {
+                    variants: types, ..
+                } => {
                     for (_, typ) in types {
                         validate_type(typ, &scope)?;
                     }
                     Ok(())
-                },
+                }
             })
             .collect::<Result<(), _>>()?;
 
-        let defs = self.defs.into_iter().map(|def| (*def.sym(), def)).collect::<HashMap<_, _>>();
+        let defs = self
+            .defs
+            .into_iter()
+            .map(|def| (*def.sym(), def))
+            .collect::<HashMap<_, _>>();
 
         expect(defs.contains_key("main"), NoMain)?;
 
@@ -121,9 +142,12 @@ impl<'p> PrgParsed<'p> {
 }
 
 /// Verifies that the given type exists in the current scope.
-fn validate_type<'p>(typ: &'p Type<&'p str>, scope: &PushMap<&str, EnvEntry<'p>>) -> Result<(), TypeError> {
+fn validate_type<'p>(
+    typ: &'p Type<&'p str>,
+    scope: &PushMap<&str, EnvEntry<'p>>,
+) -> Result<(), TypeError> {
     match typ {
-        Type::Int | Type::Bool | Type::Unit | Type::Never=> {}
+        Type::Int | Type::Bool | Type::Unit | Type::Never => {}
         Type::Fn { typ, params } => {
             validate_type(typ, scope)?;
 
@@ -132,9 +156,12 @@ fn validate_type<'p>(typ: &'p Type<&'p str>, scope: &PushMap<&str, EnvEntry<'p>>
             }
         }
         Type::Var { sym } => {
-            expect(scope.contains(sym), UndeclaredVar {
-                sym: sym.to_string(),
-            })?;
+            expect(
+                scope.contains(sym),
+                UndeclaredVar {
+                    sym: sym.to_string(),
+                },
+            )?;
         }
     }
 
@@ -160,7 +187,15 @@ fn uncover_globals<'p>(
                     params: args.iter().map(|param| param.typ.clone()).collect(),
                 };
                 expect(
-                    globals.insert(*sym, EnvEntry::Type{ mutable: false, typ: signature}).is_none(),
+                    globals
+                        .insert(
+                            *sym,
+                            EnvEntry::Type {
+                                mutable: false,
+                                typ: signature,
+                            },
+                        )
+                        .is_none(),
                     DuplicateFunction {
                         sym: (*sym).to_string(),
                     },
@@ -175,8 +210,8 @@ fn uncover_globals<'p>(
                 )?;
             }
             def @ (Def::Struct { sym, .. } | Def::Enum { sym, .. }) => {
-                globals.insert(sym, EnvEntry::Def { def } );
-            },
+                globals.insert(sym, EnvEntry::Def { def });
+            }
         }
     }
 
@@ -194,14 +229,18 @@ fn validate_expr<'p>(
             Lit::Unit => Ok(Type::Unit),
         },
         Expr::Var { sym } => {
-            let entry = env.scope.get(sym).ok_or(UndeclaredVar { sym: (*sym).to_string() })?;
+            let entry = env.scope.get(sym).ok_or(UndeclaredVar {
+                sym: (*sym).to_string(),
+            })?;
 
-            if let EnvEntry::Type { typ, .. } = entry{
+            if let EnvEntry::Type { typ, .. } = entry {
                 Ok(typ.clone())
             } else {
-                Err(VariableRefersToDef { sym: (*sym).to_string() })
+                Err(VariableShouldBeExpr {
+                    sym: (*sym).to_string(),
+                })
             }
-        },
+        }
         Expr::Prim { op, args } => match (op, args.as_slice()) {
             (Op::Plus | Op::Minus | Op::Mul | Op::Mod | Op::Div, [e1, e2]) => {
                 expect_type(e1, Type::Int, env)?;
@@ -245,7 +284,14 @@ fn validate_expr<'p>(
             bdy,
         } => {
             let typ = validate_expr(bnd, env)?;
-            env.push(sym, EnvEntry::Type{mutable: *mutable, typ}, |env| validate_expr(bdy, env))
+            env.push(
+                sym,
+                EnvEntry::Type {
+                    mutable: *mutable,
+                    typ,
+                },
+                |env| validate_expr(bdy, env),
+            )
         }
         Expr::If { cnd, thn, els } => {
             expect_type(cnd, Type::Bool, env)?;
@@ -308,15 +354,21 @@ fn validate_expr<'p>(
             validate_expr(cnt, env)
         }
         Expr::Assign { sym, bnd } => {
-            let entry = env.scope.get(sym).ok_or(UndeclaredVar { sym: (*sym).to_string() })?;
+            let entry = env.scope.get(sym).ok_or(UndeclaredVar {
+                sym: (*sym).to_string(),
+            })?;
 
             let EnvEntry::Type { typ, mutable } = entry else {
-                return Err(VariableRefersToDef { sym: (*sym).to_string() })
+                return Err(VariableShouldBeExpr {
+                    sym: (*sym).to_string(),
+                });
             };
 
             expect(
                 *mutable,
-                ModifyImmutable { sym: (*sym).to_string() },
+                ModifyImmutable {
+                    sym: (*sym).to_string(),
+                },
             )?;
 
             expect_type(bnd, typ.clone(), env)?;
@@ -327,9 +379,59 @@ fn validate_expr<'p>(
             expect_type(bdy, env.return_type.clone(), env)?;
             Ok(Type::Never)
         }
-        Expr::Struct { sym, fields } => {
-            todo!( )
-        },
+        Expr::Struct {
+            sym,
+            fields: provided_fields,
+        } => {
+            let entry = env.scope.get(sym).ok_or(UndeclaredVar {
+                sym: (*sym).to_string(),
+            })?;
+
+            let EnvEntry::Def {
+                def: Def::Struct {
+                    fields: def_fields, ..
+                },
+            } = entry
+            else {
+                return Err(VariableShouldBeStruct {
+                    sym: (*sym).to_string(),
+                });
+            };
+
+            let mut new_provided_fields = HashSet::new();
+            let def_fields = def_fields
+                .iter()
+                .map(|(k, v)| (*k, v))
+                .collect::<HashMap<_, _>>();
+
+            for (field, expr) in provided_fields {
+                expect(
+                    new_provided_fields.insert(field),
+                    VariableConstructDuplicateField {
+                        sym: field.to_string(),
+                    },
+                )?;
+
+                if let Some(typ) = def_fields.get(field) {
+                    expect_type(expr, (*typ).clone(), env)?;
+                } else {
+                    return Err(VariableConstructUnknownField {
+                        sym: field.to_string(),
+                    });
+                }
+            }
+
+            for (field, _) in &def_fields {
+                expect(
+                    new_provided_fields.contains(field),
+                    VariableConstructMissingField {
+                        sym: field.to_string(),
+                    },
+                )?;
+            }
+
+            Ok(Type::Var { sym: *sym })
+        }
         Expr::AccessField { .. } => todo!(),
         Expr::Variant { .. } => todo!(),
         Expr::Switch { .. } => todo!(),

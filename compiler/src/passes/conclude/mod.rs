@@ -23,4 +23,3 @@ impl<'p> From<X86Concluded<'p>> for X86Selected<'p> {
         }
     }
 }
-
