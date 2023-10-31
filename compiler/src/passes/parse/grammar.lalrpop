@@ -136,6 +136,7 @@ Type: Type<&'input str> = {
 // ExprAdditive
 // ExprMultiplicative
 // ExprUnary
+// ExprAccess
 // ExprCall
 // ExprAtom
 // Num/Bool/Ident
@@ -236,6 +237,14 @@ ExprUnary<T>: Expr<&'input str> = {
     <op:UnaryOp> <e:ExprUnary<T>> => Expr::Prim {
         op,
         args: vec![e],
+    },
+    ExprAccess<T>,
+}
+
+ExprAccess<T>: Expr<&'input str> = {
+    <strct:ExprCall<T>> "." <field:Ident> => Expr::AccessField {
+        strct: Box::new(strct),
+        field,
     },
     ExprCall<T>,
 }

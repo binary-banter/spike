@@ -327,9 +327,11 @@ fn validate_expr<'p>(
             expect_type(bdy, env.return_type.clone(), env)?;
             Ok(Type::Never)
         }
-        Expr::Struct { .. } => todo!(),
-        Expr::Variant { .. } => todo!(),
+        Expr::Struct { sym, fields } => {
+            todo!( )
+        },
         Expr::AccessField { .. } => todo!(),
+        Expr::Variant { .. } => todo!(),
         Expr::Switch { .. } => todo!(),
     }
 }
