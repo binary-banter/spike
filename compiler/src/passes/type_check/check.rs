@@ -38,11 +38,13 @@ pub enum TypeError {
     #[error("The name `{sym}` should refer to a struct type.'")]
     VariableShouldBeStruct { sym: String },
     #[error("The field `{sym}` is not present in the struct definition.'")]
-    VariableConstructUnknownField { sym: String },
+    UnknownStructField { sym: String },
     #[error("The field `{sym}` is missing in the struct.'")]
     VariableConstructMissingField { sym: String },
     #[error("The field `{sym}` was already provided earlier.'")]
     VariableConstructDuplicateField { sym: String },
+    #[error("The type `{typ}` should be a struct type.'")]
+    TypeShouldBeStruct { typ: Type<String> },
 }
 
 struct Env<'a, 'p> {
@@ -382,60 +384,92 @@ fn validate_expr<'p>(
         Expr::Struct {
             sym,
             fields: provided_fields,
-        } => {
-            let entry = env.scope.get(sym).ok_or(UndeclaredVar {
-                sym: (*sym).to_string(),
-            })?;
+        } => validate_struct(env, sym, provided_fields),
+        Expr::AccessField { strct, field: field_sym } => {
+            let typ = validate_expr(strct, env)?;
+            let Type::Var { sym } = typ else {
+                return Err(TypeShouldBeStruct {
+                    typ: typ.clone().fmap(str::to_string),
+                });
+            };
 
             let EnvEntry::Def {
                 def: Def::Struct {
                     fields: def_fields, ..
                 },
-            } = entry
+            } = env.scope[sym]
             else {
                 return Err(VariableShouldBeStruct {
-                    sym: (*sym).to_string(),
+                    sym: sym.to_string(),
                 });
             };
 
-            let mut new_provided_fields = HashSet::new();
-            let def_fields = def_fields
-                .iter()
-                .map(|(k, v)| (*k, v))
-                .collect::<HashMap<_, _>>();
+            let Some((_, t)) = def_fields.iter().find(|&(sym, _)| sym == field_sym) else {
+                return Err(UnknownStructField {
+                    sym: sym.to_string(),
+                });
+            };
 
-            for (field, expr) in provided_fields {
-                expect(
-                    new_provided_fields.insert(field),
-                    VariableConstructDuplicateField {
-                        sym: field.to_string(),
-                    },
-                )?;
-
-                if let Some(typ) = def_fields.get(field) {
-                    expect_type(expr, (*typ).clone(), env)?;
-                } else {
-                    return Err(VariableConstructUnknownField {
-                        sym: field.to_string(),
-                    });
-                }
-            }
-
-            for (field, _) in &def_fields {
-                expect(
-                    new_provided_fields.contains(field),
-                    VariableConstructMissingField {
-                        sym: field.to_string(),
-                    },
-                )?;
-            }
-
-            Ok(Type::Var { sym: *sym })
+            Ok(t.clone())
         }
-        Expr::AccessField { .. } => todo!(),
         Expr::Variant { .. } => todo!(),
         Expr::Switch { .. } => todo!(),
     }
+}
+
+fn validate_struct<'p>(
+    env: &mut Env<'_, 'p>,
+    sym: &'p str,
+    provided_fields: &Vec<(&str, Expr<&'p str>)>,
+) -> Result<Type<&'p str>, TypeError> {
+    let entry = env.scope.get(&sym).ok_or(UndeclaredVar {
+        sym: sym.to_string(),
+    })?;
+
+    let EnvEntry::Def {
+        def: Def::Struct {
+            fields: def_fields, ..
+        },
+    } = entry
+    else {
+        return Err(VariableShouldBeStruct {
+            sym: sym.to_string(),
+        });
+    };
+
+    let mut new_provided_fields = HashSet::new();
+    let def_fields = def_fields
+        .iter()
+        .map(|(k, v)| (*k, v))
+        .collect::<HashMap<_, _>>();
+
+    for (field, expr) in provided_fields {
+        expect(
+            new_provided_fields.insert(field),
+            VariableConstructDuplicateField {
+                sym: field.to_string(),
+            },
+        )?;
+
+        if let Some(typ) = def_fields.get(field) {
+            expect_type(expr, (*typ).clone(), env)?;
+        } else {
+            return Err(UnknownStructField {
+                sym: field.to_string(),
+            });
+        }
+    }
+
+    for (field, _) in &def_fields {
+        expect(
+            new_provided_fields.contains(field),
+            VariableConstructMissingField {
+                sym: field.to_string(),
+            },
+        )?;
+    }
+
+    Ok(Type::Var { sym })
 }
 
 fn expect_type_eq<'p>(
