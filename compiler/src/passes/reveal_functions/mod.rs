@@ -4,6 +4,7 @@ use crate::passes::parse::{Def, Expr, Lit, Op};
 use crate::passes::uniquify::PrgUniquified;
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
+use functor_derive::Functor;
 
 #[derive(Debug, PartialEq)]
 pub struct PrgRevealed<'p> {
@@ -58,6 +59,8 @@ pub enum RExpr<'p> {
         sym: UniqueSym<'p>,
         bnd: Box<RExpr<'p>>,
     },
+    Struct { sym: UniqueSym<'p>, fields: Vec<(&'p str, RExpr<'p>)> },
+    AccessField { strct: Box<RExpr<'p>>, field: &'p str },
 }
 
 impl<'p> From<PrgRevealed<'p>> for PrgUniquified<'p> {
@@ -73,9 +76,8 @@ impl<'p> From<PrgRevealed<'p>> for PrgUniquified<'p> {
     }
 }
 
-//TODO also functor time?
 impl<'p> From<Def<'p, UniqueSym<'p>, RExpr<'p>>> for Def<'p, UniqueSym<'p>, Expr<'p, UniqueSym<'p>>> {
-    fn from(value: Def<UniqueSym<'p>, RExpr<'p>>) -> Self {
+    fn from(value: Def<'p, UniqueSym<'p>, RExpr<'p>>) -> Self {
         match value {
             Def::Fn {
                 sym,
@@ -88,8 +90,11 @@ impl<'p> From<Def<'p, UniqueSym<'p>, RExpr<'p>>> for Def<'p, UniqueSym<'p>, Expr
                 typ,
                 bdy: bdy.into(),
             },
-            Def::Struct { .. } => todo!(),
-            Def::Enum { .. } => todo!(),
+            Def::Struct { sym, fields } => Def::Struct {
+                sym,
+                fields
+            },
+            Def::Enum { sym, variants } => Def::Enum { sym, variants },
         }
     }
 }
@@ -136,6 +141,14 @@ impl<'p> From<RExpr<'p>> for Expr<'p, UniqueSym<'p>> {
             RExpr::Return { bdy } => Expr::Return {
                 bdy: Box::new((*bdy).into()),
             },
+            RExpr::Struct { sym, fields } => Expr::Struct {
+                sym,
+                fields: fields.into_iter().map(|(sym, expr)| (sym, expr.into())).collect()
+            },
+            RExpr::AccessField { strct, field } => Expr::AccessField {
+                strct: Box::new((*strct).into()),
+                field,
+            }
         }
     }
 }

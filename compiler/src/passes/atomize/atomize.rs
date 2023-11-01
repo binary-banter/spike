@@ -106,6 +106,8 @@ fn atomize_expr(expr: RExpr) -> AExpr {
         RExpr::Return { bdy } => AExpr::Return {
             bdy: Box::new(atomize_expr(*bdy)),
         },
+        RExpr::Struct { .. } => todo!(),
+        RExpr::AccessField { .. } => todo!(),
     }
 }
 
