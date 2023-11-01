@@ -52,10 +52,17 @@ impl<A: Copy + Hash + Eq + Display, B> Def<A, B> {
     }
 }
 
+/// A parameter used in functions.
+///
+/// Parameters are generic and can use symbols that are either `&str` or
+/// [`UniqueSym`](crate::utils::gen_sym::UniqueSym) for all passes after uniquify.
 #[derive(Debug, PartialEq)]
 pub struct Param<A: Copy + Hash + Eq + Display> {
+    /// Symbol representing the parameter.
     pub sym: A,
+    /// The type of the parameter. See [`Type`]
     pub typ: Type<A>,
+    /// Indicates whether the parameter is mutable (true) or immutable (false).
     pub mutable: bool,
 }
 
@@ -72,7 +79,7 @@ pub enum Expr<A: Copy + Hash + Eq> {
     },
     /// A variable.
     Var {
-        /// Symbol that represents the variable.
+        /// Symbol representing the variable.
         sym: A,
     },
     /// A primitive operation with an arbitrary number of arguments.
