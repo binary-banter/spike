@@ -46,7 +46,6 @@ impl<'p> PrgParsed<'p> {
     pub fn type_check(self) -> Result<PrgTypeChecked<'p>, TypeError> {
         let mut scope = uncover_globals::uncover_globals(&self)?;
 
-        // Typecheck all definitions and collect them.
         self.defs
             .iter()
             .map(|def| match def {

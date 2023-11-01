@@ -9,7 +9,6 @@ pub mod parse;
 pub mod types;
 
 use derive_more::Display;
-use std::collections::HashMap;
 use std::fmt::Display;
 use std::hash::Hash;
 use std::str::FromStr;
@@ -22,15 +21,6 @@ pub struct PrgParsed<'p> {
     pub defs: Vec<Def<&'p str, Expr<&'p str>>>,
     /// The symbol representing the entry point of the program.
     pub entry: &'p str,
-}
-
-/// A generic program with global definitions and an entry point.
-#[derive(Debug, PartialEq)]
-pub struct PrgGenericVar<A: Copy + Hash + Eq + Display> {
-    /// The global program definitions.
-    pub defs: HashMap<A, Def<A, Expr<A>>>,
-    /// The symbol representing the entry point of the program.
-    pub entry: A,
 }
 
 /// A definition.

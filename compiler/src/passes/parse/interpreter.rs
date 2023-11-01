@@ -1,11 +1,13 @@
+use std::collections::HashMap;
 use crate::interpreter::Val;
 use crate::interpreter::IO;
-use crate::passes::parse::{Def, Expr, Lit, Op, PrgGenericVar};
+use crate::passes::parse::{Def, Expr, Lit, Op};
 use crate::utils::push_map::PushMap;
 use std::fmt::{Debug, Display};
 use std::hash::Hash;
+use crate::passes::type_check::PrgGenericVar;
 
-#[derive(Copy, Clone)]
+#[derive(Clone)]
 pub enum ControlFlow<A: Copy + Hash + Eq + Display> {
     Val(Val<A>),
     Break(Val<A>),
@@ -46,14 +48,13 @@ impl<A: Copy + Hash + Eq + Debug + Display> PrgGenericVar<A> {
                 params
                     .iter()
                     .zip(args.iter())
-                    .map(|(param, v)| (param.sym, *v)),
+                    .map(|(param, v)| (param.sym, v.clone())),
                 |scope| match self.interpret_expr(bdy, scope, io) {
                     ControlFlow::Return(val) | ControlFlow::Val(val) => val,
                     ControlFlow::Continue | ControlFlow::Break(_) => unreachable!(),
                 },
             ),
-            Def::Struct { .. } => todo!(),
-            Def::Enum { .. } => todo!(),
+            Def::Struct { .. } | Def::Enum { .. }  => unreachable!(),
         }
     }
 
@@ -65,7 +66,7 @@ impl<A: Copy + Hash + Eq + Debug + Display> PrgGenericVar<A> {
     ) -> ControlFlow<A> {
         ControlFlow::Val(match expr {
             Expr::Lit { val } => (*val).into(),
-            Expr::Var { sym } => scope[sym],
+            Expr::Var { sym } => scope[sym].clone(),
             Expr::Prim { op, args } => match (op, args.as_slice()) {
                 (Op::Read, []) => io.read().into(),
                 (Op::Print, [v]) => {
@@ -201,9 +202,18 @@ impl<A: Copy + Hash + Eq + Debug + Display> PrgGenericVar<A> {
             Expr::Return { bdy } => {
                 return ControlFlow::Return(b!(self.interpret_expr(bdy, scope, io)))
             }
-            Expr::Struct { .. } => todo!(),
+            Expr::Struct { fields, .. } => {
+                let mut field_values = HashMap::new();
+                for (sym, field) in fields {
+                    field_values.insert(*sym, b!(self.interpret_expr(field, scope, io)));
+                }
+                Val::StructInstance { fields: field_values }
+            },
             Expr::Variant { .. } => todo!(),
-            Expr::AccessField { .. } => todo!(),
+            Expr::AccessField { strct, field } => {
+                let s = b!(self.interpret_expr(strct, scope, io));
+                s.strct()[field].clone()
+            },
             Expr::Switch { .. } => todo!(),
         })
     }

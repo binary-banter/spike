@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use crate::passes::parse::Lit;
 use derive_more::Display;
 use std::fmt::Display;
@@ -60,7 +61,7 @@ impl IO for TestIO {
     }
 }
 
-#[derive(Eq, PartialEq, Copy, Clone, Debug, Display)]
+#[derive(Eq, PartialEq, Clone, Debug, Display)]
 pub enum Val<A: Copy + Hash + Eq + Display> {
     #[display(fmt = "{val}")]
     Int { val: i64 },
@@ -70,6 +71,10 @@ pub enum Val<A: Copy + Hash + Eq + Display> {
     Unit,
     #[display(fmt = "fn pointer `{sym}`")]
     Function { sym: A },
+    #[display(fmt = "struct instance")]
+    StructInstance {
+        fields: HashMap<A, Val<A>>
+    }
 }
 
 impl<A: Copy + Hash + Eq + Display> From<Lit> for Val<A> {
@@ -83,30 +88,31 @@ impl<A: Copy + Hash + Eq + Display> From<Lit> for Val<A> {
 }
 
 impl<A: Copy + Hash + Eq + Display> Val<A> {
-    pub fn int(self) -> i64 {
+    pub fn int(&self) -> i64 {
         match self {
-            Val::Int { val } => val,
-            Val::Bool { .. } => panic!(),
-            Val::Function { .. } => panic!(),
-            Val::Unit => panic!(),
+            Val::Int { val } => *val,
+            _ => panic!(),
         }
     }
 
-    pub fn bool(self) -> bool {
+    pub fn bool(&self) -> bool {
         match self {
-            Val::Int { .. } => panic!(),
-            Val::Bool { val } => val,
-            Val::Function { .. } => panic!(),
-            Val::Unit => panic!(),
+            Val::Bool { val } => *val,
+            _ => panic!(),
         }
     }
 
-    pub fn fun(self) -> A {
+    pub fn fun(&self) -> A {
         match self {
-            Val::Int { .. } => panic!(),
-            Val::Bool { .. } => panic!(),
-            Val::Function { sym } => sym,
-            Val::Unit => panic!(),
+            Val::Function { sym } => *sym,
+            _ => panic!(),
+        }
+    }
+
+    pub fn strct(&self) -> &HashMap<A, Val<A>> {
+        match self {
+            Val::StructInstance {fields } => fields,
+            _ => panic!(),
         }
     }
 }

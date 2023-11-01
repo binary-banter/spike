@@ -155,7 +155,7 @@ impl<'p> From<Atom<'p>> for Expr<UniqueSym<'p>> {
 #[cfg(test)]
 mod tests {
     use crate::interpreter::TestIO;
-    use crate::passes::parse::PrgGenericVar;
+    use crate::passes::type_check::PrgGenericVar;
     use crate::utils::split_test::split_test;
     use test_each_file::test_each_file;
 

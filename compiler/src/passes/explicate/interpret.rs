@@ -157,7 +157,7 @@ impl<'p> PrgExplicated<'p> {
     ) -> Val<UniqueSym<'p>> {
         match atom {
             Atom::Val { val } => (*val).into(),
-            Atom::Var { sym } => scope[sym],
+            Atom::Var { sym } => scope[sym].clone(),
         }
     }
 }

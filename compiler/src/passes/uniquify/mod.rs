@@ -1,6 +1,6 @@
 pub mod uniquify;
 
-use crate::passes::parse::PrgGenericVar;
+use crate::passes::type_check::PrgGenericVar;
 use crate::utils::gen_sym::UniqueSym;
 
 pub type PrgUniquified<'p> = PrgGenericVar<UniqueSym<'p>>;

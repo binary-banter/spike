@@ -7,7 +7,10 @@ mod validate_prim;
 mod validate_struct;
 mod validate_type;
 
-use crate::passes::parse::PrgGenericVar;
+use std::hash::Hash;
+use std::fmt::Display;
+use std::collections::HashMap;
+use crate::passes::parse::{Def, Expr};
 
 pub type PrgTypeChecked<'p> = PrgGenericVar<&'p str>;
 
@@ -33,4 +36,13 @@ mod tests {
 
     test_each_file! { for ["test"] in "./programs/good" as type_check_succeed => |p| check(p, false) }
     test_each_file! { for ["test"] in "./programs/fail/type_check" as type_check_fail => |p| check(p, true) }
+}
+
+/// A generic program with global definitions and an entry point.
+#[derive(Debug, PartialEq)]
+pub struct PrgGenericVar<A: Copy + Hash + Eq + Display> {
+    /// The global program definitions.
+    pub defs: HashMap<A, Def<A, Expr<A>>>,
+    /// The symbol representing the entry point of the program.
+    pub entry: A,
 }
