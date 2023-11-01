@@ -7,8 +7,8 @@ use crate::passes::type_check::validate_expr;
 use crate::utils::expect::expect;
 
 pub fn expect_type_eq<'p>(
-    e1: &Expr<&'p str>,
-    e2: &Expr<&'p str>,
+    e1: &Expr<'p, &'p str>,
+    e2: &Expr<'p, &'p str>,
     env: &mut Env<'_, 'p>,
 ) -> Result<Type<&'p str>, TypeError> {
     let t1 = validate_expr::validate_expr(e1, env)?;
@@ -24,7 +24,7 @@ pub fn expect_type_eq<'p>(
 }
 
 pub fn expect_type<'p>(
-    expr: &Expr<&'p str>,
+    expr: &Expr<'p, &'p str>,
     expected: Type<&'p str>,
     env: &mut Env<'_, 'p>,
 ) -> Result<(), TypeError> {

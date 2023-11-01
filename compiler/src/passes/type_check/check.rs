@@ -20,7 +20,7 @@ pub enum EnvEntry<'p> {
         typ: Type<&'p str>,
     },
     Def {
-        def: &'p Def<&'p str, Expr<&'p str>>,
+        def: &'p Def<'p, &'p str, Expr<'p, &'p str>>,
     },
 }
 

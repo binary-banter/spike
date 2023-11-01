@@ -3,7 +3,7 @@ pub mod uniquify;
 use crate::passes::type_check::PrgGenericVar;
 use crate::utils::gen_sym::UniqueSym;
 
-pub type PrgUniquified<'p> = PrgGenericVar<UniqueSym<'p>>;
+pub type PrgUniquified<'p> = PrgGenericVar<'p, UniqueSym<'p>>;
 
 #[cfg(test)]
 mod tests {

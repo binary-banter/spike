@@ -93,7 +93,7 @@ pub Program: PrgParsed<'input> = {
     }
 }
 
-Def: Def<&'input str, Expr<&'input str>> = {
+Def: Def<'input, &'input str, Expr<'input, &'input str>> = {
     "struct" <sym:Ident> "{" <fields:Comma<(<Ident> ":" <Type>)>> "}" => Def::Struct {
         sym,
         fields,
@@ -142,7 +142,7 @@ Type: Type<&'input str> = {
 // Num/Bool/Ident
 Expr = ExprStmt;
 
-ExprStmt: Expr<&'input str> = {
+ExprStmt: Expr<'input, &'input str> = {
     "let" <mutable:"mut"?> <sym:Ident> "=" <bnd:ExprLogicalOr<Struct>> ";" <bdy:ExprStmt?> => Expr::Let {
         sym,
         mutable: mutable.is_some(),
@@ -156,7 +156,7 @@ ExprStmt: Expr<&'input str> = {
     ExprInStmt,
 }
 
-ExprInStmt: Expr<&'input str> = {
+ExprInStmt: Expr<'input, &'input str> = {
     <sym:Ident> "=" <bnd:ExprLogicalOr<Struct>> => Expr::Assign {
         sym,
         bnd: Box::new(bnd),
@@ -193,7 +193,7 @@ ExprInStmt: Expr<&'input str> = {
     ExprLogicalOr<Struct>,
 }
 
-BinaryOps<Op,Next>: Expr<&'input str> = {
+BinaryOps<Op,Next>: Expr<'input, &'input str> = {
     <e1:BinaryOps<Op,Next>> <op:Op> <e2:Next> => Expr::Prim {
         op,
         args: vec![e1, e2],
@@ -233,7 +233,7 @@ UnaryOp: Op = {
     "!" => Op::Not,
 }
 
-ExprUnary<T>: Expr<&'input str> = {
+ExprUnary<T>: Expr<'input, &'input str> = {
     <op:UnaryOp> <e:ExprUnary<T>> => Expr::Prim {
         op,
         args: vec![e],
@@ -241,7 +241,7 @@ ExprUnary<T>: Expr<&'input str> = {
     ExprAccess<T>,
 }
 
-ExprAccess<T>: Expr<&'input str> = {
+ExprAccess<T>: Expr<'input, &'input str> = {
     <strct:ExprCall<T>> "." <field:Ident> => Expr::AccessField {
         strct: Box::new(strct),
         field,
@@ -249,7 +249,7 @@ ExprAccess<T>: Expr<&'input str> = {
     ExprCall<T>,
 }
 
-ExprCall<T>: Expr<&'input str> = {
+ExprCall<T>: Expr<'input, &'input str> = {
     "read" "(" ")" => Expr::Prim {
         op: Op::Read,
         args: vec![],
@@ -265,7 +265,7 @@ ExprCall<T>: Expr<&'input str> = {
     ExprAtom<T>,
 }
 
-ExprAtom<T>: Expr<&'input str> = {
+ExprAtom<T>: Expr<'input, &'input str> = {
     <val:Num> => Expr::Lit{ val: Lit::Int { val }},
     <val:Bool> => Expr::Lit { val: Lit::Bool { val }},
     "unit" => Expr::Lit { val: Lit::Unit },
@@ -279,14 +279,14 @@ ExprAtom<T>: Expr<&'input str> = {
     <T>,
 }
 
-Struct: Expr<&'input str> = {
+Struct: Expr<'input, &'input str> = {
     <sym:Ident> "{" <fields:Comma<(<Ident> ":" <Expr>)>> "}" => Expr::Struct {
         sym,
         fields,
     },
 }
 
-Never: Expr<&'input str> = {
+Never: Expr<'input, &'input str> = {
     "never" => panic!("The reserved keyword 'never' should never be parsed.")
 }
 

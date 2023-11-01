@@ -21,9 +21,9 @@ impl<'p> PrgTypeChecked<'p> {
 }
 
 fn uniquify_def<'p>(
-    def: Def<&'p str, Expr<&'p str>>,
+    def: Def<'p, &'p str, Expr<'p, &'p str>>,
     scope: &mut PushMap<&'p str, UniqueSym<'p>>,
-) -> Def<UniqueSym<'p>, Expr<UniqueSym<'p>>> {
+) -> Def<'p, UniqueSym<'p>, Expr<'p, UniqueSym<'p>>> {
     match def {
         Def::Fn {
             sym,
@@ -50,15 +50,18 @@ fn uniquify_def<'p>(
                 }
             },
         ),
-        Def::Struct { .. } => todo!(),
+        Def::Struct { sym, fields } => Def::Struct {
+            sym: scope[&sym],
+            fields: fields.into_iter().map(|(sym, typ)| (sym, typ.fmap(|sym| scope[sym]))).collect(),
+        },
         Def::Enum { .. } => todo!(),
     }
 }
 
 fn uniquify_expression<'p>(
-    expr: Expr<&'p str>,
+    expr: Expr<'p, &'p str>,
     scope: &mut PushMap<&'p str, UniqueSym<'p>>,
-) -> Expr<UniqueSym<'p>> {
+) -> Expr<'p, UniqueSym<'p>> {
     match expr {
         Expr::Lit { val } => Expr::Lit { val },
         Expr::Var { sym } => Expr::Var { sym: scope[&sym] },
@@ -116,7 +119,12 @@ fn uniquify_expression<'p>(
         Expr::Return { bdy } => Expr::Return {
             bdy: Box::new(uniquify_expression(*bdy, scope)),
         },
-        Expr::Struct { .. } => todo!(),
+        Expr::Struct { sym, fields } => {
+            Expr::Struct {
+                sym: scope[sym],
+                fields: fields.into_iter().map(|(sym, expr)| (sym, uniquify_expression(expr, scope))).collect()
+            }
+        },
         Expr::Variant { .. } => todo!(),
         Expr::AccessField { .. } => todo!(),
         Expr::Switch { .. } => todo!(),

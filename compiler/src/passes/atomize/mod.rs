@@ -7,7 +7,7 @@ use std::collections::HashMap;
 
 #[derive(Debug, PartialEq)]
 pub struct PrgAtomized<'p> {
-    pub defs: HashMap<UniqueSym<'p>, Def<UniqueSym<'p>, AExpr<'p>>>,
+    pub defs: HashMap<UniqueSym<'p>, Def<'p, UniqueSym<'p>, AExpr<'p>>>,
     pub entry: UniqueSym<'p>,
 }
 
@@ -77,7 +77,7 @@ impl<'p> From<PrgAtomized<'p>> for PrgUniquified<'p> {
 }
 
 // TODO functor time
-impl<'p> From<Def<UniqueSym<'p>, AExpr<'p>>> for Def<UniqueSym<'p>, Expr<UniqueSym<'p>>> {
+impl<'p> From<Def<'p, UniqueSym<'p>, AExpr<'p>>> for Def<'p, UniqueSym<'p>, Expr<'p, UniqueSym<'p>>> {
     fn from(value: Def<UniqueSym<'p>, AExpr<'p>>) -> Self {
         match value {
             Def::Fn {
@@ -97,7 +97,7 @@ impl<'p> From<Def<UniqueSym<'p>, AExpr<'p>>> for Def<UniqueSym<'p>, Expr<UniqueS
     }
 }
 
-impl<'p> From<AExpr<'p>> for Expr<UniqueSym<'p>> {
+impl<'p> From<AExpr<'p>> for Expr<'p, UniqueSym<'p>> {
     fn from(value: AExpr<'p>) -> Self {
         match value {
             AExpr::Atom { atm } => atm.into(),
@@ -143,7 +143,7 @@ impl<'p> From<AExpr<'p>> for Expr<UniqueSym<'p>> {
     }
 }
 
-impl<'p> From<Atom<'p>> for Expr<UniqueSym<'p>> {
+impl<'p> From<Atom<'p>> for Expr<'p, UniqueSym<'p>> {
     fn from(value: Atom<'p>) -> Self {
         match value {
             Atom::Val { val } => Expr::Lit { val },

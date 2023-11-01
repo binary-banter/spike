@@ -7,7 +7,7 @@ use crate::passes::type_check::util;
 pub fn validate_prim<'p>(
     env: &mut Env<'_, 'p>,
     op: &Op,
-    args: &Vec<Expr<&'p str>>,
+    args: &Vec<Expr<'p, &'p str>>,
 ) -> Result<Result<Type<&'p str>, TypeError>, TypeError> {
     Ok(match (op, args.as_slice()) {
         (Op::Plus | Op::Minus | Op::Mul | Op::Mod | Op::Div, [e1, e2]) => {

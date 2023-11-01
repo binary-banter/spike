@@ -7,7 +7,7 @@ use crate::passes::type_check::{util, validate_prim, validate_struct};
 use crate::utils::expect::expect;
 
 pub fn validate_expr<'p>(
-    expr: &Expr<&'p str>,
+    expr: &Expr<'p, &'p str>,
     env: &mut Env<'_, 'p>,
 ) -> Result<Type<&'p str>, TypeError> {
     match expr {

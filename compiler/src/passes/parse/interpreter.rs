@@ -26,7 +26,7 @@ macro_rules! b {
     }};
 }
 
-impl<A: Copy + Hash + Eq + Debug + Display> PrgGenericVar<A> {
+impl<'p, A: Copy + Hash + Eq + Debug + Display> PrgGenericVar<'p, A> {
     pub fn interpret(&self, io: &mut impl IO) -> Val<A> {
         let mut scope = PushMap::from_iter(
             self.defs

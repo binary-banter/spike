@@ -12,7 +12,7 @@ use std::fmt::Display;
 use std::collections::HashMap;
 use crate::passes::parse::{Def, Expr};
 
-pub type PrgTypeChecked<'p> = PrgGenericVar<&'p str>;
+pub type PrgTypeChecked<'p> = PrgGenericVar<'p, &'p str>;
 
 #[cfg(test)]
 mod tests {
@@ -40,9 +40,9 @@ mod tests {
 
 /// A generic program with global definitions and an entry point.
 #[derive(Debug, PartialEq)]
-pub struct PrgGenericVar<A: Copy + Hash + Eq + Display> {
+pub struct PrgGenericVar<'p, A: Copy + Hash + Eq + Display> {
     /// The global program definitions.
-    pub defs: HashMap<A, Def<A, Expr<A>>>,
+    pub defs: HashMap<A, Def<'p, A, Expr<'p, A>>>,
     /// The symbol representing the entry point of the program.
     pub entry: A,
 }

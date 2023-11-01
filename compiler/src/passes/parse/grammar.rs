@@ -1,5 +1,5 @@
 // auto-generated: "lalrpop 0.20.1"
-// sha3: d292ac2ba40c3500191128d676157d4fbb7dff376a7d00ae49cf91c17a971c0c
+// sha3: 2aa40aad8231cecb47de423afa53eba1cd5c6f371fc4e93f8b40cb6d81da750e
 use std::str::FromStr;
 use crate::passes::parse::{Def, Expr, Lit, Op, Param};
 use crate::passes::parse::PrgParsed;
@@ -33,29 +33,29 @@ mod __parse__Program {
         Variant1(core::option::Option<&'input str>),
         Variant2(Type<&'input str>),
         Variant3(core::option::Option<Type<&'input str>>),
-        Variant4(Expr<&'input str>),
-        Variant5(core::option::Option<Expr<&'input str>>),
-        Variant6((&'input str, &'input str, Expr<&'input str>)),
-        Variant7(alloc::vec::Vec<(&'input str, &'input str, Expr<&'input str>)>),
-        Variant8((&'input str, Expr<&'input str>)),
-        Variant9(alloc::vec::Vec<(&'input str, Expr<&'input str>)>),
+        Variant4(Expr<'input, &'input str>),
+        Variant5(core::option::Option<Expr<'input, &'input str>>),
+        Variant6((&'input str, &'input str, Expr<'input, &'input str>)),
+        Variant7(alloc::vec::Vec<(&'input str, &'input str, Expr<'input, &'input str>)>),
+        Variant8((&'input str, Expr<'input, &'input str>)),
+        Variant9(alloc::vec::Vec<(&'input str, Expr<'input, &'input str>)>),
         Variant10((&'input str, Type<&'input str>)),
         Variant11(alloc::vec::Vec<(&'input str, Type<&'input str>)>),
-        Variant12(alloc::vec::Vec<Expr<&'input str>>),
-        Variant13(core::option::Option<(&'input str, &'input str, Expr<&'input str>)>),
-        Variant14(core::option::Option<(&'input str, Expr<&'input str>)>),
+        Variant12(alloc::vec::Vec<Expr<'input, &'input str>>),
+        Variant13(core::option::Option<(&'input str, &'input str, Expr<'input, &'input str>)>),
+        Variant14(core::option::Option<(&'input str, Expr<'input, &'input str>)>),
         Variant15(core::option::Option<(&'input str, Type<&'input str>)>),
         Variant16(Param<&'input str>),
         Variant17(alloc::vec::Vec<Param<&'input str>>),
         Variant18(Op),
         Variant19(bool),
-        Variant20(Vec<(&'input str, &'input str, Expr<&'input str>)>),
-        Variant21(Vec<(&'input str, Expr<&'input str>)>),
+        Variant20(Vec<(&'input str, &'input str, Expr<'input, &'input str>)>),
+        Variant21(Vec<(&'input str, Expr<'input, &'input str>)>),
         Variant22(Vec<(&'input str, Type<&'input str>)>),
-        Variant23(Vec<Expr<&'input str>>),
+        Variant23(Vec<Expr<'input, &'input str>>),
         Variant24(Vec<Param<&'input str>>),
-        Variant25(Def<&'input str, Expr<&'input str>>),
-        Variant26(alloc::vec::Vec<Def<&'input str, Expr<&'input str>>>),
+        Variant25(Def<'input, &'input str, Expr<'input, &'input str>>),
+        Variant26(alloc::vec::Vec<Def<'input, &'input str, Expr<'input, &'input str>>>),
         Variant27(i64),
         Variant28(core::option::Option<Param<&'input str>>),
         Variant29(PrgParsed<'input>),
@@ -3457,7 +3457,7 @@ mod __parse__Program {
       'input,
     >(
         __symbols: &mut alloc::vec::Vec<(usize,__Symbol<'input>,usize)>
-    ) -> (usize, (&'input str, Expr<&'input str>), usize)
+    ) -> (usize, (&'input str, Expr<'input, &'input str>), usize)
      {
         match __symbols.pop() {
             Some((__l, __Symbol::Variant8(__v), __r)) => (__l, __v, __r),
@@ -3479,7 +3479,7 @@ mod __parse__Program {
       'input,
     >(
         __symbols: &mut alloc::vec::Vec<(usize,__Symbol<'input>,usize)>
-    ) -> (usize, (&'input str, &'input str, Expr<&'input str>), usize)
+    ) -> (usize, (&'input str, &'input str, Expr<'input, &'input str>), usize)
      {
         match __symbols.pop() {
             Some((__l, __Symbol::Variant6(__v), __r)) => (__l, __v, __r),
@@ -3490,7 +3490,7 @@ mod __parse__Program {
       'input,
     >(
         __symbols: &mut alloc::vec::Vec<(usize,__Symbol<'input>,usize)>
-    ) -> (usize, Def<&'input str, Expr<&'input str>>, usize)
+    ) -> (usize, Def<'input, &'input str, Expr<'input, &'input str>>, usize)
      {
         match __symbols.pop() {
             Some((__l, __Symbol::Variant25(__v), __r)) => (__l, __v, __r),
@@ -3501,7 +3501,7 @@ mod __parse__Program {
       'input,
     >(
         __symbols: &mut alloc::vec::Vec<(usize,__Symbol<'input>,usize)>
-    ) -> (usize, Expr<&'input str>, usize)
+    ) -> (usize, Expr<'input, &'input str>, usize)
      {
         match __symbols.pop() {
             Some((__l, __Symbol::Variant4(__v), __r)) => (__l, __v, __r),
@@ -3556,7 +3556,7 @@ mod __parse__Program {
       'input,
     >(
         __symbols: &mut alloc::vec::Vec<(usize,__Symbol<'input>,usize)>
-    ) -> (usize, Vec<(&'input str, Expr<&'input str>)>, usize)
+    ) -> (usize, Vec<(&'input str, Expr<'input, &'input str>)>, usize)
      {
         match __symbols.pop() {
             Some((__l, __Symbol::Variant21(__v), __r)) => (__l, __v, __r),
@@ -3578,7 +3578,7 @@ mod __parse__Program {
       'input,
     >(
         __symbols: &mut alloc::vec::Vec<(usize,__Symbol<'input>,usize)>
-    ) -> (usize, Vec<(&'input str, &'input str, Expr<&'input str>)>, usize)
+    ) -> (usize, Vec<(&'input str, &'input str, Expr<'input, &'input str>)>, usize)
      {
         match __symbols.pop() {
             Some((__l, __Symbol::Variant20(__v), __r)) => (__l, __v, __r),
@@ -3589,7 +3589,7 @@ mod __parse__Program {
       'input,
     >(
         __symbols: &mut alloc::vec::Vec<(usize,__Symbol<'input>,usize)>
-    ) -> (usize, Vec<Expr<&'input str>>, usize)
+    ) -> (usize, Vec<Expr<'input, &'input str>>, usize)
      {
         match __symbols.pop() {
             Some((__l, __Symbol::Variant23(__v), __r)) => (__l, __v, __r),
@@ -3611,7 +3611,7 @@ mod __parse__Program {
       'input,
     >(
         __symbols: &mut alloc::vec::Vec<(usize,__Symbol<'input>,usize)>
-    ) -> (usize, alloc::vec::Vec<(&'input str, Expr<&'input str>)>, usize)
+    ) -> (usize, alloc::vec::Vec<(&'input str, Expr<'input, &'input str>)>, usize)
      {
         match __symbols.pop() {
             Some((__l, __Symbol::Variant9(__v), __r)) => (__l, __v, __r),
@@ -3633,7 +3633,7 @@ mod __parse__Program {
       'input,
     >(
         __symbols: &mut alloc::vec::Vec<(usize,__Symbol<'input>,usize)>
-    ) -> (usize, alloc::vec::Vec<(&'input str, &'input str, Expr<&'input str>)>, usize)
+    ) -> (usize, alloc::vec::Vec<(&'input str, &'input str, Expr<'input, &'input str>)>, usize)
      {
         match __symbols.pop() {
             Some((__l, __Symbol::Variant7(__v), __r)) => (__l, __v, __r),
@@ -3644,7 +3644,7 @@ mod __parse__Program {
       'input,
     >(
         __symbols: &mut alloc::vec::Vec<(usize,__Symbol<'input>,usize)>
-    ) -> (usize, alloc::vec::Vec<Def<&'input str, Expr<&'input str>>>, usize)
+    ) -> (usize, alloc::vec::Vec<Def<'input, &'input str, Expr<'input, &'input str>>>, usize)
      {
         match __symbols.pop() {
             Some((__l, __Symbol::Variant26(__v), __r)) => (__l, __v, __r),
@@ -3655,7 +3655,7 @@ mod __parse__Program {
       'input,
     >(
         __symbols: &mut alloc::vec::Vec<(usize,__Symbol<'input>,usize)>
-    ) -> (usize, alloc::vec::Vec<Expr<&'input str>>, usize)
+    ) -> (usize, alloc::vec::Vec<Expr<'input, &'input str>>, usize)
      {
         match __symbols.pop() {
             Some((__l, __Symbol::Variant12(__v), __r)) => (__l, __v, __r),
@@ -3688,7 +3688,7 @@ mod __parse__Program {
       'input,
     >(
         __symbols: &mut alloc::vec::Vec<(usize,__Symbol<'input>,usize)>
-    ) -> (usize, core::option::Option<(&'input str, Expr<&'input str>)>, usize)
+    ) -> (usize, core::option::Option<(&'input str, Expr<'input, &'input str>)>, usize)
      {
         match __symbols.pop() {
             Some((__l, __Symbol::Variant14(__v), __r)) => (__l, __v, __r),
@@ -3710,7 +3710,7 @@ mod __parse__Program {
       'input,
     >(
         __symbols: &mut alloc::vec::Vec<(usize,__Symbol<'input>,usize)>
-    ) -> (usize, core::option::Option<(&'input str, &'input str, Expr<&'input str>)>, usize)
+    ) -> (usize, core::option::Option<(&'input str, &'input str, Expr<'input, &'input str>)>, usize)
      {
         match __symbols.pop() {
             Some((__l, __Symbol::Variant13(__v), __r)) => (__l, __v, __r),
@@ -3721,7 +3721,7 @@ mod __parse__Program {
       'input,
     >(
         __symbols: &mut alloc::vec::Vec<(usize,__Symbol<'input>,usize)>
-    ) -> (usize, core::option::Option<Expr<&'input str>>, usize)
+    ) -> (usize, core::option::Option<Expr<'input, &'input str>>, usize)
      {
         match __symbols.pop() {
             Some((__l, __Symbol::Variant5(__v), __r)) => (__l, __v, __r),
@@ -7492,7 +7492,7 @@ fn __action1<
     'input,
 >(
     input: &'input str,
-    (_, defs, _): (usize, alloc::vec::Vec<Def<&'input str, Expr<&'input str>>>, usize),
+    (_, defs, _): (usize, alloc::vec::Vec<Def<'input, &'input str, Expr<'input, &'input str>>>, usize),
 ) -> PrgParsed<'input>
 {
     PrgParsed {
@@ -7512,7 +7512,7 @@ fn __action2<
     (_, _, _): (usize, &'input str, usize),
     (_, fields, _): (usize, Vec<(&'input str, Type<&'input str>)>, usize),
     (_, _, _): (usize, &'input str, usize),
-) -> Def<&'input str, Expr<&'input str>>
+) -> Def<'input, &'input str, Expr<'input, &'input str>>
 {
     Def::Struct {
         sym,
@@ -7531,7 +7531,7 @@ fn __action3<
     (_, _, _): (usize, &'input str, usize),
     (_, variants, _): (usize, Vec<(&'input str, Type<&'input str>)>, usize),
     (_, _, _): (usize, &'input str, usize),
-) -> Def<&'input str, Expr<&'input str>>
+) -> Def<'input, &'input str, Expr<'input, &'input str>>
 {
     Def::Enum {
         sym,
@@ -7552,9 +7552,9 @@ fn __action4<
     (_, _, _): (usize, &'input str, usize),
     (_, typ, _): (usize, core::option::Option<Type<&'input str>>, usize),
     (_, _, _): (usize, &'input str, usize),
-    (_, bdy, _): (usize, Expr<&'input str>, usize),
+    (_, bdy, _): (usize, Expr<'input, &'input str>, usize),
     (_, _, _): (usize, &'input str, usize),
-) -> Def<&'input str, Expr<&'input str>>
+) -> Def<'input, &'input str, Expr<'input, &'input str>>
 {
     Def::Fn {
         sym,
@@ -7649,8 +7649,8 @@ fn __action11<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -7665,10 +7665,10 @@ fn __action12<
     (_, mutable, _): (usize, core::option::Option<&'input str>, usize),
     (_, sym, _): (usize, &'input str, usize),
     (_, _, _): (usize, &'input str, usize),
-    (_, bnd, _): (usize, Expr<&'input str>, usize),
+    (_, bnd, _): (usize, Expr<'input, &'input str>, usize),
     (_, _, _): (usize, &'input str, usize),
-    (_, bdy, _): (usize, core::option::Option<Expr<&'input str>>, usize),
-) -> Expr<&'input str>
+    (_, bdy, _): (usize, core::option::Option<Expr<'input, &'input str>>, usize),
+) -> Expr<'input, &'input str>
 {
     Expr::Let {
         sym,
@@ -7684,10 +7684,10 @@ fn __action13<
     'input,
 >(
     input: &'input str,
-    (_, stmt, _): (usize, Expr<&'input str>, usize),
+    (_, stmt, _): (usize, Expr<'input, &'input str>, usize),
     (_, _, _): (usize, &'input str, usize),
-    (_, cnt, _): (usize, core::option::Option<Expr<&'input str>>, usize),
-) -> Expr<&'input str>
+    (_, cnt, _): (usize, core::option::Option<Expr<'input, &'input str>>, usize),
+) -> Expr<'input, &'input str>
 {
     Expr::Seq {
         stmt: Box::new(stmt),
@@ -7701,8 +7701,8 @@ fn __action14<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -7715,8 +7715,8 @@ fn __action15<
     input: &'input str,
     (_, sym, _): (usize, &'input str, usize),
     (_, _, _): (usize, &'input str, usize),
-    (_, bnd, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, bnd, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     Expr::Assign {
         sym,
@@ -7731,12 +7731,12 @@ fn __action16<
 >(
     input: &'input str,
     (_, _, _): (usize, &'input str, usize),
-    (_, cnd, _): (usize, Expr<&'input str>, usize),
+    (_, cnd, _): (usize, Expr<'input, &'input str>, usize),
     (_, _, _): (usize, &'input str, usize),
-    (_, thn, _): (usize, Expr<&'input str>, usize),
+    (_, thn, _): (usize, Expr<'input, &'input str>, usize),
     (_, _, _): (usize, &'input str, usize),
-    (_, els, _): (usize, core::option::Option<Expr<&'input str>>, usize),
-) -> Expr<&'input str>
+    (_, els, _): (usize, core::option::Option<Expr<'input, &'input str>>, usize),
+) -> Expr<'input, &'input str>
 {
     Expr::If {
         cnd: Box::new(cnd),
@@ -7753,9 +7753,9 @@ fn __action17<
     input: &'input str,
     (_, _, _): (usize, &'input str, usize),
     (_, _, _): (usize, &'input str, usize),
-    (_, bdy, _): (usize, Expr<&'input str>, usize),
+    (_, bdy, _): (usize, Expr<'input, &'input str>, usize),
     (_, _, _): (usize, &'input str, usize),
-) -> Expr<&'input str>
+) -> Expr<'input, &'input str>
 {
     Expr::Loop {
         bdy: Box::new(bdy),
@@ -7769,11 +7769,11 @@ fn __action18<
 >(
     input: &'input str,
     (_, _, _): (usize, &'input str, usize),
-    (_, cnd, _): (usize, Expr<&'input str>, usize),
+    (_, cnd, _): (usize, Expr<'input, &'input str>, usize),
     (_, _, _): (usize, &'input str, usize),
-    (_, bdy, _): (usize, Expr<&'input str>, usize),
+    (_, bdy, _): (usize, Expr<'input, &'input str>, usize),
     (_, _, _): (usize, &'input str, usize),
-) -> Expr<&'input str>
+) -> Expr<'input, &'input str>
 {
     Expr::Loop {
         bdy: Box::new(Expr::If {
@@ -7794,11 +7794,11 @@ fn __action19<
 >(
     input: &'input str,
     (_, _, _): (usize, &'input str, usize),
-    (_, enm, _): (usize, Expr<&'input str>, usize),
+    (_, enm, _): (usize, Expr<'input, &'input str>, usize),
     (_, _, _): (usize, &'input str, usize),
-    (_, arms, _): (usize, Vec<(&'input str, &'input str, Expr<&'input str>)>, usize),
+    (_, arms, _): (usize, Vec<(&'input str, &'input str, Expr<'input, &'input str>)>, usize),
     (_, _, _): (usize, &'input str, usize),
-) -> Expr<&'input str>
+) -> Expr<'input, &'input str>
 {
     Expr::Switch {
         enm: Box::new(enm),
@@ -7813,8 +7813,8 @@ fn __action20<
 >(
     input: &'input str,
     (_, _, _): (usize, &'input str, usize),
-    (_, bdy, _): (usize, core::option::Option<Expr<&'input str>>, usize),
-) -> Expr<&'input str>
+    (_, bdy, _): (usize, core::option::Option<Expr<'input, &'input str>>, usize),
+) -> Expr<'input, &'input str>
 {
     Expr::Break {
         bdy: Box::new(bdy.unwrap_or(Expr::Lit { val: Lit::Unit })),
@@ -7828,8 +7828,8 @@ fn __action21<
 >(
     input: &'input str,
     (_, _, _): (usize, &'input str, usize),
-    (_, bdy, _): (usize, core::option::Option<Expr<&'input str>>, usize),
-) -> Expr<&'input str>
+    (_, bdy, _): (usize, core::option::Option<Expr<'input, &'input str>>, usize),
+) -> Expr<'input, &'input str>
 {
     Expr::Return {
         bdy: Box::new(bdy.unwrap_or(Expr::Lit { val: Lit::Unit })),
@@ -7843,7 +7843,7 @@ fn __action22<
 >(
     input: &'input str,
     (_, __0, _): (usize, &'input str, usize),
-) -> Expr<&'input str>
+) -> Expr<'input, &'input str>
 {
     Expr::Continue
 }
@@ -7854,8 +7854,8 @@ fn __action23<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -8060,9 +8060,9 @@ fn __action40<
     input: &'input str,
     (_, sym, _): (usize, &'input str, usize),
     (_, _, _): (usize, &'input str, usize),
-    (_, fields, _): (usize, Vec<(&'input str, Expr<&'input str>)>, usize),
+    (_, fields, _): (usize, Vec<(&'input str, Expr<'input, &'input str>)>, usize),
     (_, _, _): (usize, &'input str, usize),
-) -> Expr<&'input str>
+) -> Expr<'input, &'input str>
 {
     Expr::Struct {
         sym,
@@ -8077,7 +8077,7 @@ fn __action41<
 >(
     input: &'input str,
     (_, __0, _): (usize, &'input str, usize),
-) -> Expr<&'input str>
+) -> Expr<'input, &'input str>
 {
     panic!("The reserved keyword 'never' should never be parsed.")
 }
@@ -8136,9 +8136,9 @@ fn __action46<
     'input,
 >(
     input: &'input str,
-    (_, v, _): (usize, alloc::vec::Vec<(&'input str, Expr<&'input str>)>, usize),
-    (_, e, _): (usize, core::option::Option<(&'input str, Expr<&'input str>)>, usize),
-) -> Vec<(&'input str, Expr<&'input str>)>
+    (_, v, _): (usize, alloc::vec::Vec<(&'input str, Expr<'input, &'input str>)>, usize),
+    (_, e, _): (usize, core::option::Option<(&'input str, Expr<'input, &'input str>)>, usize),
+) -> Vec<(&'input str, Expr<'input, &'input str>)>
 {
     match e {
         None=> v,
@@ -8158,8 +8158,8 @@ fn __action47<
     input: &'input str,
     (_, __0, _): (usize, &'input str, usize),
     (_, _, _): (usize, &'input str, usize),
-    (_, __1, _): (usize, Expr<&'input str>, usize),
-) -> (&'input str, Expr<&'input str>)
+    (_, __1, _): (usize, Expr<'input, &'input str>, usize),
+) -> (&'input str, Expr<'input, &'input str>)
 {
     (__0, __1)
 }
@@ -8170,8 +8170,8 @@ fn __action48<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> core::option::Option<Expr<&'input str>>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> core::option::Option<Expr<'input, &'input str>>
 {
     Some(__0)
 }
@@ -8184,7 +8184,7 @@ fn __action49<
     input: &'input str,
     __lookbehind: &usize,
     __lookahead: &usize,
-) -> core::option::Option<Expr<&'input str>>
+) -> core::option::Option<Expr<'input, &'input str>>
 {
     None
 }
@@ -8195,9 +8195,9 @@ fn __action50<
     'input,
 >(
     input: &'input str,
-    (_, v, _): (usize, alloc::vec::Vec<(&'input str, &'input str, Expr<&'input str>)>, usize),
-    (_, e, _): (usize, core::option::Option<(&'input str, &'input str, Expr<&'input str>)>, usize),
-) -> Vec<(&'input str, &'input str, Expr<&'input str>)>
+    (_, v, _): (usize, alloc::vec::Vec<(&'input str, &'input str, Expr<'input, &'input str>)>, usize),
+    (_, e, _): (usize, core::option::Option<(&'input str, &'input str, Expr<'input, &'input str>)>, usize),
+) -> Vec<(&'input str, &'input str, Expr<'input, &'input str>)>
 {
     match e {
         None=> v,
@@ -8220,8 +8220,8 @@ fn __action51<
     (_, __1, _): (usize, &'input str, usize),
     (_, _, _): (usize, &'input str, usize),
     (_, _, _): (usize, &'input str, usize),
-    (_, __2, _): (usize, Expr<&'input str>, usize),
-) -> (&'input str, &'input str, Expr<&'input str>)
+    (_, __2, _): (usize, Expr<'input, &'input str>, usize),
+) -> (&'input str, &'input str, Expr<'input, &'input str>)
 {
     (__0, __1, __2)
 }
@@ -8232,8 +8232,8 @@ fn __action52<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> core::option::Option<Expr<&'input str>>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> core::option::Option<Expr<'input, &'input str>>
 {
     Some(__0)
 }
@@ -8246,7 +8246,7 @@ fn __action53<
     input: &'input str,
     __lookbehind: &usize,
     __lookahead: &usize,
-) -> core::option::Option<Expr<&'input str>>
+) -> core::option::Option<Expr<'input, &'input str>>
 {
     None
 }
@@ -8259,9 +8259,9 @@ fn __action54<
     input: &'input str,
     (_, _, _): (usize, &'input str, usize),
     (_, _, _): (usize, &'input str, usize),
-    (_, __0, _): (usize, Expr<&'input str>, usize),
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
     (_, _, _): (usize, &'input str, usize),
-) -> Expr<&'input str>
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -8272,8 +8272,8 @@ fn __action55<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -8284,8 +8284,8 @@ fn __action56<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> core::option::Option<Expr<&'input str>>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> core::option::Option<Expr<'input, &'input str>>
 {
     Some(__0)
 }
@@ -8298,7 +8298,7 @@ fn __action57<
     input: &'input str,
     __lookbehind: &usize,
     __lookahead: &usize,
-) -> core::option::Option<Expr<&'input str>>
+) -> core::option::Option<Expr<'input, &'input str>>
 {
     None
 }
@@ -8309,8 +8309,8 @@ fn __action58<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -8440,7 +8440,7 @@ fn __action67<
     input: &'input str,
     __lookbehind: &usize,
     __lookahead: &usize,
-) -> alloc::vec::Vec<Def<&'input str, Expr<&'input str>>>
+) -> alloc::vec::Vec<Def<'input, &'input str, Expr<'input, &'input str>>>
 {
     alloc::vec![]
 }
@@ -8451,8 +8451,8 @@ fn __action68<
     'input,
 >(
     input: &'input str,
-    (_, v, _): (usize, alloc::vec::Vec<Def<&'input str, Expr<&'input str>>>, usize),
-) -> alloc::vec::Vec<Def<&'input str, Expr<&'input str>>>
+    (_, v, _): (usize, alloc::vec::Vec<Def<'input, &'input str, Expr<'input, &'input str>>>, usize),
+) -> alloc::vec::Vec<Def<'input, &'input str, Expr<'input, &'input str>>>
 {
     v
 }
@@ -8463,8 +8463,8 @@ fn __action69<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Def<&'input str, Expr<&'input str>>, usize),
-) -> alloc::vec::Vec<Def<&'input str, Expr<&'input str>>>
+    (_, __0, _): (usize, Def<'input, &'input str, Expr<'input, &'input str>>, usize),
+) -> alloc::vec::Vec<Def<'input, &'input str, Expr<'input, &'input str>>>
 {
     alloc::vec![__0]
 }
@@ -8475,9 +8475,9 @@ fn __action70<
     'input,
 >(
     input: &'input str,
-    (_, v, _): (usize, alloc::vec::Vec<Def<&'input str, Expr<&'input str>>>, usize),
-    (_, e, _): (usize, Def<&'input str, Expr<&'input str>>, usize),
-) -> alloc::vec::Vec<Def<&'input str, Expr<&'input str>>>
+    (_, v, _): (usize, alloc::vec::Vec<Def<'input, &'input str, Expr<'input, &'input str>>>, usize),
+    (_, e, _): (usize, Def<'input, &'input str, Expr<'input, &'input str>>, usize),
+) -> alloc::vec::Vec<Def<'input, &'input str, Expr<'input, &'input str>>>
 {
     { let mut v = v; v.push(e); v }
 }
@@ -8614,10 +8614,10 @@ fn __action81<
     'input,
 >(
     input: &'input str,
-    (_, e1, _): (usize, Expr<&'input str>, usize),
+    (_, e1, _): (usize, Expr<'input, &'input str>, usize),
     (_, op, _): (usize, Op, usize),
-    (_, e2, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, e2, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     Expr::Prim {
         op,
@@ -8631,8 +8631,8 @@ fn __action82<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -8643,8 +8643,8 @@ fn __action83<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -8655,10 +8655,10 @@ fn __action84<
     'input,
 >(
     input: &'input str,
-    (_, e1, _): (usize, Expr<&'input str>, usize),
+    (_, e1, _): (usize, Expr<'input, &'input str>, usize),
     (_, op, _): (usize, Op, usize),
-    (_, e2, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, e2, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     Expr::Prim {
         op,
@@ -8672,8 +8672,8 @@ fn __action85<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -8684,8 +8684,8 @@ fn __action86<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -8696,8 +8696,8 @@ fn __action87<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, (&'input str, &'input str, Expr<&'input str>), usize),
-) -> core::option::Option<(&'input str, &'input str, Expr<&'input str>)>
+    (_, __0, _): (usize, (&'input str, &'input str, Expr<'input, &'input str>), usize),
+) -> core::option::Option<(&'input str, &'input str, Expr<'input, &'input str>)>
 {
     Some(__0)
 }
@@ -8710,7 +8710,7 @@ fn __action88<
     input: &'input str,
     __lookbehind: &usize,
     __lookahead: &usize,
-) -> core::option::Option<(&'input str, &'input str, Expr<&'input str>)>
+) -> core::option::Option<(&'input str, &'input str, Expr<'input, &'input str>)>
 {
     None
 }
@@ -8723,7 +8723,7 @@ fn __action89<
     input: &'input str,
     __lookbehind: &usize,
     __lookahead: &usize,
-) -> alloc::vec::Vec<(&'input str, &'input str, Expr<&'input str>)>
+) -> alloc::vec::Vec<(&'input str, &'input str, Expr<'input, &'input str>)>
 {
     alloc::vec![]
 }
@@ -8734,8 +8734,8 @@ fn __action90<
     'input,
 >(
     input: &'input str,
-    (_, v, _): (usize, alloc::vec::Vec<(&'input str, &'input str, Expr<&'input str>)>, usize),
-) -> alloc::vec::Vec<(&'input str, &'input str, Expr<&'input str>)>
+    (_, v, _): (usize, alloc::vec::Vec<(&'input str, &'input str, Expr<'input, &'input str>)>, usize),
+) -> alloc::vec::Vec<(&'input str, &'input str, Expr<'input, &'input str>)>
 {
     v
 }
@@ -8746,9 +8746,9 @@ fn __action91<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, (&'input str, &'input str, Expr<&'input str>), usize),
+    (_, __0, _): (usize, (&'input str, &'input str, Expr<'input, &'input str>), usize),
     (_, _, _): (usize, &'input str, usize),
-) -> (&'input str, &'input str, Expr<&'input str>)
+) -> (&'input str, &'input str, Expr<'input, &'input str>)
 {
     __0
 }
@@ -8759,8 +8759,8 @@ fn __action92<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, (&'input str, Expr<&'input str>), usize),
-) -> core::option::Option<(&'input str, Expr<&'input str>)>
+    (_, __0, _): (usize, (&'input str, Expr<'input, &'input str>), usize),
+) -> core::option::Option<(&'input str, Expr<'input, &'input str>)>
 {
     Some(__0)
 }
@@ -8773,7 +8773,7 @@ fn __action93<
     input: &'input str,
     __lookbehind: &usize,
     __lookahead: &usize,
-) -> core::option::Option<(&'input str, Expr<&'input str>)>
+) -> core::option::Option<(&'input str, Expr<'input, &'input str>)>
 {
     None
 }
@@ -8786,7 +8786,7 @@ fn __action94<
     input: &'input str,
     __lookbehind: &usize,
     __lookahead: &usize,
-) -> alloc::vec::Vec<(&'input str, Expr<&'input str>)>
+) -> alloc::vec::Vec<(&'input str, Expr<'input, &'input str>)>
 {
     alloc::vec![]
 }
@@ -8797,8 +8797,8 @@ fn __action95<
     'input,
 >(
     input: &'input str,
-    (_, v, _): (usize, alloc::vec::Vec<(&'input str, Expr<&'input str>)>, usize),
-) -> alloc::vec::Vec<(&'input str, Expr<&'input str>)>
+    (_, v, _): (usize, alloc::vec::Vec<(&'input str, Expr<'input, &'input str>)>, usize),
+) -> alloc::vec::Vec<(&'input str, Expr<'input, &'input str>)>
 {
     v
 }
@@ -8809,9 +8809,9 @@ fn __action96<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, (&'input str, Expr<&'input str>), usize),
+    (_, __0, _): (usize, (&'input str, Expr<'input, &'input str>), usize),
     (_, _, _): (usize, &'input str, usize),
-) -> (&'input str, Expr<&'input str>)
+) -> (&'input str, Expr<'input, &'input str>)
 {
     __0
 }
@@ -8822,8 +8822,8 @@ fn __action97<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, (&'input str, Expr<&'input str>), usize),
-) -> alloc::vec::Vec<(&'input str, Expr<&'input str>)>
+    (_, __0, _): (usize, (&'input str, Expr<'input, &'input str>), usize),
+) -> alloc::vec::Vec<(&'input str, Expr<'input, &'input str>)>
 {
     alloc::vec![__0]
 }
@@ -8834,9 +8834,9 @@ fn __action98<
     'input,
 >(
     input: &'input str,
-    (_, v, _): (usize, alloc::vec::Vec<(&'input str, Expr<&'input str>)>, usize),
-    (_, e, _): (usize, (&'input str, Expr<&'input str>), usize),
-) -> alloc::vec::Vec<(&'input str, Expr<&'input str>)>
+    (_, v, _): (usize, alloc::vec::Vec<(&'input str, Expr<'input, &'input str>)>, usize),
+    (_, e, _): (usize, (&'input str, Expr<'input, &'input str>), usize),
+) -> alloc::vec::Vec<(&'input str, Expr<'input, &'input str>)>
 {
     { let mut v = v; v.push(e); v }
 }
@@ -8847,8 +8847,8 @@ fn __action99<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, (&'input str, &'input str, Expr<&'input str>), usize),
-) -> alloc::vec::Vec<(&'input str, &'input str, Expr<&'input str>)>
+    (_, __0, _): (usize, (&'input str, &'input str, Expr<'input, &'input str>), usize),
+) -> alloc::vec::Vec<(&'input str, &'input str, Expr<'input, &'input str>)>
 {
     alloc::vec![__0]
 }
@@ -8859,9 +8859,9 @@ fn __action100<
     'input,
 >(
     input: &'input str,
-    (_, v, _): (usize, alloc::vec::Vec<(&'input str, &'input str, Expr<&'input str>)>, usize),
-    (_, e, _): (usize, (&'input str, &'input str, Expr<&'input str>), usize),
-) -> alloc::vec::Vec<(&'input str, &'input str, Expr<&'input str>)>
+    (_, v, _): (usize, alloc::vec::Vec<(&'input str, &'input str, Expr<'input, &'input str>)>, usize),
+    (_, e, _): (usize, (&'input str, &'input str, Expr<'input, &'input str>), usize),
+) -> alloc::vec::Vec<(&'input str, &'input str, Expr<'input, &'input str>)>
 {
     { let mut v = v; v.push(e); v }
 }
@@ -8872,10 +8872,10 @@ fn __action101<
     'input,
 >(
     input: &'input str,
-    (_, e1, _): (usize, Expr<&'input str>, usize),
+    (_, e1, _): (usize, Expr<'input, &'input str>, usize),
     (_, op, _): (usize, Op, usize),
-    (_, e2, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, e2, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     Expr::Prim {
         op,
@@ -8889,8 +8889,8 @@ fn __action102<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -8901,8 +8901,8 @@ fn __action103<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -8913,10 +8913,10 @@ fn __action104<
     'input,
 >(
     input: &'input str,
-    (_, e1, _): (usize, Expr<&'input str>, usize),
+    (_, e1, _): (usize, Expr<'input, &'input str>, usize),
     (_, op, _): (usize, Op, usize),
-    (_, e2, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, e2, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     Expr::Prim {
         op,
@@ -8930,8 +8930,8 @@ fn __action105<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -8942,8 +8942,8 @@ fn __action106<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -9004,10 +9004,10 @@ fn __action111<
     'input,
 >(
     input: &'input str,
-    (_, e1, _): (usize, Expr<&'input str>, usize),
+    (_, e1, _): (usize, Expr<'input, &'input str>, usize),
     (_, op, _): (usize, Op, usize),
-    (_, e2, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, e2, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     Expr::Prim {
         op,
@@ -9021,8 +9021,8 @@ fn __action112<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -9033,8 +9033,8 @@ fn __action113<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -9045,10 +9045,10 @@ fn __action114<
     'input,
 >(
     input: &'input str,
-    (_, e1, _): (usize, Expr<&'input str>, usize),
+    (_, e1, _): (usize, Expr<'input, &'input str>, usize),
     (_, op, _): (usize, Op, usize),
-    (_, e2, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, e2, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     Expr::Prim {
         op,
@@ -9062,8 +9062,8 @@ fn __action115<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -9074,8 +9074,8 @@ fn __action116<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -9086,10 +9086,10 @@ fn __action117<
     'input,
 >(
     input: &'input str,
-    (_, e1, _): (usize, Expr<&'input str>, usize),
+    (_, e1, _): (usize, Expr<'input, &'input str>, usize),
     (_, op, _): (usize, Op, usize),
-    (_, e2, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, e2, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     Expr::Prim {
         op,
@@ -9103,8 +9103,8 @@ fn __action118<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -9115,8 +9115,8 @@ fn __action119<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -9127,10 +9127,10 @@ fn __action120<
     'input,
 >(
     input: &'input str,
-    (_, e1, _): (usize, Expr<&'input str>, usize),
+    (_, e1, _): (usize, Expr<'input, &'input str>, usize),
     (_, op, _): (usize, Op, usize),
-    (_, e2, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, e2, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     Expr::Prim {
         op,
@@ -9144,8 +9144,8 @@ fn __action121<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -9156,8 +9156,8 @@ fn __action122<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -9168,10 +9168,10 @@ fn __action123<
     'input,
 >(
     input: &'input str,
-    (_, e1, _): (usize, Expr<&'input str>, usize),
+    (_, e1, _): (usize, Expr<'input, &'input str>, usize),
     (_, op, _): (usize, Op, usize),
-    (_, e2, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, e2, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     Expr::Prim {
         op,
@@ -9185,8 +9185,8 @@ fn __action124<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -9197,8 +9197,8 @@ fn __action125<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -9209,10 +9209,10 @@ fn __action126<
     'input,
 >(
     input: &'input str,
-    (_, e1, _): (usize, Expr<&'input str>, usize),
+    (_, e1, _): (usize, Expr<'input, &'input str>, usize),
     (_, op, _): (usize, Op, usize),
-    (_, e2, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, e2, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     Expr::Prim {
         op,
@@ -9226,8 +9226,8 @@ fn __action127<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -9238,8 +9238,8 @@ fn __action128<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -9250,10 +9250,10 @@ fn __action129<
     'input,
 >(
     input: &'input str,
-    (_, e1, _): (usize, Expr<&'input str>, usize),
+    (_, e1, _): (usize, Expr<'input, &'input str>, usize),
     (_, op, _): (usize, Op, usize),
-    (_, e2, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, e2, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     Expr::Prim {
         op,
@@ -9267,8 +9267,8 @@ fn __action130<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -9280,8 +9280,8 @@ fn __action131<
 >(
     input: &'input str,
     (_, op, _): (usize, Op, usize),
-    (_, e, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, e, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     Expr::Prim {
         op,
@@ -9295,8 +9295,8 @@ fn __action132<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -9307,10 +9307,10 @@ fn __action133<
     'input,
 >(
     input: &'input str,
-    (_, e1, _): (usize, Expr<&'input str>, usize),
+    (_, e1, _): (usize, Expr<'input, &'input str>, usize),
     (_, op, _): (usize, Op, usize),
-    (_, e2, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, e2, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     Expr::Prim {
         op,
@@ -9324,8 +9324,8 @@ fn __action134<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -9337,8 +9337,8 @@ fn __action135<
 >(
     input: &'input str,
     (_, op, _): (usize, Op, usize),
-    (_, e, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, e, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     Expr::Prim {
         op,
@@ -9352,8 +9352,8 @@ fn __action136<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -9364,10 +9364,10 @@ fn __action137<
     'input,
 >(
     input: &'input str,
-    (_, strct, _): (usize, Expr<&'input str>, usize),
+    (_, strct, _): (usize, Expr<'input, &'input str>, usize),
     (_, _, _): (usize, &'input str, usize),
     (_, field, _): (usize, &'input str, usize),
-) -> Expr<&'input str>
+) -> Expr<'input, &'input str>
 {
     Expr::AccessField {
         strct: Box::new(strct),
@@ -9381,8 +9381,8 @@ fn __action138<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -9393,10 +9393,10 @@ fn __action139<
     'input,
 >(
     input: &'input str,
-    (_, strct, _): (usize, Expr<&'input str>, usize),
+    (_, strct, _): (usize, Expr<'input, &'input str>, usize),
     (_, _, _): (usize, &'input str, usize),
     (_, field, _): (usize, &'input str, usize),
-) -> Expr<&'input str>
+) -> Expr<'input, &'input str>
 {
     Expr::AccessField {
         strct: Box::new(strct),
@@ -9410,8 +9410,8 @@ fn __action140<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -9425,7 +9425,7 @@ fn __action141<
     (_, __0, _): (usize, &'input str, usize),
     (_, __1, _): (usize, &'input str, usize),
     (_, __2, _): (usize, &'input str, usize),
-) -> Expr<&'input str>
+) -> Expr<'input, &'input str>
 {
     Expr::Prim {
         op: Op::Read,
@@ -9441,9 +9441,9 @@ fn __action142<
     input: &'input str,
     (_, _, _): (usize, &'input str, usize),
     (_, _, _): (usize, &'input str, usize),
-    (_, e, _): (usize, Expr<&'input str>, usize),
+    (_, e, _): (usize, Expr<'input, &'input str>, usize),
     (_, _, _): (usize, &'input str, usize),
-) -> Expr<&'input str>
+) -> Expr<'input, &'input str>
 {
     Expr::Prim {
         op: Op::Print,
@@ -9457,11 +9457,11 @@ fn __action143<
     'input,
 >(
     input: &'input str,
-    (_, fun, _): (usize, Expr<&'input str>, usize),
+    (_, fun, _): (usize, Expr<'input, &'input str>, usize),
     (_, _, _): (usize, &'input str, usize),
-    (_, args, _): (usize, Vec<Expr<&'input str>>, usize),
+    (_, args, _): (usize, Vec<Expr<'input, &'input str>>, usize),
     (_, _, _): (usize, &'input str, usize),
-) -> Expr<&'input str>
+) -> Expr<'input, &'input str>
 {
     Expr::Apply {
         fun: Box::new(fun),
@@ -9475,8 +9475,8 @@ fn __action144<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -9490,7 +9490,7 @@ fn __action145<
     (_, __0, _): (usize, &'input str, usize),
     (_, __1, _): (usize, &'input str, usize),
     (_, __2, _): (usize, &'input str, usize),
-) -> Expr<&'input str>
+) -> Expr<'input, &'input str>
 {
     Expr::Prim {
         op: Op::Read,
@@ -9506,9 +9506,9 @@ fn __action146<
     input: &'input str,
     (_, _, _): (usize, &'input str, usize),
     (_, _, _): (usize, &'input str, usize),
-    (_, e, _): (usize, Expr<&'input str>, usize),
+    (_, e, _): (usize, Expr<'input, &'input str>, usize),
     (_, _, _): (usize, &'input str, usize),
-) -> Expr<&'input str>
+) -> Expr<'input, &'input str>
 {
     Expr::Prim {
         op: Op::Print,
@@ -9522,11 +9522,11 @@ fn __action147<
     'input,
 >(
     input: &'input str,
-    (_, fun, _): (usize, Expr<&'input str>, usize),
+    (_, fun, _): (usize, Expr<'input, &'input str>, usize),
     (_, _, _): (usize, &'input str, usize),
-    (_, args, _): (usize, Vec<Expr<&'input str>>, usize),
+    (_, args, _): (usize, Vec<Expr<'input, &'input str>>, usize),
     (_, _, _): (usize, &'input str, usize),
-) -> Expr<&'input str>
+) -> Expr<'input, &'input str>
 {
     Expr::Apply {
         fun: Box::new(fun),
@@ -9540,8 +9540,8 @@ fn __action148<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -9553,7 +9553,7 @@ fn __action149<
 >(
     input: &'input str,
     (_, val, _): (usize, i64, usize),
-) -> Expr<&'input str>
+) -> Expr<'input, &'input str>
 {
     Expr::Lit{ val: Lit::Int { val }}
 }
@@ -9565,7 +9565,7 @@ fn __action150<
 >(
     input: &'input str,
     (_, val, _): (usize, bool, usize),
-) -> Expr<&'input str>
+) -> Expr<'input, &'input str>
 {
     Expr::Lit { val: Lit::Bool { val }}
 }
@@ -9577,7 +9577,7 @@ fn __action151<
 >(
     input: &'input str,
     (_, __0, _): (usize, &'input str, usize),
-) -> Expr<&'input str>
+) -> Expr<'input, &'input str>
 {
     Expr::Lit { val: Lit::Unit }
 }
@@ -9589,7 +9589,7 @@ fn __action152<
 >(
     input: &'input str,
     (_, sym, _): (usize, &'input str, usize),
-) -> Expr<&'input str>
+) -> Expr<'input, &'input str>
 {
     Expr::Var { sym }
 }
@@ -9604,9 +9604,9 @@ fn __action153<
     (_, _, _): (usize, &'input str, usize),
     (_, variant_sym, _): (usize, &'input str, usize),
     (_, _, _): (usize, &'input str, usize),
-    (_, bdy, _): (usize, Expr<&'input str>, usize),
+    (_, bdy, _): (usize, Expr<'input, &'input str>, usize),
     (_, _, _): (usize, &'input str, usize),
-) -> Expr<&'input str>
+) -> Expr<'input, &'input str>
 {
     Expr::Variant {
         enum_sym,
@@ -9622,9 +9622,9 @@ fn __action154<
 >(
     input: &'input str,
     (_, _, _): (usize, &'input str, usize),
-    (_, __0, _): (usize, Expr<&'input str>, usize),
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
     (_, _, _): (usize, &'input str, usize),
-) -> Expr<&'input str>
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -9635,8 +9635,8 @@ fn __action155<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -9647,9 +9647,9 @@ fn __action156<
     'input,
 >(
     input: &'input str,
-    (_, v, _): (usize, alloc::vec::Vec<Expr<&'input str>>, usize),
-    (_, e, _): (usize, core::option::Option<Expr<&'input str>>, usize),
-) -> Vec<Expr<&'input str>>
+    (_, v, _): (usize, alloc::vec::Vec<Expr<'input, &'input str>>, usize),
+    (_, e, _): (usize, core::option::Option<Expr<'input, &'input str>>, usize),
+) -> Vec<Expr<'input, &'input str>>
 {
     match e {
         None=> v,
@@ -9668,7 +9668,7 @@ fn __action157<
 >(
     input: &'input str,
     (_, val, _): (usize, i64, usize),
-) -> Expr<&'input str>
+) -> Expr<'input, &'input str>
 {
     Expr::Lit{ val: Lit::Int { val }}
 }
@@ -9680,7 +9680,7 @@ fn __action158<
 >(
     input: &'input str,
     (_, val, _): (usize, bool, usize),
-) -> Expr<&'input str>
+) -> Expr<'input, &'input str>
 {
     Expr::Lit { val: Lit::Bool { val }}
 }
@@ -9692,7 +9692,7 @@ fn __action159<
 >(
     input: &'input str,
     (_, __0, _): (usize, &'input str, usize),
-) -> Expr<&'input str>
+) -> Expr<'input, &'input str>
 {
     Expr::Lit { val: Lit::Unit }
 }
@@ -9704,7 +9704,7 @@ fn __action160<
 >(
     input: &'input str,
     (_, sym, _): (usize, &'input str, usize),
-) -> Expr<&'input str>
+) -> Expr<'input, &'input str>
 {
     Expr::Var { sym }
 }
@@ -9719,9 +9719,9 @@ fn __action161<
     (_, _, _): (usize, &'input str, usize),
     (_, variant_sym, _): (usize, &'input str, usize),
     (_, _, _): (usize, &'input str, usize),
-    (_, bdy, _): (usize, Expr<&'input str>, usize),
+    (_, bdy, _): (usize, Expr<'input, &'input str>, usize),
     (_, _, _): (usize, &'input str, usize),
-) -> Expr<&'input str>
+) -> Expr<'input, &'input str>
 {
     Expr::Variant {
         enum_sym,
@@ -9737,9 +9737,9 @@ fn __action162<
 >(
     input: &'input str,
     (_, _, _): (usize, &'input str, usize),
-    (_, __0, _): (usize, Expr<&'input str>, usize),
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
     (_, _, _): (usize, &'input str, usize),
-) -> Expr<&'input str>
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -9750,8 +9750,8 @@ fn __action163<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -9762,8 +9762,8 @@ fn __action164<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> core::option::Option<Expr<&'input str>>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> core::option::Option<Expr<'input, &'input str>>
 {
     Some(__0)
 }
@@ -9776,7 +9776,7 @@ fn __action165<
     input: &'input str,
     __lookbehind: &usize,
     __lookahead: &usize,
-) -> core::option::Option<Expr<&'input str>>
+) -> core::option::Option<Expr<'input, &'input str>>
 {
     None
 }
@@ -9789,7 +9789,7 @@ fn __action166<
     input: &'input str,
     __lookbehind: &usize,
     __lookahead: &usize,
-) -> alloc::vec::Vec<Expr<&'input str>>
+) -> alloc::vec::Vec<Expr<'input, &'input str>>
 {
     alloc::vec![]
 }
@@ -9800,8 +9800,8 @@ fn __action167<
     'input,
 >(
     input: &'input str,
-    (_, v, _): (usize, alloc::vec::Vec<Expr<&'input str>>, usize),
-) -> alloc::vec::Vec<Expr<&'input str>>
+    (_, v, _): (usize, alloc::vec::Vec<Expr<'input, &'input str>>, usize),
+) -> alloc::vec::Vec<Expr<'input, &'input str>>
 {
     v
 }
@@ -9812,9 +9812,9 @@ fn __action168<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
     (_, _, _): (usize, &'input str, usize),
-) -> Expr<&'input str>
+) -> Expr<'input, &'input str>
 {
     __0
 }
@@ -9825,8 +9825,8 @@ fn __action169<
     'input,
 >(
     input: &'input str,
-    (_, __0, _): (usize, Expr<&'input str>, usize),
-) -> alloc::vec::Vec<Expr<&'input str>>
+    (_, __0, _): (usize, Expr<'input, &'input str>, usize),
+) -> alloc::vec::Vec<Expr<'input, &'input str>>
 {
     alloc::vec![__0]
 }
@@ -9837,9 +9837,9 @@ fn __action170<
     'input,
 >(
     input: &'input str,
-    (_, v, _): (usize, alloc::vec::Vec<Expr<&'input str>>, usize),
-    (_, e, _): (usize, Expr<&'input str>, usize),
-) -> alloc::vec::Vec<Expr<&'input str>>
+    (_, v, _): (usize, alloc::vec::Vec<Expr<'input, &'input str>>, usize),
+    (_, e, _): (usize, Expr<'input, &'input str>, usize),
+) -> alloc::vec::Vec<Expr<'input, &'input str>>
 {
     { let mut v = v; v.push(e); v }
 }
@@ -9855,10 +9855,10 @@ fn __action171<
     __1: (usize, &'input str, usize),
     __2: (usize, &'input str, usize),
     __3: (usize, &'input str, usize),
-    __4: (usize, Expr<&'input str>, usize),
+    __4: (usize, Expr<'input, &'input str>, usize),
     __5: (usize, &'input str, usize),
-    __6: (usize, core::option::Option<Expr<&'input str>>, usize),
-) -> Expr<&'input str>
+    __6: (usize, core::option::Option<Expr<'input, &'input str>>, usize),
+) -> Expr<'input, &'input str>
 {
     let __start0 = __1.0;
     let __end0 = __1.2;
@@ -9889,10 +9889,10 @@ fn __action172<
     __0: (usize, &'input str, usize),
     __1: (usize, &'input str, usize),
     __2: (usize, &'input str, usize),
-    __3: (usize, Expr<&'input str>, usize),
+    __3: (usize, Expr<'input, &'input str>, usize),
     __4: (usize, &'input str, usize),
-    __5: (usize, core::option::Option<Expr<&'input str>>, usize),
-) -> Expr<&'input str>
+    __5: (usize, core::option::Option<Expr<'input, &'input str>>, usize),
+) -> Expr<'input, &'input str>
 {
     let __start0 = __0.2;
     let __end0 = __1.0;
@@ -10012,9 +10012,9 @@ fn __action176<
     __5: (usize, &'input str, usize),
     __6: (usize, Type<&'input str>, usize),
     __7: (usize, &'input str, usize),
-    __8: (usize, Expr<&'input str>, usize),
+    __8: (usize, Expr<'input, &'input str>, usize),
     __9: (usize, &'input str, usize),
-) -> Def<&'input str, Expr<&'input str>>
+) -> Def<'input, &'input str, Expr<'input, &'input str>>
 {
     let __start0 = __5.0;
     let __end0 = __6.2;
@@ -10051,9 +10051,9 @@ fn __action177<
     __3: (usize, Vec<Param<&'input str>>, usize),
     __4: (usize, &'input str, usize),
     __5: (usize, &'input str, usize),
-    __6: (usize, Expr<&'input str>, usize),
+    __6: (usize, Expr<'input, &'input str>, usize),
     __7: (usize, &'input str, usize),
-) -> Def<&'input str, Expr<&'input str>>
+) -> Def<'input, &'input str, Expr<'input, &'input str>>
 {
     let __start0 = __4.2;
     let __end0 = __5.0;
@@ -10086,9 +10086,9 @@ fn __action178<
     input: &'input str,
     __0: (usize, &'input str, usize),
     __1: (usize, &'input str, usize),
-    __2: (usize, Expr<&'input str>, usize),
+    __2: (usize, Expr<'input, &'input str>, usize),
     __3: (usize, &'input str, usize),
-) -> core::option::Option<Expr<&'input str>>
+) -> core::option::Option<Expr<'input, &'input str>>
 {
     let __start0 = __0.0;
     let __end0 = __3.2;
@@ -10114,15 +10114,15 @@ fn __action179<
 >(
     input: &'input str,
     __0: (usize, &'input str, usize),
-    __1: (usize, Expr<&'input str>, usize),
+    __1: (usize, Expr<'input, &'input str>, usize),
     __2: (usize, &'input str, usize),
-    __3: (usize, Expr<&'input str>, usize),
+    __3: (usize, Expr<'input, &'input str>, usize),
     __4: (usize, &'input str, usize),
     __5: (usize, &'input str, usize),
     __6: (usize, &'input str, usize),
-    __7: (usize, Expr<&'input str>, usize),
+    __7: (usize, Expr<'input, &'input str>, usize),
     __8: (usize, &'input str, usize),
-) -> Expr<&'input str>
+) -> Expr<'input, &'input str>
 {
     let __start0 = __5.0;
     let __end0 = __8.2;
@@ -10153,11 +10153,11 @@ fn __action180<
 >(
     input: &'input str,
     __0: (usize, &'input str, usize),
-    __1: (usize, Expr<&'input str>, usize),
+    __1: (usize, Expr<'input, &'input str>, usize),
     __2: (usize, &'input str, usize),
-    __3: (usize, Expr<&'input str>, usize),
+    __3: (usize, Expr<'input, &'input str>, usize),
     __4: (usize, &'input str, usize),
-) -> Expr<&'input str>
+) -> Expr<'input, &'input str>
 {
     let __start0 = __4.2;
     let __end0 = __4.2;
@@ -10190,9 +10190,9 @@ fn __action181<
     __2: (usize, &'input str, usize),
     __3: (usize, &'input str, usize),
     __4: (usize, &'input str, usize),
-    __5: (usize, Expr<&'input str>, usize),
+    __5: (usize, Expr<'input, &'input str>, usize),
     __6: (usize, &'input str, usize),
-) -> (&'input str, &'input str, Expr<&'input str>)
+) -> (&'input str, &'input str, Expr<'input, &'input str>)
 {
     let __start0 = __0.0;
     let __end0 = __5.2;
@@ -10225,8 +10225,8 @@ fn __action182<
     __2: (usize, &'input str, usize),
     __3: (usize, &'input str, usize),
     __4: (usize, &'input str, usize),
-    __5: (usize, Expr<&'input str>, usize),
-) -> core::option::Option<(&'input str, &'input str, Expr<&'input str>)>
+    __5: (usize, Expr<'input, &'input str>, usize),
+) -> core::option::Option<(&'input str, &'input str, Expr<'input, &'input str>)>
 {
     let __start0 = __0.0;
     let __end0 = __5.2;
@@ -10258,9 +10258,9 @@ fn __action183<
     __2: (usize, &'input str, usize),
     __3: (usize, &'input str, usize),
     __4: (usize, &'input str, usize),
-    __5: (usize, Expr<&'input str>, usize),
+    __5: (usize, Expr<'input, &'input str>, usize),
     __6: (usize, &'input str, usize),
-) -> alloc::vec::Vec<(&'input str, &'input str, Expr<&'input str>)>
+) -> alloc::vec::Vec<(&'input str, &'input str, Expr<'input, &'input str>)>
 {
     let __start0 = __0.0;
     let __end0 = __6.2;
@@ -10288,15 +10288,15 @@ fn __action184<
     'input,
 >(
     input: &'input str,
-    __0: (usize, alloc::vec::Vec<(&'input str, &'input str, Expr<&'input str>)>, usize),
+    __0: (usize, alloc::vec::Vec<(&'input str, &'input str, Expr<'input, &'input str>)>, usize),
     __1: (usize, &'input str, usize),
     __2: (usize, &'input str, usize),
     __3: (usize, &'input str, usize),
     __4: (usize, &'input str, usize),
     __5: (usize, &'input str, usize),
-    __6: (usize, Expr<&'input str>, usize),
+    __6: (usize, Expr<'input, &'input str>, usize),
     __7: (usize, &'input str, usize),
-) -> alloc::vec::Vec<(&'input str, &'input str, Expr<&'input str>)>
+) -> alloc::vec::Vec<(&'input str, &'input str, Expr<'input, &'input str>)>
 {
     let __start0 = __1.0;
     let __end0 = __7.2;
@@ -10325,8 +10325,8 @@ fn __action185<
     'input,
 >(
     input: &'input str,
-    __0: (usize, core::option::Option<(&'input str, &'input str, Expr<&'input str>)>, usize),
-) -> Vec<(&'input str, &'input str, Expr<&'input str>)>
+    __0: (usize, core::option::Option<(&'input str, &'input str, Expr<'input, &'input str>)>, usize),
+) -> Vec<(&'input str, &'input str, Expr<'input, &'input str>)>
 {
     let __start0 = __0.0;
     let __end0 = __0.0;
@@ -10350,9 +10350,9 @@ fn __action186<
     'input,
 >(
     input: &'input str,
-    __0: (usize, alloc::vec::Vec<(&'input str, &'input str, Expr<&'input str>)>, usize),
-    __1: (usize, core::option::Option<(&'input str, &'input str, Expr<&'input str>)>, usize),
-) -> Vec<(&'input str, &'input str, Expr<&'input str>)>
+    __0: (usize, alloc::vec::Vec<(&'input str, &'input str, Expr<'input, &'input str>)>, usize),
+    __1: (usize, core::option::Option<(&'input str, &'input str, Expr<'input, &'input str>)>, usize),
+) -> Vec<(&'input str, &'input str, Expr<'input, &'input str>)>
 {
     let __start0 = __0.0;
     let __end0 = __0.2;
@@ -10377,9 +10377,9 @@ fn __action187<
     input: &'input str,
     __0: (usize, &'input str, usize),
     __1: (usize, &'input str, usize),
-    __2: (usize, Expr<&'input str>, usize),
+    __2: (usize, Expr<'input, &'input str>, usize),
     __3: (usize, &'input str, usize),
-) -> (&'input str, Expr<&'input str>)
+) -> (&'input str, Expr<'input, &'input str>)
 {
     let __start0 = __0.0;
     let __end0 = __2.2;
@@ -10406,8 +10406,8 @@ fn __action188<
     input: &'input str,
     __0: (usize, &'input str, usize),
     __1: (usize, &'input str, usize),
-    __2: (usize, Expr<&'input str>, usize),
-) -> core::option::Option<(&'input str, Expr<&'input str>)>
+    __2: (usize, Expr<'input, &'input str>, usize),
+) -> core::option::Option<(&'input str, Expr<'input, &'input str>)>
 {
     let __start0 = __0.0;
     let __end0 = __2.2;
@@ -10433,9 +10433,9 @@ fn __action189<
     input: &'input str,
     __0: (usize, &'input str, usize),
     __1: (usize, &'input str, usize),
-    __2: (usize, Expr<&'input str>, usize),
+    __2: (usize, Expr<'input, &'input str>, usize),
     __3: (usize, &'input str, usize),
-) -> alloc::vec::Vec<(&'input str, Expr<&'input str>)>
+) -> alloc::vec::Vec<(&'input str, Expr<'input, &'input str>)>
 {
     let __start0 = __0.0;
     let __end0 = __3.2;
@@ -10460,12 +10460,12 @@ fn __action190<
     'input,
 >(
     input: &'input str,
-    __0: (usize, alloc::vec::Vec<(&'input str, Expr<&'input str>)>, usize),
+    __0: (usize, alloc::vec::Vec<(&'input str, Expr<'input, &'input str>)>, usize),
     __1: (usize, &'input str, usize),
     __2: (usize, &'input str, usize),
-    __3: (usize, Expr<&'input str>, usize),
+    __3: (usize, Expr<'input, &'input str>, usize),
     __4: (usize, &'input str, usize),
-) -> alloc::vec::Vec<(&'input str, Expr<&'input str>)>
+) -> alloc::vec::Vec<(&'input str, Expr<'input, &'input str>)>
 {
     let __start0 = __1.0;
     let __end0 = __4.2;
@@ -10491,8 +10491,8 @@ fn __action191<
     'input,
 >(
     input: &'input str,
-    __0: (usize, core::option::Option<(&'input str, Expr<&'input str>)>, usize),
-) -> Vec<(&'input str, Expr<&'input str>)>
+    __0: (usize, core::option::Option<(&'input str, Expr<'input, &'input str>)>, usize),
+) -> Vec<(&'input str, Expr<'input, &'input str>)>
 {
     let __start0 = __0.0;
     let __end0 = __0.0;
@@ -10516,9 +10516,9 @@ fn __action192<
     'input,
 >(
     input: &'input str,
-    __0: (usize, alloc::vec::Vec<(&'input str, Expr<&'input str>)>, usize),
-    __1: (usize, core::option::Option<(&'input str, Expr<&'input str>)>, usize),
-) -> Vec<(&'input str, Expr<&'input str>)>
+    __0: (usize, alloc::vec::Vec<(&'input str, Expr<'input, &'input str>)>, usize),
+    __1: (usize, core::option::Option<(&'input str, Expr<'input, &'input str>)>, usize),
+) -> Vec<(&'input str, Expr<'input, &'input str>)>
 {
     let __start0 = __0.0;
     let __end0 = __0.2;
@@ -10707,9 +10707,9 @@ fn __action199<
     'input,
 >(
     input: &'input str,
-    __0: (usize, Expr<&'input str>, usize),
+    __0: (usize, Expr<'input, &'input str>, usize),
     __1: (usize, &'input str, usize),
-) -> alloc::vec::Vec<Expr<&'input str>>
+) -> alloc::vec::Vec<Expr<'input, &'input str>>
 {
     let __start0 = __0.0;
     let __end0 = __1.2;
@@ -10732,10 +10732,10 @@ fn __action200<
     'input,
 >(
     input: &'input str,
-    __0: (usize, alloc::vec::Vec<Expr<&'input str>>, usize),
-    __1: (usize, Expr<&'input str>, usize),
+    __0: (usize, alloc::vec::Vec<Expr<'input, &'input str>>, usize),
+    __1: (usize, Expr<'input, &'input str>, usize),
     __2: (usize, &'input str, usize),
-) -> alloc::vec::Vec<Expr<&'input str>>
+) -> alloc::vec::Vec<Expr<'input, &'input str>>
 {
     let __start0 = __1.0;
     let __end0 = __2.2;
@@ -10759,8 +10759,8 @@ fn __action201<
     'input,
 >(
     input: &'input str,
-    __0: (usize, core::option::Option<Expr<&'input str>>, usize),
-) -> Vec<Expr<&'input str>>
+    __0: (usize, core::option::Option<Expr<'input, &'input str>>, usize),
+) -> Vec<Expr<'input, &'input str>>
 {
     let __start0 = __0.0;
     let __end0 = __0.0;
@@ -10784,9 +10784,9 @@ fn __action202<
     'input,
 >(
     input: &'input str,
-    __0: (usize, alloc::vec::Vec<Expr<&'input str>>, usize),
-    __1: (usize, core::option::Option<Expr<&'input str>>, usize),
-) -> Vec<Expr<&'input str>>
+    __0: (usize, alloc::vec::Vec<Expr<'input, &'input str>>, usize),
+    __1: (usize, core::option::Option<Expr<'input, &'input str>>, usize),
+) -> Vec<Expr<'input, &'input str>>
 {
     let __start0 = __0.0;
     let __end0 = __0.2;
@@ -10814,8 +10814,8 @@ fn __action203<
     __2: (usize, &'input str, usize),
     __3: (usize, &'input str, usize),
     __4: (usize, &'input str, usize),
-    __5: (usize, Expr<&'input str>, usize),
-) -> Vec<(&'input str, &'input str, Expr<&'input str>)>
+    __5: (usize, Expr<'input, &'input str>, usize),
+) -> Vec<(&'input str, &'input str, Expr<'input, &'input str>)>
 {
     let __start0 = __0.0;
     let __end0 = __5.2;
@@ -10844,7 +10844,7 @@ fn __action204<
     input: &'input str,
     __lookbehind: &usize,
     __lookahead: &usize,
-) -> Vec<(&'input str, &'input str, Expr<&'input str>)>
+) -> Vec<(&'input str, &'input str, Expr<'input, &'input str>)>
 {
     let __start0 = *__lookbehind;
     let __end0 = *__lookahead;
@@ -10867,14 +10867,14 @@ fn __action205<
     'input,
 >(
     input: &'input str,
-    __0: (usize, alloc::vec::Vec<(&'input str, &'input str, Expr<&'input str>)>, usize),
+    __0: (usize, alloc::vec::Vec<(&'input str, &'input str, Expr<'input, &'input str>)>, usize),
     __1: (usize, &'input str, usize),
     __2: (usize, &'input str, usize),
     __3: (usize, &'input str, usize),
     __4: (usize, &'input str, usize),
     __5: (usize, &'input str, usize),
-    __6: (usize, Expr<&'input str>, usize),
-) -> Vec<(&'input str, &'input str, Expr<&'input str>)>
+    __6: (usize, Expr<'input, &'input str>, usize),
+) -> Vec<(&'input str, &'input str, Expr<'input, &'input str>)>
 {
     let __start0 = __1.0;
     let __end0 = __6.2;
@@ -10902,8 +10902,8 @@ fn __action206<
     'input,
 >(
     input: &'input str,
-    __0: (usize, alloc::vec::Vec<(&'input str, &'input str, Expr<&'input str>)>, usize),
-) -> Vec<(&'input str, &'input str, Expr<&'input str>)>
+    __0: (usize, alloc::vec::Vec<(&'input str, &'input str, Expr<'input, &'input str>)>, usize),
+) -> Vec<(&'input str, &'input str, Expr<'input, &'input str>)>
 {
     let __start0 = __0.2;
     let __end0 = __0.2;
@@ -10929,8 +10929,8 @@ fn __action207<
     input: &'input str,
     __0: (usize, &'input str, usize),
     __1: (usize, &'input str, usize),
-    __2: (usize, Expr<&'input str>, usize),
-) -> Vec<(&'input str, Expr<&'input str>)>
+    __2: (usize, Expr<'input, &'input str>, usize),
+) -> Vec<(&'input str, Expr<'input, &'input str>)>
 {
     let __start0 = __0.0;
     let __end0 = __2.2;
@@ -10956,7 +10956,7 @@ fn __action208<
     input: &'input str,
     __lookbehind: &usize,
     __lookahead: &usize,
-) -> Vec<(&'input str, Expr<&'input str>)>
+) -> Vec<(&'input str, Expr<'input, &'input str>)>
 {
     let __start0 = *__lookbehind;
     let __end0 = *__lookahead;
@@ -10979,11 +10979,11 @@ fn __action209<
     'input,
 >(
     input: &'input str,
-    __0: (usize, alloc::vec::Vec<(&'input str, Expr<&'input str>)>, usize),
+    __0: (usize, alloc::vec::Vec<(&'input str, Expr<'input, &'input str>)>, usize),
     __1: (usize, &'input str, usize),
     __2: (usize, &'input str, usize),
-    __3: (usize, Expr<&'input str>, usize),
-) -> Vec<(&'input str, Expr<&'input str>)>
+    __3: (usize, Expr<'input, &'input str>, usize),
+) -> Vec<(&'input str, Expr<'input, &'input str>)>
 {
     let __start0 = __1.0;
     let __end0 = __3.2;
@@ -11008,8 +11008,8 @@ fn __action210<
     'input,
 >(
     input: &'input str,
-    __0: (usize, alloc::vec::Vec<(&'input str, Expr<&'input str>)>, usize),
-) -> Vec<(&'input str, Expr<&'input str>)>
+    __0: (usize, alloc::vec::Vec<(&'input str, Expr<'input, &'input str>)>, usize),
+) -> Vec<(&'input str, Expr<'input, &'input str>)>
 {
     let __start0 = __0.2;
     let __end0 = __0.2;
@@ -11266,7 +11266,7 @@ fn __action220<
     'input,
 >(
     input: &'input str,
-    __0: (usize, alloc::vec::Vec<Def<&'input str, Expr<&'input str>>>, usize),
+    __0: (usize, alloc::vec::Vec<Def<'input, &'input str, Expr<'input, &'input str>>>, usize),
 ) -> PrgParsed<'input>
 {
     let __start0 = __0.0;
@@ -11289,8 +11289,8 @@ fn __action221<
     'input,
 >(
     input: &'input str,
-    __0: (usize, Expr<&'input str>, usize),
-) -> Vec<Expr<&'input str>>
+    __0: (usize, Expr<'input, &'input str>, usize),
+) -> Vec<Expr<'input, &'input str>>
 {
     let __start0 = __0.0;
     let __end0 = __0.2;
@@ -11314,7 +11314,7 @@ fn __action222<
     input: &'input str,
     __lookbehind: &usize,
     __lookahead: &usize,
-) -> Vec<Expr<&'input str>>
+) -> Vec<Expr<'input, &'input str>>
 {
     let __start0 = *__lookbehind;
     let __end0 = *__lookahead;
@@ -11337,9 +11337,9 @@ fn __action223<
     'input,
 >(
     input: &'input str,
-    __0: (usize, alloc::vec::Vec<Expr<&'input str>>, usize),
-    __1: (usize, Expr<&'input str>, usize),
-) -> Vec<Expr<&'input str>>
+    __0: (usize, alloc::vec::Vec<Expr<'input, &'input str>>, usize),
+    __1: (usize, Expr<'input, &'input str>, usize),
+) -> Vec<Expr<'input, &'input str>>
 {
     let __start0 = __1.0;
     let __end0 = __1.2;
@@ -11362,8 +11362,8 @@ fn __action224<
     'input,
 >(
     input: &'input str,
-    __0: (usize, alloc::vec::Vec<Expr<&'input str>>, usize),
-) -> Vec<Expr<&'input str>>
+    __0: (usize, alloc::vec::Vec<Expr<'input, &'input str>>, usize),
+) -> Vec<Expr<'input, &'input str>>
 {
     let __start0 = __0.2;
     let __end0 = __0.2;
@@ -11388,8 +11388,8 @@ fn __action225<
 >(
     input: &'input str,
     __0: (usize, &'input str, usize),
-    __1: (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    __1: (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     let __start0 = __1.0;
     let __end0 = __1.2;
@@ -11413,7 +11413,7 @@ fn __action226<
 >(
     input: &'input str,
     __0: (usize, &'input str, usize),
-) -> Expr<&'input str>
+) -> Expr<'input, &'input str>
 {
     let __start0 = __0.2;
     let __end0 = __0.2;
@@ -11438,8 +11438,8 @@ fn __action227<
 >(
     input: &'input str,
     __0: (usize, &'input str, usize),
-    __1: (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    __1: (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     let __start0 = __1.0;
     let __end0 = __1.2;
@@ -11463,7 +11463,7 @@ fn __action228<
 >(
     input: &'input str,
     __0: (usize, &'input str, usize),
-) -> Expr<&'input str>
+) -> Expr<'input, &'input str>
 {
     let __start0 = __0.2;
     let __end0 = __0.2;
@@ -11491,10 +11491,10 @@ fn __action229<
     __1: (usize, &'input str, usize),
     __2: (usize, &'input str, usize),
     __3: (usize, &'input str, usize),
-    __4: (usize, Expr<&'input str>, usize),
+    __4: (usize, Expr<'input, &'input str>, usize),
     __5: (usize, &'input str, usize),
-    __6: (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    __6: (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     let __start0 = __6.0;
     let __end0 = __6.2;
@@ -11526,9 +11526,9 @@ fn __action230<
     __1: (usize, &'input str, usize),
     __2: (usize, &'input str, usize),
     __3: (usize, &'input str, usize),
-    __4: (usize, Expr<&'input str>, usize),
+    __4: (usize, Expr<'input, &'input str>, usize),
     __5: (usize, &'input str, usize),
-) -> Expr<&'input str>
+) -> Expr<'input, &'input str>
 {
     let __start0 = __5.2;
     let __end0 = __5.2;
@@ -11560,10 +11560,10 @@ fn __action231<
     __0: (usize, &'input str, usize),
     __1: (usize, &'input str, usize),
     __2: (usize, &'input str, usize),
-    __3: (usize, Expr<&'input str>, usize),
+    __3: (usize, Expr<'input, &'input str>, usize),
     __4: (usize, &'input str, usize),
-    __5: (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    __5: (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     let __start0 = __5.0;
     let __end0 = __5.2;
@@ -11593,9 +11593,9 @@ fn __action232<
     __0: (usize, &'input str, usize),
     __1: (usize, &'input str, usize),
     __2: (usize, &'input str, usize),
-    __3: (usize, Expr<&'input str>, usize),
+    __3: (usize, Expr<'input, &'input str>, usize),
     __4: (usize, &'input str, usize),
-) -> Expr<&'input str>
+) -> Expr<'input, &'input str>
 {
     let __start0 = __4.2;
     let __end0 = __4.2;
@@ -11623,10 +11623,10 @@ fn __action233<
     'input,
 >(
     input: &'input str,
-    __0: (usize, Expr<&'input str>, usize),
+    __0: (usize, Expr<'input, &'input str>, usize),
     __1: (usize, &'input str, usize),
-    __2: (usize, Expr<&'input str>, usize),
-) -> Expr<&'input str>
+    __2: (usize, Expr<'input, &'input str>, usize),
+) -> Expr<'input, &'input str>
 {
     let __start0 = __2.0;
     let __end0 = __2.2;
@@ -11650,9 +11650,9 @@ fn __action234<
     'input,
 >(
     input: &'input str,
-    __0: (usize, Expr<&'input str>, usize),
+    __0: (usize, Expr<'input, &'input str>, usize),
     __1: (usize, &'input str, usize),
-) -> Expr<&'input str>
+) -> Expr<'input, &'input str>
 {
     let __start0 = __1.2;
     let __end0 = __1.2;

@@ -7,7 +7,7 @@ use std::collections::HashMap;
 
 #[derive(Debug, PartialEq)]
 pub struct PrgRevealed<'p> {
-    pub defs: HashMap<UniqueSym<'p>, Def<UniqueSym<'p>, RExpr<'p>>>,
+    pub defs: HashMap<UniqueSym<'p>, Def<'p, UniqueSym<'p>, RExpr<'p>>>,
     pub entry: UniqueSym<'p>,
 }
 
@@ -74,7 +74,7 @@ impl<'p> From<PrgRevealed<'p>> for PrgUniquified<'p> {
 }
 
 //TODO also functor time?
-impl<'p> From<Def<UniqueSym<'p>, RExpr<'p>>> for Def<UniqueSym<'p>, Expr<UniqueSym<'p>>> {
+impl<'p> From<Def<'p, UniqueSym<'p>, RExpr<'p>>> for Def<'p, UniqueSym<'p>, Expr<'p, UniqueSym<'p>>> {
     fn from(value: Def<UniqueSym<'p>, RExpr<'p>>) -> Self {
         match value {
             Def::Fn {
@@ -94,7 +94,7 @@ impl<'p> From<Def<UniqueSym<'p>, RExpr<'p>>> for Def<UniqueSym<'p>, Expr<UniqueS
     }
 }
 
-impl<'p> From<RExpr<'p>> for Expr<UniqueSym<'p>> {
+impl<'p> From<RExpr<'p>> for Expr<'p, UniqueSym<'p>> {
     fn from(value: RExpr<'p>) -> Self {
         match value {
             RExpr::Lit { val } => Expr::Lit { val },
