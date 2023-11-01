@@ -1,5 +1,5 @@
 // auto-generated: "lalrpop 0.20.1"
-// sha3: 2aa40aad8231cecb47de423afa53eba1cd5c6f371fc4e93f8b40cb6d81da750e
+// sha3: 59cf0df0b5b3ee4cb1cb0ef9f58abb5f5a40c188e9bbf306543b34835d70554c
 use std::str::FromStr;
 use crate::passes::parse::{Def, Expr, Lit, Op, Param};
 use crate::passes::parse::PrgParsed;

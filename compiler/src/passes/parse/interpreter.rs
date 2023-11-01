@@ -8,10 +8,10 @@ use std::hash::Hash;
 use crate::passes::type_check::PrgGenericVar;
 
 #[derive(Clone)]
-pub enum ControlFlow<A: Copy + Hash + Eq + Display> {
-    Val(Val<A>),
-    Break(Val<A>),
-    Return(Val<A>),
+pub enum ControlFlow<'p, A: Copy + Hash + Eq + Display> {
+    Val(Val<'p, A>),
+    Break(Val<'p, A>),
+    Return(Val<'p, A>),
     Continue,
 }
 
@@ -27,7 +27,7 @@ macro_rules! b {
 }
 
 impl<'p, A: Copy + Hash + Eq + Debug + Display> PrgGenericVar<'p, A> {
-    pub fn interpret(&self, io: &mut impl IO) -> Val<A> {
+    pub fn interpret(&'p self, io: &mut impl IO) -> Val<'p, A> {
         let mut scope = PushMap::from_iter(
             self.defs
                 .iter()
@@ -37,12 +37,12 @@ impl<'p, A: Copy + Hash + Eq + Debug + Display> PrgGenericVar<'p, A> {
     }
 
     fn interpret_fn(
-        &self,
+        &'p self,
         sym: A,
-        args: Vec<Val<A>>,
-        scope: &mut PushMap<A, Val<A>>,
+        args: Vec<Val<'p, A>>,
+        scope: &mut PushMap<A, Val<'p, A>>,
         io: &mut impl IO,
-    ) -> Val<A> {
+    ) -> Val<'p, A> {
         match &self.defs[&sym] {
             Def::Fn { params, bdy, .. } => scope.push_iter(
                 params
@@ -59,11 +59,11 @@ impl<'p, A: Copy + Hash + Eq + Debug + Display> PrgGenericVar<'p, A> {
     }
 
     pub fn interpret_expr(
-        &self,
-        expr: &Expr<A>,
-        scope: &mut PushMap<A, Val<A>>,
+        &'p self,
+        expr: &'p Expr<A>,
+        scope: &mut PushMap<A, Val<'p, A>>,
         io: &mut impl IO,
-    ) -> ControlFlow<A> {
+    ) -> ControlFlow<'p, A> {
         ControlFlow::Val(match expr {
             Expr::Lit { val } => (*val).into(),
             Expr::Var { sym } => scope[sym].clone(),
@@ -228,7 +228,9 @@ mod tests {
     fn interpret([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);
         let mut io = TestIO::new(input);
-        let result = program.type_check().unwrap().interpret(&mut io);
+
+        let program = program.type_check().unwrap();
+        let result = program.interpret(&mut io);
 
         assert_eq!(result, expected_return.into());
         assert_eq!(io.outputs(), &expected_output);

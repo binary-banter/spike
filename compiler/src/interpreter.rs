@@ -62,7 +62,7 @@ impl IO for TestIO {
 }
 
 #[derive(Eq, PartialEq, Clone, Debug, Display)]
-pub enum Val<A: Copy + Hash + Eq + Display> {
+pub enum Val<'p, A: Copy + Hash + Eq + Display> {
     #[display(fmt = "{val}")]
     Int { val: i64 },
     #[display(fmt = "{}", r#"if *val { "true" } else { "false" }"#)]
@@ -73,11 +73,11 @@ pub enum Val<A: Copy + Hash + Eq + Display> {
     Function { sym: A },
     #[display(fmt = "struct instance")]
     StructInstance {
-        fields: HashMap<A, Val<A>>
+        fields: HashMap<&'p str, Val<'p, A>>
     }
 }
 
-impl<A: Copy + Hash + Eq + Display> From<Lit> for Val<A> {
+impl<'p, A: Copy + Hash + Eq + Display> From<Lit> for Val<'p, A> {
     fn from(value: Lit) -> Self {
         match value {
             Lit::Int { val } => Val::Int { val },
@@ -87,7 +87,7 @@ impl<A: Copy + Hash + Eq + Display> From<Lit> for Val<A> {
     }
 }
 
-impl<A: Copy + Hash + Eq + Display> Val<A> {
+impl<'p, A: Copy + Hash + Eq + Display> Val<'p, A> {
     pub fn int(&self) -> i64 {
         match self {
             Val::Int { val } => *val,
@@ -109,7 +109,7 @@ impl<A: Copy + Hash + Eq + Display> Val<A> {
         }
     }
 
-    pub fn strct(&self) -> &HashMap<A, Val<A>> {
+    pub fn strct(&self) -> &HashMap<&'p str, Val<'p, A>> {
         match self {
             Val::StructInstance {fields } => fields,
             _ => panic!(),

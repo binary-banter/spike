@@ -38,14 +38,14 @@ fn uniquify_def<'p>(
                     .map(|param| Param {
                         sym: scope[&param.sym],
                         mutable: param.mutable,
-                        typ: param.typ.clone().fmap(|v| todo!()),
+                        typ: param.typ.clone().fmap(|v| scope[v]),
                     })
                     .collect();
                 let bdy = uniquify_expression(bdy, scope);
                 Def::Fn {
                     sym: scope[&sym],
                     params,
-                    typ: typ.fmap(|v| todo!()),
+                    typ: typ.fmap(|v| scope[v]),
                     bdy,
                 }
             },
@@ -119,14 +119,15 @@ fn uniquify_expression<'p>(
         Expr::Return { bdy } => Expr::Return {
             bdy: Box::new(uniquify_expression(*bdy, scope)),
         },
-        Expr::Struct { sym, fields } => {
-            Expr::Struct {
-                sym: scope[sym],
-                fields: fields.into_iter().map(|(sym, expr)| (sym, uniquify_expression(expr, scope))).collect()
-            }
+        Expr::Struct { sym, fields } => Expr::Struct {
+            sym: scope[sym],
+            fields: fields.into_iter().map(|(sym, expr)| (sym, uniquify_expression(expr, scope))).collect()
+        },
+        Expr::AccessField { strct, field } => Expr::AccessField {
+            strct: Box::new(uniquify_expression(*strct, scope)),
+            field
         },
         Expr::Variant { .. } => todo!(),
-        Expr::AccessField { .. } => todo!(),
         Expr::Switch { .. } => todo!(),
     }
 }

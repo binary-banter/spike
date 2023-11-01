@@ -203,7 +203,7 @@ pub enum Expr<'p, A: Copy + Hash + Eq> {
     /// A field access.
     ///
     /// todo: documentation
-    AccessField { strct: Box<Expr<'p, A>>, field: A },
+    AccessField { strct: Box<Expr<'p, A>>, field: &'p str },
     /// A switch statement.
     ///
     /// todo: documentation
