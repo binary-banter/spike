@@ -23,8 +23,8 @@ impl<'p> PrgRevealed<'p> {
                             typ,
                             bdy: atomize_expr(bdy),
                         },
-                        Def::Struct { .. } => todo!(),
-                        Def::Enum { .. } => todo!(),
+                        Def::Struct { sym, fields } => Def::Struct { sym, fields },
+                        Def::Enum { sym, variants } => Def::Enum { sym, variants } ,
                     };
                     (sym, def)
                 })
@@ -106,8 +106,32 @@ fn atomize_expr(expr: RExpr) -> AExpr {
         RExpr::Return { bdy } => AExpr::Return {
             bdy: Box::new(atomize_expr(*bdy)),
         },
-        RExpr::Struct { .. } => todo!(),
-        RExpr::AccessField { .. } => todo!(),
+        RExpr::Struct { sym, fields } => {
+            let (fields, extras): (Vec<_>, Vec<_>) = fields.into_iter().map(|(sym, expr)| {
+                let (field, extra) = atomize_atom(expr);
+                ((sym, field), extra)
+            }).unzip();
+
+            extras
+                .into_iter()
+                .flatten()
+                .rfold(AExpr::Struct { sym, fields }, |bdy, (sym, bnd)| AExpr::Let {
+                    sym,
+                    bnd: Box::new(bnd),
+                    bdy: Box::new(bdy),
+                })
+        },
+        RExpr::AccessField { strct, field } => {
+            let (strct, extra) = atomize_atom(*strct);
+
+            extra
+                .into_iter()
+                .rfold(AExpr::AccessField { strct, field }, |bdy, (sym, bnd)| AExpr::Let {
+                    sym,
+                    bnd: Box::new(bnd),
+                    bdy: Box::new(bdy),
+                })
+        },
     }
 }
 

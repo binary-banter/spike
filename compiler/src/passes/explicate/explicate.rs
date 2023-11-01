@@ -173,6 +173,8 @@ fn explicate_assign<'p>(
             };
             explicate_assign(tmp, *bdy, tail, env)
         }
+        AExpr::Struct { .. } => todo!(),
+        AExpr::AccessField { .. } => todo!(),
     }
 }
 
@@ -299,6 +301,8 @@ fn explicate_pred<'p>(
             explicate_pred(*cnt, thn, els, env),
             env,
         ),
+        AExpr::Struct { .. } => todo!(),
+        AExpr::AccessField { .. } => todo!(),
         // cargo format should get some help
         AExpr::FunRef { .. }
         | AExpr::Atom {

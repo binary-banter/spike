@@ -55,6 +55,8 @@ pub enum AExpr<'p> {
     Return {
         bdy: Box<AExpr<'p>>,
     },
+    Struct { sym: UniqueSym<'p>, fields: Vec<(&'p str, Atom<'p>)> },
+    AccessField { strct: Atom<'p>, field: &'p str },
 }
 
 #[derive(Debug, PartialEq, Copy, Clone)]
@@ -78,7 +80,7 @@ impl<'p> From<PrgAtomized<'p>> for PrgUniquified<'p> {
 
 // TODO functor time
 impl<'p> From<Def<'p, UniqueSym<'p>, AExpr<'p>>> for Def<'p, UniqueSym<'p>, Expr<'p, UniqueSym<'p>>> {
-    fn from(value: Def<UniqueSym<'p>, AExpr<'p>>) -> Self {
+    fn from(value: Def<'p, UniqueSym<'p>, AExpr<'p>>) -> Self {
         match value {
             Def::Fn {
                 sym,
@@ -91,8 +93,8 @@ impl<'p> From<Def<'p, UniqueSym<'p>, AExpr<'p>>> for Def<'p, UniqueSym<'p>, Expr
                 typ,
                 bdy: bdy.into(),
             },
-            Def::Struct { .. } => todo!(),
-            Def::Enum { .. } => todo!(),
+            Def::Struct { sym, fields } => Def::Struct { sym, fields },
+            Def::Enum { sym, variants } => Def::Enum { sym, variants },
         }
     }
 }
@@ -139,6 +141,8 @@ impl<'p> From<AExpr<'p>> for Expr<'p, UniqueSym<'p>> {
             AExpr::Return { bdy } => Expr::Return {
                 bdy: Box::new((*bdy).into()),
             },
+            AExpr::Struct { sym, fields } => Expr::Struct { sym, fields: fields.into_iter().map(|(sym, atm)| (sym, atm.into())).collect() },
+            AExpr::AccessField { strct, field } => Expr::AccessField { strct: Box::new(strct.into()), field}
         }
     }
 }

@@ -4,7 +4,6 @@ use crate::passes::parse::{Def, Expr, Lit, Op};
 use crate::passes::uniquify::PrgUniquified;
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
-use functor_derive::Functor;
 
 #[derive(Debug, PartialEq)]
 pub struct PrgRevealed<'p> {
