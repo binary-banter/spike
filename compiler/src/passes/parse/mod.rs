@@ -1,3 +1,6 @@
+//! This module contains important definitions, structures, and parsing utilities used across different passes of the compiler.
+//! It includes the grammar specification in `grammar.lalrpop` and the parsing pass.
+
 #[rustfmt::skip]
 #[allow(clippy::all, clippy::pedantic)]
 mod grammar;
@@ -12,37 +15,56 @@ use std::hash::Hash;
 use std::str::FromStr;
 use types::Type;
 
+/// A parsed program with global definitions and an entry point.
 #[derive(Debug, PartialEq)]
 pub struct PrgParsed<'p> {
+    /// The global program definitions.
     pub defs: Vec<Def<&'p str, Expr<&'p str>>>,
+    /// The symbol representing the entry point of the program.
     pub entry: &'p str,
 }
 
+/// A generic program with global definitions and an entry point.
 #[derive(Debug, PartialEq)]
 pub struct PrgGenericVar<A: Copy + Hash + Eq + Display> {
+    /// The global program definitions.
     pub defs: HashMap<A, Def<A, Expr<A>>>,
+    /// The symbol representing the entry point of the program.
     pub entry: A,
 }
 
+/// A definition.
 #[derive(Debug, PartialEq)]
 pub enum Def<A: Copy + Hash + Eq + Display, B> {
+    /// A function definition.
     Fn {
+        /// Symbol representing the function.
         sym: A,
+        /// Parameters of the function.
         params: Vec<Param<A>>,
+        /// Return type of the function.
         typ: Type<A>,
+        /// Function body.
         bdy: B,
     },
+    /// A struct definition.
     Struct {
+        /// Symbol representing the struct.
         sym: A,
+        /// Fields of the struct, consisting of field symbols and their types.
         fields: Vec<(A, Type<A>)>,
     },
+    /// An enum definition.
     Enum {
+        /// Symbol representing the enum.
         sym: A,
+        /// Variants of the enum, consisting of variant symbols and their types.
         variants: Vec<(A, Type<A>)>,
     },
 }
 
 impl<A: Copy + Hash + Eq + Display, B> Def<A, B> {
+    /// Returns the symbol representing the definition.
     pub fn sym(&self) -> &A {
         match self {
             Def::Fn { sym, .. } => sym,
@@ -66,7 +88,7 @@ pub struct Param<A: Copy + Hash + Eq + Display> {
     pub mutable: bool,
 }
 
-/// An expression in our custom programming language.
+/// An expression.
 ///
 /// Expressions are generic and can use symbols that are either `&str` or
 /// [`UniqueSym`](crate::utils::gen_sym::UniqueSym) for all passes after uniquify.
@@ -201,38 +223,63 @@ pub enum Expr<A: Copy + Hash + Eq> {
     },
 }
 
+/// A primitive operation.
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Op {
+    /// Read signed integer from stdin.
     Read,
+    /// Print signed integer to stdout.
     Print,
+    /// Integer addition.
     Plus,
+    /// Integer subtraction or negation.
     Minus,
+    /// Integer multiplication.
     Mul,
+    /// Integer division.
     Div,
+    /// Modulo operation.
     Mod,
+    /// Logical AND.
     LAnd,
+    /// Logical OR,
     LOr,
+    /// Logical NOT.
     Not,
+    /// XOR operation.
     Xor,
+    /// Greater Than comparison.
     GT,
+    /// Greater Than or Equal To comparison.
     GE,
+    /// Equality comparison. Operates on `Int` and `Bool`.
     EQ,
+    /// Less Than or Equal To comparison.
     LE,
+    /// Less Than comparison.
     LT,
+    /// Inequality comparison. Operates on `Int` and `Bool`.
     NE,
 }
 
+/// A literal value.
 #[derive(Copy, Clone, Debug, PartialEq, Display)]
 pub enum Lit {
+    /// Integer literal, representing a signed 64-bit number.
     #[display(fmt = "{val}")]
     Int { val: i64 },
+    /// Boolean literal, representing a value of *true* or *false*.
     #[display(fmt = "{}", r#"if *val { "true" } else { "false" }"#)]
     Bool { val: bool },
+    /// Unit literal, representing the absence of a value.
     #[display(fmt = "unit")]
     Unit,
 }
 
 impl Lit {
+    /// Returns the integer value if `Lit` is `Int`.
+    /// # Panics
+    /// Panics if `Lit` is not `Int`.
     #[must_use]
     pub fn int(self) -> i64 {
         if let Lit::Int { val } = self {
@@ -242,6 +289,9 @@ impl Lit {
         }
     }
 
+    /// Returns the boolean value if `Lit` is `Bool`.
+    /// # Panics
+    /// Panics if `Lit` is not `Bool`.
     #[must_use]
     pub fn bool(self) -> bool {
         if let Lit::Bool { val } = self {
@@ -252,6 +302,7 @@ impl Lit {
     }
 }
 
+// todo: we probably want to get rid off this
 impl From<Lit> for i64 {
     fn from(value: Lit) -> Self {
         match value {
@@ -262,6 +313,7 @@ impl From<Lit> for i64 {
     }
 }
 
+// This implementation is used by the parser.
 impl FromStr for Lit {
     type Err = ();
 
@@ -287,4 +339,5 @@ mod tests {
     }
 
     test_each_file! { for ["test"] in "./programs/good" as parse => parse }
+    // todo: add negative tests.
 }
