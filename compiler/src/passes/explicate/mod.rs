@@ -35,10 +35,28 @@ pub enum Tail<'p> {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum CExpr<'p> {
-    Atom { atm: Atom<'p> },
-    Prim { op: Op, args: Vec<Atom<'p>> },
-    Apply { fun: Atom<'p>, args: Vec<Atom<'p>> },
-    FunRef { sym: UniqueSym<'p> },
+    Atom {
+        atm: Atom<'p>,
+    },
+    Prim {
+        op: Op,
+        args: Vec<Atom<'p>>,
+    },
+    Apply {
+        fun: Atom<'p>,
+        args: Vec<Atom<'p>>,
+    },
+    FunRef {
+        sym: UniqueSym<'p>,
+    },
+    Struct {
+        sym: UniqueSym<'p>,
+        fields: Vec<(&'p str, Atom<'p>)>,
+    },
+    AccessField {
+        strct: Atom<'p>,
+        field: &'p str,
+    },
 }
 
 #[cfg(test)]

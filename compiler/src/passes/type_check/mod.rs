@@ -7,10 +7,10 @@ mod validate_prim;
 mod validate_struct;
 mod validate_type;
 
-use std::hash::Hash;
-use std::fmt::Display;
-use std::collections::HashMap;
 use crate::passes::parse::{Def, Expr};
+use std::collections::HashMap;
+use std::fmt::Display;
+use std::hash::Hash;
 
 pub type PrgTypeChecked<'p> = PrgGenericVar<'p, &'p str>;
 

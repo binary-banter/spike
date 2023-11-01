@@ -191,7 +191,10 @@ pub enum Expr<'p, A: Copy + Hash + Eq> {
     /// An instance of a struct.
     ///
     /// todo: documentation
-    Struct { sym: A, fields: Vec<(&'p str, Expr<'p, A>)> },
+    Struct {
+        sym: A,
+        fields: Vec<(&'p str, Expr<'p, A>)>,
+    },
     /// A variant of an enum.
     ///
     /// todo: documentation
@@ -203,7 +206,10 @@ pub enum Expr<'p, A: Copy + Hash + Eq> {
     /// A field access.
     ///
     /// todo: documentation
-    AccessField { strct: Box<Expr<'p, A>>, field: &'p str },
+    AccessField {
+        strct: Box<Expr<'p, A>>,
+        field: &'p str,
+    },
     /// A switch statement.
     ///
     /// todo: documentation

@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use crate::interpreter::Val;
 use crate::interpreter::IO;
 use crate::passes::atomize::Atom;
@@ -145,6 +146,19 @@ impl<'p> PrgExplicated<'p> {
                 scope.push_iter(args.into_iter(), |scope| {
                     self.interpret_tail(&self.blocks[&fn_sym], scope, io)
                 })
+            }
+            CExpr::Struct { sym, fields } => {
+                let mut field_values = HashMap::new();
+                for (sym, field) in fields {
+                    field_values.insert(*sym, self.interpret_atom(field, scope));
+                }
+                Val::StructInstance {
+                    fields: field_values,
+                }
+            }
+            CExpr::AccessField { strct, field } => {
+                let s = self.interpret_atom(strct, scope);
+                s.strct()[field].clone()
             }
         }
     }

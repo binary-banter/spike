@@ -1,11 +1,11 @@
-use std::collections::HashMap;
 use crate::interpreter::Val;
 use crate::interpreter::IO;
 use crate::passes::parse::{Def, Expr, Lit, Op};
+use crate::passes::type_check::PrgGenericVar;
 use crate::utils::push_map::PushMap;
+use std::collections::HashMap;
 use std::fmt::{Debug, Display};
 use std::hash::Hash;
-use crate::passes::type_check::PrgGenericVar;
 
 #[derive(Clone)]
 pub enum ControlFlow<'p, A: Copy + Hash + Eq + Display> {
@@ -54,7 +54,7 @@ impl<'p, A: Copy + Hash + Eq + Debug + Display> PrgGenericVar<'p, A> {
                     ControlFlow::Continue | ControlFlow::Break(_) => unreachable!(),
                 },
             ),
-            Def::Struct { .. } | Def::Enum { .. }  => unreachable!(),
+            Def::Struct { .. } | Def::Enum { .. } => unreachable!(),
         }
     }
 
@@ -207,13 +207,15 @@ impl<'p, A: Copy + Hash + Eq + Debug + Display> PrgGenericVar<'p, A> {
                 for (sym, field) in fields {
                     field_values.insert(*sym, b!(self.interpret_expr(field, scope, io)));
                 }
-                Val::StructInstance { fields: field_values }
-            },
+                Val::StructInstance {
+                    fields: field_values,
+                }
+            }
             Expr::Variant { .. } => todo!(),
             Expr::AccessField { strct, field } => {
                 let s = b!(self.interpret_expr(strct, scope, io));
                 s.strct()[field].clone()
-            },
+            }
             Expr::Switch { .. } => todo!(),
         })
     }

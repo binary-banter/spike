@@ -22,15 +22,19 @@ impl<'p> PrgAtomized<'p> {
             continue_target: None,
         };
 
-        let fn_params = self
-            .defs
-            .iter()
-            .map(|(fn_sym, def)| match def {
-                Def::Fn { params, .. } => (*fn_sym, params.iter().map(|param| param.sym).collect()),
-                Def::Struct { .. } => todo!(),
-                Def::Enum { .. } => todo!(),
-            })
-            .collect();
+        let mut fn_params = HashMap::new();
+
+        for (sym, def) in &self.defs {
+            match def {
+                Def::Fn { params, .. } => {
+                    fn_params.insert(*sym, params.iter().map(|param| param.sym).collect());
+                }
+                Def::Struct { .. } => {
+                    // todo
+                },
+                Def::Enum { .. } => {},
+            }
+        }
 
         for (_, def) in self.defs {
             explicate_def(def, &mut env);
@@ -50,8 +54,7 @@ fn explicate_def<'p>(def: Def<UniqueSym<'p>, AExpr<'p>>, env: &mut Env<'_, 'p>) 
             let tail = explicate_tail(bdy, env);
             env.blocks.insert(sym, tail);
         }
-        Def::Struct { .. } => todo!(),
-        Def::Enum { .. } => todo!(),
+        Def::Struct { .. } | Def::Enum { .. } => {}
     }
 }
 
@@ -173,8 +176,16 @@ fn explicate_assign<'p>(
             };
             explicate_assign(tmp, *bdy, tail, env)
         }
-        AExpr::Struct { .. } => todo!(),
-        AExpr::AccessField { .. } => todo!(),
+        AExpr::Struct { sym: sym_, fields } => Tail::Seq {
+            sym,
+            bnd: CExpr::Struct { sym: sym_, fields },
+            tail: Box::new(tail),
+        },
+        AExpr::AccessField { strct, field } => Tail::Seq {
+            sym,
+            bnd: CExpr::AccessField { strct, field },
+            tail: Box::new(tail),
+        },
     }
 }
 
@@ -301,8 +312,23 @@ fn explicate_pred<'p>(
             explicate_pred(*cnt, thn, els, env),
             env,
         ),
-        AExpr::Struct { .. } => todo!(),
-        AExpr::AccessField { .. } => todo!(),
+        AExpr::AccessField { strct, field } => {
+            let tmp = gen_sym("tmp");
+            explicate_assign(
+                tmp,
+                AExpr::AccessField { strct, field },
+                explicate_pred(
+                    AExpr::Atom {
+                        atm: Atom::Var { sym: tmp },
+                    },
+                    thn,
+                    els,
+                    env,
+                ),
+                env,
+            )
+        },
+
         // cargo format should get some help
         AExpr::FunRef { .. }
         | AExpr::Atom {
@@ -313,6 +339,7 @@ fn explicate_pred<'p>(
         | AExpr::Assign { .. }
         | AExpr::Break { .. }
         | AExpr::Continue
-        | AExpr::Return { .. } => unreachable!(),
+        | AExpr::Return { .. }
+        | AExpr::Struct { .. } => unreachable!(),
     }
 }

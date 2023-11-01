@@ -52,7 +52,10 @@ fn uniquify_def<'p>(
         ),
         Def::Struct { sym, fields } => Def::Struct {
             sym: scope[&sym],
-            fields: fields.into_iter().map(|(sym, typ)| (sym, typ.fmap(|sym| scope[sym]))).collect(),
+            fields: fields
+                .into_iter()
+                .map(|(sym, typ)| (sym, typ.fmap(|sym| scope[sym])))
+                .collect(),
         },
         Def::Enum { .. } => todo!(),
     }
@@ -121,11 +124,14 @@ fn uniquify_expression<'p>(
         },
         Expr::Struct { sym, fields } => Expr::Struct {
             sym: scope[sym],
-            fields: fields.into_iter().map(|(sym, expr)| (sym, uniquify_expression(expr, scope))).collect()
+            fields: fields
+                .into_iter()
+                .map(|(sym, expr)| (sym, uniquify_expression(expr, scope)))
+                .collect(),
         },
         Expr::AccessField { strct, field } => Expr::AccessField {
             strct: Box::new(uniquify_expression(*strct, scope)),
-            field
+            field,
         },
         Expr::Variant { .. } => todo!(),
         Expr::Switch { .. } => todo!(),

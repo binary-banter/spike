@@ -38,7 +38,10 @@ impl<'p> PrgUniquified<'p> {
     }
 }
 
-fn reveal_expr<'p>(expr: Expr<'p, UniqueSym<'p>>, scope: &mut PushMap<UniqueSym<'p>, ()>) -> RExpr<'p> {
+fn reveal_expr<'p>(
+    expr: Expr<'p, UniqueSym<'p>>,
+    scope: &mut PushMap<UniqueSym<'p>, ()>,
+) -> RExpr<'p> {
     match expr {
         Expr::Lit { val } => RExpr::Lit { val },
         Expr::Var { sym } => {
@@ -95,11 +98,14 @@ fn reveal_expr<'p>(expr: Expr<'p, UniqueSym<'p>>, scope: &mut PushMap<UniqueSym<
         },
         Expr::Struct { sym, fields } => RExpr::Struct {
             sym,
-            fields: fields.into_iter().map(|(sym, expr)| (sym, reveal_expr(expr, scope))).collect()
+            fields: fields
+                .into_iter()
+                .map(|(sym, expr)| (sym, reveal_expr(expr, scope)))
+                .collect(),
         },
         Expr::AccessField { strct, field } => RExpr::AccessField {
             strct: Box::new(reveal_expr(*strct, scope)),
-            field
+            field,
         },
         Expr::Variant { .. } => todo!(),
         Expr::Switch { .. } => todo!(),

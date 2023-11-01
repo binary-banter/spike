@@ -1,6 +1,6 @@
-use std::collections::HashMap;
 use crate::passes::parse::Lit;
 use derive_more::Display;
+use std::collections::HashMap;
 use std::fmt::Display;
 use std::hash::Hash;
 use std::io::stdin;
@@ -73,8 +73,8 @@ pub enum Val<'p, A: Copy + Hash + Eq + Display> {
     Function { sym: A },
     #[display(fmt = "struct instance")]
     StructInstance {
-        fields: HashMap<&'p str, Val<'p, A>>
-    }
+        fields: HashMap<&'p str, Val<'p, A>>,
+    },
 }
 
 impl<'p, A: Copy + Hash + Eq + Display> From<Lit> for Val<'p, A> {
@@ -111,7 +111,7 @@ impl<'p, A: Copy + Hash + Eq + Display> Val<'p, A> {
 
     pub fn strct(&self) -> &HashMap<&'p str, Val<'p, A>> {
         match self {
-            Val::StructInstance {fields } => fields,
+            Val::StructInstance { fields } => fields,
             _ => panic!(),
         }
     }
