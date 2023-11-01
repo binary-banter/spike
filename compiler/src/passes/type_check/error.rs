@@ -1,6 +1,6 @@
-use thiserror::Error;
-use miette::Diagnostic;
 use crate::passes::parse::types::Type;
+use miette::Diagnostic;
+use thiserror::Error;
 
 #[derive(Debug, Error, Diagnostic)]
 #[diagnostic()]

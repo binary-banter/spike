@@ -1,11 +1,11 @@
-use std::collections::{HashMap, HashSet};
+use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, PrgParsed};
 use crate::passes::type_check::check::EnvEntry;
-use crate::passes::type_check::error::TypeError::*;
 use crate::passes::type_check::error::TypeError;
-use crate::passes::parse::types::Type;
+use crate::passes::type_check::error::TypeError::*;
 use crate::utils::expect::expect;
 use crate::utils::push_map::PushMap;
+use std::collections::{HashMap, HashSet};
 
 /// Returns a `PushMap` with all the functions in scope.
 pub fn uncover_globals<'p>(

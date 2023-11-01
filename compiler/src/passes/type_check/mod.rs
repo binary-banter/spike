@@ -1,11 +1,11 @@
 pub mod check;
-mod validate_expr;
-mod validate_type;
-mod uncover_globals;
-mod validate_struct;
-mod util;
 pub mod error;
+mod uncover_globals;
+mod util;
+mod validate_expr;
 mod validate_prim;
+mod validate_struct;
+mod validate_type;
 
 use crate::passes::parse::PrgGenericVar;
 

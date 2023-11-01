@@ -1,10 +1,14 @@
-use crate::passes::parse::{Expr, Op};
 use crate::passes::parse::types::Type;
+use crate::passes::parse::{Expr, Op};
 use crate::passes::type_check::check::Env;
 use crate::passes::type_check::error::TypeError;
 use crate::passes::type_check::util;
 
-pub fn validate_prim<'p>(env: &mut Env<'_, 'p>, op: &Op, args: &Vec<Expr<&'p str>>) -> Result<Result<Type<&'p str>, TypeError>, TypeError> {
+pub fn validate_prim<'p>(
+    env: &mut Env<'_, 'p>,
+    op: &Op,
+    args: &Vec<Expr<&'p str>>,
+) -> Result<Result<Type<&'p str>, TypeError>, TypeError> {
     Ok(match (op, args.as_slice()) {
         (Op::Plus | Op::Minus | Op::Mul | Op::Mod | Op::Div, [e1, e2]) => {
             util::expect_type(e1, Type::Int, env)?;

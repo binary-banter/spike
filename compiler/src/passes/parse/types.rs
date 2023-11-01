@@ -1,8 +1,8 @@
-use std::hash::Hash;
-use std::fmt::Display;
 use derive_more::Display;
 use functor_derive::Functor;
 use itertools::Itertools;
+use std::fmt::Display;
+use std::hash::Hash;
 
 #[derive(Debug, Clone, PartialEq, Display)]
 pub enum Type<A: Hash + Eq + Display> {

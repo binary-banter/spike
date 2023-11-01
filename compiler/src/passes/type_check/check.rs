@@ -1,11 +1,11 @@
+use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, Expr, PrgParsed};
+use crate::passes::type_check::error::TypeError;
 use crate::passes::type_check::error::TypeError::*;
-use crate::passes::type_check::{PrgTypeChecked, uncover_globals, util, validate_type};
+use crate::passes::type_check::{uncover_globals, util, validate_type, PrgTypeChecked};
 use crate::utils::expect::expect;
 use crate::utils::push_map::PushMap;
 use std::collections::HashMap;
-use crate::passes::parse::types::Type;
-use crate::passes::type_check::error::TypeError;
 
 pub struct Env<'a, 'p> {
     pub scope: &'a mut PushMap<&'p str, EnvEntry<'p>>,

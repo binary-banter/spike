@@ -1,9 +1,9 @@
-use crate::passes::parse::{Def, Expr, Lit};
 use crate::passes::parse::types::Type;
+use crate::passes::parse::{Def, Expr, Lit};
 use crate::passes::type_check::check::{Env, EnvEntry};
+use crate::passes::type_check::error::TypeError;
 use crate::passes::type_check::error::TypeError::*;
 use crate::passes::type_check::{util, validate_prim, validate_struct};
-use crate::passes::type_check::error::TypeError;
 use crate::utils::expect::expect;
 
 pub fn validate_expr<'p>(
@@ -136,7 +136,10 @@ pub fn validate_expr<'p>(
             sym,
             fields: provided_fields,
         } => validate_struct::validate_struct(env, sym, provided_fields),
-        Expr::AccessField { strct, field: field_sym } => {
+        Expr::AccessField {
+            strct,
+            field: field_sym,
+        } => {
             let typ = validate_expr(strct, env)?;
             let Type::Var { sym } = typ else {
                 return Err(TypeShouldBeStruct {

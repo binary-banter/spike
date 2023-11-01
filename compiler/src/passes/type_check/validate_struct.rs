@@ -1,11 +1,11 @@
-use std::collections::{HashMap, HashSet};
-use crate::passes::parse::{Def, Expr};
 use crate::passes::parse::types::Type;
+use crate::passes::parse::{Def, Expr};
 use crate::passes::type_check::check::{Env, EnvEntry};
+use crate::passes::type_check::error::TypeError;
 use crate::passes::type_check::error::TypeError::*;
 use crate::passes::type_check::util;
-use crate::passes::type_check::error::TypeError;
 use crate::utils::expect::expect;
+use std::collections::{HashMap, HashSet};
 
 pub fn validate_struct<'p>(
     env: &mut Env<'_, 'p>,
