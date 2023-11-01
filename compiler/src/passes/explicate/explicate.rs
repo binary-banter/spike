@@ -31,8 +31,8 @@ impl<'p> PrgAtomized<'p> {
                 }
                 Def::Struct { .. } => {
                     // todo
-                },
-                Def::Enum { .. } => {},
+                }
+                Def::Enum { .. } => {}
             }
         }
 
@@ -327,7 +327,7 @@ fn explicate_pred<'p>(
                 ),
                 env,
             )
-        },
+        }
 
         // cargo format should get some help
         AExpr::FunRef { .. }

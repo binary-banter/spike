@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use crate::interpreter::Val;
 use crate::interpreter::IO;
 use crate::passes::atomize::Atom;
@@ -6,6 +5,7 @@ use crate::passes::explicate::{CExpr, PrgExplicated, Tail};
 use crate::passes::parse::{Lit, Op};
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::push_map::PushMap;
+use std::collections::HashMap;
 
 impl<'p> PrgExplicated<'p> {
     pub fn interpret(&self, io: &mut impl IO) -> Val<'p, UniqueSym<'p>> {
@@ -147,7 +147,7 @@ impl<'p> PrgExplicated<'p> {
                     self.interpret_tail(&self.blocks[&fn_sym], scope, io)
                 })
             }
-            CExpr::Struct { sym, fields } => {
+            CExpr::Struct { fields, .. } => {
                 let mut field_values = HashMap::new();
                 for (sym, field) in fields {
                     field_values.insert(*sym, self.interpret_atom(field, scope));

@@ -20,7 +20,7 @@ fn integration([test]: [&str; 1]) {
         .write(true)
         .create(true)
         .mode(0o777)
-        .open(&input_path)
+        .open(input_path)
         .unwrap();
 
     program
@@ -51,7 +51,7 @@ fn integration([test]: [&str; 1]) {
             .stdout(Stdio::piped())
             .spawn();
         if let Err(e) = &sub_res {
-            if e.kind().to_string() == "executable file busy".to_string() {
+            if e.kind().to_string() == *"executable file busy" {
                 continue;
             }
         }

@@ -50,7 +50,7 @@ pub fn validate_struct<'p>(
         }
     }
 
-    for (field, _) in &def_fields {
+    for field in def_fields.keys() {
         expect(
             new_provided_fields.contains(field),
             VariableConstructMissingField {

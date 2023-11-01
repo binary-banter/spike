@@ -46,46 +46,43 @@ impl<'p> PrgParsed<'p> {
     pub fn type_check(self) -> Result<PrgTypeChecked<'p>, TypeError> {
         let mut scope = uncover_globals::uncover_globals(&self)?;
 
-        self.defs
-            .iter()
-            .map(|def| match def {
-                Def::Fn {
-                    ref params,
-                    ref bdy,
-                    ref typ,
-                    ..
-                } => scope.push_iter(
-                    params.iter().map(|p| {
-                        (
-                            p.sym,
-                            EnvEntry::Type {
-                                mutable: p.mutable,
-                                typ: p.typ.clone(),
-                            },
-                        )
-                    }),
-                    |scope| {
-                        let mut env = Env {
-                            scope,
-                            loop_type: &mut None,
-                            in_loop: false,
-                            return_type: typ,
-                        };
+        self.defs.iter().try_for_each(|def| match def {
+            Def::Fn {
+                ref params,
+                ref bdy,
+                ref typ,
+                ..
+            } => scope.push_iter(
+                params.iter().map(|p| {
+                    (
+                        p.sym,
+                        EnvEntry::Type {
+                            mutable: p.mutable,
+                            typ: p.typ.clone(),
+                        },
+                    )
+                }),
+                |scope| {
+                    let mut env = Env {
+                        scope,
+                        loop_type: &mut None,
+                        in_loop: false,
+                        return_type: typ,
+                    };
 
-                        util::expect_type(bdy, typ.clone(), &mut env)
-                    },
-                ),
-                Def::Struct { fields: types, .. }
-                | Def::Enum {
-                    variants: types, ..
-                } => {
-                    for (_, typ) in types {
-                        validate_type::validate_type(typ, &scope)?;
-                    }
-                    Ok(())
+                    util::expect_type(bdy, typ.clone(), &mut env)
+                },
+            ),
+            Def::Struct { fields: types, .. }
+            | Def::Enum {
+                variants: types, ..
+            } => {
+                for (_, typ) in types {
+                    validate_type::validate_type(typ, &scope)?;
                 }
-            })
-            .collect::<Result<(), _>>()?;
+                Ok(())
+            }
+        })?;
 
         let defs = self
             .defs
