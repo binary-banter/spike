@@ -19,4 +19,4 @@ functor_derive = "0.2.3"
 
 [dev-dependencies]
 test_each_file = "0.1.0"
-tempdir = "0.3.7"
+tempfile = "3.8.1"

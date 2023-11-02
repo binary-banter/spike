@@ -24,17 +24,21 @@ pub enum Type<A: Hash + Eq + Display> {
 }
 
 impl<A: Hash + Eq + Display> Type<A> {
-    pub fn fmap<__B: Hash + Eq + Display>(self, __f: impl Fn(A) -> __B + Copy) -> Type<__B> {
-        match self {
-            Self::Int => Type::Int,
-            Self::Bool => Type::Bool,
-            Self::Unit => Type::Unit,
-            Self::Never => Type::Never,
-            Self::Fn { typ, params: args } => Type::Fn {
-                typ: typ.fmap(|v| v.fmap(__f)),
-                params: args.fmap(|v| v.fmap(__f)),
-            },
-            Self::Var { sym } => Type::Var { sym: __f(sym) },
+    pub fn fmap<__B: Hash + Eq + Display>(self, __f: impl Fn(A) -> __B) -> Type<__B> {
+        fn fmap_ref<A: Hash + Eq + Display, __B: Hash + Eq + Display>(s: Type<A>, __f: &impl Fn(A) -> __B) -> Type<__B> {
+            match s {
+                Type::Int => Type::Int,
+                Type::Bool => Type::Bool,
+                Type::Unit => Type::Unit,
+                Type::Never => Type::Never,
+                Type::Fn { typ, params: args } => Type::Fn {
+                    typ: typ.fmap(|v| fmap_ref(v, __f)),
+                    params: args.fmap(|v| fmap_ref(v, __f)),
+                },
+                Type::Var { sym } => Type::Var { sym: __f(sym) },
+            }
         }
+
+        fmap_ref(self, &__f)
     }
 }

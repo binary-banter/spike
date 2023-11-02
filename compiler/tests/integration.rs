@@ -6,11 +6,11 @@ use std::fs::OpenOptions;
 use std::io::{BufRead, Write};
 use std::os::unix::prelude::OpenOptionsExt;
 use std::process::{Command, Stdio};
-use tempdir::TempDir;
+use tempfile::TempDir;
 use test_each_file::test_each_file;
 
 fn integration([test]: [&str; 1]) {
-    let tempdir = TempDir::new("rust-compiler-construction-integration").unwrap();
+    let tempdir = TempDir::with_prefix("rust-compiler-construction-integration").unwrap();
 
     let (input, expected_output, expected_return, program) = split_test(test);
     let expected_return: i64 = expected_return.into();

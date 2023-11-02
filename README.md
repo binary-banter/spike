@@ -45,6 +45,8 @@ cargo run -- input.jj -o output && ./output ; echo $?
 # Upcoming Optimizations
 * [ ] Dead code.
 * [ ] Constant folding.
+* [ ] Improve prologue and epilogue.
+* [ ] Tail calls.
 * [ ] And probably more...
 
 # Lofty Goals
