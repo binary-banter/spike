@@ -5,7 +5,7 @@ use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use std::collections::HashMap;
 
 struct Env<'a, 'p> {
-    blocks: &'a mut HashMap<UniqueSym<'p>, Tail<'p>>,
+    blocks: &'a mut HashMap<UniqueSym<'p>, Tail<'p, CExpr<'p>>>,
     /// (block to jump to, variable to write to)
     break_target: Option<(UniqueSym<'p>, UniqueSym<'p>)>,
     /// block to jump to
@@ -58,7 +58,7 @@ fn explicate_def<'p>(def: Def<UniqueSym<'p>, AExpr<'p>>, env: &mut Env<'_, 'p>) 
     }
 }
 
-fn explicate_tail<'p>(expr: AExpr<'p>, env: &mut Env<'_, 'p>) -> Tail<'p> {
+fn explicate_tail<'p>(expr: AExpr<'p>, env: &mut Env<'_, 'p>) -> Tail<'p, CExpr<'p>> {
     let tmp = gen_sym("return");
     let tail = Tail::Return {
         expr: CExpr::Atom {
@@ -71,10 +71,10 @@ fn explicate_tail<'p>(expr: AExpr<'p>, env: &mut Env<'_, 'p>) -> Tail<'p> {
 fn explicate_assign<'p>(
     sym: UniqueSym<'p>,
     bnd: AExpr<'p>,
-    tail: Tail<'p>,
+    tail: Tail<'p, CExpr<'p>>,
     env: &mut Env<'_, 'p>,
-) -> Tail<'p> {
-    let mut create_block = |goto: Tail<'p>| {
+) -> Tail<'p, CExpr<'p>> {
+    let mut create_block = |goto: Tail<'p, CExpr<'p>>| {
         let sym = gen_sym("tmp");
         env.blocks.insert(sym, goto);
         sym
@@ -191,11 +191,11 @@ fn explicate_assign<'p>(
 
 fn explicate_pred<'p>(
     cnd: AExpr<'p>,
-    thn: Tail<'p>,
-    els: Tail<'p>,
+    thn: Tail<'p, CExpr<'p>>,
+    els: Tail<'p, CExpr<'p>>,
     env: &mut Env<'_, 'p>,
-) -> Tail<'p> {
-    let mut create_block = |goto: Tail<'p>| {
+) -> Tail<'p, CExpr<'p>> {
+    let mut create_block = |goto: Tail<'p, CExpr<'p>>| {
         let sym = gen_sym("tmp");
         env.blocks.insert(sym, goto);
         sym

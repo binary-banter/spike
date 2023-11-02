@@ -31,7 +31,7 @@ impl<'p> PrgExplicated<'p> {
 
 fn select_block<'p>(
     sym: UniqueSym<'p>,
-    tail: Tail<'p>,
+    tail: Tail<'p, CExpr<'p>>,
     std: &Std<'p>,
     fn_params: &HashMap<UniqueSym<'p>, Vec<UniqueSym<'p>>>,
 ) -> Block<'p, VarArg<'p>> {
@@ -58,7 +58,11 @@ fn select_block<'p>(
     Block { instrs }
 }
 
-fn select_tail<'p>(tail: Tail<'p>, instrs: &mut Vec<Instr<'p, VarArg<'p>>>, std: &Std<'p>) {
+fn select_tail<'p>(
+    tail: Tail<'p, CExpr<'p>>,
+    instrs: &mut Vec<Instr<'p, VarArg<'p>>>,
+    std: &Std<'p>,
+) {
     match tail {
         Tail::Return { expr } => {
             instrs.extend(select_assign(reg!(RAX), expr, std));
@@ -168,7 +172,7 @@ fn select_assign<'p>(
             instrs.push(movq!(reg!(RAX), dst));
             instrs
         }
-        CExpr::Struct { .. } => todo!(),
+        CExpr::Struct { fields, .. } => todo!(),
         CExpr::AccessField { .. } => todo!(),
     }
 }

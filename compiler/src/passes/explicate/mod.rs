@@ -8,23 +8,23 @@ use std::collections::HashMap;
 
 #[derive(Debug, PartialEq)]
 pub struct PrgExplicated<'p> {
-    pub blocks: HashMap<UniqueSym<'p>, Tail<'p>>,
+    pub blocks: HashMap<UniqueSym<'p>, Tail<'p, CExpr<'p>>>,
     pub fn_params: HashMap<UniqueSym<'p>, Vec<UniqueSym<'p>>>,
     pub entry: UniqueSym<'p>,
 }
 
 #[derive(Debug, PartialEq)]
-pub enum Tail<'p> {
+pub enum Tail<'p, E> {
     Return {
-        expr: CExpr<'p>,
+        expr: E,
     },
     Seq {
         sym: UniqueSym<'p>,
-        bnd: CExpr<'p>,
-        tail: Box<Tail<'p>>,
+        bnd: E,
+        tail: Box<Tail<'p, E>>,
     },
     IfStmt {
-        cnd: CExpr<'p>,
+        cnd: E,
         thn: UniqueSym<'p>,
         els: UniqueSym<'p>,
     },
@@ -51,6 +51,7 @@ pub enum CExpr<'p> {
     },
     Struct {
         sym: UniqueSym<'p>,
+        // todo: this does not need to be atom!
         fields: Vec<(&'p str, Atom<'p>)>,
     },
     AccessField {

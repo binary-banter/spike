@@ -14,7 +14,7 @@ impl<'p> PrgExplicated<'p> {
 
     fn interpret_tail(
         &self,
-        tail: &Tail<'p>,
+        tail: &Tail<'p, CExpr<'p>>,
         scope: &mut PushMap<UniqueSym<'p>, Val<'p, UniqueSym<'p>>>,
         io: &mut impl IO,
     ) -> Val<'p, UniqueSym<'p>> {

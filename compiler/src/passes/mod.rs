@@ -1,5 +1,6 @@
 pub mod atomize;
 pub mod conclude;
+pub mod eliminate_algebraic;
 pub mod emit;
 pub mod explicate;
 pub mod interference;

@@ -71,6 +71,16 @@ pub enum Atom<'p> {
     Var { sym: UniqueSym<'p> },
 }
 
+impl<'p> Atom<'p> {
+    pub fn var(self) -> UniqueSym<'p> {
+        if let Atom::Var { sym } = self {
+            sym
+        } else {
+            panic!()
+        }
+    }
+}
+
 impl<'p> From<PrgAtomized<'p>> for PrgUniquified<'p> {
     fn from(value: PrgAtomized<'p>) -> Self {
         PrgUniquified {

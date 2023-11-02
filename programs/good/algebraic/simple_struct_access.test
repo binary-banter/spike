@@ -12,6 +12,5 @@ fn main() -> Int {
         field_1: 5,
         field_2: true,
     };
-    let y = x.field_1;
-    y
+    x.field_1
 }

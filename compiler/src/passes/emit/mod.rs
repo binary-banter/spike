@@ -113,6 +113,7 @@ fn emit_instr<'p>(
         ),
         Instr::LoadLbl { sym, dst } => {
             // todo: this offset is *only* correct when dst is a register!
+            assert!(matches!(dst, Arg::Reg { .. }));
             abs_jumps.insert(machine_code.len() + 3, *sym);
             encode_binary_instr(MOVQ_INFO, &imm!(0), dst)
         }

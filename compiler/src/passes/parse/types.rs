@@ -25,7 +25,10 @@ pub enum Type<A: Hash + Eq + Display> {
 
 impl<A: Hash + Eq + Display> Type<A> {
     pub fn fmap<__B: Hash + Eq + Display>(self, __f: impl Fn(A) -> __B) -> Type<__B> {
-        fn fmap_ref<A: Hash + Eq + Display, __B: Hash + Eq + Display>(s: Type<A>, __f: &impl Fn(A) -> __B) -> Type<__B> {
+        fn fmap_ref<A: Hash + Eq + Display, __B: Hash + Eq + Display>(
+            s: Type<A>,
+            __f: &impl Fn(A) -> __B,
+        ) -> Type<__B> {
             match s {
                 Type::Int => Type::Int,
                 Type::Bool => Type::Bool,
