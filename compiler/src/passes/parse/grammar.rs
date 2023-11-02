@@ -1,5 +1,5 @@
-// auto-generated: "lalrpop 0.20.1"
-// sha3: 59cf0df0b5b3ee4cb1cb0ef9f58abb5f5a40c188e9bbf306543b34835d70554c
+// auto-generated: "lalrpop 0.20.0"
+// sha3: b5c853b74dec57b9651d7b1371e968772ad95298f68ee473a702f276056d699a
 use std::str::FromStr;
 use crate::passes::parse::{Def, Expr, Lit, Op, Param};
 use crate::passes::parse::PrgParsed;
@@ -12,7 +12,7 @@ extern crate core;
 extern crate alloc;
 
 #[rustfmt::skip]
-#[allow(non_snake_case, non_camel_case_types, unused_mut, unused_variables, unused_imports, unused_parens, clippy::needless_lifetimes, clippy::type_complexity, clippy::needless_return, clippy::too_many_arguments, clippy::never_loop, clippy::match_single_binding, clippy::needless_raw_string_hashes)]
+#[allow(non_snake_case, non_camel_case_types, unused_mut, unused_variables, unused_imports, unused_parens, clippy::all)]
 mod __parse__Program {
 
     use std::str::FromStr;
@@ -1407,7 +1407,7 @@ mod __parse__Program {
             }
         }).collect()
     }
-    struct __StateMachine<'input>
+    pub(crate) struct __StateMachine<'input>
     where 
     {
         input: &'input str,
@@ -1579,7 +1579,7 @@ mod __parse__Program {
         _: core::marker::PhantomData<(&'input ())>,
     ) -> __Symbol<'input>
     {
-        #[allow(clippy::manual_range_patterns)]match __token_index {
+        match __token_index {
             0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 | 32 | 33 | 34 | 35 | 36 | 37 | 38 | 39 | 40 | 41 | 42 | 43 | 44 | 45 | 46 | 47 | 48 | 49 | 50 | 51 => match __token {
                 Token(5, __tok0) | Token(6, __tok0) | Token(7, __tok0) | Token(8, __tok0) | Token(9, __tok0) | Token(10, __tok0) | Token(11, __tok0) | Token(12, __tok0) | Token(13, __tok0) | Token(14, __tok0) | Token(15, __tok0) | Token(16, __tok0) | Token(17, __tok0) | Token(18, __tok0) | Token(19, __tok0) | Token(20, __tok0) | Token(21, __tok0) | Token(22, __tok0) | Token(23, __tok0) | Token(24, __tok0) | Token(25, __tok0) | Token(26, __tok0) | Token(27, __tok0) | Token(28, __tok0) | Token(29, __tok0) | Token(30, __tok0) | Token(31, __tok0) | Token(32, __tok0) | Token(33, __tok0) | Token(34, __tok0) | Token(35, __tok0) | Token(36, __tok0) | Token(37, __tok0) | Token(38, __tok0) | Token(39, __tok0) | Token(40, __tok0) | Token(41, __tok0) | Token(42, __tok0) | Token(43, __tok0) | Token(44, __tok0) | Token(45, __tok0) | Token(46, __tok0) | Token(47, __tok0) | Token(48, __tok0) | Token(49, __tok0) | Token(50, __tok0) | Token(51, __tok0) | Token(52, __tok0) | Token(53, __tok0) | Token(54, __tok0) | Token(2, __tok0) | Token(3, __tok0) if true => __Symbol::Variant0(__tok0),
                 _ => unreachable!(),
@@ -2774,7 +2774,6 @@ mod __parse__Program {
         _priv: (),
     }
 
-    impl Default for ProgramParser { fn default() -> Self { Self::new() } }
     impl ProgramParser {
         pub fn new() -> ProgramParser {
             let __builder = super::__intern_token::new_builder();
@@ -2835,7 +2834,7 @@ mod __parse__Program {
             __states.push(__next_state);
         }
     }
-    fn __reduce<
+    pub(crate) fn __reduce<
         'input,
     >(
         input: &'input str,
@@ -3783,7 +3782,7 @@ mod __parse__Program {
             _ => __symbol_type_mismatch()
         }
     }
-    fn __reduce0<
+    pub(crate) fn __reduce0<
         'input,
     >(
         input: &'input str,
@@ -3800,7 +3799,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant1(__nt), __end));
         (1, 0)
     }
-    fn __reduce1<
+    pub(crate) fn __reduce1<
         'input,
     >(
         input: &'input str,
@@ -3810,13 +3809,13 @@ mod __parse__Program {
     ) -> (usize, usize)
     {
         // "mut"? =  => ActionFn(60);
-        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2)).unwrap_or_default();
-        let __end = __start;
+        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2.clone())).unwrap_or_default();
+        let __end = __start.clone();
         let __nt = super::__action60::<>(input, &__start, &__end);
         __symbols.push((__start, __Symbol::Variant1(__nt), __end));
         (0, 0)
     }
-    fn __reduce2<
+    pub(crate) fn __reduce2<
         'input,
     >(
         input: &'input str,
@@ -3835,7 +3834,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant2(__nt), __end));
         (2, 1)
     }
-    fn __reduce3<
+    pub(crate) fn __reduce3<
         'input,
     >(
         input: &'input str,
@@ -3854,7 +3853,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant3(__nt), __end));
         (2, 2)
     }
-    fn __reduce4<
+    pub(crate) fn __reduce4<
         'input,
     >(
         input: &'input str,
@@ -3864,13 +3863,13 @@ mod __parse__Program {
     ) -> (usize, usize)
     {
         // ("->" <Type>)? =  => ActionFn(62);
-        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2)).unwrap_or_default();
-        let __end = __start;
+        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2.clone())).unwrap_or_default();
+        let __end = __start.clone();
         let __nt = super::__action62::<>(input, &__start, &__end);
         __symbols.push((__start, __Symbol::Variant3(__nt), __end));
         (0, 2)
     }
-    fn __reduce5<
+    pub(crate) fn __reduce5<
         'input,
     >(
         input: &'input str,
@@ -3891,7 +3890,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (4, 3)
     }
-    fn __reduce6<
+    pub(crate) fn __reduce6<
         'input,
     >(
         input: &'input str,
@@ -3912,7 +3911,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant5(__nt), __end));
         (4, 4)
     }
-    fn __reduce7<
+    pub(crate) fn __reduce7<
         'input,
     >(
         input: &'input str,
@@ -3922,13 +3921,13 @@ mod __parse__Program {
     ) -> (usize, usize)
     {
         // ("else" "{" <Expr> "}")? =  => ActionFn(53);
-        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2)).unwrap_or_default();
-        let __end = __start;
+        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2.clone())).unwrap_or_default();
+        let __end = __start.clone();
         let __nt = super::__action53::<>(input, &__start, &__end);
         __symbols.push((__start, __Symbol::Variant5(__nt), __end));
         (0, 4)
     }
-    fn __reduce8<
+    pub(crate) fn __reduce8<
         'input,
     >(
         input: &'input str,
@@ -3952,7 +3951,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant6(__nt), __end));
         (7, 5)
     }
-    fn __reduce9<
+    pub(crate) fn __reduce9<
         'input,
     >(
         input: &'input str,
@@ -3962,13 +3961,13 @@ mod __parse__Program {
     ) -> (usize, usize)
     {
         // (<(<Ident> "(" <Ident> ")" "=>" <Expr>)> ",")* =  => ActionFn(89);
-        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2)).unwrap_or_default();
-        let __end = __start;
+        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2.clone())).unwrap_or_default();
+        let __end = __start.clone();
         let __nt = super::__action89::<>(input, &__start, &__end);
         __symbols.push((__start, __Symbol::Variant7(__nt), __end));
         (0, 6)
     }
-    fn __reduce10<
+    pub(crate) fn __reduce10<
         'input,
     >(
         input: &'input str,
@@ -3985,7 +3984,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant7(__nt), __end));
         (1, 6)
     }
-    fn __reduce11<
+    pub(crate) fn __reduce11<
         'input,
     >(
         input: &'input str,
@@ -4009,7 +4008,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant7(__nt), __end));
         (7, 7)
     }
-    fn __reduce12<
+    pub(crate) fn __reduce12<
         'input,
     >(
         input: &'input str,
@@ -4034,7 +4033,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant7(__nt), __end));
         (8, 7)
     }
-    fn __reduce13<
+    pub(crate) fn __reduce13<
         'input,
     >(
         input: &'input str,
@@ -4055,7 +4054,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant8(__nt), __end));
         (4, 8)
     }
-    fn __reduce14<
+    pub(crate) fn __reduce14<
         'input,
     >(
         input: &'input str,
@@ -4065,13 +4064,13 @@ mod __parse__Program {
     ) -> (usize, usize)
     {
         // (<(<Ident> ":" <Expr>)> ",")* =  => ActionFn(94);
-        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2)).unwrap_or_default();
-        let __end = __start;
+        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2.clone())).unwrap_or_default();
+        let __end = __start.clone();
         let __nt = super::__action94::<>(input, &__start, &__end);
         __symbols.push((__start, __Symbol::Variant9(__nt), __end));
         (0, 9)
     }
-    fn __reduce15<
+    pub(crate) fn __reduce15<
         'input,
     >(
         input: &'input str,
@@ -4088,7 +4087,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant9(__nt), __end));
         (1, 9)
     }
-    fn __reduce16<
+    pub(crate) fn __reduce16<
         'input,
     >(
         input: &'input str,
@@ -4109,7 +4108,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant9(__nt), __end));
         (4, 10)
     }
-    fn __reduce17<
+    pub(crate) fn __reduce17<
         'input,
     >(
         input: &'input str,
@@ -4131,7 +4130,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant9(__nt), __end));
         (5, 10)
     }
-    fn __reduce18<
+    pub(crate) fn __reduce18<
         'input,
     >(
         input: &'input str,
@@ -4152,7 +4151,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant10(__nt), __end));
         (4, 11)
     }
-    fn __reduce19<
+    pub(crate) fn __reduce19<
         'input,
     >(
         input: &'input str,
@@ -4162,13 +4161,13 @@ mod __parse__Program {
     ) -> (usize, usize)
     {
         // (<(<Ident> ":" <Type>)> ",")* =  => ActionFn(73);
-        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2)).unwrap_or_default();
-        let __end = __start;
+        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2.clone())).unwrap_or_default();
+        let __end = __start.clone();
         let __nt = super::__action73::<>(input, &__start, &__end);
         __symbols.push((__start, __Symbol::Variant11(__nt), __end));
         (0, 12)
     }
-    fn __reduce20<
+    pub(crate) fn __reduce20<
         'input,
     >(
         input: &'input str,
@@ -4185,7 +4184,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant11(__nt), __end));
         (1, 12)
     }
-    fn __reduce21<
+    pub(crate) fn __reduce21<
         'input,
     >(
         input: &'input str,
@@ -4206,7 +4205,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant11(__nt), __end));
         (4, 13)
     }
-    fn __reduce22<
+    pub(crate) fn __reduce22<
         'input,
     >(
         input: &'input str,
@@ -4228,7 +4227,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant11(__nt), __end));
         (5, 13)
     }
-    fn __reduce23<
+    pub(crate) fn __reduce23<
         'input,
     >(
         input: &'input str,
@@ -4247,7 +4246,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (2, 14)
     }
-    fn __reduce24<
+    pub(crate) fn __reduce24<
         'input,
     >(
         input: &'input str,
@@ -4257,13 +4256,13 @@ mod __parse__Program {
     ) -> (usize, usize)
     {
         // (<Expr> ",")* =  => ActionFn(166);
-        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2)).unwrap_or_default();
-        let __end = __start;
+        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2.clone())).unwrap_or_default();
+        let __end = __start.clone();
         let __nt = super::__action166::<>(input, &__start, &__end);
         __symbols.push((__start, __Symbol::Variant12(__nt), __end));
         (0, 15)
     }
-    fn __reduce25<
+    pub(crate) fn __reduce25<
         'input,
     >(
         input: &'input str,
@@ -4280,7 +4279,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant12(__nt), __end));
         (1, 15)
     }
-    fn __reduce26<
+    pub(crate) fn __reduce26<
         'input,
     >(
         input: &'input str,
@@ -4299,7 +4298,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant12(__nt), __end));
         (2, 16)
     }
-    fn __reduce27<
+    pub(crate) fn __reduce27<
         'input,
     >(
         input: &'input str,
@@ -4319,7 +4318,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant12(__nt), __end));
         (3, 16)
     }
-    fn __reduce28<
+    pub(crate) fn __reduce28<
         'input,
     >(
         input: &'input str,
@@ -4342,7 +4341,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant6(__nt), __end));
         (6, 17)
     }
-    fn __reduce29<
+    pub(crate) fn __reduce29<
         'input,
     >(
         input: &'input str,
@@ -4365,7 +4364,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant13(__nt), __end));
         (6, 18)
     }
-    fn __reduce30<
+    pub(crate) fn __reduce30<
         'input,
     >(
         input: &'input str,
@@ -4375,13 +4374,13 @@ mod __parse__Program {
     ) -> (usize, usize)
     {
         // (<Ident> "(" <Ident> ")" "=>" <Expr>)? =  => ActionFn(88);
-        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2)).unwrap_or_default();
-        let __end = __start;
+        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2.clone())).unwrap_or_default();
+        let __end = __start.clone();
         let __nt = super::__action88::<>(input, &__start, &__end);
         __symbols.push((__start, __Symbol::Variant13(__nt), __end));
         (0, 18)
     }
-    fn __reduce31<
+    pub(crate) fn __reduce31<
         'input,
     >(
         input: &'input str,
@@ -4401,7 +4400,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant8(__nt), __end));
         (3, 19)
     }
-    fn __reduce32<
+    pub(crate) fn __reduce32<
         'input,
     >(
         input: &'input str,
@@ -4421,7 +4420,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant14(__nt), __end));
         (3, 20)
     }
-    fn __reduce33<
+    pub(crate) fn __reduce33<
         'input,
     >(
         input: &'input str,
@@ -4431,13 +4430,13 @@ mod __parse__Program {
     ) -> (usize, usize)
     {
         // (<Ident> ":" <Expr>)? =  => ActionFn(93);
-        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2)).unwrap_or_default();
-        let __end = __start;
+        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2.clone())).unwrap_or_default();
+        let __end = __start.clone();
         let __nt = super::__action93::<>(input, &__start, &__end);
         __symbols.push((__start, __Symbol::Variant14(__nt), __end));
         (0, 20)
     }
-    fn __reduce34<
+    pub(crate) fn __reduce34<
         'input,
     >(
         input: &'input str,
@@ -4457,7 +4456,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant10(__nt), __end));
         (3, 21)
     }
-    fn __reduce35<
+    pub(crate) fn __reduce35<
         'input,
     >(
         input: &'input str,
@@ -4477,7 +4476,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant15(__nt), __end));
         (3, 22)
     }
-    fn __reduce36<
+    pub(crate) fn __reduce36<
         'input,
     >(
         input: &'input str,
@@ -4487,13 +4486,13 @@ mod __parse__Program {
     ) -> (usize, usize)
     {
         // (<Ident> ":" <Type>)? =  => ActionFn(72);
-        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2)).unwrap_or_default();
-        let __end = __start;
+        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2.clone())).unwrap_or_default();
+        let __end = __start.clone();
         let __nt = super::__action72::<>(input, &__start, &__end);
         __symbols.push((__start, __Symbol::Variant15(__nt), __end));
         (0, 22)
     }
-    fn __reduce37<
+    pub(crate) fn __reduce37<
         'input,
     >(
         input: &'input str,
@@ -4512,7 +4511,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant16(__nt), __end));
         (2, 23)
     }
-    fn __reduce38<
+    pub(crate) fn __reduce38<
         'input,
     >(
         input: &'input str,
@@ -4522,13 +4521,13 @@ mod __parse__Program {
     ) -> (usize, usize)
     {
         // (<Param> ",")* =  => ActionFn(78);
-        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2)).unwrap_or_default();
-        let __end = __start;
+        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2.clone())).unwrap_or_default();
+        let __end = __start.clone();
         let __nt = super::__action78::<>(input, &__start, &__end);
         __symbols.push((__start, __Symbol::Variant17(__nt), __end));
         (0, 24)
     }
-    fn __reduce39<
+    pub(crate) fn __reduce39<
         'input,
     >(
         input: &'input str,
@@ -4545,7 +4544,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant17(__nt), __end));
         (1, 24)
     }
-    fn __reduce40<
+    pub(crate) fn __reduce40<
         'input,
     >(
         input: &'input str,
@@ -4564,7 +4563,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant17(__nt), __end));
         (2, 25)
     }
-    fn __reduce41<
+    pub(crate) fn __reduce41<
         'input,
     >(
         input: &'input str,
@@ -4584,7 +4583,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant17(__nt), __end));
         (3, 25)
     }
-    fn __reduce42<
+    pub(crate) fn __reduce42<
         'input,
     >(
         input: &'input str,
@@ -4601,7 +4600,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant18(__nt), __end));
         (1, 26)
     }
-    fn __reduce43<
+    pub(crate) fn __reduce43<
         'input,
     >(
         input: &'input str,
@@ -4618,7 +4617,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant18(__nt), __end));
         (1, 26)
     }
-    fn __reduce44<
+    pub(crate) fn __reduce44<
         'input,
     >(
         input: &'input str,
@@ -4638,7 +4637,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (3, 27)
     }
-    fn __reduce45<
+    pub(crate) fn __reduce45<
         'input,
     >(
         input: &'input str,
@@ -4655,7 +4654,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 27)
     }
-    fn __reduce46<
+    pub(crate) fn __reduce46<
         'input,
     >(
         input: &'input str,
@@ -4675,7 +4674,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (3, 28)
     }
-    fn __reduce47<
+    pub(crate) fn __reduce47<
         'input,
     >(
         input: &'input str,
@@ -4692,7 +4691,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 28)
     }
-    fn __reduce48<
+    pub(crate) fn __reduce48<
         'input,
     >(
         input: &'input str,
@@ -4712,7 +4711,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (3, 29)
     }
-    fn __reduce49<
+    pub(crate) fn __reduce49<
         'input,
     >(
         input: &'input str,
@@ -4729,7 +4728,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 29)
     }
-    fn __reduce50<
+    pub(crate) fn __reduce50<
         'input,
     >(
         input: &'input str,
@@ -4749,7 +4748,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (3, 30)
     }
-    fn __reduce51<
+    pub(crate) fn __reduce51<
         'input,
     >(
         input: &'input str,
@@ -4766,7 +4765,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 30)
     }
-    fn __reduce52<
+    pub(crate) fn __reduce52<
         'input,
     >(
         input: &'input str,
@@ -4786,7 +4785,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (3, 31)
     }
-    fn __reduce53<
+    pub(crate) fn __reduce53<
         'input,
     >(
         input: &'input str,
@@ -4803,7 +4802,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 31)
     }
-    fn __reduce54<
+    pub(crate) fn __reduce54<
         'input,
     >(
         input: &'input str,
@@ -4823,7 +4822,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (3, 32)
     }
-    fn __reduce55<
+    pub(crate) fn __reduce55<
         'input,
     >(
         input: &'input str,
@@ -4840,7 +4839,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 32)
     }
-    fn __reduce56<
+    pub(crate) fn __reduce56<
         'input,
     >(
         input: &'input str,
@@ -4860,7 +4859,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (3, 33)
     }
-    fn __reduce57<
+    pub(crate) fn __reduce57<
         'input,
     >(
         input: &'input str,
@@ -4877,7 +4876,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 33)
     }
-    fn __reduce58<
+    pub(crate) fn __reduce58<
         'input,
     >(
         input: &'input str,
@@ -4897,7 +4896,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (3, 34)
     }
-    fn __reduce59<
+    pub(crate) fn __reduce59<
         'input,
     >(
         input: &'input str,
@@ -4914,7 +4913,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 34)
     }
-    fn __reduce60<
+    pub(crate) fn __reduce60<
         'input,
     >(
         input: &'input str,
@@ -4934,7 +4933,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (3, 35)
     }
-    fn __reduce61<
+    pub(crate) fn __reduce61<
         'input,
     >(
         input: &'input str,
@@ -4951,7 +4950,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 35)
     }
-    fn __reduce62<
+    pub(crate) fn __reduce62<
         'input,
     >(
         input: &'input str,
@@ -4971,7 +4970,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (3, 36)
     }
-    fn __reduce63<
+    pub(crate) fn __reduce63<
         'input,
     >(
         input: &'input str,
@@ -4988,7 +4987,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 36)
     }
-    fn __reduce64<
+    pub(crate) fn __reduce64<
         'input,
     >(
         input: &'input str,
@@ -5008,7 +5007,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (3, 37)
     }
-    fn __reduce65<
+    pub(crate) fn __reduce65<
         'input,
     >(
         input: &'input str,
@@ -5025,7 +5024,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 37)
     }
-    fn __reduce66<
+    pub(crate) fn __reduce66<
         'input,
     >(
         input: &'input str,
@@ -5045,7 +5044,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (3, 38)
     }
-    fn __reduce67<
+    pub(crate) fn __reduce67<
         'input,
     >(
         input: &'input str,
@@ -5062,7 +5061,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 38)
     }
-    fn __reduce68<
+    pub(crate) fn __reduce68<
         'input,
     >(
         input: &'input str,
@@ -5079,7 +5078,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant19(__nt), __end));
         (1, 39)
     }
-    fn __reduce69<
+    pub(crate) fn __reduce69<
         'input,
     >(
         input: &'input str,
@@ -5096,7 +5095,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant19(__nt), __end));
         (1, 39)
     }
-    fn __reduce70<
+    pub(crate) fn __reduce70<
         'input,
     >(
         input: &'input str,
@@ -5119,7 +5118,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant20(__nt), __end));
         (6, 40)
     }
-    fn __reduce71<
+    pub(crate) fn __reduce71<
         'input,
     >(
         input: &'input str,
@@ -5129,13 +5128,13 @@ mod __parse__Program {
     ) -> (usize, usize)
     {
         // Comma<(<Ident> "(" <Ident> ")" "=>" <Expr>)> =  => ActionFn(204);
-        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2)).unwrap_or_default();
-        let __end = __start;
+        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2.clone())).unwrap_or_default();
+        let __end = __start.clone();
         let __nt = super::__action204::<>(input, &__start, &__end);
         __symbols.push((__start, __Symbol::Variant20(__nt), __end));
         (0, 40)
     }
-    fn __reduce72<
+    pub(crate) fn __reduce72<
         'input,
     >(
         input: &'input str,
@@ -5159,7 +5158,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant20(__nt), __end));
         (7, 40)
     }
-    fn __reduce73<
+    pub(crate) fn __reduce73<
         'input,
     >(
         input: &'input str,
@@ -5176,7 +5175,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant20(__nt), __end));
         (1, 40)
     }
-    fn __reduce74<
+    pub(crate) fn __reduce74<
         'input,
     >(
         input: &'input str,
@@ -5196,7 +5195,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant21(__nt), __end));
         (3, 41)
     }
-    fn __reduce75<
+    pub(crate) fn __reduce75<
         'input,
     >(
         input: &'input str,
@@ -5206,13 +5205,13 @@ mod __parse__Program {
     ) -> (usize, usize)
     {
         // Comma<(<Ident> ":" <Expr>)> =  => ActionFn(208);
-        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2)).unwrap_or_default();
-        let __end = __start;
+        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2.clone())).unwrap_or_default();
+        let __end = __start.clone();
         let __nt = super::__action208::<>(input, &__start, &__end);
         __symbols.push((__start, __Symbol::Variant21(__nt), __end));
         (0, 41)
     }
-    fn __reduce76<
+    pub(crate) fn __reduce76<
         'input,
     >(
         input: &'input str,
@@ -5233,7 +5232,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant21(__nt), __end));
         (4, 41)
     }
-    fn __reduce77<
+    pub(crate) fn __reduce77<
         'input,
     >(
         input: &'input str,
@@ -5250,7 +5249,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant21(__nt), __end));
         (1, 41)
     }
-    fn __reduce78<
+    pub(crate) fn __reduce78<
         'input,
     >(
         input: &'input str,
@@ -5270,7 +5269,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant22(__nt), __end));
         (3, 42)
     }
-    fn __reduce79<
+    pub(crate) fn __reduce79<
         'input,
     >(
         input: &'input str,
@@ -5280,13 +5279,13 @@ mod __parse__Program {
     ) -> (usize, usize)
     {
         // Comma<(<Ident> ":" <Type>)> =  => ActionFn(212);
-        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2)).unwrap_or_default();
-        let __end = __start;
+        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2.clone())).unwrap_or_default();
+        let __end = __start.clone();
         let __nt = super::__action212::<>(input, &__start, &__end);
         __symbols.push((__start, __Symbol::Variant22(__nt), __end));
         (0, 42)
     }
-    fn __reduce80<
+    pub(crate) fn __reduce80<
         'input,
     >(
         input: &'input str,
@@ -5307,7 +5306,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant22(__nt), __end));
         (4, 42)
     }
-    fn __reduce81<
+    pub(crate) fn __reduce81<
         'input,
     >(
         input: &'input str,
@@ -5324,7 +5323,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant22(__nt), __end));
         (1, 42)
     }
-    fn __reduce82<
+    pub(crate) fn __reduce82<
         'input,
     >(
         input: &'input str,
@@ -5341,7 +5340,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant23(__nt), __end));
         (1, 43)
     }
-    fn __reduce83<
+    pub(crate) fn __reduce83<
         'input,
     >(
         input: &'input str,
@@ -5351,13 +5350,13 @@ mod __parse__Program {
     ) -> (usize, usize)
     {
         // Comma<Expr> =  => ActionFn(222);
-        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2)).unwrap_or_default();
-        let __end = __start;
+        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2.clone())).unwrap_or_default();
+        let __end = __start.clone();
         let __nt = super::__action222::<>(input, &__start, &__end);
         __symbols.push((__start, __Symbol::Variant23(__nt), __end));
         (0, 43)
     }
-    fn __reduce84<
+    pub(crate) fn __reduce84<
         'input,
     >(
         input: &'input str,
@@ -5376,7 +5375,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant23(__nt), __end));
         (2, 43)
     }
-    fn __reduce85<
+    pub(crate) fn __reduce85<
         'input,
     >(
         input: &'input str,
@@ -5393,7 +5392,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant23(__nt), __end));
         (1, 43)
     }
-    fn __reduce86<
+    pub(crate) fn __reduce86<
         'input,
     >(
         input: &'input str,
@@ -5410,7 +5409,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant24(__nt), __end));
         (1, 44)
     }
-    fn __reduce87<
+    pub(crate) fn __reduce87<
         'input,
     >(
         input: &'input str,
@@ -5420,13 +5419,13 @@ mod __parse__Program {
     ) -> (usize, usize)
     {
         // Comma<Param> =  => ActionFn(236);
-        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2)).unwrap_or_default();
-        let __end = __start;
+        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2.clone())).unwrap_or_default();
+        let __end = __start.clone();
         let __nt = super::__action236::<>(input, &__start, &__end);
         __symbols.push((__start, __Symbol::Variant24(__nt), __end));
         (0, 44)
     }
-    fn __reduce88<
+    pub(crate) fn __reduce88<
         'input,
     >(
         input: &'input str,
@@ -5445,7 +5444,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant24(__nt), __end));
         (2, 44)
     }
-    fn __reduce89<
+    pub(crate) fn __reduce89<
         'input,
     >(
         input: &'input str,
@@ -5462,7 +5461,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant24(__nt), __end));
         (1, 44)
     }
-    fn __reduce90<
+    pub(crate) fn __reduce90<
         'input,
     >(
         input: &'input str,
@@ -5479,7 +5478,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant18(__nt), __end));
         (1, 45)
     }
-    fn __reduce91<
+    pub(crate) fn __reduce91<
         'input,
     >(
         input: &'input str,
@@ -5496,7 +5495,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant18(__nt), __end));
         (1, 45)
     }
-    fn __reduce92<
+    pub(crate) fn __reduce92<
         'input,
     >(
         input: &'input str,
@@ -5513,7 +5512,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant18(__nt), __end));
         (1, 45)
     }
-    fn __reduce93<
+    pub(crate) fn __reduce93<
         'input,
     >(
         input: &'input str,
@@ -5530,7 +5529,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant18(__nt), __end));
         (1, 45)
     }
-    fn __reduce94<
+    pub(crate) fn __reduce94<
         'input,
     >(
         input: &'input str,
@@ -5547,7 +5546,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant18(__nt), __end));
         (1, 45)
     }
-    fn __reduce95<
+    pub(crate) fn __reduce95<
         'input,
     >(
         input: &'input str,
@@ -5564,7 +5563,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant18(__nt), __end));
         (1, 45)
     }
-    fn __reduce96<
+    pub(crate) fn __reduce96<
         'input,
     >(
         input: &'input str,
@@ -5586,7 +5585,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant25(__nt), __end));
         (5, 46)
     }
-    fn __reduce97<
+    pub(crate) fn __reduce97<
         'input,
     >(
         input: &'input str,
@@ -5608,7 +5607,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant25(__nt), __end));
         (5, 46)
     }
-    fn __reduce98<
+    pub(crate) fn __reduce98<
         'input,
     >(
         input: &'input str,
@@ -5635,7 +5634,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant25(__nt), __end));
         (10, 46)
     }
-    fn __reduce99<
+    pub(crate) fn __reduce99<
         'input,
     >(
         input: &'input str,
@@ -5660,7 +5659,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant25(__nt), __end));
         (8, 46)
     }
-    fn __reduce100<
+    pub(crate) fn __reduce100<
         'input,
     >(
         input: &'input str,
@@ -5670,13 +5669,13 @@ mod __parse__Program {
     ) -> (usize, usize)
     {
         // Def* =  => ActionFn(67);
-        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2)).unwrap_or_default();
-        let __end = __start;
+        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2.clone())).unwrap_or_default();
+        let __end = __start.clone();
         let __nt = super::__action67::<>(input, &__start, &__end);
         __symbols.push((__start, __Symbol::Variant26(__nt), __end));
         (0, 47)
     }
-    fn __reduce101<
+    pub(crate) fn __reduce101<
         'input,
     >(
         input: &'input str,
@@ -5693,7 +5692,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant26(__nt), __end));
         (1, 47)
     }
-    fn __reduce102<
+    pub(crate) fn __reduce102<
         'input,
     >(
         input: &'input str,
@@ -5710,7 +5709,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant26(__nt), __end));
         (1, 48)
     }
-    fn __reduce103<
+    pub(crate) fn __reduce103<
         'input,
     >(
         input: &'input str,
@@ -5729,7 +5728,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant26(__nt), __end));
         (2, 48)
     }
-    fn __reduce104<
+    pub(crate) fn __reduce104<
         'input,
     >(
         input: &'input str,
@@ -5746,7 +5745,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 49)
     }
-    fn __reduce105<
+    pub(crate) fn __reduce105<
         'input,
     >(
         input: &'input str,
@@ -5763,7 +5762,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant5(__nt), __end));
         (1, 50)
     }
-    fn __reduce106<
+    pub(crate) fn __reduce106<
         'input,
     >(
         input: &'input str,
@@ -5773,13 +5772,13 @@ mod __parse__Program {
     ) -> (usize, usize)
     {
         // Expr? =  => ActionFn(165);
-        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2)).unwrap_or_default();
-        let __end = __start;
+        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2.clone())).unwrap_or_default();
+        let __end = __start.clone();
         let __nt = super::__action165::<>(input, &__start, &__end);
         __symbols.push((__start, __Symbol::Variant5(__nt), __end));
         (0, 50)
     }
-    fn __reduce107<
+    pub(crate) fn __reduce107<
         'input,
     >(
         input: &'input str,
@@ -5799,7 +5798,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (3, 51)
     }
-    fn __reduce108<
+    pub(crate) fn __reduce108<
         'input,
     >(
         input: &'input str,
@@ -5816,7 +5815,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 51)
     }
-    fn __reduce109<
+    pub(crate) fn __reduce109<
         'input,
     >(
         input: &'input str,
@@ -5836,7 +5835,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (3, 52)
     }
-    fn __reduce110<
+    pub(crate) fn __reduce110<
         'input,
     >(
         input: &'input str,
@@ -5853,7 +5852,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 52)
     }
-    fn __reduce111<
+    pub(crate) fn __reduce111<
         'input,
     >(
         input: &'input str,
@@ -5870,7 +5869,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 53)
     }
-    fn __reduce112<
+    pub(crate) fn __reduce112<
         'input,
     >(
         input: &'input str,
@@ -5887,7 +5886,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 54)
     }
-    fn __reduce113<
+    pub(crate) fn __reduce113<
         'input,
     >(
         input: &'input str,
@@ -5904,7 +5903,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 55)
     }
-    fn __reduce114<
+    pub(crate) fn __reduce114<
         'input,
     >(
         input: &'input str,
@@ -5921,7 +5920,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 55)
     }
-    fn __reduce115<
+    pub(crate) fn __reduce115<
         'input,
     >(
         input: &'input str,
@@ -5938,7 +5937,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 55)
     }
-    fn __reduce116<
+    pub(crate) fn __reduce116<
         'input,
     >(
         input: &'input str,
@@ -5955,7 +5954,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 55)
     }
-    fn __reduce117<
+    pub(crate) fn __reduce117<
         'input,
     >(
         input: &'input str,
@@ -5978,7 +5977,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (6, 55)
     }
-    fn __reduce118<
+    pub(crate) fn __reduce118<
         'input,
     >(
         input: &'input str,
@@ -5998,7 +5997,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (3, 55)
     }
-    fn __reduce119<
+    pub(crate) fn __reduce119<
         'input,
     >(
         input: &'input str,
@@ -6015,7 +6014,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 55)
     }
-    fn __reduce120<
+    pub(crate) fn __reduce120<
         'input,
     >(
         input: &'input str,
@@ -6032,7 +6031,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 56)
     }
-    fn __reduce121<
+    pub(crate) fn __reduce121<
         'input,
     >(
         input: &'input str,
@@ -6049,7 +6048,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 56)
     }
-    fn __reduce122<
+    pub(crate) fn __reduce122<
         'input,
     >(
         input: &'input str,
@@ -6066,7 +6065,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 56)
     }
-    fn __reduce123<
+    pub(crate) fn __reduce123<
         'input,
     >(
         input: &'input str,
@@ -6083,7 +6082,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 56)
     }
-    fn __reduce124<
+    pub(crate) fn __reduce124<
         'input,
     >(
         input: &'input str,
@@ -6106,7 +6105,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (6, 56)
     }
-    fn __reduce125<
+    pub(crate) fn __reduce125<
         'input,
     >(
         input: &'input str,
@@ -6126,7 +6125,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (3, 56)
     }
-    fn __reduce126<
+    pub(crate) fn __reduce126<
         'input,
     >(
         input: &'input str,
@@ -6143,7 +6142,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 56)
     }
-    fn __reduce127<
+    pub(crate) fn __reduce127<
         'input,
     >(
         input: &'input str,
@@ -6163,7 +6162,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (3, 57)
     }
-    fn __reduce128<
+    pub(crate) fn __reduce128<
         'input,
     >(
         input: &'input str,
@@ -6184,7 +6183,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (4, 57)
     }
-    fn __reduce129<
+    pub(crate) fn __reduce129<
         'input,
     >(
         input: &'input str,
@@ -6205,7 +6204,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (4, 57)
     }
-    fn __reduce130<
+    pub(crate) fn __reduce130<
         'input,
     >(
         input: &'input str,
@@ -6222,7 +6221,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 57)
     }
-    fn __reduce131<
+    pub(crate) fn __reduce131<
         'input,
     >(
         input: &'input str,
@@ -6242,7 +6241,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (3, 58)
     }
-    fn __reduce132<
+    pub(crate) fn __reduce132<
         'input,
     >(
         input: &'input str,
@@ -6263,7 +6262,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (4, 58)
     }
-    fn __reduce133<
+    pub(crate) fn __reduce133<
         'input,
     >(
         input: &'input str,
@@ -6284,7 +6283,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (4, 58)
     }
-    fn __reduce134<
+    pub(crate) fn __reduce134<
         'input,
     >(
         input: &'input str,
@@ -6301,7 +6300,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 58)
     }
-    fn __reduce135<
+    pub(crate) fn __reduce135<
         'input,
     >(
         input: &'input str,
@@ -6318,7 +6317,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 59)
     }
-    fn __reduce136<
+    pub(crate) fn __reduce136<
         'input,
     >(
         input: &'input str,
@@ -6335,7 +6334,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 60)
     }
-    fn __reduce137<
+    pub(crate) fn __reduce137<
         'input,
     >(
         input: &'input str,
@@ -6355,7 +6354,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (3, 61)
     }
-    fn __reduce138<
+    pub(crate) fn __reduce138<
         'input,
     >(
         input: &'input str,
@@ -6381,7 +6380,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (9, 61)
     }
-    fn __reduce139<
+    pub(crate) fn __reduce139<
         'input,
     >(
         input: &'input str,
@@ -6403,7 +6402,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (5, 61)
     }
-    fn __reduce140<
+    pub(crate) fn __reduce140<
         'input,
     >(
         input: &'input str,
@@ -6424,7 +6423,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (4, 61)
     }
-    fn __reduce141<
+    pub(crate) fn __reduce141<
         'input,
     >(
         input: &'input str,
@@ -6446,7 +6445,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (5, 61)
     }
-    fn __reduce142<
+    pub(crate) fn __reduce142<
         'input,
     >(
         input: &'input str,
@@ -6468,7 +6467,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (5, 61)
     }
-    fn __reduce143<
+    pub(crate) fn __reduce143<
         'input,
     >(
         input: &'input str,
@@ -6487,7 +6486,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (2, 61)
     }
-    fn __reduce144<
+    pub(crate) fn __reduce144<
         'input,
     >(
         input: &'input str,
@@ -6504,7 +6503,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 61)
     }
-    fn __reduce145<
+    pub(crate) fn __reduce145<
         'input,
     >(
         input: &'input str,
@@ -6523,7 +6522,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (2, 61)
     }
-    fn __reduce146<
+    pub(crate) fn __reduce146<
         'input,
     >(
         input: &'input str,
@@ -6540,7 +6539,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 61)
     }
-    fn __reduce147<
+    pub(crate) fn __reduce147<
         'input,
     >(
         input: &'input str,
@@ -6557,7 +6556,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 61)
     }
-    fn __reduce148<
+    pub(crate) fn __reduce148<
         'input,
     >(
         input: &'input str,
@@ -6574,7 +6573,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 61)
     }
-    fn __reduce149<
+    pub(crate) fn __reduce149<
         'input,
     >(
         input: &'input str,
@@ -6591,7 +6590,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 62)
     }
-    fn __reduce150<
+    pub(crate) fn __reduce150<
         'input,
     >(
         input: &'input str,
@@ -6608,7 +6607,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 63)
     }
-    fn __reduce151<
+    pub(crate) fn __reduce151<
         'input,
     >(
         input: &'input str,
@@ -6625,7 +6624,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 64)
     }
-    fn __reduce152<
+    pub(crate) fn __reduce152<
         'input,
     >(
         input: &'input str,
@@ -6642,7 +6641,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 65)
     }
-    fn __reduce153<
+    pub(crate) fn __reduce153<
         'input,
     >(
         input: &'input str,
@@ -6659,7 +6658,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant5(__nt), __end));
         (1, 66)
     }
-    fn __reduce154<
+    pub(crate) fn __reduce154<
         'input,
     >(
         input: &'input str,
@@ -6669,13 +6668,13 @@ mod __parse__Program {
     ) -> (usize, usize)
     {
         // ExprLogicalOr<Struct>? =  => ActionFn(49);
-        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2)).unwrap_or_default();
-        let __end = __start;
+        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2.clone())).unwrap_or_default();
+        let __end = __start.clone();
         let __nt = super::__action49::<>(input, &__start, &__end);
         __symbols.push((__start, __Symbol::Variant5(__nt), __end));
         (0, 66)
     }
-    fn __reduce155<
+    pub(crate) fn __reduce155<
         'input,
     >(
         input: &'input str,
@@ -6692,7 +6691,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 67)
     }
-    fn __reduce156<
+    pub(crate) fn __reduce156<
         'input,
     >(
         input: &'input str,
@@ -6709,7 +6708,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 68)
     }
-    fn __reduce157<
+    pub(crate) fn __reduce157<
         'input,
     >(
         input: &'input str,
@@ -6733,7 +6732,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (7, 69)
     }
-    fn __reduce158<
+    pub(crate) fn __reduce158<
         'input,
     >(
         input: &'input str,
@@ -6756,7 +6755,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (6, 69)
     }
-    fn __reduce159<
+    pub(crate) fn __reduce159<
         'input,
     >(
         input: &'input str,
@@ -6779,7 +6778,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (6, 69)
     }
-    fn __reduce160<
+    pub(crate) fn __reduce160<
         'input,
     >(
         input: &'input str,
@@ -6801,7 +6800,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (5, 69)
     }
-    fn __reduce161<
+    pub(crate) fn __reduce161<
         'input,
     >(
         input: &'input str,
@@ -6821,7 +6820,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (3, 69)
     }
-    fn __reduce162<
+    pub(crate) fn __reduce162<
         'input,
     >(
         input: &'input str,
@@ -6840,7 +6839,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (2, 69)
     }
-    fn __reduce163<
+    pub(crate) fn __reduce163<
         'input,
     >(
         input: &'input str,
@@ -6857,7 +6856,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 69)
     }
-    fn __reduce164<
+    pub(crate) fn __reduce164<
         'input,
     >(
         input: &'input str,
@@ -6874,7 +6873,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant5(__nt), __end));
         (1, 70)
     }
-    fn __reduce165<
+    pub(crate) fn __reduce165<
         'input,
     >(
         input: &'input str,
@@ -6884,13 +6883,13 @@ mod __parse__Program {
     ) -> (usize, usize)
     {
         // ExprStmt? =  => ActionFn(57);
-        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2)).unwrap_or_default();
-        let __end = __start;
+        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2.clone())).unwrap_or_default();
+        let __end = __start.clone();
         let __nt = super::__action57::<>(input, &__start, &__end);
         __symbols.push((__start, __Symbol::Variant5(__nt), __end));
         (0, 70)
     }
-    fn __reduce166<
+    pub(crate) fn __reduce166<
         'input,
     >(
         input: &'input str,
@@ -6909,7 +6908,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (2, 71)
     }
-    fn __reduce167<
+    pub(crate) fn __reduce167<
         'input,
     >(
         input: &'input str,
@@ -6926,7 +6925,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 71)
     }
-    fn __reduce168<
+    pub(crate) fn __reduce168<
         'input,
     >(
         input: &'input str,
@@ -6945,7 +6944,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (2, 72)
     }
-    fn __reduce169<
+    pub(crate) fn __reduce169<
         'input,
     >(
         input: &'input str,
@@ -6962,7 +6961,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 72)
     }
-    fn __reduce170<
+    pub(crate) fn __reduce170<
         'input,
     >(
         input: &'input str,
@@ -6979,7 +6978,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 73)
     }
-    fn __reduce171<
+    pub(crate) fn __reduce171<
         'input,
     >(
         input: &'input str,
@@ -6996,7 +6995,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 74)
     }
-    fn __reduce172<
+    pub(crate) fn __reduce172<
         'input,
     >(
         input: &'input str,
@@ -7013,7 +7012,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant0(__nt), __end));
         (1, 75)
     }
-    fn __reduce173<
+    pub(crate) fn __reduce173<
         'input,
     >(
         input: &'input str,
@@ -7030,7 +7029,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant18(__nt), __end));
         (1, 76)
     }
-    fn __reduce174<
+    pub(crate) fn __reduce174<
         'input,
     >(
         input: &'input str,
@@ -7047,7 +7046,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant18(__nt), __end));
         (1, 77)
     }
-    fn __reduce175<
+    pub(crate) fn __reduce175<
         'input,
     >(
         input: &'input str,
@@ -7064,7 +7063,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant18(__nt), __end));
         (1, 78)
     }
-    fn __reduce176<
+    pub(crate) fn __reduce176<
         'input,
     >(
         input: &'input str,
@@ -7081,7 +7080,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant18(__nt), __end));
         (1, 78)
     }
-    fn __reduce177<
+    pub(crate) fn __reduce177<
         'input,
     >(
         input: &'input str,
@@ -7098,7 +7097,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant18(__nt), __end));
         (1, 78)
     }
-    fn __reduce178<
+    pub(crate) fn __reduce178<
         'input,
     >(
         input: &'input str,
@@ -7115,7 +7114,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (1, 79)
     }
-    fn __reduce179<
+    pub(crate) fn __reduce179<
         'input,
     >(
         input: &'input str,
@@ -7132,7 +7131,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant27(__nt), __end));
         (1, 80)
     }
-    fn __reduce180<
+    pub(crate) fn __reduce180<
         'input,
     >(
         input: &'input str,
@@ -7153,7 +7152,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant16(__nt), __end));
         (4, 81)
     }
-    fn __reduce181<
+    pub(crate) fn __reduce181<
         'input,
     >(
         input: &'input str,
@@ -7173,7 +7172,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant16(__nt), __end));
         (3, 81)
     }
-    fn __reduce182<
+    pub(crate) fn __reduce182<
         'input,
     >(
         input: &'input str,
@@ -7190,7 +7189,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant28(__nt), __end));
         (1, 82)
     }
-    fn __reduce183<
+    pub(crate) fn __reduce183<
         'input,
     >(
         input: &'input str,
@@ -7200,13 +7199,13 @@ mod __parse__Program {
     ) -> (usize, usize)
     {
         // Param? =  => ActionFn(77);
-        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2)).unwrap_or_default();
-        let __end = __start;
+        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2.clone())).unwrap_or_default();
+        let __end = __start.clone();
         let __nt = super::__action77::<>(input, &__start, &__end);
         __symbols.push((__start, __Symbol::Variant28(__nt), __end));
         (0, 82)
     }
-    fn __reduce184<
+    pub(crate) fn __reduce184<
         'input,
     >(
         input: &'input str,
@@ -7216,13 +7215,13 @@ mod __parse__Program {
     ) -> (usize, usize)
     {
         // Program =  => ActionFn(219);
-        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2)).unwrap_or_default();
-        let __end = __start;
+        let __start = __lookahead_start.cloned().or_else(|| __symbols.last().map(|s| s.2.clone())).unwrap_or_default();
+        let __end = __start.clone();
         let __nt = super::__action219::<>(input, &__start, &__end);
         __symbols.push((__start, __Symbol::Variant29(__nt), __end));
         (0, 83)
     }
-    fn __reduce185<
+    pub(crate) fn __reduce185<
         'input,
     >(
         input: &'input str,
@@ -7239,7 +7238,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant29(__nt), __end));
         (1, 83)
     }
-    fn __reduce186<
+    pub(crate) fn __reduce186<
         'input,
     >(
         input: &'input str,
@@ -7260,7 +7259,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant4(__nt), __end));
         (4, 84)
     }
-    fn __reduce187<
+    pub(crate) fn __reduce187<
         'input,
     >(
         input: &'input str,
@@ -7277,7 +7276,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant2(__nt), __end));
         (1, 85)
     }
-    fn __reduce188<
+    pub(crate) fn __reduce188<
         'input,
     >(
         input: &'input str,
@@ -7294,7 +7293,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant2(__nt), __end));
         (1, 85)
     }
-    fn __reduce189<
+    pub(crate) fn __reduce189<
         'input,
     >(
         input: &'input str,
@@ -7311,7 +7310,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant2(__nt), __end));
         (1, 85)
     }
-    fn __reduce190<
+    pub(crate) fn __reduce190<
         'input,
     >(
         input: &'input str,
@@ -7328,7 +7327,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant2(__nt), __end));
         (1, 85)
     }
-    fn __reduce191<
+    pub(crate) fn __reduce191<
         'input,
     >(
         input: &'input str,
@@ -7345,7 +7344,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant2(__nt), __end));
         (1, 85)
     }
-    fn __reduce192<
+    pub(crate) fn __reduce192<
         'input,
     >(
         input: &'input str,
@@ -7362,7 +7361,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant18(__nt), __end));
         (1, 86)
     }
-    fn __reduce193<
+    pub(crate) fn __reduce193<
         'input,
     >(
         input: &'input str,
@@ -7379,7 +7378,7 @@ mod __parse__Program {
         __symbols.push((__start, __Symbol::Variant18(__nt), __end));
         (1, 86)
     }
-    fn __reduce194<
+    pub(crate) fn __reduce194<
         'input,
     >(
         input: &'input str,
@@ -7398,7 +7397,7 @@ mod __parse__Program {
     }
 }
 pub use self::__parse__Program::ProgramParser;
-#[rustfmt::skip]
+#[cfg_attr(rustfmt, rustfmt_skip)]
 mod __intern_token {
     #![allow(unused_imports)]
     use std::str::FromStr;
@@ -7413,61 +7412,61 @@ mod __intern_token {
     extern crate alloc;
     pub fn new_builder() -> __lalrpop_util::lexer::MatcherBuilder {
         let __strs: &[(&str, bool)] = &[
-            ("(?:(?://)[\0-\t\u{b}-\u{10ffff}]*\n)", true),
-            ("(?:(?:/\\*)((?:[\0-\\)\\+-\u{10ffff}]|((?:\\*[\0-\\.0-\u{10ffff}]))))*(?:\\*/))", true),
-            ("[0-9]+", false),
-            ("(?:[A-Z_a-z][0-9A-Z_a-z]*)", false),
-            ("[\t-\r \u{85}\u{a0}\u{1680}\u{2000}-\u{200a}\u{2028}\u{2029}\u{202f}\u{205f}\u{3000}]+", true),
-            ("!", false),
-            ("(?:!=)", false),
-            ("%", false),
-            ("(?:\\&\\&)", false),
-            ("\\(", false),
-            ("\\)", false),
-            ("\\*", false),
-            ("\\+", false),
-            (",", false),
-            ("\\-", false),
-            ("(?:\\->)", false),
-            ("\\.", false),
-            ("/", false),
-            (":", false),
-            ("(?:::)", false),
-            (";", false),
-            ("<", false),
-            ("(?:<=)", false),
-            ("=", false),
-            ("(?:==)", false),
-            ("(?:=>)", false),
-            (">", false),
-            ("(?:>=)", false),
-            ("(?:Bool)", false),
-            ("(?:Int)", false),
-            ("(?:Never)", false),
-            ("(?:Unit)", false),
-            ("\\^", false),
-            ("(?:break)", false),
-            ("(?:continue)", false),
-            ("(?:else)", false),
-            ("(?:enum)", false),
-            ("(?:false)", false),
-            ("(?:fn)", false),
-            ("(?:if)", false),
-            ("(?:let)", false),
-            ("(?:loop)", false),
-            ("(?:mut)", false),
-            ("(?:never)", false),
-            ("(?:print)", false),
-            ("(?:read)", false),
-            ("(?:return)", false),
-            ("(?:struct)", false),
-            ("(?:switch)", false),
-            ("(?:true)", false),
-            ("(?:unit)", false),
-            ("(?:while)", false),
-            ("\\{", false),
-            ("(?:\\|\\|)", false),
-            ("\\}", false),
+            ("^((?:(?://)[\0-\t\u{b}-\u{10ffff}]*\n))", true),
+            ("^((?:(?:/\\*)((?:[\0-\\)\\+-\u{10ffff}]|((?:\\*[\0-\\.0-\u{10ffff}]))))*(?:\\*/)))", true),
+            ("^([0-9]+)", false),
+            ("^((?:[A-Z_a-z][0-9A-Z_a-z]*))", false),
+            ("^([\t-\r \u{85}\u{a0}\u{1680}\u{2000}-\u{200a}\u{2028}\u{2029}\u{202f}\u{205f}\u{3000}]+)", true),
+            ("^(!)", false),
+            ("^((?:!=))", false),
+            ("^(%)", false),
+            ("^((?:\\&\\&))", false),
+            ("^(\\()", false),
+            ("^(\\))", false),
+            ("^(\\*)", false),
+            ("^(\\+)", false),
+            ("^(,)", false),
+            ("^(\\-)", false),
+            ("^((?:\\->))", false),
+            ("^(\\.)", false),
+            ("^(/)", false),
+            ("^(:)", false),
+            ("^((?:::))", false),
+            ("^(;)", false),
+            ("^(<)", false),
+            ("^((?:<=))", false),
+            ("^(=)", false),
+            ("^((?:==))", false),
+            ("^((?:=>))", false),
+            ("^(>)", false),
+            ("^((?:>=))", false),
+            ("^((?:Bool))", false),
+            ("^((?:Int))", false),
+            ("^((?:Never))", false),
+            ("^((?:Unit))", false),
+            ("^(\\^)", false),
+            ("^((?:break))", false),
+            ("^((?:continue))", false),
+            ("^((?:else))", false),
+            ("^((?:enum))", false),
+            ("^((?:false))", false),
+            ("^((?:fn))", false),
+            ("^((?:if))", false),
+            ("^((?:let))", false),
+            ("^((?:loop))", false),
+            ("^((?:mut))", false),
+            ("^((?:never))", false),
+            ("^((?:print))", false),
+            ("^((?:read))", false),
+            ("^((?:return))", false),
+            ("^((?:struct))", false),
+            ("^((?:switch))", false),
+            ("^((?:true))", false),
+            ("^((?:unit))", false),
+            ("^((?:while))", false),
+            ("^(\\{)", false),
+            ("^((?:\\|\\|))", false),
+            ("^(\\})", false),
         ];
         __lalrpop_util::lexer::MatcherBuilder::new(__strs.iter().copied()).unwrap()
     }
@@ -7475,7 +7474,7 @@ mod __intern_token {
 pub(crate) use self::__lalrpop_util::lexer::Token;
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action0<
     'input,
 >(
@@ -7487,7 +7486,7 @@ fn __action0<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action1<
     'input,
 >(
@@ -7502,7 +7501,7 @@ fn __action1<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action2<
     'input,
 >(
@@ -7521,7 +7520,7 @@ fn __action2<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action3<
     'input,
 >(
@@ -7540,7 +7539,7 @@ fn __action3<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action4<
     'input,
 >(
@@ -7565,7 +7564,7 @@ fn __action4<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action5<
     'input,
 >(
@@ -7584,7 +7583,7 @@ fn __action5<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action6<
     'input,
 >(
@@ -7596,7 +7595,7 @@ fn __action6<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action7<
     'input,
 >(
@@ -7608,7 +7607,7 @@ fn __action7<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action8<
     'input,
 >(
@@ -7620,7 +7619,7 @@ fn __action8<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action9<
     'input,
 >(
@@ -7632,7 +7631,7 @@ fn __action9<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action10<
     'input,
 >(
@@ -7644,7 +7643,7 @@ fn __action10<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action11<
     'input,
 >(
@@ -7656,7 +7655,7 @@ fn __action11<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action12<
     'input,
 >(
@@ -7679,7 +7678,7 @@ fn __action12<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action13<
     'input,
 >(
@@ -7696,7 +7695,7 @@ fn __action13<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action14<
     'input,
 >(
@@ -7708,7 +7707,7 @@ fn __action14<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action15<
     'input,
 >(
@@ -7725,7 +7724,7 @@ fn __action15<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action16<
     'input,
 >(
@@ -7746,7 +7745,7 @@ fn __action16<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action17<
     'input,
 >(
@@ -7763,7 +7762,7 @@ fn __action17<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action18<
     'input,
 >(
@@ -7788,7 +7787,7 @@ fn __action18<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action19<
     'input,
 >(
@@ -7807,7 +7806,7 @@ fn __action19<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action20<
     'input,
 >(
@@ -7822,7 +7821,7 @@ fn __action20<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action21<
     'input,
 >(
@@ -7837,7 +7836,7 @@ fn __action21<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action22<
     'input,
 >(
@@ -7849,7 +7848,7 @@ fn __action22<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action23<
     'input,
 >(
@@ -7861,7 +7860,7 @@ fn __action23<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action24<
     'input,
 >(
@@ -7873,7 +7872,7 @@ fn __action24<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action25<
     'input,
 >(
@@ -7885,7 +7884,7 @@ fn __action25<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action26<
     'input,
 >(
@@ -7897,7 +7896,7 @@ fn __action26<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action27<
     'input,
 >(
@@ -7909,7 +7908,7 @@ fn __action27<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action28<
     'input,
 >(
@@ -7921,7 +7920,7 @@ fn __action28<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action29<
     'input,
 >(
@@ -7933,7 +7932,7 @@ fn __action29<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action30<
     'input,
 >(
@@ -7945,7 +7944,7 @@ fn __action30<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action31<
     'input,
 >(
@@ -7957,7 +7956,7 @@ fn __action31<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action32<
     'input,
 >(
@@ -7969,7 +7968,7 @@ fn __action32<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action33<
     'input,
 >(
@@ -7981,7 +7980,7 @@ fn __action33<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action34<
     'input,
 >(
@@ -7993,7 +7992,7 @@ fn __action34<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action35<
     'input,
 >(
@@ -8005,7 +8004,7 @@ fn __action35<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action36<
     'input,
 >(
@@ -8017,7 +8016,7 @@ fn __action36<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action37<
     'input,
 >(
@@ -8029,7 +8028,7 @@ fn __action37<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action38<
     'input,
 >(
@@ -8041,7 +8040,7 @@ fn __action38<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action39<
     'input,
 >(
@@ -8053,7 +8052,7 @@ fn __action39<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action40<
     'input,
 >(
@@ -8071,7 +8070,7 @@ fn __action40<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action41<
     'input,
 >(
@@ -8083,7 +8082,7 @@ fn __action41<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action42<
     'input,
 >(
@@ -8095,7 +8094,7 @@ fn __action42<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action43<
     'input,
 >(
@@ -8107,7 +8106,7 @@ fn __action43<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action44<
     'input,
 >(
@@ -8119,7 +8118,7 @@ fn __action44<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action45<
     'input,
 >(
@@ -8131,7 +8130,7 @@ fn __action45<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action46<
     'input,
 >(
@@ -8151,7 +8150,7 @@ fn __action46<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action47<
     'input,
 >(
@@ -8165,7 +8164,7 @@ fn __action47<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action48<
     'input,
 >(
@@ -8177,7 +8176,7 @@ fn __action48<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action49<
     'input,
 >(
@@ -8190,7 +8189,7 @@ fn __action49<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action50<
     'input,
 >(
@@ -8210,7 +8209,7 @@ fn __action50<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action51<
     'input,
 >(
@@ -8227,7 +8226,7 @@ fn __action51<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action52<
     'input,
 >(
@@ -8239,7 +8238,7 @@ fn __action52<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action53<
     'input,
 >(
@@ -8252,7 +8251,7 @@ fn __action53<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action54<
     'input,
 >(
@@ -8267,7 +8266,7 @@ fn __action54<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action55<
     'input,
 >(
@@ -8279,7 +8278,7 @@ fn __action55<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action56<
     'input,
 >(
@@ -8291,7 +8290,7 @@ fn __action56<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action57<
     'input,
 >(
@@ -8304,7 +8303,7 @@ fn __action57<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action58<
     'input,
 >(
@@ -8316,7 +8315,7 @@ fn __action58<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action59<
     'input,
 >(
@@ -8328,7 +8327,7 @@ fn __action59<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action60<
     'input,
 >(
@@ -8341,7 +8340,7 @@ fn __action60<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action61<
     'input,
 >(
@@ -8353,7 +8352,7 @@ fn __action61<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action62<
     'input,
 >(
@@ -8366,7 +8365,7 @@ fn __action62<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action63<
     'input,
 >(
@@ -8379,7 +8378,7 @@ fn __action63<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action64<
     'input,
 >(
@@ -8399,7 +8398,7 @@ fn __action64<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action65<
     'input,
 >(
@@ -8419,7 +8418,7 @@ fn __action65<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action66<
     'input,
 >(
@@ -8433,7 +8432,7 @@ fn __action66<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action67<
     'input,
 >(
@@ -8446,7 +8445,7 @@ fn __action67<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action68<
     'input,
 >(
@@ -8458,7 +8457,7 @@ fn __action68<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action69<
     'input,
 >(
@@ -8470,7 +8469,7 @@ fn __action69<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action70<
     'input,
 >(
@@ -8483,7 +8482,7 @@ fn __action70<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action71<
     'input,
 >(
@@ -8495,7 +8494,7 @@ fn __action71<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action72<
     'input,
 >(
@@ -8508,7 +8507,7 @@ fn __action72<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action73<
     'input,
 >(
@@ -8521,7 +8520,7 @@ fn __action73<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action74<
     'input,
 >(
@@ -8533,7 +8532,7 @@ fn __action74<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action75<
     'input,
 >(
@@ -8546,7 +8545,7 @@ fn __action75<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action76<
     'input,
 >(
@@ -8558,7 +8557,7 @@ fn __action76<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action77<
     'input,
 >(
@@ -8571,7 +8570,7 @@ fn __action77<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action78<
     'input,
 >(
@@ -8584,7 +8583,7 @@ fn __action78<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action79<
     'input,
 >(
@@ -8596,7 +8595,7 @@ fn __action79<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action80<
     'input,
 >(
@@ -8609,7 +8608,7 @@ fn __action80<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action81<
     'input,
 >(
@@ -8626,7 +8625,7 @@ fn __action81<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action82<
     'input,
 >(
@@ -8638,7 +8637,7 @@ fn __action82<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action83<
     'input,
 >(
@@ -8650,7 +8649,7 @@ fn __action83<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action84<
     'input,
 >(
@@ -8667,7 +8666,7 @@ fn __action84<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action85<
     'input,
 >(
@@ -8679,7 +8678,7 @@ fn __action85<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action86<
     'input,
 >(
@@ -8691,7 +8690,7 @@ fn __action86<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action87<
     'input,
 >(
@@ -8703,7 +8702,7 @@ fn __action87<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action88<
     'input,
 >(
@@ -8716,7 +8715,7 @@ fn __action88<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action89<
     'input,
 >(
@@ -8729,7 +8728,7 @@ fn __action89<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action90<
     'input,
 >(
@@ -8741,7 +8740,7 @@ fn __action90<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action91<
     'input,
 >(
@@ -8754,7 +8753,7 @@ fn __action91<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action92<
     'input,
 >(
@@ -8766,7 +8765,7 @@ fn __action92<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action93<
     'input,
 >(
@@ -8779,7 +8778,7 @@ fn __action93<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action94<
     'input,
 >(
@@ -8792,7 +8791,7 @@ fn __action94<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action95<
     'input,
 >(
@@ -8804,7 +8803,7 @@ fn __action95<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action96<
     'input,
 >(
@@ -8817,7 +8816,7 @@ fn __action96<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action97<
     'input,
 >(
@@ -8829,7 +8828,7 @@ fn __action97<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action98<
     'input,
 >(
@@ -8842,7 +8841,7 @@ fn __action98<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action99<
     'input,
 >(
@@ -8854,7 +8853,7 @@ fn __action99<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action100<
     'input,
 >(
@@ -8867,7 +8866,7 @@ fn __action100<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action101<
     'input,
 >(
@@ -8884,7 +8883,7 @@ fn __action101<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action102<
     'input,
 >(
@@ -8896,7 +8895,7 @@ fn __action102<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action103<
     'input,
 >(
@@ -8908,7 +8907,7 @@ fn __action103<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action104<
     'input,
 >(
@@ -8925,7 +8924,7 @@ fn __action104<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action105<
     'input,
 >(
@@ -8937,7 +8936,7 @@ fn __action105<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action106<
     'input,
 >(
@@ -8949,7 +8948,7 @@ fn __action106<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action107<
     'input,
 >(
@@ -8961,7 +8960,7 @@ fn __action107<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action108<
     'input,
 >(
@@ -8974,7 +8973,7 @@ fn __action108<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action109<
     'input,
 >(
@@ -8986,7 +8985,7 @@ fn __action109<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action110<
     'input,
 >(
@@ -8999,7 +8998,7 @@ fn __action110<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action111<
     'input,
 >(
@@ -9016,7 +9015,7 @@ fn __action111<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action112<
     'input,
 >(
@@ -9028,7 +9027,7 @@ fn __action112<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action113<
     'input,
 >(
@@ -9040,7 +9039,7 @@ fn __action113<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action114<
     'input,
 >(
@@ -9057,7 +9056,7 @@ fn __action114<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action115<
     'input,
 >(
@@ -9069,7 +9068,7 @@ fn __action115<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action116<
     'input,
 >(
@@ -9081,7 +9080,7 @@ fn __action116<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action117<
     'input,
 >(
@@ -9098,7 +9097,7 @@ fn __action117<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action118<
     'input,
 >(
@@ -9110,7 +9109,7 @@ fn __action118<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action119<
     'input,
 >(
@@ -9122,7 +9121,7 @@ fn __action119<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action120<
     'input,
 >(
@@ -9139,7 +9138,7 @@ fn __action120<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action121<
     'input,
 >(
@@ -9151,7 +9150,7 @@ fn __action121<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action122<
     'input,
 >(
@@ -9163,7 +9162,7 @@ fn __action122<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action123<
     'input,
 >(
@@ -9180,7 +9179,7 @@ fn __action123<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action124<
     'input,
 >(
@@ -9192,7 +9191,7 @@ fn __action124<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action125<
     'input,
 >(
@@ -9204,7 +9203,7 @@ fn __action125<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action126<
     'input,
 >(
@@ -9221,7 +9220,7 @@ fn __action126<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action127<
     'input,
 >(
@@ -9233,7 +9232,7 @@ fn __action127<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action128<
     'input,
 >(
@@ -9245,7 +9244,7 @@ fn __action128<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action129<
     'input,
 >(
@@ -9262,7 +9261,7 @@ fn __action129<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action130<
     'input,
 >(
@@ -9274,7 +9273,7 @@ fn __action130<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action131<
     'input,
 >(
@@ -9290,7 +9289,7 @@ fn __action131<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action132<
     'input,
 >(
@@ -9302,7 +9301,7 @@ fn __action132<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action133<
     'input,
 >(
@@ -9319,7 +9318,7 @@ fn __action133<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action134<
     'input,
 >(
@@ -9331,7 +9330,7 @@ fn __action134<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action135<
     'input,
 >(
@@ -9347,7 +9346,7 @@ fn __action135<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action136<
     'input,
 >(
@@ -9359,7 +9358,7 @@ fn __action136<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action137<
     'input,
 >(
@@ -9376,7 +9375,7 @@ fn __action137<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action138<
     'input,
 >(
@@ -9388,7 +9387,7 @@ fn __action138<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action139<
     'input,
 >(
@@ -9405,7 +9404,7 @@ fn __action139<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action140<
     'input,
 >(
@@ -9417,7 +9416,7 @@ fn __action140<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action141<
     'input,
 >(
@@ -9434,7 +9433,7 @@ fn __action141<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action142<
     'input,
 >(
@@ -9452,7 +9451,7 @@ fn __action142<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action143<
     'input,
 >(
@@ -9470,7 +9469,7 @@ fn __action143<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action144<
     'input,
 >(
@@ -9482,7 +9481,7 @@ fn __action144<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action145<
     'input,
 >(
@@ -9499,7 +9498,7 @@ fn __action145<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action146<
     'input,
 >(
@@ -9517,7 +9516,7 @@ fn __action146<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action147<
     'input,
 >(
@@ -9535,7 +9534,7 @@ fn __action147<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action148<
     'input,
 >(
@@ -9547,7 +9546,7 @@ fn __action148<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action149<
     'input,
 >(
@@ -9559,7 +9558,7 @@ fn __action149<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action150<
     'input,
 >(
@@ -9571,7 +9570,7 @@ fn __action150<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action151<
     'input,
 >(
@@ -9583,7 +9582,7 @@ fn __action151<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action152<
     'input,
 >(
@@ -9595,7 +9594,7 @@ fn __action152<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action153<
     'input,
 >(
@@ -9616,7 +9615,7 @@ fn __action153<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action154<
     'input,
 >(
@@ -9630,7 +9629,7 @@ fn __action154<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action155<
     'input,
 >(
@@ -9642,7 +9641,7 @@ fn __action155<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action156<
     'input,
 >(
@@ -9662,7 +9661,7 @@ fn __action156<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action157<
     'input,
 >(
@@ -9674,7 +9673,7 @@ fn __action157<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action158<
     'input,
 >(
@@ -9686,7 +9685,7 @@ fn __action158<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action159<
     'input,
 >(
@@ -9698,7 +9697,7 @@ fn __action159<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action160<
     'input,
 >(
@@ -9710,7 +9709,7 @@ fn __action160<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action161<
     'input,
 >(
@@ -9731,7 +9730,7 @@ fn __action161<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action162<
     'input,
 >(
@@ -9745,7 +9744,7 @@ fn __action162<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action163<
     'input,
 >(
@@ -9757,7 +9756,7 @@ fn __action163<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action164<
     'input,
 >(
@@ -9769,7 +9768,7 @@ fn __action164<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action165<
     'input,
 >(
@@ -9782,7 +9781,7 @@ fn __action165<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action166<
     'input,
 >(
@@ -9795,7 +9794,7 @@ fn __action166<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action167<
     'input,
 >(
@@ -9807,7 +9806,7 @@ fn __action167<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action168<
     'input,
 >(
@@ -9820,7 +9819,7 @@ fn __action168<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action169<
     'input,
 >(
@@ -9832,7 +9831,7 @@ fn __action169<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes, clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action170<
     'input,
 >(
@@ -9845,8 +9844,7 @@ fn __action170<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action171<
     'input,
 >(
@@ -9880,8 +9878,7 @@ fn __action171<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action172<
     'input,
 >(
@@ -9915,8 +9912,7 @@ fn __action172<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action173<
     'input,
 >(
@@ -9944,8 +9940,7 @@ fn __action173<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action174<
     'input,
 >(
@@ -9973,8 +9968,7 @@ fn __action174<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action175<
     'input,
 >(
@@ -9998,8 +9992,7 @@ fn __action175<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action176<
     'input,
 >(
@@ -10039,8 +10032,7 @@ fn __action176<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action177<
     'input,
 >(
@@ -10078,8 +10070,7 @@ fn __action177<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action178<
     'input,
 >(
@@ -10107,8 +10098,7 @@ fn __action178<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action179<
     'input,
 >(
@@ -10146,8 +10136,7 @@ fn __action179<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action180<
     'input,
 >(
@@ -10179,8 +10168,7 @@ fn __action180<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action181<
     'input,
 >(
@@ -10214,8 +10202,7 @@ fn __action181<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action182<
     'input,
 >(
@@ -10247,8 +10234,7 @@ fn __action182<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action183<
     'input,
 >(
@@ -10282,8 +10268,7 @@ fn __action183<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action184<
     'input,
 >(
@@ -10319,8 +10304,7 @@ fn __action184<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action185<
     'input,
 >(
@@ -10344,8 +10328,7 @@ fn __action185<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action186<
     'input,
 >(
@@ -10369,8 +10352,7 @@ fn __action186<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action187<
     'input,
 >(
@@ -10398,8 +10380,7 @@ fn __action187<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action188<
     'input,
 >(
@@ -10425,8 +10406,7 @@ fn __action188<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action189<
     'input,
 >(
@@ -10454,8 +10434,7 @@ fn __action189<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action190<
     'input,
 >(
@@ -10485,8 +10464,7 @@ fn __action190<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action191<
     'input,
 >(
@@ -10510,8 +10488,7 @@ fn __action191<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action192<
     'input,
 >(
@@ -10535,8 +10512,7 @@ fn __action192<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action193<
     'input,
 >(
@@ -10564,8 +10540,7 @@ fn __action193<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action194<
     'input,
 >(
@@ -10591,8 +10566,7 @@ fn __action194<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action195<
     'input,
 >(
@@ -10620,8 +10594,7 @@ fn __action195<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action196<
     'input,
 >(
@@ -10651,8 +10624,7 @@ fn __action196<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action197<
     'input,
 >(
@@ -10676,8 +10648,7 @@ fn __action197<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action198<
     'input,
 >(
@@ -10701,8 +10672,7 @@ fn __action198<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action199<
     'input,
 >(
@@ -10726,8 +10696,7 @@ fn __action199<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action200<
     'input,
 >(
@@ -10753,8 +10722,7 @@ fn __action200<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action201<
     'input,
 >(
@@ -10778,8 +10746,7 @@ fn __action201<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action202<
     'input,
 >(
@@ -10803,8 +10770,7 @@ fn __action202<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action203<
     'input,
 >(
@@ -10836,8 +10802,7 @@ fn __action203<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action204<
     'input,
 >(
@@ -10861,8 +10826,7 @@ fn __action204<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action205<
     'input,
 >(
@@ -10896,8 +10860,7 @@ fn __action205<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action206<
     'input,
 >(
@@ -10921,8 +10884,7 @@ fn __action206<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action207<
     'input,
 >(
@@ -10948,8 +10910,7 @@ fn __action207<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action208<
     'input,
 >(
@@ -10973,8 +10934,7 @@ fn __action208<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action209<
     'input,
 >(
@@ -11002,8 +10962,7 @@ fn __action209<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action210<
     'input,
 >(
@@ -11027,8 +10986,7 @@ fn __action210<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action211<
     'input,
 >(
@@ -11054,8 +11012,7 @@ fn __action211<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action212<
     'input,
 >(
@@ -11079,8 +11036,7 @@ fn __action212<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action213<
     'input,
 >(
@@ -11108,8 +11064,7 @@ fn __action213<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action214<
     'input,
 >(
@@ -11133,8 +11088,7 @@ fn __action214<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action215<
     'input,
 >(
@@ -11158,8 +11112,7 @@ fn __action215<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action216<
     'input,
 >(
@@ -11185,8 +11138,7 @@ fn __action216<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action217<
     'input,
 >(
@@ -11210,8 +11162,7 @@ fn __action217<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action218<
     'input,
 >(
@@ -11235,8 +11186,7 @@ fn __action218<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action219<
     'input,
 >(
@@ -11260,8 +11210,7 @@ fn __action219<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action220<
     'input,
 >(
@@ -11283,8 +11232,7 @@ fn __action220<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action221<
     'input,
 >(
@@ -11306,8 +11254,7 @@ fn __action221<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action222<
     'input,
 >(
@@ -11331,8 +11278,7 @@ fn __action222<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action223<
     'input,
 >(
@@ -11356,8 +11302,7 @@ fn __action223<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action224<
     'input,
 >(
@@ -11381,8 +11326,7 @@ fn __action224<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action225<
     'input,
 >(
@@ -11406,8 +11350,7 @@ fn __action225<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action226<
     'input,
 >(
@@ -11431,8 +11374,7 @@ fn __action226<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action227<
     'input,
 >(
@@ -11456,8 +11398,7 @@ fn __action227<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action228<
     'input,
 >(
@@ -11481,8 +11422,7 @@ fn __action228<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action229<
     'input,
 >(
@@ -11516,8 +11456,7 @@ fn __action229<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action230<
     'input,
 >(
@@ -11551,8 +11490,7 @@ fn __action230<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action231<
     'input,
 >(
@@ -11584,8 +11522,7 @@ fn __action231<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action232<
     'input,
 >(
@@ -11617,8 +11554,7 @@ fn __action232<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action233<
     'input,
 >(
@@ -11644,8 +11580,7 @@ fn __action233<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action234<
     'input,
 >(
@@ -11671,8 +11606,7 @@ fn __action234<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action235<
     'input,
 >(
@@ -11694,8 +11628,7 @@ fn __action235<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action236<
     'input,
 >(
@@ -11719,8 +11652,7 @@ fn __action236<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action237<
     'input,
 >(
@@ -11744,8 +11676,7 @@ fn __action237<
 }
 
 #[allow(unused_variables)]
-#[allow(clippy::too_many_arguments, clippy::needless_lifetimes,
-    clippy::just_underscores_and_digits)]
+#[allow(clippy::too_many_arguments)]
 fn __action238<
     'input,
 >(
@@ -11769,7 +11700,7 @@ fn __action238<
 }
 #[allow(clippy::type_complexity)]
 
-pub  trait __ToTriple<'input, >
+pub trait __ToTriple<'input, >
 {
     fn to_triple(value: Self) -> Result<(usize,Token<'input>,usize), __lalrpop_util::ParseError<usize, Token<'input>, &'static str>>;
 }
