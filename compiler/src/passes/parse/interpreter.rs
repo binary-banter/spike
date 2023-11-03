@@ -1,13 +1,13 @@
 use crate::interpreter::Val;
 use crate::interpreter::IO;
 use crate::passes::parse::{Def, Lit, Op};
+use crate::passes::type_check::TExpr;
+use crate::passes::uniquify::PrgUniquified;
+use crate::utils::gen_sym::UniqueSym;
 use crate::utils::push_map::PushMap;
 use std::collections::HashMap;
 use std::fmt::Display;
 use std::hash::Hash;
-use crate::passes::type_check::TExpr;
-use crate::passes::uniquify::PrgUniquified;
-use crate::utils::gen_sym::UniqueSym;
 
 #[derive(Clone)]
 pub enum ControlFlow<'p, A: Copy + Hash + Eq + Display> {
@@ -200,7 +200,7 @@ impl<'p> PrgUniquified<'p> {
                 scope.0.insert(*sym, bnd);
                 Val::Unit
             }
-            TExpr::Continue {.. } => return ControlFlow::Continue,
+            TExpr::Continue { .. } => return ControlFlow::Continue,
             TExpr::Return { bdy, .. } => {
                 return ControlFlow::Return(b!(self.interpret_expr(bdy, scope, io)))
             }

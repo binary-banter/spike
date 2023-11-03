@@ -1,9 +1,9 @@
 use crate::passes::atomize::{AExpr, Atom, PrgAtomized};
 use crate::passes::explicate::{CExpr, PrgExplicated, Tail};
+use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, Lit, Op, TypeDef};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use std::collections::HashMap;
-use crate::passes::parse::types::Type;
 
 struct Env<'a, 'p> {
     blocks: &'a mut HashMap<UniqueSym<'p>, Tail<'p, CExpr<'p>>>,
@@ -32,7 +32,7 @@ impl<'p> PrgAtomized<'p> {
                 }
                 Def::TypeDef { .. } => {
                     // todo?
-                },
+                }
             }
         }
 
@@ -98,7 +98,7 @@ fn explicate_assign<'p>(
             bnd: CExpr::FunRef { sym: sym_fn, typ },
             tail: Box::new(tail),
         },
-        AExpr::Atom { atm , typ } => Tail::Seq {
+        AExpr::Atom { atm, typ } => Tail::Seq {
             sym,
             bnd: CExpr::Atom { atm, typ },
             tail: Box::new(tail),
@@ -174,7 +174,7 @@ fn explicate_assign<'p>(
             ),
             env,
         ),
-        AExpr::Continue{..} => Tail::Goto {
+        AExpr::Continue { .. } => Tail::Goto {
             lbl: env.continue_target.unwrap(),
         },
         AExpr::Return { bdy, .. } => {
@@ -184,9 +184,17 @@ fn explicate_assign<'p>(
             };
             explicate_assign(tmp, *bdy, tail, env)
         }
-        AExpr::Struct { sym: sym_, fields, typ } => Tail::Seq {
+        AExpr::Struct {
+            sym: sym_,
+            fields,
+            typ,
+        } => Tail::Seq {
             sym,
-            bnd: CExpr::Struct { sym: sym_, fields, typ },
+            bnd: CExpr::Struct {
+                sym: sym_,
+                fields,
+                typ,
+            },
             tail: Box::new(tail),
         },
         AExpr::AccessField { strct, field, typ } => Tail::Seq {
@@ -211,7 +219,7 @@ fn explicate_pred<'p>(
 
     match cnd {
         AExpr::Atom {
-            atm: Atom::Var { sym},
+            atm: Atom::Var { sym },
             ..
         } => Tail::IfStmt {
             cnd: CExpr::Prim {
@@ -240,9 +248,21 @@ fn explicate_pred<'p>(
             }
         }
         AExpr::Prim { op, args, .. } => match op {
-            Op::Not => explicate_pred(AExpr::Atom { atm: args[0], typ: Type::Bool}, els, thn, env),
+            Op::Not => explicate_pred(
+                AExpr::Atom {
+                    atm: args[0],
+                    typ: Type::Bool,
+                },
+                els,
+                thn,
+                env,
+            ),
             Op::EQ | Op::NE | Op::GT | Op::GE | Op::LT | Op::LE => Tail::IfStmt {
-                cnd: CExpr::Prim { op, args, typ: Type::Bool },
+                cnd: CExpr::Prim {
+                    op,
+                    args,
+                    typ: Type::Bool,
+                },
                 thn: create_block(thn),
                 els: create_block(els),
             },
@@ -250,10 +270,15 @@ fn explicate_pred<'p>(
                 let tmp = gen_sym("tmp");
                 explicate_assign(
                     tmp,
-                    AExpr::Prim { op, args, typ: Type::Bool },
+                    AExpr::Prim {
+                        op,
+                        args,
+                        typ: Type::Bool,
+                    },
                     explicate_pred(
                         AExpr::Atom {
-                            atm: Atom::Var { sym: tmp }, typ: Type::Bool
+                            atm: Atom::Var { sym: tmp },
+                            typ: Type::Bool,
                         },
                         thn,
                         els,
@@ -299,7 +324,11 @@ fn explicate_pred<'p>(
             let tmp = gen_sym("tmp");
             explicate_assign(
                 tmp,
-                AExpr::Apply { fun, args, typ: Type::Bool  },
+                AExpr::Apply {
+                    fun,
+                    args,
+                    typ: Type::Bool,
+                },
                 explicate_pred(
                     AExpr::Atom {
                         atm: Atom::Var { sym: tmp },
@@ -330,11 +359,15 @@ fn explicate_pred<'p>(
             let tmp = gen_sym("tmp");
             explicate_assign(
                 tmp,
-                AExpr::AccessField { strct, field, typ: Type::Bool  },
+                AExpr::AccessField {
+                    strct,
+                    field,
+                    typ: Type::Bool,
+                },
                 explicate_pred(
                     AExpr::Atom {
                         atm: Atom::Var { sym: tmp },
-                        typ: Type::Bool ,
+                        typ: Type::Bool,
                     },
                     thn,
                     els,
@@ -354,7 +387,7 @@ fn explicate_pred<'p>(
         }
         | AExpr::Assign { .. }
         | AExpr::Break { .. }
-        | AExpr::Continue{ .. }
+        | AExpr::Continue { .. }
         | AExpr::Return { .. }
         | AExpr::Struct { .. } => unreachable!(),
     }

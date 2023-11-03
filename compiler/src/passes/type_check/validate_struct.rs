@@ -3,11 +3,11 @@ use crate::passes::parse::{Expr, TypeDef};
 use crate::passes::type_check::check::{Env, EnvEntry};
 use crate::passes::type_check::error::TypeError;
 use crate::passes::type_check::error::TypeError::*;
+use crate::passes::type_check::util::expect_type;
+use crate::passes::type_check::validate_expr::validate_expr;
 use crate::passes::type_check::TExpr;
 use crate::utils::expect::expect;
 use std::collections::{HashMap, HashSet};
-use crate::passes::type_check::util::expect_type;
-use crate::passes::type_check::validate_expr::validate_expr;
 
 pub fn validate_struct<'p>(
     env: &mut Env<'_, 'p>,
@@ -29,26 +29,29 @@ pub fn validate_struct<'p>(
         .map(|(k, v)| (*k, v.clone()))
         .collect::<HashMap<_, _>>();
 
-    let fields = fields.into_iter().map(|(field, expr)| {
-        let expr = validate_expr(expr, env)?;
+    let fields = fields
+        .into_iter()
+        .map(|(field, expr)| {
+            let expr = validate_expr(expr, env)?;
 
-        expect(
-            new_provided_fields.insert(field),
-            VariableConstructDuplicateField {
-                sym: field.to_string(),
-            },
-        )?;
+            expect(
+                new_provided_fields.insert(field),
+                VariableConstructDuplicateField {
+                    sym: field.to_string(),
+                },
+            )?;
 
-        if let Some(typ) = def_fields.get(field) {
-            expect_type(&expr, typ)?;
-        } else {
-            return Err(UnknownStructField {
-                sym: field.to_string(),
-            });
-        }
+            if let Some(typ) = def_fields.get(field) {
+                expect_type(&expr, typ)?;
+            } else {
+                return Err(UnknownStructField {
+                    sym: field.to_string(),
+                });
+            }
 
-        Ok((field, expr))
-    }).collect::<Result<Vec<_>, _>>()?;
+            Ok((field, expr))
+        })
+        .collect::<Result<Vec<_>, _>>()?;
 
     for field in def_fields.keys() {
         expect(

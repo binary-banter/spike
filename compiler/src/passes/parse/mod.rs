@@ -37,9 +37,9 @@ pub enum Def<'p, A: Copy + Hash + Eq + Display, B> {
         /// Function body.
         bdy: B,
     },
-    TypeDef{
+    TypeDef {
         sym: A,
-        def: TypeDef<'p, A>
+        def: TypeDef<'p, A>,
     },
 }
 

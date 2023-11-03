@@ -2,10 +2,10 @@ pub mod explicate;
 pub mod interpret;
 
 use crate::passes::atomize::{AExpr, Atom};
+use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, Op, TypeDef};
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
-use crate::passes::parse::types::Type;
 
 #[derive(Debug, PartialEq)]
 pub struct PrgExplicated<'p> {

@@ -49,11 +49,13 @@ fn atomize_expr(expr: RExpr) -> AExpr {
             extras
                 .into_iter()
                 .flatten()
-                .rfold(AExpr::Prim { op, args, typ }, |bdy, (sym, bnd)| AExpr::Let {
-                    sym,
-                    typ: bnd.typ().clone(),
-                    bnd: Box::new(bnd),
-                    bdy: Box::new(bdy),
+                .rfold(AExpr::Prim { op, args, typ }, |bdy, (sym, bnd)| {
+                    AExpr::Let {
+                        sym,
+                        typ: bnd.typ().clone(),
+                        bnd: Box::new(bnd),
+                        bdy: Box::new(bdy),
+                    }
                 })
         }
         RExpr::Let { sym, bnd, bdy, typ } => AExpr::Let {
@@ -76,11 +78,13 @@ fn atomize_expr(expr: RExpr) -> AExpr {
             fun_expr
                 .into_iter()
                 .chain(extras.into_iter().flatten())
-                .rfold(AExpr::Apply { fun, args, typ }, |bdy, (sym, bnd)| AExpr::Let {
-                    typ: bnd.typ().clone(),
-                    sym,
-                    bnd: Box::new(bnd),
-                    bdy: Box::new(bdy),
+                .rfold(AExpr::Apply { fun, args, typ }, |bdy, (sym, bnd)| {
+                    AExpr::Let {
+                        typ: bnd.typ().clone(),
+                        sym,
+                        bnd: Box::new(bnd),
+                        bdy: Box::new(bdy),
+                    }
                 })
         }
         RExpr::FunRef { sym, typ } => {
@@ -114,9 +118,7 @@ fn atomize_expr(expr: RExpr) -> AExpr {
             bnd: Box::new(atomize_expr(*bnd)),
             typ,
         },
-        RExpr::Continue{typ} => AExpr::Continue{
-            typ,
-        },
+        RExpr::Continue { typ } => AExpr::Continue { typ },
         RExpr::Return { bdy, typ } => AExpr::Return {
             bdy: Box::new(atomize_expr(*bdy)),
             typ,
@@ -130,31 +132,28 @@ fn atomize_expr(expr: RExpr) -> AExpr {
                 })
                 .unzip();
 
-            extras
-                .into_iter()
-                .flatten()
-                .rfold(AExpr::Struct { sym, fields, typ }, |bdy, (sym, bnd)| {
-                    AExpr::Let {
-                        sym,
-                        typ: bnd.typ().clone(),
-                        bnd: Box::new(bnd),
-                        bdy: Box::new(bdy),
-                    }
-                })
+            extras.into_iter().flatten().rfold(
+                AExpr::Struct { sym, fields, typ },
+                |bdy, (sym, bnd)| AExpr::Let {
+                    sym,
+                    typ: bnd.typ().clone(),
+                    bnd: Box::new(bnd),
+                    bdy: Box::new(bdy),
+                },
+            )
         }
         RExpr::AccessField { strct, field, typ } => {
             let (strct, extra) = atomize_atom(*strct);
 
-            extra
-                .into_iter()
-                .rfold(AExpr::AccessField { strct, field, typ }, |bdy, (sym, bnd)| {
-                    AExpr::Let {
-                        sym,
-                        typ: bnd.typ().clone(),
-                        bnd: Box::new(bnd),
-                        bdy: Box::new(bdy),
-                    }
-                })
+            extra.into_iter().rfold(
+                AExpr::AccessField { strct, field, typ },
+                |bdy, (sym, bnd)| AExpr::Let {
+                    sym,
+                    typ: bnd.typ().clone(),
+                    bnd: Box::new(bnd),
+                    bdy: Box::new(bdy),
+                },
+            )
         }
     }
 }

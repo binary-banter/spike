@@ -103,10 +103,12 @@ fn select_assign<'p>(
 ) -> Vec<Instr<'p, VarArg<'p>>> {
     match expr {
         CExpr::Atom {
-            atm: Atom::Val { val }, ..
+            atm: Atom::Val { val },
+            ..
         } => vec![movq!(imm!(val), dst)],
         CExpr::Atom {
-            atm: Atom::Var { sym },..
+            atm: Atom::Var { sym },
+            ..
         } => vec![movq!(var!(sym), dst)],
         CExpr::Prim { op, args, .. } => match (op, args.as_slice()) {
             (Op::Plus, [a0, a1]) => vec![movq!(select_atom(a0), dst), addq!(select_atom(a1), dst)],

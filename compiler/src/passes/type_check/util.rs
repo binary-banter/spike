@@ -4,7 +4,10 @@ use crate::passes::type_check::error::TypeError::*;
 use crate::passes::type_check::TExpr;
 use crate::utils::expect::expect;
 
-pub fn expect_type_eq<'p>(e1: &TExpr<'p, &'p str>, e2: &TExpr<'p, &'p str>) -> Result<Type<&'p str>, TypeError> {
+pub fn expect_type_eq<'p>(
+    e1: &TExpr<'p, &'p str>,
+    e2: &TExpr<'p, &'p str>,
+) -> Result<Type<&'p str>, TypeError> {
     let t1 = e1.typ();
     let t2 = e2.typ();
     expect(

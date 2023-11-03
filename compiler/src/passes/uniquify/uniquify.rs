@@ -60,7 +60,10 @@ fn uniquify_def<'p>(
                 },
                 TypeDef::Enum { .. } => todo!(),
             };
-            Def::TypeDef { sym: scope[&sym], def }
+            Def::TypeDef {
+                sym: scope[&sym],
+                def,
+            }
         }
     }
 }
@@ -70,12 +73,7 @@ fn uniquify_expression<'p>(
     scope: &mut PushMap<&'p str, UniqueSym<'p>>,
 ) -> TExpr<'p, UniqueSym<'p>> {
     match expr {
-        TExpr::Let {
-            sym,
-            bnd,
-            bdy,
-            typ,
-        } => {
+        TExpr::Let { sym, bnd, bdy, typ } => {
             let unique_bnd = uniquify_expression(*bnd, scope);
             let unique_sym = gen_sym(sym);
             let unique_bdy = scope.push(sym, unique_sym, |scope| uniquify_expression(*bdy, scope));
@@ -87,7 +85,10 @@ fn uniquify_expression<'p>(
                 typ: typ.fmap(|s| scope[s]),
             }
         }
-        TExpr::Var { sym, typ } => TExpr::Var { sym: scope[&sym], typ: typ.fmap(|s| scope[s]) },
+        TExpr::Var { sym, typ } => TExpr::Var {
+            sym: scope[&sym],
+            typ: typ.fmap(|s| scope[s]),
+        },
         TExpr::Assign { sym, bnd, typ } => TExpr::Assign {
             sym: scope[sym],
             bnd: Box::new(uniquify_expression(*bnd, scope)),
@@ -102,7 +103,10 @@ fn uniquify_expression<'p>(
             typ: typ.fmap(|s| scope[s]),
         },
 
-        TExpr::Lit { val , typ} => TExpr::Lit { val, typ: typ.fmap(|s| scope[s]), },
+        TExpr::Lit { val, typ } => TExpr::Lit {
+            val,
+            typ: typ.fmap(|s| scope[s]),
+        },
         TExpr::Prim { op, args, typ } => TExpr::Prim {
             op,
             args: args
@@ -138,7 +142,9 @@ fn uniquify_expression<'p>(
             cnt: Box::new(uniquify_expression(*cnt, scope)),
             typ: typ.fmap(|s| scope[s]),
         },
-        TExpr::Continue{ typ } => TExpr::Continue{typ: typ.fmap(|s| scope[s]),},
+        TExpr::Continue { typ } => TExpr::Continue {
+            typ: typ.fmap(|s| scope[s]),
+        },
         TExpr::Return { bdy, typ } => TExpr::Return {
             bdy: Box::new(uniquify_expression(*bdy, scope)),
             typ: typ.fmap(|s| scope[s]),

@@ -1,13 +1,13 @@
 pub mod atomize;
 
+use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, Expr, Lit, Op};
+use crate::passes::type_check::TExpr;
 use crate::passes::uniquify::PrgUniquified;
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
 use std::fmt::Display;
 use std::hash::Hash;
-use crate::passes::parse::types::Type;
-use crate::passes::type_check::TExpr;
 
 #[derive(Debug, PartialEq)]
 pub struct PrgAtomized<'p> {
@@ -55,7 +55,7 @@ pub enum AExpr<'p> {
         bdy: Box<AExpr<'p>>,
         typ: Type<UniqueSym<'p>>,
     },
-    Continue{
+    Continue {
         typ: Type<UniqueSym<'p>>,
     },
     Seq {
@@ -135,7 +135,8 @@ impl<'p> From<PrgAtomized<'p>> for PrgUniquified<'p> {
 }
 
 // TODO functor time
-impl<'p> From<Def<'p, UniqueSym<'p>, AExpr<'p>>> for Def<'p, UniqueSym<'p>, TExpr<'p, UniqueSym<'p>>>
+impl<'p> From<Def<'p, UniqueSym<'p>, AExpr<'p>>>
+    for Def<'p, UniqueSym<'p>, TExpr<'p, UniqueSym<'p>>>
 {
     fn from(value: Def<'p, UniqueSym<'p>, AExpr<'p>>) -> Self {
         match value {
@@ -150,7 +151,7 @@ impl<'p> From<Def<'p, UniqueSym<'p>, AExpr<'p>>> for Def<'p, UniqueSym<'p>, TExp
                 typ,
                 bdy: bdy.into(),
             },
-            Def::TypeDef { sym, def } => Def::TypeDef {sym, def },
+            Def::TypeDef { sym, def } => Def::TypeDef { sym, def },
         }
     }
 }
@@ -193,17 +194,17 @@ impl<'p> From<AExpr<'p>> for TExpr<'p, UniqueSym<'p>> {
             AExpr::Seq { stmt, cnt, typ } => TExpr::Seq {
                 stmt: Box::new((*stmt).into()),
                 cnt: Box::new((*cnt).into()),
-                typ
+                typ,
             },
             AExpr::Assign { sym, bnd, typ } => TExpr::Assign {
                 sym,
                 bnd: Box::new((*bnd).into()),
-                typ
+                typ,
             },
-            AExpr::Continue {typ} => TExpr::Continue { typ},
+            AExpr::Continue { typ } => TExpr::Continue { typ },
             AExpr::Return { bdy, typ } => TExpr::Return {
                 bdy: Box::new((*bdy).into()),
-                typ
+                typ,
             },
             AExpr::Struct { sym, fields, typ } => TExpr::Struct {
                 sym,
@@ -211,12 +212,12 @@ impl<'p> From<AExpr<'p>> for TExpr<'p, UniqueSym<'p>> {
                     .into_iter()
                     .map(|(sym, atm)| (sym, atm.into()))
                     .collect(),
-                typ
+                typ,
             },
             AExpr::AccessField { strct, field, typ } => TExpr::AccessField {
                 strct: Box::new(strct.into()),
                 field,
-                typ
+                typ,
             },
         }
     }
@@ -226,8 +227,14 @@ impl<'p> From<AExpr<'p>> for TExpr<'p, UniqueSym<'p>> {
 impl<'p> From<Atom<'p>> for TExpr<'p, UniqueSym<'p>> {
     fn from(value: Atom<'p>) -> Self {
         match value {
-            Atom::Val { val } => TExpr::Lit { val, typ: Type::Never },
-            Atom::Var { sym } => TExpr::Var { sym, typ: Type::Never },
+            Atom::Val { val } => TExpr::Lit {
+                val,
+                typ: Type::Never,
+            },
+            Atom::Var { sym } => TExpr::Var {
+                sym,
+                typ: Type::Never,
+            },
         }
     }
 }
@@ -235,9 +242,9 @@ impl<'p> From<Atom<'p>> for TExpr<'p, UniqueSym<'p>> {
 #[cfg(test)]
 mod tests {
     use crate::interpreter::TestIO;
+    use crate::passes::uniquify::PrgUniquified;
     use crate::utils::split_test::split_test;
     use test_each_file::test_each_file;
-    use crate::passes::uniquify::PrgUniquified;
 
     fn atomize([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);

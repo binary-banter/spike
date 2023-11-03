@@ -42,7 +42,7 @@ fn reveal_expr<'p>(
     scope: &mut PushMap<UniqueSym<'p>, ()>,
 ) -> RExpr<'p> {
     match expr {
-        TExpr::Lit { val , typ } => RExpr::Lit { val, typ },
+        TExpr::Lit { val, typ } => RExpr::Lit { val, typ },
         TExpr::Var { sym, typ } => {
             if scope.contains(&sym) {
                 RExpr::FunRef { sym, typ }
@@ -58,7 +58,9 @@ fn reveal_expr<'p>(
                 .collect(),
             typ,
         },
-        TExpr::Let { sym, bnd, bdy, typ, .. } => {
+        TExpr::Let {
+            sym, bnd, bdy, typ, ..
+        } => {
             let bnd = Box::new(reveal_expr(*bnd, scope));
             scope.remove(sym, |scope| RExpr::Let {
                 sym,
@@ -99,7 +101,7 @@ fn reveal_expr<'p>(
             bnd: Box::new(reveal_expr(*bnd, scope)),
             typ,
         },
-        TExpr::Continue{typ} => RExpr::Continue{typ},
+        TExpr::Continue { typ } => RExpr::Continue { typ },
         TExpr::Return { bdy, typ } => RExpr::Return {
             bdy: Box::new(reveal_expr(*bdy, scope)),
             typ,

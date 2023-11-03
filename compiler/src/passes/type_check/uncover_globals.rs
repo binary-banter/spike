@@ -49,7 +49,12 @@ pub fn uncover_globals<'p>(
                 )?;
             }
             Def::TypeDef { sym, def } => {
-                globals.insert(sym, EnvEntry::Def { def: (*def).clone() });
+                globals.insert(
+                    sym,
+                    EnvEntry::Def {
+                        def: (*def).clone(),
+                    },
+                );
             }
         }
     }

@@ -1,9 +1,9 @@
 pub mod uniquify;
 
-use std::collections::HashMap;
 use crate::passes::parse::Def;
 use crate::passes::type_check::TExpr;
 use crate::utils::gen_sym::UniqueSym;
+use std::collections::HashMap;
 
 #[derive(Debug, PartialEq)]
 pub struct PrgUniquified<'p> {

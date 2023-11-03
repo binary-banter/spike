@@ -1,11 +1,11 @@
 pub mod reveal_functions;
 
+use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, Expr, Lit, Op};
+use crate::passes::type_check::TExpr;
 use crate::passes::uniquify::PrgUniquified;
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
-use crate::passes::parse::types::Type;
-use crate::passes::type_check::TExpr;
 
 #[derive(Debug, PartialEq)]
 pub struct PrgRevealed<'p> {
@@ -61,7 +61,7 @@ pub enum RExpr<'p> {
         bdy: Box<RExpr<'p>>,
         typ: Type<UniqueSym<'p>>,
     },
-    Continue{
+    Continue {
         typ: Type<UniqueSym<'p>>,
     },
     Seq {
@@ -99,7 +99,8 @@ impl<'p> From<PrgRevealed<'p>> for PrgUniquified<'p> {
     }
 }
 
-impl<'p> From<Def<'p, UniqueSym<'p>, RExpr<'p>>> for Def<'p, UniqueSym<'p>, TExpr<'p, UniqueSym<'p>>>
+impl<'p> From<Def<'p, UniqueSym<'p>, RExpr<'p>>>
+    for Def<'p, UniqueSym<'p>, TExpr<'p, UniqueSym<'p>>>
 {
     fn from(value: Def<'p, UniqueSym<'p>, RExpr<'p>>) -> Self {
         match value {
@@ -145,7 +146,7 @@ impl<'p> From<RExpr<'p>> for TExpr<'p, UniqueSym<'p>> {
                 args: args.into_iter().map(Into::into).collect(),
                 typ,
             },
-            RExpr::Var { sym, typ } | RExpr::FunRef { sym, typ } => TExpr::Var { sym , typ},
+            RExpr::Var { sym, typ } | RExpr::FunRef { sym, typ } => TExpr::Var { sym, typ },
             RExpr::Loop { bdy, typ } => TExpr::Loop {
                 bdy: Box::new((*bdy).into()),
                 typ,
@@ -164,7 +165,7 @@ impl<'p> From<RExpr<'p>> for TExpr<'p, UniqueSym<'p>> {
                 bnd: Box::new((*bnd).into()),
                 typ,
             },
-            RExpr::Continue{typ} => TExpr::Continue{typ},
+            RExpr::Continue { typ } => TExpr::Continue { typ },
             RExpr::Return { bdy, typ } => TExpr::Return {
                 bdy: Box::new((*bdy).into()),
                 typ,
@@ -180,7 +181,7 @@ impl<'p> From<RExpr<'p>> for TExpr<'p, UniqueSym<'p>> {
             RExpr::AccessField { strct, field, typ } => TExpr::AccessField {
                 strct: Box::new((*strct).into()),
                 field,
-                typ
+                typ,
             },
         }
     }
