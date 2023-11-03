@@ -37,7 +37,7 @@ impl<'p> From<PrgEliminated<'p>> for PrgExplicated<'p> {
 impl<'p> From<Tail<'p, EExpr<'p>>> for Tail<'p, CExpr<'p>> {
     fn from(value: Tail<'p, EExpr<'p>>) -> Self {
         match value {
-            Tail::Return { expr } => Tail::Return { expr: expr.into() },
+            Tail::Return { expr } => Tail::Return { expr },
             Tail::Seq { sym, bnd, tail } => Tail::Seq {
                 sym,
                 bnd: bnd.into(),
@@ -54,7 +54,7 @@ impl<'p> From<Tail<'p, EExpr<'p>>> for Tail<'p, CExpr<'p>> {
 }
 
 impl<'p> From<EExpr<'p>> for CExpr<'p> {
-    fn from(value: EExpr<'p>) -> Self {
+    fn from(_value: EExpr<'p>) -> Self {
         todo!()
         // match value {
         //     EExpr::Atom { atm } => CExpr::Atom { atm },

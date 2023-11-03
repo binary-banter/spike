@@ -1,9 +1,9 @@
 pub mod explicate;
 pub mod interpret;
 
-use crate::passes::atomize::{AExpr, Atom};
+use crate::passes::atomize::{Atom};
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Def, Op, TypeDef};
+use crate::passes::parse::{Op, TypeDef};
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
 

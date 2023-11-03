@@ -1,13 +1,13 @@
 pub mod atomize;
 
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Def, Expr, Lit, Op};
+use crate::passes::parse::{Def, Lit, Op};
 use crate::passes::type_check::TExpr;
 use crate::passes::uniquify::PrgUniquified;
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
-use std::fmt::Display;
-use std::hash::Hash;
+
+
 
 #[derive(Debug, PartialEq)]
 pub struct PrgAtomized<'p> {

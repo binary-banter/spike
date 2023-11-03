@@ -159,7 +159,7 @@ fn atomize_expr(expr: RExpr) -> AExpr {
 }
 
 fn atomize_atom(expr: RExpr) -> (Atom, Option<(UniqueSym, AExpr)>) {
-    if let RExpr::Lit { val, typ } = expr {
+    if let RExpr::Lit { val, typ: _ } = expr {
         (Atom::Val { val }, None)
     } else {
         let tmp = gen_sym("tmp");

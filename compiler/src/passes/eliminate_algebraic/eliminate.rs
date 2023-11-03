@@ -28,12 +28,12 @@ impl<'p> PrgExplicated<'p> {
 fn collect_tail<'p>(tail: &Tail<'p, CExpr<'p>>, ctx: &mut Ctx<'p>) {
     match tail {
         //TODO what if a struct is returned from a function???
-        Tail::Return { expr } => {}
+        Tail::Return { expr: _ } => {}
         Tail::Seq { sym, bnd, tail } => {
             collect_expr(*sym, bnd, ctx);
             collect_tail(tail, ctx);
         }
-        Tail::IfStmt { cnd, .. } => {}
+        Tail::IfStmt {  .. } => {}
         Tail::Goto { .. } => {}
     }
 }

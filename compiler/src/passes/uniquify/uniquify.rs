@@ -98,7 +98,7 @@ fn uniquify_expression<'p>(
             sym: scope[sym],
             fields: fields
                 .into_iter()
-                .map(|(sym, TExpr)| (sym, uniquify_expression(TExpr, scope)))
+                .map(|(sym, expr)| (sym, uniquify_expression(expr, scope)))
                 .collect(),
             typ: typ.fmap(|s| scope[s]),
         },

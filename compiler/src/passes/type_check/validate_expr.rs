@@ -1,5 +1,5 @@
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Def, Expr, Lit, TypeDef};
+use crate::passes::parse::{Expr, Lit, TypeDef};
 use crate::passes::type_check::check::{Env, EnvEntry};
 use crate::passes::type_check::error::TypeError;
 use crate::passes::type_check::error::TypeError::*;
@@ -153,7 +153,7 @@ pub fn validate_expr<'p>(
                 sym: (*sym).to_string(),
             })?;
 
-            let EnvEntry::Type { typ, mutable } = entry else {
+            let EnvEntry::Type { typ: _, mutable } = entry else {
                 return Err(VariableShouldBeExpr {
                     sym: (*sym).to_string(),
                 });

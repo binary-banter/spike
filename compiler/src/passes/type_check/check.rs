@@ -1,5 +1,5 @@
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Def, Expr, PrgParsed, TypeDef};
+use crate::passes::parse::{Def, PrgParsed, TypeDef};
 use crate::passes::type_check::error::TypeError;
 use crate::passes::type_check::error::TypeError::*;
 use crate::passes::type_check::uncover_globals::uncover_globals;
