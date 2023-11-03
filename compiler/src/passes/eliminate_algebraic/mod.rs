@@ -1,8 +1,8 @@
 pub mod eliminate;
 
-use crate::passes::atomize::Atom;
+use crate::passes::atomize::{AExpr, Atom};
 use crate::passes::explicate::{CExpr, PrgExplicated, Tail};
-use crate::passes::parse::Op;
+use crate::passes::parse::{Def, Op};
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
 use functor_derive::Functor;
@@ -11,6 +11,7 @@ use functor_derive::Functor;
 pub struct PrgEliminated<'p> {
     pub blocks: HashMap<UniqueSym<'p>, Tail<'p, EExpr<'p>>>,
     pub fn_params: HashMap<UniqueSym<'p>, Vec<UniqueSym<'p>>>,
+    pub defs: HashMap<UniqueSym<'p>, Def<'p, UniqueSym<'p>, AExpr<'p>>>,
     pub entry: UniqueSym<'p>,
 }
 
@@ -27,6 +28,7 @@ impl<'p> From<PrgEliminated<'p>> for PrgExplicated<'p> {
         PrgExplicated {
             blocks: value.blocks.fmap(From::from),
             fn_params: value.fn_params,
+            defs: Default::default(),
             entry: value.entry,
         }
     }

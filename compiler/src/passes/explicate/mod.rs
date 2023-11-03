@@ -1,8 +1,8 @@
 pub mod explicate;
 pub mod interpret;
 
-use crate::passes::atomize::Atom;
-use crate::passes::parse::Op;
+use crate::passes::atomize::{AExpr, Atom};
+use crate::passes::parse::{Def, Op};
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
 
@@ -10,6 +10,7 @@ use std::collections::HashMap;
 pub struct PrgExplicated<'p> {
     pub blocks: HashMap<UniqueSym<'p>, Tail<'p, CExpr<'p>>>,
     pub fn_params: HashMap<UniqueSym<'p>, Vec<UniqueSym<'p>>>,
+    pub defs: HashMap<UniqueSym<'p>, Def<'p, UniqueSym<'p>, AExpr<'p>>>,
     pub entry: UniqueSym<'p>,
 }
 

@@ -36,25 +36,30 @@ impl<'p> PrgAtomized<'p> {
             }
         }
 
+        let mut defs = HashMap::new();
+
         for (_, def) in self.defs {
-            explicate_def(def, &mut env);
+            explicate_def(def, &mut env, &mut defs);
         }
 
         PrgExplicated {
             blocks,
             fn_params,
+            defs,
             entry: self.entry,
         }
     }
 }
 
-fn explicate_def<'p>(def: Def<UniqueSym<'p>, AExpr<'p>>, env: &mut Env<'_, 'p>) {
+fn explicate_def<'p>(def: Def<'p, UniqueSym<'p>, AExpr<'p>>, env: &mut Env<'_, 'p>, defs: &mut HashMap<UniqueSym<'p>, Def<'p, UniqueSym<'p>, AExpr<'p>>>) {
     match def {
         Def::Fn { sym, bdy, .. } => {
             let tail = explicate_tail(bdy, env);
             env.blocks.insert(sym, tail);
         }
-        Def::Struct { .. } | Def::Enum { .. } => {}
+        Def::Struct { sym, .. } | Def::Enum { sym, .. } => {
+            defs.insert(sym, def);
+        }
     }
 }
 
