@@ -72,7 +72,6 @@ fn uniquify_expression<'p>(
     match expr {
         TExpr::Let {
             sym,
-            mutable,
             bnd,
             bdy,
             typ,
@@ -83,7 +82,6 @@ fn uniquify_expression<'p>(
 
             TExpr::Let {
                 sym: unique_sym,
-                mutable,
                 bnd: Box::new(unique_bnd),
                 bdy: Box::new(unique_bdy),
                 typ: typ.fmap(|s| scope[s]),

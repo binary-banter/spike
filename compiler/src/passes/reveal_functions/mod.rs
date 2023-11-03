@@ -4,6 +4,8 @@ use crate::passes::parse::{Def, Expr, Lit, Op};
 use crate::passes::uniquify::PrgUniquified;
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
+use crate::passes::parse::types::Type;
+use crate::passes::type_check::TExpr;
 
 #[derive(Debug, PartialEq)]
 pub struct PrgRevealed<'p> {
@@ -15,75 +17,89 @@ pub struct PrgRevealed<'p> {
 pub enum RExpr<'p> {
     Lit {
         val: Lit,
+        typ: Type<UniqueSym<'p>>,
     },
     Var {
         sym: UniqueSym<'p>,
+        typ: Type<UniqueSym<'p>>,
     },
     FunRef {
         sym: UniqueSym<'p>,
+        typ: Type<UniqueSym<'p>>,
     },
     Prim {
         op: Op,
         args: Vec<RExpr<'p>>,
+        typ: Type<UniqueSym<'p>>,
     },
     Let {
         sym: UniqueSym<'p>,
         bnd: Box<RExpr<'p>>,
         bdy: Box<RExpr<'p>>,
+        typ: Type<UniqueSym<'p>>,
     },
     If {
         cnd: Box<RExpr<'p>>,
         thn: Box<RExpr<'p>>,
         els: Box<RExpr<'p>>,
+        typ: Type<UniqueSym<'p>>,
     },
     Apply {
         fun: Box<RExpr<'p>>,
         args: Vec<RExpr<'p>>,
+        typ: Type<UniqueSym<'p>>,
     },
     Loop {
         bdy: Box<RExpr<'p>>,
+        typ: Type<UniqueSym<'p>>,
     },
     Break {
         bdy: Box<RExpr<'p>>,
+        typ: Type<UniqueSym<'p>>,
     },
     Return {
         bdy: Box<RExpr<'p>>,
+        typ: Type<UniqueSym<'p>>,
     },
-    Continue,
+    Continue{
+        typ: Type<UniqueSym<'p>>,
+    },
     Seq {
         stmt: Box<RExpr<'p>>,
         cnt: Box<RExpr<'p>>,
+        typ: Type<UniqueSym<'p>>,
     },
     Assign {
         sym: UniqueSym<'p>,
         bnd: Box<RExpr<'p>>,
+        typ: Type<UniqueSym<'p>>,
     },
     Struct {
         sym: UniqueSym<'p>,
         fields: Vec<(&'p str, RExpr<'p>)>,
+        typ: Type<UniqueSym<'p>>,
     },
     AccessField {
         strct: Box<RExpr<'p>>,
         field: &'p str,
+        typ: Type<UniqueSym<'p>>,
     },
 }
 
 impl<'p> From<PrgRevealed<'p>> for PrgUniquified<'p> {
     fn from(value: PrgRevealed<'p>) -> Self {
-        todo!()
-        // PrgUniquified {
-        //     defs: value
-        //         .defs
-        //         .into_iter()
-        //         .map(|(sym, def)| (sym, def.into()))
-        //         .collect(),
-        //     entry: value.entry,
-        // }
+        PrgUniquified {
+            defs: value
+                .defs
+                .into_iter()
+                .map(|(sym, def)| (sym, def.into()))
+                .collect(),
+            entry: value.entry,
+        }
     }
 }
 
-impl<'p> From<Def<'p, UniqueSym<'p>, RExpr<'p>>>
-    for Def<'p, UniqueSym<'p>, Expr<'p, UniqueSym<'p>>>
+impl<'p> From<Def<'p, UniqueSym<'p>, RExpr<'p>>> for Def<'p, UniqueSym<'p>, TExpr<'p, UniqueSym<'p>>>
 {
     fn from(value: Def<'p, UniqueSym<'p>, RExpr<'p>>) -> Self {
         match value {
@@ -103,58 +119,68 @@ impl<'p> From<Def<'p, UniqueSym<'p>, RExpr<'p>>>
     }
 }
 
-impl<'p> From<RExpr<'p>> for Expr<'p, UniqueSym<'p>> {
+impl<'p> From<RExpr<'p>> for TExpr<'p, UniqueSym<'p>> {
     fn from(value: RExpr<'p>) -> Self {
         match value {
-            RExpr::Lit { val } => Expr::Lit { val },
-            RExpr::Prim { op, args } => Expr::Prim {
+            RExpr::Lit { val, typ } => TExpr::Lit { val, typ },
+            RExpr::Prim { op, args, typ } => TExpr::Prim {
                 op,
                 args: args.into_iter().map(Into::into).collect(),
+                typ,
             },
-            RExpr::Let { sym, bnd, bdy } => Expr::Let {
+            RExpr::Let { sym, bnd, bdy, typ } => TExpr::Let {
                 sym,
-                mutable: true,
                 bnd: Box::new((*bnd).into()),
                 bdy: Box::new((*bdy).into()),
+                typ,
             },
-            RExpr::If { cnd, thn, els } => Expr::If {
+            RExpr::If { cnd, thn, els, typ } => TExpr::If {
                 cnd: Box::new((*cnd).into()),
                 thn: Box::new((*thn).into()),
                 els: Box::new((*els).into()),
+                typ,
             },
-            RExpr::Apply { fun, args } => Expr::Apply {
+            RExpr::Apply { fun, args, typ } => TExpr::Apply {
                 fun: Box::new((*fun).into()),
                 args: args.into_iter().map(Into::into).collect(),
+                typ,
             },
-            RExpr::Var { sym } | RExpr::FunRef { sym } => Expr::Var { sym },
-            RExpr::Loop { bdy } => Expr::Loop {
+            RExpr::Var { sym, typ } | RExpr::FunRef { sym, typ } => TExpr::Var { sym , typ},
+            RExpr::Loop { bdy, typ } => TExpr::Loop {
                 bdy: Box::new((*bdy).into()),
+                typ,
             },
-            RExpr::Break { bdy } => Expr::Break {
+            RExpr::Break { bdy, typ } => TExpr::Break {
                 bdy: Box::new((*bdy).into()),
+                typ,
             },
-            RExpr::Seq { stmt, cnt } => Expr::Seq {
+            RExpr::Seq { stmt, cnt, typ } => TExpr::Seq {
                 stmt: Box::new((*stmt).into()),
                 cnt: Box::new((*cnt).into()),
+                typ,
             },
-            RExpr::Assign { sym, bnd } => Expr::Assign {
+            RExpr::Assign { sym, bnd, typ } => TExpr::Assign {
                 sym,
                 bnd: Box::new((*bnd).into()),
+                typ,
             },
-            RExpr::Continue => Expr::Continue,
-            RExpr::Return { bdy } => Expr::Return {
+            RExpr::Continue{typ} => TExpr::Continue{typ},
+            RExpr::Return { bdy, typ } => TExpr::Return {
                 bdy: Box::new((*bdy).into()),
+                typ,
             },
-            RExpr::Struct { sym, fields } => Expr::Struct {
+            RExpr::Struct { sym, fields, typ } => TExpr::Struct {
                 sym,
                 fields: fields
                     .into_iter()
                     .map(|(sym, expr)| (sym, expr.into()))
                     .collect(),
+                typ,
             },
-            RExpr::AccessField { strct, field } => Expr::AccessField {
+            RExpr::AccessField { strct, field, typ } => TExpr::AccessField {
                 strct: Box::new((*strct).into()),
                 field,
+                typ
             },
         }
     }

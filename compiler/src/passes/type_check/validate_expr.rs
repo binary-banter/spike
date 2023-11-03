@@ -58,7 +58,6 @@ pub fn validate_expr<'p>(
             TExpr::Let {
                 typ: bdy.typ().clone(),
                 sym,
-                mutable,
                 bnd: Box::new(bnd),
                 bdy: Box::new(bdy),
             }

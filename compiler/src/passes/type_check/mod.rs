@@ -36,7 +36,6 @@ pub enum TExpr<'p, A: Copy + Hash + Eq + Display> {
     },
     Let {
         sym: A,
-        mutable: bool,
         bnd: Box<TExpr<'p, A>>,
         bdy: Box<TExpr<'p, A>>,
         typ: Type<A>,

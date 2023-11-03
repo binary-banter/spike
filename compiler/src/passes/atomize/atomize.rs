@@ -37,13 +37,13 @@ impl<'p> PrgRevealed<'p> {
 
 fn atomize_expr(expr: RExpr) -> AExpr {
     match expr {
-        RExpr::Lit { val } => AExpr::Atom {
+        RExpr::Lit { val, typ } => AExpr::Atom {
             atm: Atom::Val { val },
         },
-        RExpr::Var { sym } => AExpr::Atom {
+        RExpr::Var { sym, typ } => AExpr::Atom {
             atm: Atom::Var { sym },
         },
-        RExpr::Prim { op, args } => {
+        RExpr::Prim { op, args, typ } => {
             let (args, extras): (Vec<_>, Vec<_>) = args.into_iter().map(atomize_atom).unzip();
 
             extras
@@ -55,17 +55,17 @@ fn atomize_expr(expr: RExpr) -> AExpr {
                     bdy: Box::new(bdy),
                 })
         }
-        RExpr::Let { sym, bnd, bdy } => AExpr::Let {
+        RExpr::Let { sym, bnd, bdy, typ } => AExpr::Let {
             sym,
             bnd: Box::new(atomize_expr(*bnd)),
             bdy: Box::new(atomize_expr(*bdy)),
         },
-        RExpr::If { cnd, thn, els } => AExpr::If {
+        RExpr::If { cnd, thn, els, typ } => AExpr::If {
             cnd: Box::new(atomize_expr(*cnd)),
             thn: Box::new(atomize_expr(*thn)),
             els: Box::new(atomize_expr(*els)),
         },
-        RExpr::Apply { fun, args } => {
+        RExpr::Apply { fun, args, typ } => {
             let (args, extras): (Vec<_>, Vec<_>) = args.into_iter().map(atomize_atom).unzip();
 
             let (fun, fun_expr) = atomize_atom(*fun);
@@ -79,7 +79,7 @@ fn atomize_expr(expr: RExpr) -> AExpr {
                     bdy: Box::new(bdy),
                 })
         }
-        RExpr::FunRef { sym } => {
+        RExpr::FunRef { sym, typ } => {
             let tmp = gen_sym("tmp");
             AExpr::Let {
                 sym: tmp,
@@ -89,25 +89,25 @@ fn atomize_expr(expr: RExpr) -> AExpr {
                 }),
             }
         }
-        RExpr::Loop { bdy } => AExpr::Loop {
+        RExpr::Loop { bdy, typ } => AExpr::Loop {
             bdy: Box::new(atomize_expr(*bdy)),
         },
-        RExpr::Break { bdy } => AExpr::Break {
+        RExpr::Break { bdy, typ } => AExpr::Break {
             bdy: Box::new(atomize_expr(*bdy)),
         },
-        RExpr::Seq { stmt, cnt } => AExpr::Seq {
+        RExpr::Seq { stmt, cnt, typ } => AExpr::Seq {
             stmt: Box::new(atomize_expr(*stmt)),
             cnt: Box::new(atomize_expr(*cnt)),
         },
-        RExpr::Assign { sym, bnd } => AExpr::Assign {
+        RExpr::Assign { sym, bnd, typ } => AExpr::Assign {
             sym,
             bnd: Box::new(atomize_expr(*bnd)),
         },
-        RExpr::Continue => AExpr::Continue,
-        RExpr::Return { bdy } => AExpr::Return {
+        RExpr::Continue{typ} => AExpr::Continue,
+        RExpr::Return { bdy, typ } => AExpr::Return {
             bdy: Box::new(atomize_expr(*bdy)),
         },
-        RExpr::Struct { sym, fields } => {
+        RExpr::Struct { sym, fields, typ } => {
             let (fields, extras): (Vec<_>, Vec<_>) = fields
                 .into_iter()
                 .map(|(sym, expr)| {
@@ -127,7 +127,7 @@ fn atomize_expr(expr: RExpr) -> AExpr {
                     }
                 })
         }
-        RExpr::AccessField { strct, field } => {
+        RExpr::AccessField { strct, field, typ } => {
             let (strct, extra) = atomize_atom(*strct);
 
             extra
@@ -144,7 +144,7 @@ fn atomize_expr(expr: RExpr) -> AExpr {
 }
 
 fn atomize_atom(expr: RExpr) -> (Atom, Option<(UniqueSym, AExpr)>) {
-    if let RExpr::Lit { val } = expr {
+    if let RExpr::Lit { val, typ } = expr {
         (Atom::Val { val }, None)
     } else {
         let tmp = gen_sym("tmp");
