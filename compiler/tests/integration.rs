@@ -30,6 +30,7 @@ fn integration([test]: [&str; 1]) {
         .reveal()
         .atomize()
         .explicate()
+        .eliminate()
         .select()
         .add_liveness()
         .compute_interference()

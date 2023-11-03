@@ -181,6 +181,7 @@ mod tests {
             .reveal()
             .atomize()
             .explicate()
+            .eliminate()
             .select();
 
         // Redirect program to exit

@@ -1,5 +1,5 @@
 use crate::passes::atomize::Atom;
-use crate::passes::explicate::{CExpr, PrgExplicated, Tail};
+use crate::passes::explicate::{Tail};
 use crate::passes::parse::Op;
 use crate::passes::select::io::Std;
 use crate::passes::select::{
@@ -8,8 +8,9 @@ use crate::passes::select::{
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use crate::*;
 use std::collections::HashMap;
+use crate::passes::eliminate_algebraic::{EExpr, PrgEliminated};
 
-impl<'p> PrgExplicated<'p> {
+impl<'p> PrgEliminated<'p> {
     #[must_use]
     pub fn select(self) -> X86Selected<'p> {
         let mut blocks = HashMap::new();
@@ -31,7 +32,7 @@ impl<'p> PrgExplicated<'p> {
 
 fn select_block<'p>(
     sym: UniqueSym<'p>,
-    tail: Tail<'p, CExpr<'p>>,
+    tail: Tail<'p, EExpr<'p>>,
     std: &Std<'p>,
     fn_params: &HashMap<UniqueSym<'p>, Vec<UniqueSym<'p>>>,
 ) -> Block<'p, VarArg<'p>> {
@@ -59,7 +60,7 @@ fn select_block<'p>(
 }
 
 fn select_tail<'p>(
-    tail: Tail<'p, CExpr<'p>>,
+    tail: Tail<'p, EExpr<'p>>,
     instrs: &mut Vec<Instr<'p, VarArg<'p>>>,
     std: &Std<'p>,
 ) {
@@ -79,7 +80,7 @@ fn select_tail<'p>(
             select_tail(*tail, instrs, std);
         }
         Tail::IfStmt { cnd, thn, els } => match cnd {
-            CExpr::Prim { op, args, .. } => {
+            EExpr::Prim { op, args, .. } => {
                 let tmp = gen_sym("tmp");
                 instrs.extend(vec![
                     movq!(select_atom(&args[0]), var!(tmp)),
@@ -98,19 +99,19 @@ fn select_tail<'p>(
 
 fn select_assign<'p>(
     dst: VarArg<'p>,
-    expr: CExpr<'p>,
+    expr: EExpr<'p>,
     std: &Std<'p>,
 ) -> Vec<Instr<'p, VarArg<'p>>> {
     match expr {
-        CExpr::Atom {
+        EExpr::Atom {
             atm: Atom::Val { val },
             ..
         } => vec![movq!(imm!(val), dst)],
-        CExpr::Atom {
+        EExpr::Atom {
             atm: Atom::Var { sym },
             ..
         } => vec![movq!(var!(sym), dst)],
-        CExpr::Prim { op, args, .. } => match (op, args.as_slice()) {
+        EExpr::Prim { op, args, .. } => match (op, args.as_slice()) {
             (Op::Plus, [a0, a1]) => vec![movq!(select_atom(a0), dst), addq!(select_atom(a1), dst)],
             (Op::Minus, [a0, a1]) => vec![movq!(select_atom(a0), dst), subq!(select_atom(a1), dst)],
             (Op::Minus, [a0]) => vec![movq!(select_atom(a0), dst), negq!(dst)],
@@ -158,8 +159,8 @@ fn select_assign<'p>(
             }
             _ => panic!("Encountered Prim with incorrect arity during select instructions pass."),
         },
-        CExpr::FunRef { sym, .. } => vec![load_lbl!(sym, dst)],
-        CExpr::Apply { fun, args, .. } => {
+        EExpr::FunRef { sym, .. } => vec![load_lbl!(sym, dst)],
+        EExpr::Apply { fun, args, .. } => {
             let mut instrs = vec![];
 
             for (arg, reg) in args.iter().zip(ARG_PASSING_REGS.into_iter()) {
@@ -174,8 +175,6 @@ fn select_assign<'p>(
             instrs.push(movq!(reg!(RAX), dst));
             instrs
         }
-        CExpr::Struct { .. } => todo!(),
-        CExpr::AccessField { .. } => todo!(),
     }
 }
 

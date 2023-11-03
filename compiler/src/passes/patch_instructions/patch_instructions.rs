@@ -65,6 +65,7 @@ mod tests {
             .reveal()
             .atomize()
             .explicate()
+            .eliminate()
             .select()
             .add_liveness()
             .compute_interference()

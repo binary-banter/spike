@@ -3,7 +3,6 @@ use crate::passes::explicate::{CExpr, PrgExplicated, Tail};
 use crate::passes::parse::types::Type;
 use crate::passes::parse::TypeDef;
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
-use functor_derive::Functor;
 use std::collections::HashMap;
 use crate::passes::atomize::Atom;
 

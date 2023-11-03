@@ -17,6 +17,7 @@ pub fn compile(program: &str, output: &Path) -> miette::Result<()> {
         .reveal()
         .atomize()
         .explicate()
+        .eliminate()
         .select()
         .add_liveness()
         .compute_interference()

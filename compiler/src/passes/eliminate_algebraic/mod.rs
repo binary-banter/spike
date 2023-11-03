@@ -1,9 +1,9 @@
 pub mod eliminate;
 
-use crate::passes::atomize::{AExpr, Atom};
+use crate::passes::atomize::Atom;
 use crate::passes::explicate::{CExpr, PrgExplicated, Tail};
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Def, Op, TypeDef};
+use crate::passes::parse::{Op, TypeDef};
 use crate::utils::gen_sym::UniqueSym;
 use functor_derive::Functor;
 use std::collections::HashMap;
