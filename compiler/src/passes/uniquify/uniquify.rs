@@ -1,5 +1,5 @@
-use crate::passes::parse::{Def, Expr, Param};
-use crate::passes::type_check::PrgTypeChecked;
+use crate::passes::parse::{Def, Param, TypeDef};
+use crate::passes::type_check::{PrgTypeChecked, TExpr};
 use crate::passes::uniquify::PrgUniquified;
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use crate::utils::push_map::PushMap;
@@ -21,9 +21,9 @@ impl<'p> PrgTypeChecked<'p> {
 }
 
 fn uniquify_def<'p>(
-    def: Def<'p, &'p str, Expr<'p, &'p str>>,
+    def: Def<'p, &'p str, TExpr<'p, &'p str>>,
     scope: &mut PushMap<&'p str, UniqueSym<'p>>,
-) -> Def<'p, UniqueSym<'p>, Expr<'p, UniqueSym<'p>>> {
+) -> Def<'p, UniqueSym<'p>, TExpr<'p, UniqueSym<'p>>> {
     match def {
         Def::Fn {
             sym,
@@ -50,91 +50,107 @@ fn uniquify_def<'p>(
                 }
             },
         ),
-        Def::Struct { sym, fields } => Def::Struct {
-            sym: scope[&sym],
-            fields: fields
-                .into_iter()
-                .map(|(sym, typ)| (sym, typ.fmap(|sym| scope[sym])))
-                .collect(),
-        },
-        Def::Enum { .. } => todo!(),
+        Def::TypeDef { sym, def } => {
+            let def = match def {
+                TypeDef::Struct { fields } => TypeDef::Struct {
+                    fields: fields
+                        .into_iter()
+                        .map(|(sym, typ)| (sym, typ.fmap(|sym| scope[sym])))
+                        .collect(),
+                },
+                TypeDef::Enum { .. } => todo!(),
+            };
+            Def::TypeDef { sym: scope[&sym], def }
+        }
     }
 }
 
 fn uniquify_expression<'p>(
-    expr: Expr<'p, &'p str>,
+    expr: TExpr<'p, &'p str>,
     scope: &mut PushMap<&'p str, UniqueSym<'p>>,
-) -> Expr<'p, UniqueSym<'p>> {
+) -> TExpr<'p, UniqueSym<'p>> {
     match expr {
-        Expr::Let {
+        TExpr::Let {
             sym,
             mutable,
             bnd,
             bdy,
+            typ,
         } => {
             let unique_bnd = uniquify_expression(*bnd, scope);
             let unique_sym = gen_sym(sym);
             let unique_bdy = scope.push(sym, unique_sym, |scope| uniquify_expression(*bdy, scope));
 
-            Expr::Let {
+            TExpr::Let {
                 sym: unique_sym,
                 mutable,
                 bnd: Box::new(unique_bnd),
                 bdy: Box::new(unique_bdy),
+                typ: typ.fmap(|s| scope[s]),
             }
         }
-        Expr::Var { sym } => Expr::Var { sym: scope[&sym] },
-        Expr::Assign { sym, bnd } => Expr::Assign {
+        TExpr::Var { sym, typ } => TExpr::Var { sym: scope[&sym], typ: typ.fmap(|s| scope[s]) },
+        TExpr::Assign { sym, bnd, typ } => TExpr::Assign {
             sym: scope[sym],
             bnd: Box::new(uniquify_expression(*bnd, scope)),
+            typ: typ.fmap(|s| scope[s]),
         },
-        Expr::Struct { sym, fields } => Expr::Struct {
+        TExpr::Struct { sym, fields, typ } => TExpr::Struct {
             sym: scope[sym],
             fields: fields
                 .into_iter()
-                .map(|(sym, expr)| (sym, uniquify_expression(expr, scope)))
+                .map(|(sym, TExpr)| (sym, uniquify_expression(TExpr, scope)))
                 .collect(),
+            typ: typ.fmap(|s| scope[s]),
         },
 
-        Expr::Lit { val } => Expr::Lit { val },
-        Expr::Prim { op, args } => Expr::Prim {
+        TExpr::Lit { val , typ} => TExpr::Lit { val, typ: typ.fmap(|s| scope[s]), },
+        TExpr::Prim { op, args, typ } => TExpr::Prim {
             op,
             args: args
                 .into_iter()
                 .map(|arg| uniquify_expression(arg, scope))
                 .collect(),
+            typ: typ.fmap(|s| scope[s]),
         },
-        Expr::If { cnd, thn, els } => Expr::If {
+        TExpr::If { cnd, thn, els, typ } => TExpr::If {
             cnd: Box::new(uniquify_expression(*cnd, scope)),
             thn: Box::new(uniquify_expression(*thn, scope)),
             els: Box::new(uniquify_expression(*els, scope)),
+            typ: typ.fmap(|s| scope[s]),
         },
-        Expr::Apply { fun, args } => Expr::Apply {
+        TExpr::Apply { fun, args, typ } => TExpr::Apply {
             fun: Box::new(uniquify_expression(*fun, scope)),
             args: args
                 .into_iter()
                 .map(|arg| uniquify_expression(arg, scope))
                 .collect(),
+            typ: typ.fmap(|s| scope[s]),
         },
-        Expr::Loop { bdy } => Expr::Loop {
+        TExpr::Loop { bdy, typ } => TExpr::Loop {
             bdy: Box::new(uniquify_expression(*bdy, scope)),
+            typ: typ.fmap(|s| scope[s]),
         },
-        Expr::Break { bdy } => Expr::Break {
+        TExpr::Break { bdy, typ } => TExpr::Break {
             bdy: Box::new(uniquify_expression(*bdy, scope)),
+            typ: typ.fmap(|s| scope[s]),
         },
-        Expr::Seq { stmt, cnt } => Expr::Seq {
+        TExpr::Seq { stmt, cnt, typ } => TExpr::Seq {
             stmt: Box::new(uniquify_expression(*stmt, scope)),
             cnt: Box::new(uniquify_expression(*cnt, scope)),
+            typ: typ.fmap(|s| scope[s]),
         },
-        Expr::Continue => Expr::Continue,
-        Expr::Return { bdy } => Expr::Return {
+        TExpr::Continue{ typ } => TExpr::Continue{typ: typ.fmap(|s| scope[s]),},
+        TExpr::Return { bdy, typ } => TExpr::Return {
             bdy: Box::new(uniquify_expression(*bdy, scope)),
+            typ: typ.fmap(|s| scope[s]),
         },
-        Expr::AccessField { strct, field } => Expr::AccessField {
+        TExpr::AccessField { strct, field, typ } => TExpr::AccessField {
             strct: Box::new(uniquify_expression(*strct, scope)),
             field,
+            typ: typ.fmap(|s| scope[s]),
         },
-        Expr::Variant { .. } => todo!(),
-        Expr::Switch { .. } => todo!(),
+        TExpr::Variant { .. } => todo!(),
+        TExpr::Switch { .. } => todo!(),
     }
 }

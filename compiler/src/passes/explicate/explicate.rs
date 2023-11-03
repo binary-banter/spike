@@ -29,10 +29,11 @@ impl<'p> PrgAtomized<'p> {
                 Def::Fn { params, .. } => {
                     fn_params.insert(*sym, params.iter().map(|param| param.sym).collect());
                 }
-                Def::Struct { .. } => {
-                    // todo
-                }
-                Def::Enum { .. } => {}
+                // Def::Struct { .. } => {
+                //     // todo
+                // }
+                // Def::Enum { .. } => {}
+                Def::TypeDef { .. } => todo!(),
             }
         }
 
@@ -51,16 +52,21 @@ impl<'p> PrgAtomized<'p> {
     }
 }
 
-fn explicate_def<'p>(def: Def<'p, UniqueSym<'p>, AExpr<'p>>, env: &mut Env<'_, 'p>, defs: &mut HashMap<UniqueSym<'p>, Def<'p, UniqueSym<'p>, AExpr<'p>>>) {
-    match def {
-        Def::Fn { sym, bdy, .. } => {
-            let tail = explicate_tail(bdy, env);
-            env.blocks.insert(sym, tail);
-        }
-        Def::Struct { sym, .. } | Def::Enum { sym, .. } => {
-            defs.insert(sym, def);
-        }
-    }
+fn explicate_def<'p>(
+    def: Def<'p, UniqueSym<'p>, AExpr<'p>>,
+    env: &mut Env<'_, 'p>,
+    defs: &mut HashMap<UniqueSym<'p>, Def<'p, UniqueSym<'p>, AExpr<'p>>>,
+) {
+    todo!()
+    // match def {
+    //     Def::Fn { sym, bdy, .. } => {
+    //         let tail = explicate_tail(bdy, env);
+    //         env.blocks.insert(sym, tail);
+    //     }
+    //     Def::Struct { sym, .. } | Def::Enum { sym, .. } => {
+    //         defs.insert(sym, def);
+    //     }
+    // }
 }
 
 fn explicate_tail<'p>(expr: AExpr<'p>, env: &mut Env<'_, 'p>) -> Tail<'p, CExpr<'p>> {

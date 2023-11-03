@@ -70,14 +70,15 @@ pub enum RExpr<'p> {
 
 impl<'p> From<PrgRevealed<'p>> for PrgUniquified<'p> {
     fn from(value: PrgRevealed<'p>) -> Self {
-        PrgUniquified {
-            defs: value
-                .defs
-                .into_iter()
-                .map(|(sym, def)| (sym, def.into()))
-                .collect(),
-            entry: value.entry,
-        }
+        todo!()
+        // PrgUniquified {
+        //     defs: value
+        //         .defs
+        //         .into_iter()
+        //         .map(|(sym, def)| (sym, def.into()))
+        //         .collect(),
+        //     entry: value.entry,
+        // }
     }
 }
 
@@ -97,8 +98,7 @@ impl<'p> From<Def<'p, UniqueSym<'p>, RExpr<'p>>>
                 typ,
                 bdy: bdy.into(),
             },
-            Def::Struct { sym, fields } => Def::Struct { sym, fields },
-            Def::Enum { sym, variants } => Def::Enum { sym, variants },
+            Def::TypeDef { sym, def } => Def::TypeDef { sym, def },
         }
     }
 }

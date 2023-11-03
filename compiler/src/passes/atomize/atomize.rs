@@ -6,31 +6,32 @@ use crate::utils::gen_sym::{gen_sym, UniqueSym};
 impl<'p> PrgRevealed<'p> {
     #[must_use]
     pub fn atomize(self) -> PrgAtomized<'p> {
-        PrgAtomized {
-            defs: self
-                .defs
-                .into_iter()
-                .map(|(sym, def)| {
-                    let def = match def {
-                        Def::Fn {
-                            sym,
-                            params,
-                            typ,
-                            bdy,
-                        } => Def::Fn {
-                            sym,
-                            params,
-                            typ,
-                            bdy: atomize_expr(bdy),
-                        },
-                        Def::Struct { sym, fields } => Def::Struct { sym, fields },
-                        Def::Enum { sym, variants } => Def::Enum { sym, variants },
-                    };
-                    (sym, def)
-                })
-                .collect(),
-            entry: self.entry,
-        }
+        todo!();
+        // PrgAtomized {
+        //     defs: self
+        //         .defs
+        //         .into_iter()
+        //         .map(|(sym, def)| {
+        //             let def = match def {
+        //                 Def::Fn {
+        //                     sym,
+        //                     params,
+        //                     typ,
+        //                     bdy,
+        //                 } => Def::Fn {
+        //                     sym,
+        //                     params,
+        //                     typ,
+        //                     bdy: atomize_expr(bdy),
+        //                 },
+        //                 Def::Struct { sym, fields } => Def::Struct { sym, fields },
+        //                 Def::Enum { sym, variants } => Def::Enum { sym, variants },
+        //             };
+        //             (sym, def)
+        //         })
+        //         .collect(),
+        //     entry: self.entry,
+        // }
     }
 }
 

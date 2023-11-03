@@ -1,7 +1,7 @@
 // auto-generated: "lalrpop 0.20.0"
-// sha3: 59cf0df0b5b3ee4cb1cb0ef9f58abb5f5a40c188e9bbf306543b34835d70554c
+// sha3: df030ce6d353635415c6620b8638f630f86cc07f0241fa3020f83f43c645ac9e
 use std::str::FromStr;
-use crate::passes::parse::{Def, Expr, Lit, Op, Param};
+use crate::passes::parse::{Def, TypeDef, Expr, Lit, Op, Param};
 use crate::passes::parse::PrgParsed;
 use crate::passes::parse::Type;
 #[allow(unused_extern_crates)]
@@ -16,7 +16,7 @@ extern crate alloc;
 mod __parse__Program {
 
     use std::str::FromStr;
-    use crate::passes::parse::{Def, Expr, Lit, Op, Param};
+    use crate::passes::parse::{Def, TypeDef, Expr, Lit, Op, Param};
     use crate::passes::parse::PrgParsed;
     use crate::passes::parse::Type;
     #[allow(unused_extern_crates)]
@@ -7401,7 +7401,7 @@ pub use self::__parse__Program::ProgramParser;
 mod __intern_token {
     #![allow(unused_imports)]
     use std::str::FromStr;
-    use crate::passes::parse::{Def, Expr, Lit, Op, Param};
+    use crate::passes::parse::{Def, TypeDef, Expr, Lit, Op, Param};
     use crate::passes::parse::PrgParsed;
     use crate::passes::parse::Type;
     #[allow(unused_extern_crates)]
@@ -7513,9 +7513,9 @@ fn __action2<
     (_, _, _): (usize, &'input str, usize),
 ) -> Def<'input, &'input str, Expr<'input, &'input str>>
 {
-    Def::Struct {
+    Def::TypeDef {
         sym,
-        fields,
+        def: TypeDef::Struct { fields },
     }
 }
 
@@ -7532,9 +7532,9 @@ fn __action3<
     (_, _, _): (usize, &'input str, usize),
 ) -> Def<'input, &'input str, Expr<'input, &'input str>>
 {
-    Def::Enum {
+    Def::TypeDef {
         sym,
-        variants,
+        def: TypeDef::Enum { variants },
     }
 }
 

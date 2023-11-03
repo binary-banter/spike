@@ -1,9 +1,15 @@
 pub mod uniquify;
 
-use crate::passes::type_check::PrgGenericVar;
+use std::collections::HashMap;
+use crate::passes::parse::Def;
+use crate::passes::type_check::TExpr;
 use crate::utils::gen_sym::UniqueSym;
 
-pub type PrgUniquified<'p> = PrgGenericVar<'p, UniqueSym<'p>>;
+#[derive(Debug, PartialEq)]
+pub struct PrgUniquified<'p> {
+    pub defs: HashMap<UniqueSym<'p>, Def<'p, UniqueSym<'p>, TExpr<'p, UniqueSym<'p>>>>,
+    pub entry: UniqueSym<'p>,
+}
 
 #[cfg(test)]
 mod tests {

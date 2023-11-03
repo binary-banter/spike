@@ -4,6 +4,7 @@ use crate::passes::parse::{Def, Expr, Lit, Op};
 use crate::passes::uniquify::PrgUniquified;
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
+use crate::passes::type_check::TExpr;
 
 #[derive(Debug, PartialEq)]
 pub struct PrgAtomized<'p> {
@@ -83,14 +84,15 @@ impl<'p> Atom<'p> {
 
 impl<'p> From<PrgAtomized<'p>> for PrgUniquified<'p> {
     fn from(value: PrgAtomized<'p>) -> Self {
-        PrgUniquified {
-            defs: value
-                .defs
-                .into_iter()
-                .map(|(sym, def)| (sym, def.into()))
-                .collect(),
-            entry: value.entry,
-        }
+        todo!();
+        // PrgUniquified {
+        //     defs: value
+        //         .defs
+        //         .into_iter()
+        //         .map(|(sym, def)| (sym, def.into()))
+        //         .collect(),
+        //     entry: value.entry,
+        // }
     }
 }
 
@@ -99,78 +101,80 @@ impl<'p> From<Def<'p, UniqueSym<'p>, AExpr<'p>>>
     for Def<'p, UniqueSym<'p>, Expr<'p, UniqueSym<'p>>>
 {
     fn from(value: Def<'p, UniqueSym<'p>, AExpr<'p>>) -> Self {
-        match value {
-            Def::Fn {
-                sym,
-                params,
-                typ,
-                bdy,
-            } => Def::Fn {
-                sym,
-                params,
-                typ,
-                bdy: bdy.into(),
-            },
-            Def::Struct { sym, fields } => Def::Struct { sym, fields },
-            Def::Enum { sym, variants } => Def::Enum { sym, variants },
-        }
+        todo!()
+        // match value {
+        //     Def::Fn {
+        //         sym,
+        //         params,
+        //         typ,
+        //         bdy,
+        //     } => Def::Fn {
+        //         sym,
+        //         params,
+        //         typ,
+        //         bdy: bdy.into(),
+        //     },
+        //     Def::Struct { sym, fields } => Def::Struct { sym, fields },
+        //     Def::Enum { sym, variants } => Def::Enum { sym, variants },
+        // }
     }
 }
 
-impl<'p> From<AExpr<'p>> for Expr<'p, UniqueSym<'p>> {
+impl<'p> From<AExpr<'p>> for TExpr<'p, UniqueSym<'p>> {
     fn from(value: AExpr<'p>) -> Self {
-        match value {
-            AExpr::Atom { atm } => atm.into(),
-            AExpr::Prim { op, args } => Expr::Prim {
-                op,
-                args: args.into_iter().map(Into::into).collect(),
-            },
-            AExpr::Let { sym, bnd, bdy } => Expr::Let {
-                sym,
-                mutable: true,
-                bnd: Box::new((*bnd).into()),
-                bdy: Box::new((*bdy).into()),
-            },
-            AExpr::If { cnd, thn, els } => Expr::If {
-                cnd: Box::new((*cnd).into()),
-                thn: Box::new((*thn).into()),
-                els: Box::new((*els).into()),
-            },
-            AExpr::Apply { fun, args } => Expr::Apply {
-                fun: Box::new(fun.into()),
-                args: args.into_iter().map(Into::into).collect(),
-            },
-            AExpr::FunRef { sym } => Expr::Var { sym },
-            AExpr::Loop { bdy } => Expr::Loop {
-                bdy: Box::new((*bdy).into()),
-            },
-            AExpr::Break { bdy } => Expr::Break {
-                bdy: Box::new((*bdy).into()),
-            },
-            AExpr::Seq { stmt, cnt } => Expr::Seq {
-                stmt: Box::new((*stmt).into()),
-                cnt: Box::new((*cnt).into()),
-            },
-            AExpr::Assign { sym, bnd } => Expr::Assign {
-                sym,
-                bnd: Box::new((*bnd).into()),
-            },
-            AExpr::Continue => Expr::Continue,
-            AExpr::Return { bdy } => Expr::Return {
-                bdy: Box::new((*bdy).into()),
-            },
-            AExpr::Struct { sym, fields } => Expr::Struct {
-                sym,
-                fields: fields
-                    .into_iter()
-                    .map(|(sym, atm)| (sym, atm.into()))
-                    .collect(),
-            },
-            AExpr::AccessField { strct, field } => Expr::AccessField {
-                strct: Box::new(strct.into()),
-                field,
-            },
-        }
+        todo!();
+        // match value {
+        //     AExpr::Atom { atm } => atm.into(),
+        //     AExpr::Prim { op, args } => TExpr::Prim {
+        //         op,
+        //         args: args.into_iter().map(Into::into).collect(),
+        //     },
+        //     AExpr::Let { sym, bnd, bdy } => TExpr::Let {
+        //         sym,
+        //         mutable: true,
+        //         bnd: Box::new((*bnd).into()),
+        //         bdy: Box::new((*bdy).into()),
+        //     },
+        //     AExpr::If { cnd, thn, els } => TExpr::If {
+        //         cnd: Box::new((*cnd).into()),
+        //         thn: Box::new((*thn).into()),
+        //         els: Box::new((*els).into()),
+        //     },
+        //     AExpr::Apply { fun, args } => TExpr::Apply {
+        //         fun: Box::new(fun.into()),
+        //         args: args.into_iter().map(Into::into).collect(),
+        //     },
+        //     AExpr::FunRef { sym } => TExpr::Var { sym },
+        //     AExpr::Loop { bdy } => TExpr::Loop {
+        //         bdy: Box::new((*bdy).into()),
+        //     },
+        //     AExpr::Break { bdy } => TExpr::Break {
+        //         bdy: Box::new((*bdy).into()),
+        //     },
+        //     AExpr::Seq { stmt, cnt } => TExpr::Seq {
+        //         stmt: Box::new((*stmt).into()),
+        //         cnt: Box::new((*cnt).into()),
+        //     },
+        //     AExpr::Assign { sym, bnd } => TExpr::Assign {
+        //         sym,
+        //         bnd: Box::new((*bnd).into()),
+        //     },
+        //     AExpr::Continue => TExpr::Continue,
+        //     AExpr::Return { bdy } => TExpr::Return {
+        //         bdy: Box::new((*bdy).into()),
+        //     },
+        //     AExpr::Struct { sym, fields } => TExpr::Struct {
+        //         sym,
+        //         fields: fields
+        //             .into_iter()
+        //             .map(|(sym, atm)| (sym, atm.into()))
+        //             .collect(),
+        //     },
+        //     AExpr::AccessField { strct, field } => TExpr::AccessField {
+        //         strct: Box::new(strct.into()),
+        //         field,
+        //     },
+        // }
     }
 }
 
@@ -186,13 +190,13 @@ impl<'p> From<Atom<'p>> for Expr<'p, UniqueSym<'p>> {
 #[cfg(test)]
 mod tests {
     use crate::interpreter::TestIO;
-    use crate::passes::type_check::PrgGenericVar;
     use crate::utils::split_test::split_test;
     use test_each_file::test_each_file;
+    use crate::passes::uniquify::PrgUniquified;
 
     fn atomize([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);
-        let program: PrgGenericVar<_> = program
+        let program: PrgUniquified = program
             .type_check()
             .unwrap()
             .uniquify()

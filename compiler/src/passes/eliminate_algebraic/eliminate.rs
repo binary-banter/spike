@@ -1,9 +1,7 @@
-use crate::passes::atomize::Atom;
-use crate::passes::eliminate_algebraic::{EExpr, PrgEliminated};
+use crate::passes::eliminate_algebraic::PrgEliminated;
 use crate::passes::explicate::{CExpr, PrgExplicated, Tail};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use std::collections::HashMap;
-use functor_derive::Functor;
 
 // (Old variable name, field name) -> New variable name
 type Ctx<'p> = HashMap<(UniqueSym<'p>, &'p str), UniqueSym<'p>>;
@@ -11,7 +9,9 @@ type Ctx<'p> = HashMap<(UniqueSym<'p>, &'p str), UniqueSym<'p>>;
 impl<'p> PrgExplicated<'p> {
     pub fn eliminate(self) -> PrgEliminated<'p> {
         let mut ctx = Ctx::new();
-        self.blocks.values().for_each(|tail| collect_tail(tail, &mut ctx));
+        self.blocks
+            .values()
+            .for_each(|tail| collect_tail(tail, &mut ctx));
         for (x, y) in &ctx {
             println!("old: {x:?} -> new: {y:?}");
         }
@@ -28,7 +28,7 @@ impl<'p> PrgExplicated<'p> {
 fn collect_tail<'p>(tail: &Tail<'p, CExpr<'p>>, ctx: &mut Ctx<'p>) {
     match tail {
         //TODO what if a struct is returned from a function???
-        Tail::Return { expr } => {},
+        Tail::Return { expr } => {}
         Tail::Seq { sym, bnd, tail } => {
             collect_expr(*sym, bnd, ctx);
             collect_tail(tail, ctx);

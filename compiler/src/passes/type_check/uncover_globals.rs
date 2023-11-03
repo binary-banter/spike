@@ -9,7 +9,7 @@ use std::collections::{HashMap, HashSet};
 
 /// Returns a `PushMap` with all the functions in scope.
 pub fn uncover_globals<'p>(
-    program: &'p PrgParsed<'p>,
+    program: &PrgParsed<'p>,
 ) -> Result<PushMap<&'p str, EnvEntry<'p>>, TypeError> {
     let mut globals = HashMap::new();
 
@@ -48,8 +48,8 @@ pub fn uncover_globals<'p>(
                     },
                 )?;
             }
-            def @ (Def::Struct { sym, .. } | Def::Enum { sym, .. }) => {
-                globals.insert(sym, EnvEntry::Def { def });
+            Def::TypeDef { sym, def } => {
+                globals.insert(sym, EnvEntry::Def { def: (*def).clone() });
             }
         }
     }

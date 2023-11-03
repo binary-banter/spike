@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use crate::passes::parse::{Def, Expr, Lit, Op, Param};
+use crate::passes::parse::{Def, TypeDef, Expr, Lit, Op, Param};
 use crate::passes::parse::PrgParsed;
 use crate::passes::parse::Type;
 
@@ -94,13 +94,13 @@ pub Program: PrgParsed<'input> = {
 }
 
 Def: Def<'input, &'input str, Expr<'input, &'input str>> = {
-    "struct" <sym:Ident> "{" <fields:Comma<(<Ident> ":" <Type>)>> "}" => Def::Struct {
+    "struct" <sym:Ident> "{" <fields:Comma<(<Ident> ":" <Type>)>> "}" => Def::TypeDef {
         sym,
-        fields,
+        def: TypeDef::Struct { fields },
     },
-    "enum" <sym:Ident> "{" <variants:Comma<(<Ident> ":" <Type>)>> "}" => Def::Enum {
+    "enum" <sym:Ident> "{" <variants:Comma<(<Ident> ":" <Type>)>> "}" => Def::TypeDef {
         sym,
-        variants,
+        def: TypeDef::Enum { variants },
     },
     "fn" <sym:Ident> "(" <params:Comma<Param>> ")" <typ:("->" <Type>)?> "{" <bdy: Expr> "}" => Def::Fn {
         sym,

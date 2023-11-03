@@ -4,8 +4,8 @@ use crate::passes::atomize::{AExpr, Atom};
 use crate::passes::explicate::{CExpr, PrgExplicated, Tail};
 use crate::passes::parse::{Def, Op};
 use crate::utils::gen_sym::UniqueSym;
-use std::collections::HashMap;
 use functor_derive::Functor;
+use std::collections::HashMap;
 
 #[derive(Debug, PartialEq)]
 pub struct PrgEliminated<'p> {
@@ -38,9 +38,17 @@ impl<'p> From<Tail<'p, EExpr<'p>>> for Tail<'p, CExpr<'p>> {
     fn from(value: Tail<'p, EExpr<'p>>) -> Self {
         match value {
             Tail::Return { expr } => Tail::Return { expr: expr.into() },
-            Tail::Seq { sym, bnd, tail } => Tail::Seq { sym, bnd: bnd.into(), tail: Box::new((*tail).into()) },
-            Tail::IfStmt { cnd, thn, els } => Tail::IfStmt { cnd: cnd.into(), thn, els },
-            Tail::Goto { lbl } => Tail::Goto { lbl }
+            Tail::Seq { sym, bnd, tail } => Tail::Seq {
+                sym,
+                bnd: bnd.into(),
+                tail: Box::new((*tail).into()),
+            },
+            Tail::IfStmt { cnd, thn, els } => Tail::IfStmt {
+                cnd: cnd.into(),
+                thn,
+                els,
+            },
+            Tail::Goto { lbl } => Tail::Goto { lbl },
         }
     }
 }
@@ -59,9 +67,9 @@ impl<'p> From<EExpr<'p>> for CExpr<'p> {
 #[cfg(test)]
 mod tests {
     use crate::interpreter::TestIO;
+    use crate::passes::explicate::PrgExplicated;
     use crate::utils::split_test::split_test;
     use test_each_file::test_each_file;
-    use crate::passes::explicate::PrgExplicated;
 
     fn eliminated([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);

@@ -1,77 +1,106 @@
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Def, Expr, Lit};
+use crate::passes::parse::{Def, Expr, Lit, TypeDef};
 use crate::passes::type_check::check::{Env, EnvEntry};
 use crate::passes::type_check::error::TypeError;
 use crate::passes::type_check::error::TypeError::*;
-use crate::passes::type_check::{util, validate_prim, validate_struct};
+use crate::passes::type_check::validate_prim::validate_prim;
+use crate::passes::type_check::TExpr;
+use crate::passes::type_check::util::{expect_type, expect_type_eq};
+use crate::passes::type_check::validate_struct::validate_struct;
 use crate::utils::expect::expect;
 
 pub fn validate_expr<'p>(
-    expr: &Expr<'p, &'p str>,
+    expr: Expr<'p, &'p str>,
     env: &mut Env<'_, 'p>,
-) -> Result<Type<&'p str>, TypeError> {
-    match expr {
-        Expr::Lit { val } => match val {
-            Lit::Int { .. } => Ok(Type::Int),
-            Lit::Bool { .. } => Ok(Type::Bool),
-            Lit::Unit => Ok(Type::Unit),
+) -> Result<TExpr<'p, &'p str>, TypeError> {
+    Ok(match expr {
+        Expr::Lit { val } => TExpr::Lit {
+            val,
+            typ: match val {
+                Lit::Int { .. } => Type::Int,
+                Lit::Bool { .. } => Type::Bool,
+                Lit::Unit => Type::Unit,
+            },
         },
         Expr::Var { sym } => {
-            let entry = env.scope.get(sym).ok_or(UndeclaredVar {
+            let entry = env.scope.get(&sym).ok_or(UndeclaredVar {
                 sym: (*sym).to_string(),
             })?;
 
             if let EnvEntry::Type { typ, .. } = entry {
-                Ok(typ.clone())
+                TExpr::Var {
+                    sym,
+                    typ: typ.clone(),
+                }
             } else {
-                Err(VariableShouldBeExpr {
+                return Err(VariableShouldBeExpr {
                     sym: (*sym).to_string(),
                 })
             }
         }
-        Expr::Prim { op, args } => validate_prim::validate_prim(env, op, args)?,
+        Expr::Prim { op, args } => validate_prim(env, op, args)?,
         Expr::Let {
             sym,
             mutable,
             bnd,
             bdy,
         } => {
-            let typ = validate_expr(bnd, env)?;
-            env.push(
+            let bnd = validate_expr(*bnd, env)?;
+            let bdy = env.push(
                 sym,
                 EnvEntry::Type {
-                    mutable: *mutable,
-                    typ,
+                    mutable,
+                    typ: bnd.typ().clone(),
                 },
-                |env| validate_expr(bdy, env),
-            )
+                |env| validate_expr(*bdy, env),
+            )?;
+
+            TExpr::Let {
+                typ: bdy.typ().clone(),
+                sym,
+                mutable,
+                bnd: Box::new(bnd),
+                bdy: Box::new(bdy),
+            }
         }
         Expr::If { cnd, thn, els } => {
-            util::expect_type(cnd, Type::Bool, env)?;
-            util::expect_type_eq(thn, els, env)
-        }
-        Expr::Apply { fun, args } => match validate_expr(fun, env)? {
-            Type::Fn {
-                typ,
-                params: expected_types,
-            } => {
-                if expected_types.len() != args.len() {
-                    return Err(ArgCountMismatch {
-                        expected: expected_types.len(),
-                        got: args.len(),
-                    });
-                }
+            let cnd = validate_expr(*cnd, env)?;
+            let thn = validate_expr(*thn, env)?;
+            let els = validate_expr(*els, env)?;
 
-                for (arg, arg_typ) in args.iter().zip(expected_types.iter()) {
-                    util::expect_type(arg, arg_typ.clone(), env)?;
-                }
+            expect_type(&cnd, &Type::Bool)?;
+            expect_type_eq(&thn, &els)?;
 
-                Ok(*typ)
+            TExpr::If {
+                typ: thn.typ().clone(),
+                cnd: Box::new(cnd),
+                thn: Box::new(thn),
+                els: Box::new(els),
             }
-            got => Err(TypeMismatchExpectFn {
-                got: got.fmap(str::to_string),
-            }),
-        },
+        }
+        Expr::Apply { fun, args } => {
+            let fun = validate_expr(*fun, env)?;
+            let args = args
+                .into_iter()
+                .map(|arg| validate_expr(arg, env))
+                .collect::<Result<Vec<_>, _>>()?;
+
+            let Type::Fn { params, typ } = fun.typ() else {
+                return Err(TypeMismatchExpectFn { got: fun.typ().clone().fmap(str::to_string) })
+            };
+
+            expect(params.len() == args.len(), ArgCountMismatch { expected: params.len(), got: args.len()})?;
+
+            for (arg, param_type) in args.iter().zip(params.iter()) {
+                expect_type(arg, param_type)?;
+            }
+
+            TExpr::Apply {
+                typ: (**typ).clone(),
+                fun: Box::new(fun),
+                args,
+            }
+        }
         Expr::Loop { bdy } => {
             let mut loop_type = None;
             let mut env = Env {
@@ -80,34 +109,34 @@ pub fn validate_expr<'p>(
                 in_loop: true,
                 return_type: env.return_type,
             };
-            validate_expr(bdy, &mut env)?;
-            Ok(loop_type.unwrap_or(Type::Never))
+            let bdy = validate_expr(*bdy, &mut env)?;
+            TExpr::Loop{ bdy: Box::new(bdy), typ: loop_type.unwrap_or(Type::Never) }
         }
         Expr::Break { bdy } => {
             expect(env.in_loop, BreakOutsideLoop)?;
 
-            let bdy_type = validate_expr(bdy, env)?;
+            let bdy = validate_expr(*bdy, env)?;
 
             if let Some(loop_type) = env.loop_type {
-                expect(
-                    *loop_type == bdy_type,
-                    TypeMismatchEqual {
-                        t1: loop_type.clone().fmap(str::to_string),
-                        t2: bdy_type.fmap(str::to_string),
-                    },
-                )?;
+                expect_type(&bdy, loop_type)?;
             } else {
-                *env.loop_type = Some(bdy_type);
+                *env.loop_type = Some(bdy.typ().clone());
             }
 
-            Ok(Type::Never)
+            TExpr::Break { bdy: Box::new(bdy) , typ: Type::Never}
         }
         Expr::Seq { stmt, cnt } => {
-            validate_expr(stmt, env)?;
-            validate_expr(cnt, env)
+            let stmt = validate_expr(*stmt, env)?;
+            let cnt = validate_expr(*cnt, env)?;
+
+            TExpr::Seq{
+                typ: cnt.typ().clone(),
+                stmt: Box::new(stmt),
+                cnt: Box::new(cnt),
+            }
         }
         Expr::Assign { sym, bnd } => {
-            let entry = env.scope.get(sym).ok_or(UndeclaredVar {
+            let entry = env.scope.get(&sym).ok_or(UndeclaredVar {
                 sym: (*sym).to_string(),
             })?;
 
@@ -124,49 +153,49 @@ pub fn validate_expr<'p>(
                 },
             )?;
 
-            util::expect_type(bnd, typ.clone(), env)?;
-            Ok(Type::Unit)
+            let bnd = validate_expr(*bnd, env)?;
+            TExpr::Assign { sym, bnd: Box::new(bnd), typ: Type::Unit}
         }
-        Expr::Continue => Ok(Type::Never),
+        Expr::Continue => TExpr::Continue { typ: Type::Never },
         Expr::Return { bdy } => {
-            util::expect_type(bdy, env.return_type.clone(), env)?;
-            Ok(Type::Never)
+            let bdy = validate_expr(*bdy, env)?;
+            expect_type(&bdy, env.return_type)?;
+            TExpr::Return { bdy: Box::new(bdy), typ: Type::Never }
         }
         Expr::Struct {
             sym,
-            fields: provided_fields,
-        } => validate_struct::validate_struct(env, sym, provided_fields),
+            fields,
+        } => validate_struct(env, sym, fields)?,
         Expr::AccessField {
             strct,
-            field: field_sym,
+            field,
         } => {
-            let typ = validate_expr(strct, env)?;
-            let Type::Var { sym } = typ else {
+            let strct = validate_expr(*strct, env)?;
+
+            let Type::Var { sym } = strct.typ() else {
                 return Err(TypeShouldBeStruct {
-                    typ: typ.clone().fmap(str::to_string),
+                    typ: strct.typ().clone().fmap(str::to_string),
                 });
             };
 
-            let EnvEntry::Def {
-                def: Def::Struct {
-                    fields: def_fields, ..
-                },
-            } = env.scope[sym]
-            else {
-                return Err(VariableShouldBeStruct {
-                    sym: sym.to_string(),
-                });
+            #[rustfmt::skip]
+            let EnvEntry::Def { def: TypeDef::Struct { fields: def_fields, .. } } = &env.scope[sym] else {
+                return Err(VariableShouldBeStruct { sym: sym.to_string() });
             };
 
-            let Some((_, t)) = def_fields.iter().find(|&(sym, _)| sym == field_sym) else {
+            let Some((_, typ)) = def_fields.iter().find(|&(sym, _)| *sym == field) else {
                 return Err(UnknownStructField {
                     sym: sym.to_string(),
                 });
             };
 
-            Ok(t.clone())
+            TExpr::AccessField {
+                strct: Box::new(strct),
+                field,
+                typ: typ.clone(),
+            }
         }
         Expr::Variant { .. } => todo!(),
         Expr::Switch { .. } => todo!(),
-    }
+    })
 }

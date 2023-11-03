@@ -1,39 +1,32 @@
 use crate::passes::parse::types::Type;
-use crate::passes::parse::Expr;
-use crate::passes::type_check::check::Env;
 use crate::passes::type_check::error::TypeError;
 use crate::passes::type_check::error::TypeError::*;
-use crate::passes::type_check::validate_expr;
+use crate::passes::type_check::TExpr;
 use crate::utils::expect::expect;
 
-pub fn expect_type_eq<'p>(
-    e1: &Expr<'p, &'p str>,
-    e2: &Expr<'p, &'p str>,
-    env: &mut Env<'_, 'p>,
-) -> Result<Type<&'p str>, TypeError> {
-    let t1 = validate_expr::validate_expr(e1, env)?;
-    let t2 = validate_expr::validate_expr(e2, env)?;
+pub fn expect_type_eq<'p>(e1: &TExpr<'p, &'p str>, e2: &TExpr<'p, &'p str>) -> Result<Type<&'p str>, TypeError> {
+    let t1 = e1.typ();
+    let t2 = e2.typ();
     expect(
         t1 == t2,
         TypeMismatchEqual {
             t1: t1.clone().fmap(str::to_string),
-            t2: t2.fmap(str::to_string),
+            t2: t2.clone().fmap(str::to_string),
         },
     )?;
-    Ok(t1)
+    Ok(t1.clone())
 }
 
 pub fn expect_type<'p>(
-    expr: &Expr<'p, &'p str>,
-    expected: Type<&'p str>,
-    env: &mut Env<'_, 'p>,
+    expr: &TExpr<'p, &'p str>,
+    expected: &Type<&'p str>,
 ) -> Result<(), TypeError> {
-    let t = validate_expr::validate_expr(expr, env)?;
+    let t = expr.typ();
     expect(
         t == expected,
         TypeMismatchExpect {
-            got: t.fmap(str::to_string),
-            expect: expected.fmap(str::to_string),
+            got: t.clone().fmap(str::to_string),
+            expect: expected.clone().fmap(str::to_string),
         },
     )
 }

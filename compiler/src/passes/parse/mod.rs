@@ -37,17 +37,21 @@ pub enum Def<'p, A: Copy + Hash + Eq + Display, B> {
         /// Function body.
         bdy: B,
     },
+    TypeDef{
+        sym: A,
+        def: TypeDef<'p, A>
+    },
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum TypeDef<'p, A: Copy + Hash + Eq + Display> {
     /// A struct definition.
     Struct {
-        /// Symbol representing the struct.
-        sym: A,
         /// Fields of the struct, consisting of field symbols and their types.
         fields: Vec<(&'p str, Type<A>)>,
     },
     /// An enum definition.
     Enum {
-        /// Symbol representing the enum.
-        sym: A,
         /// Variants of the enum, consisting of variant symbols and their types.
         variants: Vec<(A, Type<A>)>,
     },
@@ -58,8 +62,7 @@ impl<'p, A: Copy + Hash + Eq + Display, B> Def<'p, A, B> {
     pub fn sym(&self) -> &A {
         match self {
             Def::Fn { sym, .. } => sym,
-            Def::Struct { sym, .. } => sym,
-            Def::Enum { sym, .. } => sym,
+            Def::TypeDef { sym, .. } => sym,
         }
     }
 }
@@ -68,7 +71,7 @@ impl<'p, A: Copy + Hash + Eq + Display, B> Def<'p, A, B> {
 ///
 /// Parameters are generic and can use symbols that are either `&str` or
 /// [`UniqueSym`](crate::utils::gen_sym::UniqueSym) for all passes after uniquify.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Param<A: Copy + Hash + Eq + Display> {
     /// Symbol representing the parameter.
     pub sym: A,
