@@ -19,13 +19,13 @@ impl<'p> PrgExplicated<'p> {
         io: &mut impl IO,
     ) -> Val<'p, UniqueSym<'p>> {
         match tail {
-            Tail::Return { expr } => self.interpret_expr(&expr.clone(), scope, io),
+            Tail::Return { expr } => self.interpret_atom(expr, scope),
             Tail::Seq { sym, bnd, tail } => {
-                let bnd = self.interpret_expr(&bnd.clone(), scope, io);
+                let bnd = self.interpret_expr(bnd, scope, io);
                 scope.push(*sym, bnd, |scope| self.interpret_tail(tail, scope, io))
             }
             Tail::IfStmt { cnd, thn, els } => {
-                if self.interpret_expr(&cnd.clone(), scope, io).bool() {
+                if self.interpret_expr(cnd, scope, io).bool() {
                     self.interpret_tail(&self.blocks[thn], scope, io)
                 } else {
                     self.interpret_tail(&self.blocks[els], scope, io)

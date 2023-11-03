@@ -16,11 +16,12 @@ impl<'p> PrgExplicated<'p> {
             println!("old: {x:?} -> new: {y:?}");
         }
 
-        PrgEliminated {
-            blocks: self.blocks.fmap(|tail| eliminate_tail(tail, &ctx)),
-            fn_params: self.fn_params,
-            entry: self.entry,
-        }
+        todo!()
+        // PrgEliminated {
+        //     blocks: self.blocks.fmap(|tail| eliminate_tail(tail, &ctx)),
+        //     fn_params: self.fn_params,
+        //     entry: self.entry,
+        // }
     }
 }
 
@@ -48,51 +49,51 @@ fn collect_expr<'p>(sym: UniqueSym<'p>, expr: &CExpr<'p>, ctx: &mut Ctx<'p>) {
     }
 }
 
-fn eliminate_tail<'p>(tail: Tail<'p, CExpr<'p>>, ctx: &Ctx<'p>) -> Tail<'p, EExpr<'p>> {
-    match tail {
-        Tail::Return { expr } => Tail::Return {
-            expr: eliminate_expr(expr, ctx),
-        },
-        Tail::Seq {
-            sym,
-            bnd: CExpr::Struct { fields, .. },
-            tail,
-        } => fields
-            .into_iter()
-            .fold(eliminate_tail(*tail, ctx), |acc, (field_sym, field_bnd)| {
-                Tail::Seq {
-                    sym: ctx[&(sym, field_sym)],
-                    bnd: EExpr::Atom { atm: field_bnd },
-                    tail: Box::new(acc),
-                }
-            }),
-        Tail::Seq { sym, bnd, tail } => Tail::Seq {
-            sym,
-            bnd: eliminate_expr(bnd, ctx),
-            tail: Box::new(eliminate_tail(*tail, ctx)),
-        },
-        Tail::IfStmt { cnd, thn, els } => Tail::IfStmt {
-            cnd: eliminate_expr(cnd, ctx),
-            thn,
-            els,
-        },
-        Tail::Goto { lbl } => Tail::Goto { lbl },
-    }
-}
-
-fn eliminate_expr<'p>(expr: CExpr<'p>, ctx: &Ctx<'p>) -> EExpr<'p> {
-    match expr {
-        CExpr::Atom { atm } => EExpr::Atom { atm },
-        CExpr::Prim { op, args } => EExpr::Prim { op, args },
-        CExpr::Apply { fun, args } => EExpr::Apply { fun, args },
-        CExpr::FunRef { sym } => EExpr::FunRef { sym },
-        CExpr::Struct { .. } => {
-            unreachable!("Should've been handled in eliminate_tail")
-        }
-        CExpr::AccessField { strct, field } => EExpr::Atom {
-            atm: Atom::Var {
-                sym: ctx[&(strct.var(), field)],
-            },
-        }
-    }
-}
+// fn eliminate_tail<'p>(tail: Tail<'p, CExpr<'p>>, ctx: &Ctx<'p>) -> Tail<'p, EExpr<'p>> {
+//     match tail {
+//         Tail::Return { expr } => Tail::Return {
+//             expr: eliminate_expr(expr, ctx),
+//         },
+//         Tail::Seq {
+//             sym,
+//             bnd: CExpr::Struct { fields, .. },
+//             tail,
+//         } => fields
+//             .into_iter()
+//             .fold(eliminate_tail(*tail, ctx), |acc, (field_sym, field_bnd)| {
+//                 Tail::Seq {
+//                     sym: ctx[&(sym, field_sym)],
+//                     bnd: EExpr::Atom { atm: field_bnd },
+//                     tail: Box::new(acc),
+//                 }
+//             }),
+//         Tail::Seq { sym, bnd, tail } => Tail::Seq {
+//             sym,
+//             bnd: eliminate_expr(bnd, ctx),
+//             tail: Box::new(eliminate_tail(*tail, ctx)),
+//         },
+//         Tail::IfStmt { cnd, thn, els } => Tail::IfStmt {
+//             cnd: eliminate_expr(cnd, ctx),
+//             thn,
+//             els,
+//         },
+//         Tail::Goto { lbl } => Tail::Goto { lbl },
+//     }
+// }
+//
+// fn eliminate_expr<'p>(expr: CExpr<'p>, ctx: &Ctx<'p>) -> EExpr<'p> {
+//     match expr {
+//         CExpr::Atom { atm } => EExpr::Atom { atm },
+//         CExpr::Prim { op, args } => EExpr::Prim { op, args },
+//         CExpr::Apply { fun, args } => EExpr::Apply { fun, args },
+//         CExpr::FunRef { sym } => EExpr::FunRef { sym },
+//         CExpr::Struct { .. } => {
+//             unreachable!("Should've been handled in eliminate_tail")
+//         }
+//         CExpr::AccessField { strct, field } => EExpr::Atom {
+//             atm: Atom::Var {
+//                 sym: ctx[&(strct.var(), field)],
+//             },
+//         }
+//     }
+// }

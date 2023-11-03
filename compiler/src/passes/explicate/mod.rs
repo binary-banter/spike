@@ -16,7 +16,7 @@ pub struct PrgExplicated<'p> {
 #[derive(Debug, PartialEq)]
 pub enum Tail<'p, E> {
     Return {
-        expr: E,
+        expr: Atom<'p>,
     },
     Seq {
         sym: UniqueSym<'p>,

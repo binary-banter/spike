@@ -61,9 +61,7 @@ fn explicate_def<'p>(def: Def<UniqueSym<'p>, AExpr<'p>>, env: &mut Env<'_, 'p>) 
 fn explicate_tail<'p>(expr: AExpr<'p>, env: &mut Env<'_, 'p>) -> Tail<'p, CExpr<'p>> {
     let tmp = gen_sym("return");
     let tail = Tail::Return {
-        expr: CExpr::Atom {
-            atm: Atom::Var { sym: tmp },
-        },
+        expr: Atom::Var { sym: tmp },
     };
     explicate_assign(tmp, expr, tail, env)
 }
@@ -170,9 +168,7 @@ fn explicate_assign<'p>(
         AExpr::Return { bdy } => {
             let tmp = gen_sym("return");
             let tail = Tail::Return {
-                expr: CExpr::Atom {
-                    atm: Atom::Var { sym: tmp },
-                },
+                expr: Atom::Var { sym: tmp },
             };
             explicate_assign(tmp, *bdy, tail, env)
         }

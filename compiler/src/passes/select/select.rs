@@ -64,8 +64,8 @@ fn select_tail<'p>(
     std: &Std<'p>,
 ) {
     match tail {
-        Tail::Return { expr } => {
-            instrs.extend(select_assign(reg!(RAX), expr, std));
+        Tail::Return { expr: atm } => {
+            instrs.push(movq!(select_atom(&atm), reg!(RAX)));
 
             for reg in CALLEE_SAVED_NO_STACK.into_iter().rev() {
                 instrs.push(popq!(VarArg::Reg { reg }));
