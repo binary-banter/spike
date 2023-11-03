@@ -174,7 +174,7 @@ fn select_assign<'p>(
             instrs.push(movq!(reg!(RAX), dst));
             instrs
         }
-        CExpr::Struct {  .. } => todo!(),
+        CExpr::Struct { .. } => todo!(),
         CExpr::AccessField { .. } => todo!(),
     }
 }

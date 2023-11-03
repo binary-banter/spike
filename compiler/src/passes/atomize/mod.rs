@@ -7,8 +7,6 @@ use crate::passes::uniquify::PrgUniquified;
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
 
-
-
 #[derive(Debug, PartialEq)]
 pub struct PrgAtomized<'p> {
     pub defs: HashMap<UniqueSym<'p>, Def<'p, UniqueSym<'p>, AExpr<'p>>>,

@@ -1,7 +1,7 @@
 pub mod explicate;
 pub mod interpret;
 
-use crate::passes::atomize::{Atom};
+use crate::passes::atomize::Atom;
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Op, TypeDef};
 use crate::utils::gen_sym::UniqueSym;
@@ -66,6 +66,19 @@ pub enum CExpr<'p> {
         field: &'p str,
         typ: Type<UniqueSym<'p>>,
     },
+}
+
+impl<'p> CExpr<'p> {
+    pub fn typ(&self) -> &Type<UniqueSym<'p>> {
+        match self {
+            CExpr::Atom { typ, .. }
+            | CExpr::Prim { typ, .. }
+            | CExpr::Apply { typ, .. }
+            | CExpr::FunRef { typ, .. }
+            | CExpr::Struct { typ, .. }
+            | CExpr::AccessField { typ, .. } => typ,
+        }
+    }
 }
 
 #[cfg(test)]

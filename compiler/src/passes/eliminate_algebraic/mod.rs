@@ -2,7 +2,8 @@ pub mod eliminate;
 
 use crate::passes::atomize::{AExpr, Atom};
 use crate::passes::explicate::{CExpr, PrgExplicated, Tail};
-use crate::passes::parse::{Def, Op};
+use crate::passes::parse::types::Type;
+use crate::passes::parse::{Def, Op, TypeDef};
 use crate::utils::gen_sym::UniqueSym;
 use functor_derive::Functor;
 use std::collections::HashMap;
@@ -11,16 +12,30 @@ use std::collections::HashMap;
 pub struct PrgEliminated<'p> {
     pub blocks: HashMap<UniqueSym<'p>, Tail<'p, EExpr<'p>>>,
     pub fn_params: HashMap<UniqueSym<'p>, Vec<UniqueSym<'p>>>,
-    pub defs: HashMap<UniqueSym<'p>, Def<'p, UniqueSym<'p>, AExpr<'p>>>,
+    pub defs: HashMap<UniqueSym<'p>, TypeDef<'p, UniqueSym<'p>>>,
     pub entry: UniqueSym<'p>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum EExpr<'p> {
-    Atom { atm: Atom<'p> },
-    Prim { op: Op, args: Vec<Atom<'p>> },
-    Apply { fun: Atom<'p>, args: Vec<Atom<'p>> },
-    FunRef { sym: UniqueSym<'p> },
+    Atom {
+        atm: Atom<'p>,
+        typ: Type<UniqueSym<'p>>,
+    },
+    Prim {
+        op: Op,
+        args: Vec<Atom<'p>>,
+        typ: Type<UniqueSym<'p>>,
+    },
+    Apply {
+        fun: Atom<'p>,
+        args: Vec<Atom<'p>>,
+        typ: Type<UniqueSym<'p>>,
+    },
+    FunRef {
+        sym: UniqueSym<'p>,
+        typ: Type<UniqueSym<'p>>,
+    },
 }
 
 impl<'p> From<PrgEliminated<'p>> for PrgExplicated<'p> {
@@ -54,14 +69,13 @@ impl<'p> From<Tail<'p, EExpr<'p>>> for Tail<'p, CExpr<'p>> {
 }
 
 impl<'p> From<EExpr<'p>> for CExpr<'p> {
-    fn from(_value: EExpr<'p>) -> Self {
-        todo!()
-        // match value {
-        //     EExpr::Atom { atm } => CExpr::Atom { atm },
-        //     EExpr::Prim { op, args } => CExpr::Prim { op, args },
-        //     EExpr::Apply { fun, args } => CExpr::Apply { fun, args },
-        //     EExpr::FunRef { sym } => CExpr::FunRef { sym },
-        // }
+    fn from(value: EExpr<'p>) -> Self {
+        match value {
+            EExpr::Atom { atm, typ } => CExpr::Atom { atm, typ },
+            EExpr::Prim { op, args, typ } => CExpr::Prim { op, args, typ },
+            EExpr::Apply { fun, args, typ } => CExpr::Apply { fun, args, typ },
+            EExpr::FunRef { sym, typ } => CExpr::FunRef { sym, typ },
+        }
     }
 }
 
