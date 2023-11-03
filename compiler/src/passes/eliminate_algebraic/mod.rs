@@ -55,12 +55,13 @@ impl<'p> From<Tail<'p, EExpr<'p>>> for Tail<'p, CExpr<'p>> {
 
 impl<'p> From<EExpr<'p>> for CExpr<'p> {
     fn from(value: EExpr<'p>) -> Self {
-        match value {
-            EExpr::Atom { atm } => CExpr::Atom { atm },
-            EExpr::Prim { op, args } => CExpr::Prim { op, args },
-            EExpr::Apply { fun, args } => CExpr::Apply { fun, args },
-            EExpr::FunRef { sym } => CExpr::FunRef { sym },
-        }
+        todo!()
+        // match value {
+        //     EExpr::Atom { atm } => CExpr::Atom { atm },
+        //     EExpr::Prim { op, args } => CExpr::Prim { op, args },
+        //     EExpr::Apply { fun, args } => CExpr::Apply { fun, args },
+        //     EExpr::FunRef { sym } => CExpr::FunRef { sym },
+        // }
     }
 }
 

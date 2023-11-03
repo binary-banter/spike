@@ -79,7 +79,7 @@ fn select_tail<'p>(
             select_tail(*tail, instrs, std);
         }
         Tail::IfStmt { cnd, thn, els } => match cnd {
-            CExpr::Prim { op, args } => {
+            CExpr::Prim { op, args, .. } => {
                 let tmp = gen_sym("tmp");
                 instrs.extend(vec![
                     movq!(select_atom(&args[0]), var!(tmp)),
@@ -103,12 +103,12 @@ fn select_assign<'p>(
 ) -> Vec<Instr<'p, VarArg<'p>>> {
     match expr {
         CExpr::Atom {
-            atm: Atom::Val { val },
+            atm: Atom::Val { val }, ..
         } => vec![movq!(imm!(val), dst)],
         CExpr::Atom {
-            atm: Atom::Var { sym },
+            atm: Atom::Var { sym },..
         } => vec![movq!(var!(sym), dst)],
-        CExpr::Prim { op, args } => match (op, args.as_slice()) {
+        CExpr::Prim { op, args, .. } => match (op, args.as_slice()) {
             (Op::Plus, [a0, a1]) => vec![movq!(select_atom(a0), dst), addq!(select_atom(a1), dst)],
             (Op::Minus, [a0, a1]) => vec![movq!(select_atom(a0), dst), subq!(select_atom(a1), dst)],
             (Op::Minus, [a0]) => vec![movq!(select_atom(a0), dst), negq!(dst)],
@@ -156,8 +156,8 @@ fn select_assign<'p>(
             }
             _ => panic!("Encountered Prim with incorrect arity during select instructions pass."),
         },
-        CExpr::FunRef { sym } => vec![load_lbl!(sym, dst)],
-        CExpr::Apply { fun, args } => {
+        CExpr::FunRef { sym, .. } => vec![load_lbl!(sym, dst)],
+        CExpr::Apply { fun, args, .. } => {
             let mut instrs = vec![];
 
             for (arg, reg) in args.iter().zip(ARG_PASSING_REGS.into_iter()) {

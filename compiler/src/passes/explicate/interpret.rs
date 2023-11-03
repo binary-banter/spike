@@ -42,7 +42,7 @@ impl<'p> PrgExplicated<'p> {
         io: &mut impl IO,
     ) -> Val<'p, UniqueSym<'p>> {
         match expr {
-            CExpr::Prim { op, args } => match (op, args.as_slice()) {
+            CExpr::Prim { op, args, .. } => match (op, args.as_slice()) {
                 (Op::Read, []) => io.read().into(),
                 (Op::Print, [v]) => {
                     let val = self.interpret_atom(v, scope);
@@ -133,9 +133,9 @@ impl<'p> PrgExplicated<'p> {
                 }
                 _ => unreachable!(),
             },
-            CExpr::Atom { atm } => self.interpret_atom(atm, scope),
-            CExpr::FunRef { sym } => Val::Function { sym: *sym },
-            CExpr::Apply { fun, args } => {
+            CExpr::Atom { atm, .. } => self.interpret_atom(atm, scope),
+            CExpr::FunRef { sym, .. } => Val::Function { sym: *sym },
+            CExpr::Apply { fun, args, .. } => {
                 let fn_sym = self.interpret_atom(fun, scope).fun();
                 let args = self.fn_params[&fn_sym]
                     .iter()
@@ -156,7 +156,7 @@ impl<'p> PrgExplicated<'p> {
                     fields: field_values,
                 }
             }
-            CExpr::AccessField { strct, field } => {
+            CExpr::AccessField { strct, field, .. } => {
                 let s = self.interpret_atom(strct, scope);
                 s.strct()[field].clone()
             }
