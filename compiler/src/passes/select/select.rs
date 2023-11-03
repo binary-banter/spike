@@ -1,5 +1,6 @@
 use crate::passes::atomize::Atom;
-use crate::passes::explicate::{Tail};
+use crate::passes::eliminate_algebraic::{EExpr, PrgEliminated};
+use crate::passes::explicate::Tail;
 use crate::passes::parse::Op;
 use crate::passes::select::io::Std;
 use crate::passes::select::{
@@ -8,7 +9,6 @@ use crate::passes::select::{
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use crate::*;
 use std::collections::HashMap;
-use crate::passes::eliminate_algebraic::{EExpr, PrgEliminated};
 
 impl<'p> PrgEliminated<'p> {
     #[must_use]

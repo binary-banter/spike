@@ -1,10 +1,10 @@
+use crate::passes::atomize::Atom;
 use crate::passes::eliminate_algebraic::{EExpr, PrgEliminated};
 use crate::passes::explicate::{CExpr, PrgExplicated, Tail};
 use crate::passes::parse::types::Type;
 use crate::passes::parse::TypeDef;
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use std::collections::HashMap;
-use crate::passes::atomize::Atom;
 
 // (Old variable name, field name) -> New variable name
 type Ctx<'p> = HashMap<(UniqueSym<'p>, &'p str), UniqueSym<'p>>;
@@ -12,9 +12,6 @@ type Ctx<'p> = HashMap<(UniqueSym<'p>, &'p str), UniqueSym<'p>>;
 impl<'p> PrgExplicated<'p> {
     pub fn eliminate(self) -> PrgEliminated<'p> {
         let mut ctx = Ctx::new();
-
-        dbg!(&self);
-        panic!();
 
         PrgEliminated {
             blocks: self
@@ -39,14 +36,8 @@ fn eliminate_tail<'p>(
         Tail::Return { expr } => Tail::Return { expr },
         Tail::Seq { sym, bnd, tail } => {
             let tail = eliminate_tail(*tail, ctx, defs);
-            eliminate_seq(
-                sym,
-                ctx,
-                bnd,
-                tail,
-                defs,
-            )
-        },
+            eliminate_seq(sym, ctx, bnd, tail, defs)
+        }
         Tail::IfStmt { cnd, thn, els } => Tail::IfStmt {
             cnd: map_expr(cnd),
             thn,
@@ -63,11 +54,27 @@ fn eliminate_seq<'p>(
     tail: Tail<'p, EExpr<'p>>,
     defs: &HashMap<UniqueSym<'p>, TypeDef<'p, UniqueSym<'p>>>,
 ) -> Tail<'p, EExpr<'p>> {
-    if let CExpr::AccessField { strct, field, typ: field_typ } = bnd {
+    if let CExpr::AccessField {
+        strct,
+        field,
+        typ: field_typ,
+    } = bnd
+    {
         let strct = strct.var();
-        let new_sym = *ctx.entry((strct, field)).or_insert_with(|| gen_sym(sym.sym));
+        let new_sym = *ctx
+            .entry((strct, field))
+            .or_insert_with(|| gen_sym(sym.sym));
 
-        return eliminate_seq(sym, ctx,CExpr::Atom { atm: Atom::Var { sym: new_sym }, typ: field_typ }, tail, defs );
+        return eliminate_seq(
+            sym,
+            ctx,
+            CExpr::Atom {
+                atm: Atom::Var { sym: new_sym },
+                typ: field_typ,
+            },
+            tail,
+            defs,
+        );
     };
 
     match bnd.typ() {
@@ -81,22 +88,37 @@ fn eliminate_seq<'p>(
                 let field_values: HashMap<_, _> = match bnd {
                     CExpr::Atom { atm, .. } => {
                         let v = atm.var();
-                        fields.into_iter().map(|&(field, _)| {
-                            let new_sym = *ctx.entry((v, field)).or_insert_with(|| gen_sym(sym.sym));
-                            (field, Atom::Var { sym: new_sym })
-                        }).collect()
+                        fields
+                            .iter()
+                            .map(|&(field, _)| {
+                                let new_sym =
+                                    *ctx.entry((v, field)).or_insert_with(|| gen_sym(sym.sym));
+                                (field, Atom::Var { sym: new_sym })
+                            })
+                            .collect()
                     }
                     CExpr::Struct { fields, .. } => fields.into_iter().collect(),
                     CExpr::Apply { .. } => todo!(),
-                    CExpr::Prim { .. } | CExpr::FunRef { .. } | CExpr::AccessField { .. } => unreachable!(),
+                    CExpr::Prim { .. } | CExpr::FunRef { .. } | CExpr::AccessField { .. } => {
+                        unreachable!()
+                    }
                 };
 
                 fields.iter().fold(tail, |tail, (field, field_type)| {
                     let new_sym = *ctx.entry((sym, field)).or_insert_with(|| gen_sym(sym.sym));
-                    eliminate_seq(new_sym, ctx, CExpr::Atom { atm: field_values[field], typ: field_type.clone() }, tail, defs)
+                    eliminate_seq(
+                        new_sym,
+                        ctx,
+                        CExpr::Atom {
+                            atm: field_values[field],
+                            typ: field_type.clone(),
+                        },
+                        tail,
+                        defs,
+                    )
                 })
-            },
-            TypeDef::Enum { .. } => todo!()
+            }
+            TypeDef::Enum { .. } => todo!(),
         },
     }
 }
