@@ -242,7 +242,7 @@ ExprUnary<T>: Expr<'input, &'input str> = {
 }
 
 ExprAccess<T>: Expr<'input, &'input str> = {
-    <strct:ExprCall<T>> "." <field:Ident> => Expr::AccessField {
+    <strct:ExprAccess<T>> "." <field:Ident> => Expr::AccessField {
         strct: Box::new(strct),
         field,
     },

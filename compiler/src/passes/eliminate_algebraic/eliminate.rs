@@ -13,6 +13,9 @@ impl<'p> PrgExplicated<'p> {
     pub fn eliminate(self) -> PrgEliminated<'p> {
         let mut ctx = Ctx::new();
 
+        dbg!(&self);
+        panic!();
+
         PrgEliminated {
             blocks: self
                 .blocks
@@ -83,11 +86,9 @@ fn eliminate_seq<'p>(
                             (field, Atom::Var { sym: new_sym })
                         }).collect()
                     }
-                    CExpr::Prim { .. } => unreachable!(),
-                    CExpr::Apply { .. } => todo!(),
-                    CExpr::FunRef { .. } => unreachable!(),
                     CExpr::Struct { fields, .. } => fields.into_iter().collect(),
-                    CExpr::AccessField { .. } => todo!(),
+                    CExpr::Apply { .. } => todo!(),
+                    CExpr::Prim { .. } | CExpr::FunRef { .. } | CExpr::AccessField { .. } => unreachable!(),
                 };
 
                 fields.iter().fold(tail, |tail, (field, field_type)| {
