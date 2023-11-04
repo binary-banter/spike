@@ -98,6 +98,9 @@ mod tests {
             .eliminate()
             .into();
 
+        dbg!(&program);
+        panic!();
+
         let mut io = TestIO::new(input);
 
         let result = program.interpret(&mut io);

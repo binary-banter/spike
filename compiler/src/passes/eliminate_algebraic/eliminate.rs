@@ -92,7 +92,7 @@ fn eliminate_seq<'p>(
                             .iter()
                             .map(|&(field, _)| {
                                 let new_sym =
-                                    *ctx.entry((v, field)).or_insert_with(|| gen_sym(sym.sym));
+                                    *ctx.entry((v, field)).or_insert_with(|| gen_sym(v.sym));
                                 (field, Atom::Var { sym: new_sym })
                             })
                             .collect()
