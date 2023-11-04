@@ -102,11 +102,11 @@ Def: Def<'input, &'input str, Expr<'input, &'input str>> = {
         sym,
         def: TypeDef::Enum { variants },
     },
-    "fn" <sym:Ident> "(" <params:Comma<Param>> ")" <typ:("->" <Type>)?> "{" <bdy: Expr> "}" => Def::Fn {
+    "fn" <sym:Ident> "(" <params:Comma<Param>> ")" <typ:("->" <Type>)?> "{" <bdy: Expr?> "}" => Def::Fn {
         sym,
         params,
         typ: typ.unwrap_or(Type::Unit),
-        bdy
+        bdy: bdy.unwrap_or(Expr::Lit { val: Lit::Unit }),
     },
 }
 
