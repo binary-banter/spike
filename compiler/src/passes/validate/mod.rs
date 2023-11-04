@@ -1,6 +1,6 @@
 mod type_check;
 pub mod validate;
-mod check_sizes;
+mod check_sized;
 
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, Lit, Op};
@@ -127,4 +127,6 @@ pub enum ValidateError {
     TypeError(#[from] TypeError),
     #[error("The program doesn't have a main function.")]
     NoMain,
+    #[error("The type '{sym}' is not sized.")]
+    UnsizedType { sym: String }
 }

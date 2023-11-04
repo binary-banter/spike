@@ -8,6 +8,8 @@ impl<'p> PrgParsed<'p> {
     pub fn validate(self) -> Result<PrgTypeChecked<'p>, ValidateError> {
         let program = self.type_check()?;
 
+        program.check_sized()?;
+
         expect(program.defs.contains_key("main"), NoMain)?;
 
         Ok(program)

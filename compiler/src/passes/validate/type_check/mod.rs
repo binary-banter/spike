@@ -49,7 +49,7 @@ impl<'a, 'p> Env<'a, 'p> {
 }
 
 impl<'p> PrgParsed<'p> {
-    pub fn type_check(self) -> Result<PrgTypeChecked<'p>, TypeError> {
+    pub(super) fn type_check(self) -> Result<PrgTypeChecked<'p>, TypeError> {
         let mut scope = uncover_globals(&self)?;
 
         let defs = self
