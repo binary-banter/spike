@@ -2,7 +2,7 @@ pub mod atomize;
 
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, Lit, Op};
-use crate::passes::type_check::TExpr;
+use crate::passes::validate::TExpr;
 use crate::passes::uniquify::PrgUniquified;
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
@@ -247,7 +247,7 @@ mod tests {
     fn atomize([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);
         let program: PrgUniquified = program
-            .type_check()
+            .validate()
             .unwrap()
             .uniquify()
             .reveal()

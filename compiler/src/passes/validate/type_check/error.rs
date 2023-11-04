@@ -22,8 +22,6 @@ pub enum TypeError {
     DuplicateArg { sym: String },
     #[error("Function `{expected}` has {expected} arguments, but found {got} arguments.")]
     ArgCountMismatch { expected: usize, got: usize },
-    #[error("The program doesn't have a main function.")]
-    NoMain,
     #[error("Found a break outside of a loop.")]
     BreakOutsideLoop,
     #[error("Tried to modify immutable variable '{sym}'")]
@@ -40,4 +38,6 @@ pub enum TypeError {
     VariableConstructDuplicateField { sym: String },
     #[error("The type `{typ}` should be a struct type.'")]
     TypeShouldBeStruct { typ: Type<String> },
+    #[error("The type definition `{sym}` is not sized.'")]
+    UnsizedType { sym: String },
 }

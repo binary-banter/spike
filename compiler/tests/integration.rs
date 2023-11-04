@@ -24,7 +24,7 @@ fn integration([test]: [&str; 1]) {
         .unwrap();
 
     program
-        .type_check()
+        .validate()
         .unwrap()
         .uniquify()
         .reveal()

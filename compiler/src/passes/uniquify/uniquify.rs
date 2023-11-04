@@ -1,5 +1,5 @@
 use crate::passes::parse::{Def, Param, TypeDef};
-use crate::passes::type_check::{PrgTypeChecked, TExpr};
+use crate::passes::validate::{PrgTypeChecked, TExpr};
 use crate::passes::uniquify::PrgUniquified;
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use crate::utils::push_map::PushMap;

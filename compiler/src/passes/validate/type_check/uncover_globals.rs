@@ -1,8 +1,8 @@
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, PrgParsed};
-use crate::passes::type_check::check::EnvEntry;
-use crate::passes::type_check::error::TypeError;
-use crate::passes::type_check::error::TypeError::*;
+use crate::passes::validate::type_check::EnvEntry;
+use crate::passes::validate::type_check::error::TypeError;
+use crate::passes::validate::type_check::error::TypeError::*;
 use crate::utils::expect::expect;
 use crate::utils::push_map::PushMap;
 use std::collections::{HashMap, HashSet};

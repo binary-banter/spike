@@ -8,5 +8,5 @@ pub mod parse;
 pub mod patch_instructions;
 pub mod reveal_functions;
 pub mod select;
-pub mod type_check;
+pub mod validate;
 pub mod uniquify;

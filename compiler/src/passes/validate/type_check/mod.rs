@@ -1,15 +1,22 @@
+pub mod error;
+mod uncover_globals;
+mod validate_expr;
+mod validate_prim;
+mod validate_struct;
+mod validate_type;
+mod validate_typedef;
+
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, PrgParsed, TypeDef};
-use crate::passes::type_check::error::TypeError;
-use crate::passes::type_check::error::TypeError::*;
-use crate::passes::type_check::uncover_globals::uncover_globals;
-use crate::passes::type_check::util::expect_type;
-use crate::passes::type_check::validate_expr::validate_expr;
-use crate::passes::type_check::validate_type::validate_type;
-use crate::passes::type_check::PrgTypeChecked;
+use crate::passes::validate::type_check::error::TypeError;
+use crate::passes::validate::type_check::error::TypeError::*;
+use crate::passes::validate::type_check::uncover_globals::uncover_globals;
+use crate::passes::validate::type_check::validate_expr::validate_expr;
+use crate::passes::validate::{PrgTypeChecked, TExpr};
 use crate::utils::expect::expect;
 use crate::utils::push_map::PushMap;
 use std::collections::HashMap;
+use crate::passes::validate::type_check::validate_typedef::validate_typedef;
 
 pub struct Env<'a, 'p> {
     pub scope: &'a mut PushMap<&'p str, EnvEntry<'p>>,
@@ -88,25 +95,44 @@ impl<'p> PrgParsed<'p> {
                     sym,
                     Def::TypeDef {
                         sym,
-                        def: match def {
-                            TypeDef::Struct { fields } => {
-                                fields
-                                    .iter()
-                                    .try_for_each(|(_, typ)| validate_type(typ, &scope))?;
-                                TypeDef::Struct { fields }
-                            }
-                            TypeDef::Enum { .. } => todo!(),
-                        },
-                    },
-                )),
+                        def: validate_typedef(sym, def, &mut scope)?,
+                    })),
             })
             .collect::<Result<HashMap<_, _>, _>>()?;
-
-        expect(defs.contains_key("main"), NoMain)?;
 
         Ok(PrgTypeChecked {
             defs,
             entry: self.entry,
         })
     }
+}
+
+pub fn expect_type_eq<'p>(
+    e1: &TExpr<'p, &'p str>,
+    e2: &TExpr<'p, &'p str>,
+) -> Result<Type<&'p str>, TypeError> {
+    let t1 = e1.typ();
+    let t2 = e2.typ();
+    expect(
+        t1 == t2,
+        TypeMismatchEqual {
+            t1: t1.clone().fmap(str::to_string),
+            t2: t2.clone().fmap(str::to_string),
+        },
+    )?;
+    Ok(t1.clone())
+}
+
+pub fn expect_type<'p>(
+    expr: &TExpr<'p, &'p str>,
+    expected: &Type<&'p str>,
+) -> Result<(), TypeError> {
+    let t = expr.typ();
+    expect(
+        t == expected,
+        TypeMismatchExpect {
+            got: t.clone().fmap(str::to_string),
+            expect: expected.clone().fmap(str::to_string),
+        },
+    )
 }

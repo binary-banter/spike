@@ -1,11 +1,11 @@
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Expr, TypeDef};
-use crate::passes::type_check::check::{Env, EnvEntry};
-use crate::passes::type_check::error::TypeError;
-use crate::passes::type_check::error::TypeError::*;
-use crate::passes::type_check::util::expect_type;
-use crate::passes::type_check::validate_expr::validate_expr;
-use crate::passes::type_check::TExpr;
+use crate::passes::validate::type_check::{Env, EnvEntry};
+use crate::passes::validate::type_check::error::TypeError;
+use crate::passes::validate::type_check::error::TypeError::*;
+use crate::passes::validate::type_check::expect_type;
+use crate::passes::validate::type_check::validate_expr::validate_expr;
+use crate::passes::validate::TExpr;
 use crate::utils::expect::expect;
 use std::collections::{HashMap, HashSet};
 

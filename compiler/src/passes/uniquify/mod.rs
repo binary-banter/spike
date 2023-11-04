@@ -1,7 +1,7 @@
 pub mod uniquify;
 
 use crate::passes::parse::Def;
-use crate::passes::type_check::TExpr;
+use crate::passes::validate::TExpr;
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
 
@@ -19,7 +19,7 @@ mod tests {
 
     fn unique([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);
-        let uniquified_program = program.type_check().unwrap().uniquify();
+        let uniquified_program = program.validate().unwrap().uniquify();
         let mut io = TestIO::new(input);
         let result = uniquified_program.interpret(&mut io);
 

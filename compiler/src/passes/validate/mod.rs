@@ -1,17 +1,15 @@
-pub mod check;
-pub mod error;
-mod uncover_globals;
-mod util;
-mod validate_expr;
-mod validate_prim;
-mod validate_struct;
-mod validate_type;
+mod type_check;
+pub mod validate;
+mod check_sizes;
 
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, Lit, Op};
 use std::collections::HashMap;
 use std::fmt::Display;
 use std::hash::Hash;
+use thiserror::Error;
+use miette::Diagnostic;
+use crate::passes::validate::type_check::error::TypeError;
 
 #[derive(Debug, PartialEq)]
 pub struct PrgTypeChecked<'p> {
@@ -122,26 +120,11 @@ impl<'p, A: Copy + Hash + Eq + Display> TExpr<'p, A> {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use crate::passes::parse::parse::parse_program;
-    use test_each_file::test_each_file;
-
-    fn check([test]: [&str; 1], should_fail: bool) {
-        let mut test = test.split('#');
-        let program = test.nth(3).unwrap().trim();
-        let program = parse_program(program).unwrap();
-        let res = program.type_check();
-
-        match (res, should_fail) {
-            (Ok(_), true) => panic!("Program should not pass type-checking."),
-            (Err(e), false) => {
-                panic!("Program should have passed type-checking, but returned error: '{e}'.")
-            }
-            _ => {}
-        }
-    }
-
-    test_each_file! { for ["test"] in "./programs/good" as type_check_succeed => |p| check(p, false) }
-    test_each_file! { for ["test"] in "./programs/fail/type_check" as type_check_fail => |p| check(p, true) }
+#[derive(Debug, Error, Diagnostic)]
+#[diagnostic()]
+pub enum ValidateError {
+    #[error(transparent)]
+    TypeError(#[from] TypeError),
+    #[error("The program doesn't have a main function.")]
+    NoMain,
 }

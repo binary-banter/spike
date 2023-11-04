@@ -1,0 +1,12 @@
+#
+#
+unit
+#
+struct TestStruct {
+    field_1: TestStruct,
+    field_2: Bool,
+}
+
+fn main() {
+    unit
+}

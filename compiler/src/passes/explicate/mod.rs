@@ -90,7 +90,7 @@ mod tests {
     fn explicated([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);
         let program = program
-            .type_check()
+            .validate()
             .unwrap()
             .uniquify()
             .reveal()

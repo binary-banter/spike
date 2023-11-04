@@ -1,7 +1,7 @@
 use crate::interpreter::Val;
 use crate::interpreter::IO;
 use crate::passes::parse::{Def, Lit, Op};
-use crate::passes::type_check::TExpr;
+use crate::passes::validate::TExpr;
 use crate::passes::uniquify::PrgUniquified;
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::push_map::PushMap;

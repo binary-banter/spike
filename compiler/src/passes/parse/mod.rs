@@ -53,7 +53,7 @@ pub enum TypeDef<'p, A: Copy + Hash + Eq + Display> {
     /// An enum definition.
     Enum {
         /// Variants of the enum, consisting of variant symbols and their types.
-        variants: Vec<(A, Type<A>)>,
+        variants: Vec<(&'p str, Type<A>)>,
     },
 }
 

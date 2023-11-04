@@ -2,7 +2,7 @@ pub mod reveal_functions;
 
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, Lit, Op};
-use crate::passes::type_check::TExpr;
+use crate::passes::validate::TExpr;
 use crate::passes::uniquify::PrgUniquified;
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
@@ -197,7 +197,7 @@ mod tests {
     fn reveal([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);
         let uniquified_program: PrgUniquified =
-            program.type_check().unwrap().uniquify().reveal().into();
+            program.validate().unwrap().uniquify().reveal().into();
         let mut io = TestIO::new(input);
         let result = uniquified_program.interpret(&mut io);
 
