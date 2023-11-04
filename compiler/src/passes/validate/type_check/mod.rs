@@ -12,11 +12,11 @@ use crate::passes::validate::type_check::error::TypeError;
 use crate::passes::validate::type_check::error::TypeError::*;
 use crate::passes::validate::type_check::uncover_globals::uncover_globals;
 use crate::passes::validate::type_check::validate_expr::validate_expr;
+use crate::passes::validate::type_check::validate_typedef::validate_typedef;
 use crate::passes::validate::{PrgTypeChecked, TExpr};
 use crate::utils::expect::expect;
 use crate::utils::push_map::PushMap;
 use std::collections::HashMap;
-use crate::passes::validate::type_check::validate_typedef::validate_typedef;
 
 pub struct Env<'a, 'p> {
     pub scope: &'a mut PushMap<&'p str, EnvEntry<'p>>,
@@ -96,7 +96,8 @@ impl<'p> PrgParsed<'p> {
                     Def::TypeDef {
                         sym,
                         def: validate_typedef(sym, def, &mut scope)?,
-                    })),
+                    },
+                )),
             })
             .collect::<Result<HashMap<_, _>, _>>()?;
 

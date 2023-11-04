@@ -2,12 +2,12 @@ use crate::MainError::IOResult;
 use clap::Parser;
 use compiler::compile;
 use compiler::passes::parse::parse::PrettyParseError;
+use compiler::passes::validate::ValidateError;
 use miette::Diagnostic;
 use std::io::Read;
 use std::path::Path;
 use std::{fs, io};
 use thiserror::Error;
-use compiler::passes::validate::ValidateError;
 
 #[derive(Debug, Error, Diagnostic)]
 enum MainError {

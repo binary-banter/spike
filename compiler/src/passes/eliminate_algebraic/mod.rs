@@ -3,7 +3,7 @@ pub mod eliminate;
 use crate::passes::atomize::Atom;
 use crate::passes::explicate::{CExpr, PrgExplicated, Tail};
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Op, TypeDef};
+use crate::passes::parse::{Op, Param, TypeDef};
 use crate::utils::gen_sym::UniqueSym;
 use functor_derive::Functor;
 use std::collections::HashMap;
@@ -11,7 +11,7 @@ use std::collections::HashMap;
 #[derive(Debug, PartialEq)]
 pub struct PrgEliminated<'p> {
     pub blocks: HashMap<UniqueSym<'p>, Tail<'p, EExpr<'p>>>,
-    pub fn_params: HashMap<UniqueSym<'p>, Vec<UniqueSym<'p>>>,
+    pub fn_params: HashMap<UniqueSym<'p>, Vec<Param<UniqueSym<'p>>>>,
     pub defs: HashMap<UniqueSym<'p>, TypeDef<'p, UniqueSym<'p>>>,
     pub entry: UniqueSym<'p>,
 }
@@ -97,9 +97,6 @@ mod tests {
             .explicate()
             .eliminate()
             .into();
-
-        dbg!(&program);
-        panic!();
 
         let mut io = TestIO::new(input);
 

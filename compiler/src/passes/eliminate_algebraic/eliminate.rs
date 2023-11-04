@@ -2,7 +2,7 @@ use crate::passes::atomize::Atom;
 use crate::passes::eliminate_algebraic::{EExpr, PrgEliminated};
 use crate::passes::explicate::{CExpr, PrgExplicated, Tail};
 use crate::passes::parse::types::Type;
-use crate::passes::parse::TypeDef;
+use crate::passes::parse::{Param, TypeDef};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use std::collections::HashMap;
 
@@ -13,16 +13,68 @@ impl<'p> PrgExplicated<'p> {
     pub fn eliminate(self) -> PrgEliminated<'p> {
         let mut ctx = Ctx::new();
 
+        let fn_params = eliminate_params(self.fn_params, &mut ctx, &self.defs);
+
         PrgEliminated {
             blocks: self
                 .blocks
                 .into_iter()
                 .map(|(sym, tail)| (sym, eliminate_tail(tail, &mut ctx, &self.defs)))
                 .collect(),
-            fn_params: self.fn_params,
+            fn_params,
             defs: self.defs,
             entry: self.entry,
         }
+    }
+}
+
+fn eliminate_params<'p>(
+    fn_params: HashMap<UniqueSym<'p>, Vec<Param<UniqueSym<'p>>>>,
+    ctx: &mut Ctx<'p>,
+    defs: &HashMap<UniqueSym<'p>, TypeDef<'p, UniqueSym<'p>>>,
+) -> HashMap<UniqueSym<'p>, Vec<Param<UniqueSym<'p>>>> {
+    fn_params
+        .into_iter()
+        .map(|(sym, params)| {
+            (
+                sym,
+                params
+                    .into_iter()
+                    .flat_map(|param| {
+                        flatten_params(param.sym, &param.typ, param.mutable, ctx, defs)
+                    })
+                    .collect(),
+            )
+        })
+        .collect()
+}
+
+fn flatten_params<'p>(
+    param_sym: UniqueSym<'p>,
+    param_type: &Type<UniqueSym<'p>>,
+    mutable: bool,
+    ctx: &mut Ctx<'p>,
+    defs: &HashMap<UniqueSym<'p>, TypeDef<'p, UniqueSym<'p>>>,
+) -> Vec<Param<UniqueSym<'p>>> {
+    match param_type {
+        Type::Int | Type::Bool | Type::Unit | Type::Never | Type::Fn { .. } => vec![Param {
+            sym: param_sym,
+            typ: param_type.clone(),
+            mutable,
+        }],
+        Type::Var { sym } => match &defs[&sym] {
+            TypeDef::Struct { fields } => fields
+                .iter()
+                .flat_map(|(field_name, field_type)| {
+                    let new_sym = *ctx
+                        .entry((param_sym, field_name))
+                        .or_insert_with(|| gen_sym(param_sym.sym));
+
+                    flatten_params(new_sym, field_type, mutable, ctx, defs).into_iter()
+                })
+                .collect(),
+            TypeDef::Enum { .. } => todo!(),
+        },
     }
 }
 

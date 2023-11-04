@@ -1,10 +1,10 @@
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Expr, Lit, TypeDef};
-use crate::passes::validate::type_check::{Env, EnvEntry, expect_type, expect_type_eq};
 use crate::passes::validate::type_check::error::TypeError;
 use crate::passes::validate::type_check::error::TypeError::*;
 use crate::passes::validate::type_check::validate_prim::validate_prim;
 use crate::passes::validate::type_check::validate_struct::validate_struct;
+use crate::passes::validate::type_check::{expect_type, expect_type_eq, Env, EnvEntry};
 use crate::passes::validate::TExpr;
 use crate::utils::expect::expect;
 

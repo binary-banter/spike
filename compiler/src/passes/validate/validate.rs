@@ -1,7 +1,7 @@
 use crate::passes::parse::PrgParsed;
+use crate::passes::validate::PrgTypeChecked;
 use crate::passes::validate::ValidateError;
 use crate::passes::validate::ValidateError::NoMain;
-use crate::passes::validate::PrgTypeChecked;
 use crate::utils::expect::expect;
 
 impl<'p> PrgParsed<'p> {

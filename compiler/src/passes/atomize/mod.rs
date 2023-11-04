@@ -2,8 +2,8 @@ pub mod atomize;
 
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, Lit, Op};
-use crate::passes::validate::TExpr;
 use crate::passes::uniquify::PrgUniquified;
+use crate::passes::validate::TExpr;
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
 

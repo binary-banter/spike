@@ -1,8 +1,8 @@
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Expr, Op};
-use crate::passes::validate::type_check::{Env, expect_type, expect_type_eq};
 use crate::passes::validate::type_check::error::TypeError;
 use crate::passes::validate::type_check::validate_expr::validate_expr;
+use crate::passes::validate::type_check::{expect_type, expect_type_eq, Env};
 use crate::passes::validate::TExpr;
 
 pub fn validate_prim<'p>(

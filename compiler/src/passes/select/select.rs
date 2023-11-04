@@ -1,7 +1,7 @@
 use crate::passes::atomize::Atom;
 use crate::passes::eliminate_algebraic::{EExpr, PrgEliminated};
 use crate::passes::explicate::Tail;
-use crate::passes::parse::Op;
+use crate::passes::parse::{Op, Param};
 use crate::passes::select::io::Std;
 use crate::passes::select::{
     Block, Cnd, Instr, VarArg, X86Selected, ARG_PASSING_REGS, CALLEE_SAVED_NO_STACK,
@@ -34,7 +34,7 @@ fn select_block<'p>(
     sym: UniqueSym<'p>,
     tail: Tail<'p, EExpr<'p>>,
     std: &Std<'p>,
-    fn_params: &HashMap<UniqueSym<'p>, Vec<UniqueSym<'p>>>,
+    fn_params: &HashMap<UniqueSym<'p>, Vec<Param<UniqueSym<'p>>>>,
 ) -> Block<'p, VarArg<'p>> {
     let mut instrs = Vec::new();
 
@@ -46,7 +46,7 @@ fn select_block<'p>(
         }
 
         for (reg, param) in ARG_PASSING_REGS.into_iter().zip(params.iter()) {
-            instrs.push(movq!(VarArg::Reg { reg }, VarArg::XVar { sym: *param }));
+            instrs.push(movq!(VarArg::Reg { reg }, VarArg::XVar { sym: param.sym }));
         }
         assert!(
             params.len() <= 6,

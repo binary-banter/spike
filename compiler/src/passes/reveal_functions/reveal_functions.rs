@@ -1,7 +1,7 @@
 use crate::passes::parse::Def;
 use crate::passes::reveal_functions::{PrgRevealed, RExpr};
-use crate::passes::validate::TExpr;
 use crate::passes::uniquify::PrgUniquified;
+use crate::passes::validate::TExpr;
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::push_map::PushMap;
 

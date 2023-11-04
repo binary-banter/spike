@@ -1,15 +1,15 @@
+mod check_sized;
 mod type_check;
 pub mod validate;
-mod check_sized;
 
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, Lit, Op};
+use crate::passes::validate::type_check::error::TypeError;
+use miette::Diagnostic;
 use std::collections::HashMap;
 use std::fmt::Display;
 use std::hash::Hash;
 use thiserror::Error;
-use miette::Diagnostic;
-use crate::passes::validate::type_check::error::TypeError;
 
 #[derive(Debug, PartialEq)]
 pub struct PrgTypeChecked<'p> {
@@ -128,5 +128,5 @@ pub enum ValidateError {
     #[error("The program doesn't have a main function.")]
     NoMain,
     #[error("The type '{sym}' is not sized.")]
-    UnsizedType { sym: String }
+    UnsizedType { sym: String },
 }

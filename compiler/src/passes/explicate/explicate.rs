@@ -28,7 +28,7 @@ impl<'p> PrgAtomized<'p> {
         for (sym, def) in &self.defs {
             match def {
                 Def::Fn { params, .. } => {
-                    fn_params.insert(*sym, params.iter().map(|param| param.sym).collect());
+                    fn_params.insert(*sym, params.iter().map(|param| param.clone()).collect());
                 }
                 Def::TypeDef { .. } => {
                     // todo?
