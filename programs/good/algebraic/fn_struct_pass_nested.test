@@ -3,11 +3,13 @@
 5
 #
 struct Foo {
-    x : Int,
+    a : Int,
+    b : Bool
 }
 
 struct Bar {
-    y: Foo,
+    c: Foo,
+    d: Int
 }
 
 fn test(x: Bar, y: Bool) -> Int {
@@ -15,6 +17,6 @@ fn test(x: Bar, y: Bool) -> Int {
 }
 
 fn main() -> Int {
-    let z = Bar { y: Foo { x : 5 } };
+    let z = Bar { c: Foo { a : 5, b: true }, d: 7 };
     test(z, false)
 }
