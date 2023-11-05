@@ -2,11 +2,9 @@ pub mod eliminate;
 mod eliminate_params;
 
 use crate::passes::atomize::Atom;
-use crate::passes::explicate::{CExpr, PrgExplicated, CTail};
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Op, Param, TypeDef};
 use crate::utils::gen_sym::UniqueSym;
-use functor_derive::Functor;
 use std::collections::HashMap;
 
 #[derive(Debug, PartialEq)]
@@ -23,7 +21,7 @@ pub enum ETail<'p> {
         expr: Vec<Atom<'p>>,
     },
     Seq {
-        sym: UniqueSym<'p>,
+        sym: Vec<UniqueSym<'p>>,
         bnd: EExpr<'p>,
         tail: Box<ETail<'p>>,
     },
@@ -50,9 +48,8 @@ pub enum EExpr<'p> {
     },
     Apply {
         fun: Atom<'p>,
-        args: Vec<Atom<'p>>,
+        args: Vec<(Atom<'p>, Type<UniqueSym<'p>>)>,
         typ: Vec<Type<UniqueSym<'p>>>,
-        fn_typ: Type<UniqueSym<'p>>,
     },
     FunRef {
         sym: UniqueSym<'p>,

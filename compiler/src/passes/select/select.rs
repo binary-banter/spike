@@ -75,7 +75,7 @@ fn select_tail<'p>(
             instrs.push(retq!());
         }
         ETail::Seq { sym, bnd, tail } => {
-            instrs.extend(select_assign(var!(sym), bnd, std));
+            instrs.extend(select_assign(&sym, bnd, std));
             select_tail(*tail, instrs, std);
         }
         ETail::IfStmt { cnd, thn, els } => match cnd {
@@ -97,10 +97,11 @@ fn select_tail<'p>(
 }
 
 fn select_assign<'p>(
-    dst: VarArg<'p>,
+    dsts: &[UniqueSym<'p>],
     expr: EExpr<'p>,
     std: &Std<'p>,
 ) -> Vec<Instr<'p, VarArg<'p>>> {
+    let dst = var!(dsts[0]);
     match expr {
         EExpr::Atom {
             atm: Atom::Val { val },
@@ -162,7 +163,7 @@ fn select_assign<'p>(
         EExpr::Apply { fun, args, .. } => {
             let mut instrs = vec![];
 
-            for (arg, reg) in args.iter().zip(ARG_PASSING_REGS.into_iter()) {
+            for ((arg, _), reg) in args.iter().zip(ARG_PASSING_REGS.into_iter()) {
                 instrs.push(movq!(select_atom(arg), VarArg::Reg { reg }));
             }
             assert!(

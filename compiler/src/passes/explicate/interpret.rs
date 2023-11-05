@@ -140,7 +140,7 @@ impl<'p> PrgExplicated<'p> {
                 let args = self.fn_params[&fn_sym]
                     .iter()
                     .zip(args.iter())
-                    .map(|(param, atm)| (param.sym, self.interpret_atom(atm, scope)))
+                    .map(|(param, (atm, _))| (param.sym, self.interpret_atom(atm, scope)))
                     .collect::<Vec<_>>();
 
                 scope.push_iter(args.into_iter(), |scope| {

@@ -92,14 +92,12 @@ fn explicate_assign<'p>(
             fun,
             args,
             typ,
-            fn_typ,
         } => CTail::Seq {
             sym,
             bnd: CExpr::Apply {
                 fun,
                 args,
                 typ,
-                fn_typ,
             },
             tail: Box::new(tail),
         },
@@ -331,7 +329,7 @@ fn explicate_pred<'p>(
             )
         }
         AExpr::Apply {
-            fun, args, fn_typ, ..
+            fun, args, ..
         } => {
             let tmp = gen_sym("tmp");
             explicate_assign(
@@ -340,7 +338,6 @@ fn explicate_pred<'p>(
                     fun,
                     args,
                     typ: Type::Bool,
-                    fn_typ,
                 },
                 explicate_pred(
                     AExpr::Atom {

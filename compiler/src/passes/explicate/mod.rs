@@ -48,9 +48,8 @@ pub enum CExpr<'p> {
     },
     Apply {
         fun: Atom<'p>,
-        args: Vec<Atom<'p>>,
+        args: Vec<(Atom<'p>, Type<UniqueSym<'p>>)>,
         typ: Type<UniqueSym<'p>>,
-        fn_typ: Type<UniqueSym<'p>>,
     },
     FunRef {
         sym: UniqueSym<'p>,

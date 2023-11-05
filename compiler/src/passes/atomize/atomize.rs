@@ -1,5 +1,6 @@
 use crate::passes::atomize::{AExpr, Atom, PrgAtomized};
 use crate::passes::parse::Def;
+use crate::passes::parse::types::Type;
 use crate::passes::reveal_functions::{PrgRevealed, RExpr};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 
@@ -71,8 +72,15 @@ fn atomize_expr(expr: RExpr) -> AExpr {
             typ,
         },
         RExpr::Apply { fun, args, typ } => {
-            let (args, extras): (Vec<_>, Vec<_>) = args.into_iter().map(atomize_atom).unzip();
-            let fn_typ = fun.typ().clone();
+            let Type::Fn { params, .. } = fun.typ().clone() else {
+                unreachable!()
+            };
+
+            let (args, extras): (Vec<_>, Vec<_>) = args.into_iter()
+                .map(atomize_atom)
+                .zip(params)
+                .map(|((arg, extra),arg_typ)| ((arg, arg_typ), extra))
+                .unzip();
 
             let (fun, fun_expr) = atomize_atom(*fun);
 
@@ -84,7 +92,6 @@ fn atomize_expr(expr: RExpr) -> AExpr {
                         fun,
                         args,
                         typ,
-                        fn_typ,
                     },
                     |bdy, (sym, bnd)| AExpr::Let {
                         typ: bnd.typ().clone(),

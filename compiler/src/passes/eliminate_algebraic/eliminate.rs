@@ -81,33 +81,21 @@ fn eliminate_seq<'p>(
         CExpr::Apply {
             fun,
             args,
-            fn_typ,
             typ,
         } => {
-            #[rustfmt::skip]
-            let Type::Fn { params, typ: rtrn_typ} = fn_typ else {
-                unreachable!("fn_type should be a function type")
-            };
-
-            let (args, params): (Vec<_>, Vec<_>) = args
+            let args = args
                 .into_iter()
-                .zip(params)
                 .flat_map(|(atom, typ)| match atom {
                     Atom::Val { val } => vec![(Atom::Val { val }, typ)],
                     Atom::Var { sym } => flatten_params(sym, &typ, ctx, defs)
                         .into_iter()
                         .map(|(sym, typ)| (Atom::Var { sym }, typ))
                         .collect(),
-                })
-                .unzip();
+                }).collect();
 
             CExpr::Apply {
                 fun,
                 args,
-                fn_typ: Type::Fn {
-                    params,
-                    typ: rtrn_typ.clone(),
-                },
                 typ,
             }
         }
@@ -116,7 +104,7 @@ fn eliminate_seq<'p>(
 
     match bnd.typ() {
         Type::Int | Type::Bool | Type::Unit | Type::Never | Type::Fn { .. } => ETail::Seq {
-            sym,
+            sym: vec![sym],
             bnd: map_expr(bnd),
             tail: Box::new(tail),
         },
@@ -135,7 +123,14 @@ fn eliminate_seq<'p>(
                             .collect()
                     }
                     CExpr::Struct { fields, .. } => fields.into_iter().collect(),
-                    CExpr::Apply { .. } => todo!(),
+                    CExpr::Apply { fun, args, typ } => {
+
+
+                        // sym.field1 =
+                        // sym.field2 =
+
+                        todo!()
+                    },
                     CExpr::Prim { .. } | CExpr::FunRef { .. } | CExpr::AccessField { .. } => {
                         unreachable!()
                     }
@@ -168,12 +163,10 @@ fn map_expr(e: CExpr) -> EExpr {
             fun,
             args,
             typ,
-            fn_typ,
         } => EExpr::Apply {
             fun,
             args,
             typ: vec![typ], //TODO baaaaad implementation, baaaaaaad
-            fn_typ,
         },
         CExpr::FunRef { sym, typ } => EExpr::FunRef { sym, typ },
         CExpr::Struct { .. } | CExpr::AccessField { .. } => unreachable!(),
