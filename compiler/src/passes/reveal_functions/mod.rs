@@ -86,6 +86,28 @@ pub enum RExpr<'p> {
     },
 }
 
+impl<'p> RExpr<'p> {
+    pub fn typ(&self) -> &Type<UniqueSym<'p>> {
+        match self {
+            RExpr::Var { typ, .. }
+            | RExpr::Lit { typ, .. }
+            | RExpr::Prim { typ, .. }
+            | RExpr::Let { typ, .. }
+            | RExpr::If { typ, .. }
+            | RExpr::Apply { typ, .. }
+            | RExpr::Loop { typ, .. }
+            | RExpr::Break { typ, .. }
+            | RExpr::Continue { typ, .. }
+            | RExpr::Return { typ, .. }
+            | RExpr::Seq { typ, .. }
+            | RExpr::Assign { typ, .. }
+            | RExpr::Struct { typ, .. }
+            | RExpr::AccessField { typ, .. }
+            | RExpr::FunRef { typ, .. } => typ,
+        }
+    }
+}
+
 impl<'p> From<PrgRevealed<'p>> for PrgUniquified<'p> {
     fn from(value: PrgRevealed<'p>) -> Self {
         PrgUniquified {

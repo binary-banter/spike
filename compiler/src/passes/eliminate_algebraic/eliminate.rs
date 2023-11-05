@@ -1,13 +1,14 @@
 use crate::passes::atomize::Atom;
+use crate::passes::eliminate_algebraic::eliminate_params::{eliminate_params, flatten_params};
 use crate::passes::eliminate_algebraic::{EExpr, PrgEliminated};
 use crate::passes::explicate::{CExpr, PrgExplicated, Tail};
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Param, TypeDef};
+use crate::passes::parse::TypeDef;
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use std::collections::HashMap;
 
 // (Old variable name, field name) -> New variable name
-type Ctx<'p> = HashMap<(UniqueSym<'p>, &'p str), UniqueSym<'p>>;
+pub type Ctx<'p> = HashMap<(UniqueSym<'p>, &'p str), UniqueSym<'p>>;
 
 impl<'p> PrgExplicated<'p> {
     pub fn eliminate(self) -> PrgEliminated<'p> {
@@ -25,56 +26,6 @@ impl<'p> PrgExplicated<'p> {
             defs: self.defs,
             entry: self.entry,
         }
-    }
-}
-
-fn eliminate_params<'p>(
-    fn_params: HashMap<UniqueSym<'p>, Vec<Param<UniqueSym<'p>>>>,
-    ctx: &mut Ctx<'p>,
-    defs: &HashMap<UniqueSym<'p>, TypeDef<'p, UniqueSym<'p>>>,
-) -> HashMap<UniqueSym<'p>, Vec<Param<UniqueSym<'p>>>> {
-    fn_params
-        .into_iter()
-        .map(|(sym, params)| {
-            (
-                sym,
-                params
-                    .into_iter()
-                    .flat_map(|param| {
-                        flatten_params(param.sym, &param.typ, param.mutable, ctx, defs)
-                    })
-                    .collect(),
-            )
-        })
-        .collect()
-}
-
-fn flatten_params<'p>(
-    param_sym: UniqueSym<'p>,
-    param_type: &Type<UniqueSym<'p>>,
-    mutable: bool,
-    ctx: &mut Ctx<'p>,
-    defs: &HashMap<UniqueSym<'p>, TypeDef<'p, UniqueSym<'p>>>,
-) -> Vec<Param<UniqueSym<'p>>> {
-    match param_type {
-        Type::Int | Type::Bool | Type::Unit | Type::Never | Type::Fn { .. } => vec![Param {
-            sym: param_sym,
-            typ: param_type.clone(),
-            mutable,
-        }],
-        Type::Var { sym } => match &defs[&sym] {
-            TypeDef::Struct { fields } => fields
-                .iter()
-                .flat_map(|(field_name, field_type)| {
-                    let new_sym = *ctx
-                        .entry((param_sym, field_name))
-                        .or_insert_with(|| gen_sym(param_sym.sym));
-
-                    flatten_params(new_sym, field_type, mutable, ctx, defs).into_iter()
-                })
-                .collect(),
-            TypeDef::Enum { .. } => todo!(),
-        },
     }
 }
 
@@ -106,27 +57,66 @@ fn eliminate_seq<'p>(
     tail: Tail<'p, EExpr<'p>>,
     defs: &HashMap<UniqueSym<'p>, TypeDef<'p, UniqueSym<'p>>>,
 ) -> Tail<'p, EExpr<'p>> {
-    if let CExpr::AccessField {
-        strct,
-        field,
-        typ: field_typ,
-    } = bnd
-    {
-        let strct = strct.var();
-        let new_sym = *ctx
-            .entry((strct, field))
-            .or_insert_with(|| gen_sym(sym.sym));
+    let bnd = match bnd {
+        CExpr::AccessField {
+            strct,
+            field,
+            typ: field_typ,
+        } => {
+            let strct = strct.var();
+            let new_sym = *ctx
+                .entry((strct, field))
+                .or_insert_with(|| gen_sym(sym.sym));
 
-        return eliminate_seq(
-            sym,
-            ctx,
-            CExpr::Atom {
-                atm: Atom::Var { sym: new_sym },
-                typ: field_typ,
-            },
-            tail,
-            defs,
-        );
+            return eliminate_seq(
+                sym,
+                ctx,
+                CExpr::Atom {
+                    atm: Atom::Var { sym: new_sym },
+                    typ: field_typ,
+                },
+                tail,
+                defs,
+            );
+        }
+        CExpr::Apply {
+            fun,
+            args,
+            fn_typ,
+            typ,
+        } => {
+            #[rustfmt::skip]
+            let Type::Fn { params, typ: rtrn_typ} = fn_typ else {
+                unreachable!("fn_type should be a function type")
+            };
+
+            let (args, params): (Vec<_>, Vec<_>) = args
+                .into_iter()
+                .zip(params.into_iter())
+                .flat_map(|(atom, typ)| {
+                    match atom {
+                        Atom::Val { val } => vec![(Atom::Val { val }, typ)],
+                        Atom::Var { sym } => {
+                            flatten_params(sym, &typ, ctx, defs)
+                                .into_iter()
+                                .map(|(sym, typ)| (Atom::Var { sym }, typ))
+                                .collect()
+                        }
+                    }
+                })
+                .unzip();
+
+            CExpr::Apply {
+                fun,
+                args,
+                fn_typ: Type::Fn {
+                    params,
+                    typ: rtrn_typ.clone(),
+                },
+                typ,
+            }
+        }
+        _ => bnd,
     };
 
     match bnd.typ() {
@@ -179,7 +169,17 @@ fn map_expr(e: CExpr) -> EExpr {
     match e {
         CExpr::Atom { atm, typ } => EExpr::Atom { atm, typ },
         CExpr::Prim { op, args, typ } => EExpr::Prim { op, args, typ },
-        CExpr::Apply { fun, args, typ } => EExpr::Apply { fun, args, typ },
+        CExpr::Apply {
+            fun,
+            args,
+            typ,
+            fn_typ,
+        } => EExpr::Apply {
+            fun,
+            args,
+            typ,
+            fn_typ,
+        },
         CExpr::FunRef { sym, typ } => EExpr::FunRef { sym, typ },
         CExpr::Struct { .. } | CExpr::AccessField { .. } => unreachable!(),
     }

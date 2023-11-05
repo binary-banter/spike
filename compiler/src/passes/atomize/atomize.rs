@@ -72,34 +72,29 @@ fn atomize_expr(expr: RExpr) -> AExpr {
         },
         RExpr::Apply { fun, args, typ } => {
             let (args, extras): (Vec<_>, Vec<_>) = args.into_iter().map(atomize_atom).unzip();
+            let fn_typ = fun.typ().clone();
 
             let (fun, fun_expr) = atomize_atom(*fun);
 
             fun_expr
                 .into_iter()
                 .chain(extras.into_iter().flatten())
-                .rfold(AExpr::Apply { fun, args, typ }, |bdy, (sym, bnd)| {
-                    AExpr::Let {
+                .rfold(
+                    AExpr::Apply {
+                        fun,
+                        args,
+                        typ,
+                        fn_typ,
+                    },
+                    |bdy, (sym, bnd)| AExpr::Let {
                         typ: bnd.typ().clone(),
                         sym,
                         bnd: Box::new(bnd),
                         bdy: Box::new(bdy),
-                    }
-                })
+                    },
+                )
         }
-        RExpr::FunRef { sym, typ } => {
-            AExpr::FunRef { sym, typ }
-
-            // let tmp = gen_sym("tmp");
-            // AExpr::Let {
-            //     typ,
-            //     sym: tmp,
-            //     bnd: Box::new(AExpr::FunRef { sym }),
-            //     bdy: Box::new(AExpr::Atom {
-            //         atm: Atom::Var { sym: tmp },
-            //     }),
-            // }
-        }
+        RExpr::FunRef { sym, typ } => AExpr::FunRef { sym, typ },
         RExpr::Loop { bdy, typ } => AExpr::Loop {
             bdy: Box::new(atomize_expr(*bdy)),
             typ,

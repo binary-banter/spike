@@ -88,9 +88,19 @@ fn explicate_assign<'p>(
     };
 
     match bnd {
-        AExpr::Apply { fun, args, typ } => Tail::Seq {
+        AExpr::Apply {
+            fun,
+            args,
+            typ,
+            fn_typ,
+        } => Tail::Seq {
             sym,
-            bnd: CExpr::Apply { fun, args, typ },
+            bnd: CExpr::Apply {
+                fun,
+                args,
+                typ,
+                fn_typ,
+            },
             tail: Box::new(tail),
         },
         AExpr::FunRef { sym: sym_fn, typ } => Tail::Seq {
@@ -320,7 +330,9 @@ fn explicate_pred<'p>(
                 env,
             )
         }
-        AExpr::Apply { fun, args, .. } => {
+        AExpr::Apply {
+            fun, args, fn_typ, ..
+        } => {
             let tmp = gen_sym("tmp");
             explicate_assign(
                 tmp,
@@ -328,6 +340,7 @@ fn explicate_pred<'p>(
                     fun,
                     args,
                     typ: Type::Bool,
+                    fn_typ,
                 },
                 explicate_pred(
                     AExpr::Atom {

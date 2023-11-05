@@ -1,4 +1,5 @@
 pub mod eliminate;
+mod eliminate_params;
 
 use crate::passes::atomize::Atom;
 use crate::passes::explicate::{CExpr, PrgExplicated, Tail};
@@ -31,6 +32,7 @@ pub enum EExpr<'p> {
         fun: Atom<'p>,
         args: Vec<Atom<'p>>,
         typ: Type<UniqueSym<'p>>,
+        fn_typ: Type<UniqueSym<'p>>,
     },
     FunRef {
         sym: UniqueSym<'p>,
@@ -73,7 +75,17 @@ impl<'p> From<EExpr<'p>> for CExpr<'p> {
         match value {
             EExpr::Atom { atm, typ } => CExpr::Atom { atm, typ },
             EExpr::Prim { op, args, typ } => CExpr::Prim { op, args, typ },
-            EExpr::Apply { fun, args, typ } => CExpr::Apply { fun, args, typ },
+            EExpr::Apply {
+                fun,
+                args,
+                typ,
+                fn_typ,
+            } => CExpr::Apply {
+                fun,
+                args,
+                typ,
+                fn_typ,
+            },
             EExpr::FunRef { sym, typ } => CExpr::FunRef { sym, typ },
         }
     }
