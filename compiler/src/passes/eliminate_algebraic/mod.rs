@@ -19,7 +19,7 @@ pub struct PrgEliminated<'p> {
 #[derive(Debug, PartialEq)]
 pub enum ETail<'p> {
     Return {
-        expr: Vec<Atom<'p>>,
+        exprs: Vec<(Atom<'p>, Type<UniqueSym<'p>>)>,
     },
     Seq {
         syms: Vec<UniqueSym<'p>>,

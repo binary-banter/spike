@@ -58,14 +58,10 @@ fn select_block<'p>(
     Block { instrs }
 }
 
-fn select_tail<'p>(
-    tail: ETail<'p>,
-    instrs: &mut Vec<Instr<'p, VarArg<'p>>>,
-    std: &Std<'p>,
-) {
+fn select_tail<'p>(tail: ETail<'p>, instrs: &mut Vec<Instr<'p, VarArg<'p>>>, std: &Std<'p>) {
     match tail {
-        ETail::Return { expr: atm } => {
-            instrs.push(movq!(select_atom(&atm[0]), reg!(RAX))); //TODO
+        ETail::Return { exprs: atm } => {
+            instrs.push(movq!(select_atom(&atm[0].0), reg!(RAX))); //TODO
 
             for reg in CALLEE_SAVED_NO_STACK.into_iter().rev() {
                 instrs.push(popq!(VarArg::Reg { reg }));
@@ -74,7 +70,11 @@ fn select_tail<'p>(
 
             instrs.push(retq!());
         }
-        ETail::Seq { syms: sym, bnd, tail } => {
+        ETail::Seq {
+            syms: sym,
+            bnd,
+            tail,
+        } => {
             instrs.extend(select_assign(&sym, bnd, std));
             select_tail(*tail, instrs, std);
         }

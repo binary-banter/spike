@@ -19,6 +19,7 @@ pub struct PrgExplicated<'p> {
 pub enum CTail<'p> {
     Return {
         expr: Atom<'p>,
+        typ: Type<UniqueSym<'p>>,
     },
     Seq {
         sym: UniqueSym<'p>,

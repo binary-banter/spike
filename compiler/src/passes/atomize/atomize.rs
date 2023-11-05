@@ -1,6 +1,6 @@
 use crate::passes::atomize::{AExpr, Atom, PrgAtomized};
-use crate::passes::parse::Def;
 use crate::passes::parse::types::Type;
+use crate::passes::parse::Def;
 use crate::passes::reveal_functions::{PrgRevealed, RExpr};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 
@@ -18,11 +18,13 @@ impl<'p> PrgRevealed<'p> {
                             params,
                             typ,
                             bdy,
-                        } => Def::Fn {
-                            sym,
-                            params,
-                            typ,
-                            bdy: atomize_expr(bdy),
+                        } => {
+                            Def::Fn {
+                                sym,
+                                params,
+                                typ,
+                                bdy: atomize_expr(bdy),
+                            }
                         },
                         Def::TypeDef { sym, def } => Def::TypeDef { sym, def },
                     };
@@ -53,7 +55,7 @@ fn atomize_expr(expr: RExpr) -> AExpr {
                 .rfold(AExpr::Prim { op, args, typ }, |bdy, (sym, bnd)| {
                     AExpr::Let {
                         sym,
-                        typ: bnd.typ().clone(),
+                        typ: bdy.typ().clone(),
                         bnd: Box::new(bnd),
                         bdy: Box::new(bdy),
                     }
@@ -76,10 +78,11 @@ fn atomize_expr(expr: RExpr) -> AExpr {
                 unreachable!()
             };
 
-            let (args, extras): (Vec<_>, Vec<_>) = args.into_iter()
+            let (args, extras): (Vec<_>, Vec<_>) = args
+                .into_iter()
                 .map(atomize_atom)
                 .zip(params)
-                .map(|((arg, extra),arg_typ)| ((arg, arg_typ), extra))
+                .map(|((arg, extra), arg_typ)| ((arg, arg_typ), extra))
                 .unzip();
 
             let (fun, fun_expr) = atomize_atom(*fun);
@@ -87,19 +90,14 @@ fn atomize_expr(expr: RExpr) -> AExpr {
             fun_expr
                 .into_iter()
                 .chain(extras.into_iter().flatten())
-                .rfold(
-                    AExpr::Apply {
-                        fun,
-                        args,
-                        typ,
-                    },
-                    |bdy, (sym, bnd)| AExpr::Let {
-                        typ: bnd.typ().clone(),
+                .rfold(AExpr::Apply { fun, args, typ }, |bdy, (sym, bnd)| {
+                    AExpr::Let {
+                        typ: bdy.typ().clone(),
                         sym,
                         bnd: Box::new(bnd),
                         bdy: Box::new(bdy),
-                    },
-                )
+                    }
+                })
         }
         RExpr::FunRef { sym, typ } => AExpr::FunRef { sym, typ },
         RExpr::Loop { bdy, typ } => AExpr::Loop {
@@ -138,7 +136,7 @@ fn atomize_expr(expr: RExpr) -> AExpr {
                 AExpr::Struct { sym, fields, typ },
                 |bdy, (sym, bnd)| AExpr::Let {
                     sym,
-                    typ: bnd.typ().clone(),
+                    typ: bdy.typ().clone(),
                     bnd: Box::new(bnd),
                     bdy: Box::new(bdy),
                 },
@@ -151,7 +149,7 @@ fn atomize_expr(expr: RExpr) -> AExpr {
                 AExpr::AccessField { strct, field, typ },
                 |bdy, (sym, bnd)| AExpr::Let {
                     sym,
-                    typ: bnd.typ().clone(),
+                    typ: bdy.typ().clone(),
                     bnd: Box::new(bnd),
                     bdy: Box::new(bdy),
                 },

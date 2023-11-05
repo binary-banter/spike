@@ -1,11 +1,11 @@
-use derive_more::Display;
 use crate::interpreter::Val;
 use crate::interpreter::IO;
 use crate::passes::atomize::Atom;
+use crate::passes::eliminate_algebraic::{EExpr, ETail, PrgEliminated};
 use crate::passes::parse::{Lit, Op};
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::push_map::PushMap;
-use crate::passes::eliminate_algebraic::{EExpr, ETail, PrgEliminated};
+use derive_more::Display;
 
 #[derive(Eq, PartialEq, Copy, Clone, Debug, Display)]
 pub enum EVal<'p> {
@@ -47,8 +47,8 @@ impl<'p> From<EVal<'p>> for Val<'p, UniqueSym<'p>> {
         match value {
             EVal::Int { val } => Val::Int { val },
             EVal::Bool { val } => Val::Bool { val },
-            EVal::Unit =>  Val::Unit,
-            EVal::Function { sym } => Val::Function{ sym },
+            EVal::Unit => Val::Unit,
+            EVal::Function { sym } => Val::Function { sym },
         }
     }
 }
@@ -75,9 +75,15 @@ impl<'p> PrgEliminated<'p> {
         io: &mut impl IO,
     ) -> Vec<EVal<'p>> {
         match tail {
-            ETail::Return { expr } => expr.into_iter().map(|atm| self.interpret_atom(atm, scope)).collect(),
+            ETail::Return { exprs: expr } => expr
+                .into_iter()
+                .map(|(atm, _)| self.interpret_atom(atm, scope))
+                .collect(),
             ETail::Seq { syms, bnd, tail } => {
-                let bnds = syms.iter().cloned().zip(self.interpret_expr(bnd, scope, io));
+                let bnds = syms
+                    .iter()
+                    .cloned()
+                    .zip(self.interpret_expr(bnd, scope, io));
                 scope.push_iter(bnds, |scope| self.interpret_tail(tail, scope, io))
             }
             ETail::IfStmt { cnd, thn, els } => {
@@ -203,7 +209,7 @@ impl<'p> PrgEliminated<'p> {
 
                 return scope.push_iter(args.into_iter(), |scope| {
                     self.interpret_tail(&self.blocks[&fn_sym], scope, io)
-                })
+                });
             }
         };
         vec![val]

@@ -1,6 +1,6 @@
 #
 #
-unit
+true
 #
 struct TestStruct {
     field_1: Int,
@@ -11,6 +11,6 @@ fn make_test() -> TestStruct {
     TestStruct { field_1: 5, field_2: true }
 }
 
-fn main() {
-    make_test();
+fn main() -> Bool {
+    make_test().field_2
 }

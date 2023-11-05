@@ -1,5 +1,5 @@
 use crate::passes::atomize::{AExpr, Atom, PrgAtomized};
-use crate::passes::explicate::{CExpr, PrgExplicated, CTail};
+use crate::passes::explicate::{CExpr, CTail, PrgExplicated};
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, Lit, Op, TypeDef};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
@@ -71,6 +71,7 @@ fn explicate_tail<'p>(expr: AExpr<'p>, env: &mut Env<'_, 'p>) -> CTail<'p> {
     let tmp = gen_sym("return");
     let tail = CTail::Return {
         expr: Atom::Var { sym: tmp },
+        typ: expr.typ().clone(),
     };
     explicate_assign(tmp, expr, tail, env)
 }
@@ -88,17 +89,9 @@ fn explicate_assign<'p>(
     };
 
     match bnd {
-        AExpr::Apply {
-            fun,
-            args,
-            typ,
-        } => CTail::Seq {
+        AExpr::Apply { fun, args, typ } => CTail::Seq {
             sym,
-            bnd: CExpr::Apply {
-                fun,
-                args,
-                typ,
-            },
+            bnd: CExpr::Apply { fun, args, typ },
             tail: Box::new(tail),
         },
         AExpr::FunRef { sym: sym_fn, typ } => CTail::Seq {
@@ -189,6 +182,7 @@ fn explicate_assign<'p>(
             let tmp = gen_sym("return");
             let tail = CTail::Return {
                 expr: Atom::Var { sym: tmp },
+                typ: bdy.typ().clone(),
             };
             explicate_assign(tmp, *bdy, tail, env)
         }
@@ -328,9 +322,7 @@ fn explicate_pred<'p>(
                 env,
             )
         }
-        AExpr::Apply {
-            fun, args, ..
-        } => {
+        AExpr::Apply { fun, args, .. } => {
             let tmp = gen_sym("tmp");
             explicate_assign(
                 tmp,

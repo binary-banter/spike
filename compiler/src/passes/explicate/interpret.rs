@@ -1,7 +1,7 @@
 use crate::interpreter::Val;
 use crate::interpreter::IO;
 use crate::passes::atomize::Atom;
-use crate::passes::explicate::{CExpr, PrgExplicated, CTail};
+use crate::passes::explicate::{CExpr, CTail, PrgExplicated};
 use crate::passes::parse::{Lit, Op};
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::push_map::PushMap;
@@ -19,7 +19,7 @@ impl<'p> PrgExplicated<'p> {
         io: &mut impl IO,
     ) -> Val<'p, UniqueSym<'p>> {
         match tail {
-            CTail::Return { expr } => self.interpret_atom(expr, scope),
+            CTail::Return { expr, .. } => self.interpret_atom(expr, scope),
             CTail::Seq { sym, bnd, tail } => {
                 let bnd = self.interpret_expr(bnd, scope, io);
                 scope.push(*sym, bnd, |scope| self.interpret_tail(tail, scope, io))
