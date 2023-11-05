@@ -31,6 +31,8 @@ pub fn eliminate_params<'p>(
         .collect()
 }
 
+/// Given an expression of `param_sym: param_type`
+/// Returns a flattened Vec of expressions of `(UniqueSym<'p>, Type<UniqueSym<'p>>)`
 pub fn flatten_params<'p>(
     param_sym: UniqueSym<'p>,
     param_type: &Type<UniqueSym<'p>>,

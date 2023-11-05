@@ -35,7 +35,9 @@ fn eliminate_tail<'p>(
     defs: &HashMap<UniqueSym<'p>, TypeDef<'p, UniqueSym<'p>>>,
 ) -> ETail<'p> {
     match tail {
-        CTail::Return { expr } => ETail::Return { expr: vec![expr] },
+        CTail::Return { expr } => {
+            ETail::Return { expr: vec![expr] }
+        },
         CTail::Seq { sym, bnd, tail } => {
             let tail = eliminate_tail(*tail, ctx, defs);
             eliminate_seq(sym, ctx, bnd, tail, defs)
@@ -109,46 +111,61 @@ fn eliminate_seq<'p>(
             tail: Box::new(tail),
         },
         Type::Var { sym: def_sym } => match &defs[&def_sym] {
-            TypeDef::Struct { fields } => {
-                let field_values: HashMap<_, _> = match bnd {
+            TypeDef::Struct { fields: def_fields } => {
+                match bnd {
                     CExpr::Atom { atm, .. } => {
-                        let v = atm.var();
-                        fields
-                            .iter()
-                            .map(|&(field, _)| {
-                                let new_sym =
-                                    *ctx.entry((v, field)).or_insert_with(|| gen_sym(v.sym));
-                                (field, Atom::Var { sym: new_sym })
-                            })
-                            .collect()
+                        def_fields.iter().fold(tail, |tail, (field, field_type)| {
+                            let sym_lhs = *ctx.entry((sym, field)).or_insert_with(|| gen_sym(sym.sym));
+                            let sym_rhs = *ctx.entry((atm.var(), field)).or_insert_with(|| gen_sym(atm.var().sym));
+
+                            eliminate_seq(
+                                sym_lhs,
+                                ctx,
+                                CExpr::Atom {
+                                    atm: Atom::Var { sym: sym_rhs },
+                                    typ: field_type.clone(),
+                                },
+                                tail,
+                                defs,
+                            )
+                        })
                     }
-                    CExpr::Struct { fields, .. } => fields.into_iter().collect(),
+                    CExpr::Struct { fields, .. } => {
+                        let field_values = fields.into_iter().collect::<HashMap<_, _>>();
+
+                        def_fields.iter().fold(tail, |tail, (field, field_type)| {
+                            let sym_lhs = *ctx.entry((sym, field)).or_insert_with(|| gen_sym(sym.sym));
+                            let sym_rhs = field_values[field];
+
+                            eliminate_seq(
+                                sym_lhs,
+                                ctx,
+                                CExpr::Atom {
+                                    atm: sym_rhs,
+                                    typ: field_type.clone(),
+                                },
+                                tail,
+                                defs,
+                            )
+                        })
+                    }
                     CExpr::Apply { fun, args, typ } => {
+                        let (syms, typs): (Vec<_>, Vec<_>) = flatten_params(sym, &typ, ctx, defs).into_iter().unzip();
 
-
-                        // sym.field1 =
-                        // sym.field2 =
-
-                        todo!()
+                        ETail::Seq {
+                            syms,
+                            bnd: EExpr::Apply {
+                                fun,
+                                args,
+                                typs,
+                            },
+                            tail: Box::new(tail),
+                        }
                     },
                     CExpr::Prim { .. } | CExpr::FunRef { .. } | CExpr::AccessField { .. } => {
                         unreachable!()
                     }
-                };
-
-                fields.iter().fold(tail, |tail, (field, field_type)| {
-                    let new_sym = *ctx.entry((sym, field)).or_insert_with(|| gen_sym(sym.sym));
-                    eliminate_seq(
-                        new_sym,
-                        ctx,
-                        CExpr::Atom {
-                            atm: field_values[field],
-                            typ: field_type.clone(),
-                        },
-                        tail,
-                        defs,
-                    )
-                })
+                }
             }
             TypeDef::Enum { .. } => todo!(),
         },
@@ -166,7 +183,7 @@ fn map_expr(e: CExpr) -> EExpr {
         } => EExpr::Apply {
             fun,
             args,
-            typ: vec![typ], //TODO baaaaad implementation, baaaaaaad
+            typs: vec![typ],
         },
         CExpr::FunRef { sym, typ } => EExpr::FunRef { sym, typ },
         CExpr::Struct { .. } | CExpr::AccessField { .. } => unreachable!(),

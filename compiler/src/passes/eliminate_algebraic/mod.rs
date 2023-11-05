@@ -50,7 +50,7 @@ pub enum EExpr<'p> {
     Apply {
         fun: Atom<'p>,
         args: Vec<(Atom<'p>, Type<UniqueSym<'p>>)>,
-        typ: Vec<Type<UniqueSym<'p>>>,
+        typs: Vec<Type<UniqueSym<'p>>>,
     },
     FunRef {
         sym: UniqueSym<'p>,
