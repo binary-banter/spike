@@ -17,7 +17,7 @@ pub fn eliminate_params<'p>(
                 params
                     .into_iter()
                     .flat_map(|param| {
-                        flatten_params(param.sym, &param.typ, ctx, defs)
+                        flatten_type(param.sym, &param.typ, ctx, defs)
                             .into_iter()
                             .map(move |(sym, typ)| Param {
                                 sym,
@@ -31,25 +31,27 @@ pub fn eliminate_params<'p>(
         .collect()
 }
 
-pub fn flatten_params<'p>(
-    param_sym: UniqueSym<'p>,
-    param_type: &Type<UniqueSym<'p>>,
+/// Given an expression of `sym: typ`
+/// Returns a flattened Vec of expressions of `(UniqueSym<'p>, Type<UniqueSym<'p>>)`
+pub fn flatten_type<'p>(
+    sym: UniqueSym<'p>,
+    typ: &Type<UniqueSym<'p>>,
     ctx: &mut Ctx<'p>,
     defs: &HashMap<UniqueSym<'p>, TypeDef<'p, UniqueSym<'p>>>,
 ) -> Vec<(UniqueSym<'p>, Type<UniqueSym<'p>>)> {
-    match param_type {
+    match typ {
         Type::Int | Type::Bool | Type::Unit | Type::Never | Type::Fn { .. } => {
-            vec![(param_sym, param_type.clone())]
+            vec![(sym, typ.clone())]
         }
-        Type::Var { sym } => match &defs[&sym] {
+        Type::Var { sym: def_sym } => match &defs[&def_sym] {
             TypeDef::Struct { fields } => fields
                 .iter()
                 .flat_map(|(field_name, field_type)| {
                     let new_sym = *ctx
-                        .entry((param_sym, field_name))
-                        .or_insert_with(|| gen_sym(param_sym.sym));
+                        .entry((sym, field_name))
+                        .or_insert_with(|| gen_sym(sym.sym));
 
-                    flatten_params(new_sym, field_type, ctx, defs).into_iter()
+                    flatten_type(new_sym, field_type, ctx, defs).into_iter()
                 })
                 .collect(),
             TypeDef::Enum { .. } => todo!(),

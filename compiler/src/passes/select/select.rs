@@ -1,10 +1,9 @@
 use crate::passes::atomize::Atom;
-use crate::passes::eliminate_algebraic::{EExpr, PrgEliminated};
-use crate::passes::explicate::Tail;
+use crate::passes::eliminate_algebraic::{EExpr, ETail, PrgEliminated};
 use crate::passes::parse::{Op, Param};
 use crate::passes::select::io::Std;
 use crate::passes::select::{
-    Block, Cnd, Instr, VarArg, X86Selected, ARG_PASSING_REGS, CALLEE_SAVED_NO_STACK,
+    Block, Cnd, Instr, VarArg, X86Selected, CALLEE_SAVED_NO_STACK, CALLER_SAVED,
 };
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use crate::*;
@@ -32,7 +31,7 @@ impl<'p> PrgEliminated<'p> {
 
 fn select_block<'p>(
     sym: UniqueSym<'p>,
-    tail: Tail<'p, EExpr<'p>>,
+    tail: ETail<'p>,
     std: &Std<'p>,
     fn_params: &HashMap<UniqueSym<'p>, Vec<Param<UniqueSym<'p>>>>,
 ) -> Block<'p, VarArg<'p>> {
@@ -45,11 +44,11 @@ fn select_block<'p>(
             instrs.push(pushq!(VarArg::Reg { reg }));
         }
 
-        for (reg, param) in ARG_PASSING_REGS.into_iter().zip(params.iter()) {
+        for (reg, param) in CALLER_SAVED.into_iter().zip(params.iter()) {
             instrs.push(movq!(VarArg::Reg { reg }, VarArg::XVar { sym: param.sym }));
         }
         assert!(
-            params.len() <= 6,
+            params.len() <= 9,
             "Argument passing to stack is not yet implemented."
         );
     }
@@ -59,14 +58,17 @@ fn select_block<'p>(
     Block { instrs }
 }
 
-fn select_tail<'p>(
-    tail: Tail<'p, EExpr<'p>>,
-    instrs: &mut Vec<Instr<'p, VarArg<'p>>>,
-    std: &Std<'p>,
-) {
+fn select_tail<'p>(tail: ETail<'p>, instrs: &mut Vec<Instr<'p, VarArg<'p>>>, std: &Std<'p>) {
     match tail {
-        Tail::Return { expr: atm } => {
-            instrs.push(movq!(select_atom(&atm), reg!(RAX)));
+        ETail::Return { exprs } => {
+            assert!(
+                exprs.len() <= 9,
+                "Argument passing to stack is not yet implemented."
+            );
+
+            for (reg, (arg, _)) in CALLER_SAVED.into_iter().zip(exprs) {
+                instrs.push(movq!(select_atom(&arg), VarArg::Reg { reg }));
+            }
 
             for reg in CALLEE_SAVED_NO_STACK.into_iter().rev() {
                 instrs.push(popq!(VarArg::Reg { reg }));
@@ -75,11 +77,15 @@ fn select_tail<'p>(
 
             instrs.push(retq!());
         }
-        Tail::Seq { sym, bnd, tail } => {
-            instrs.extend(select_assign(var!(sym), bnd, std));
+        ETail::Seq {
+            syms: sym,
+            bnd,
+            tail,
+        } => {
+            instrs.extend(select_assign(&sym, bnd, std));
             select_tail(*tail, instrs, std);
         }
-        Tail::IfStmt { cnd, thn, els } => match cnd {
+        ETail::IfStmt { cnd, thn, els } => match cnd {
             EExpr::Prim { op, args, .. } => {
                 let tmp = gen_sym("tmp");
                 instrs.extend(vec![
@@ -91,17 +97,18 @@ fn select_tail<'p>(
             }
             _ => unreachable!(),
         },
-        Tail::Goto { lbl } => {
+        ETail::Goto { lbl } => {
             instrs.push(jmp!(lbl));
         }
     }
 }
 
 fn select_assign<'p>(
-    dst: VarArg<'p>,
+    dsts: &[UniqueSym<'p>],
     expr: EExpr<'p>,
     std: &Std<'p>,
 ) -> Vec<Instr<'p, VarArg<'p>>> {
+    let dst = var!(dsts[0]);
     match expr {
         EExpr::Atom {
             atm: Atom::Val { val },
@@ -163,16 +170,20 @@ fn select_assign<'p>(
         EExpr::Apply { fun, args, .. } => {
             let mut instrs = vec![];
 
-            for (arg, reg) in args.iter().zip(ARG_PASSING_REGS.into_iter()) {
+            for ((arg, _), reg) in args.iter().zip(CALLER_SAVED.into_iter()) {
                 instrs.push(movq!(select_atom(arg), VarArg::Reg { reg }));
             }
             assert!(
-                args.len() <= 6,
+                args.len() <= 9,
                 "Argument passing to stack is not yet implemented."
             );
 
             instrs.push(callq_indirect!(select_atom(&fun), args.len()));
-            instrs.push(movq!(reg!(RAX), dst));
+
+            for (reg, dst) in CALLER_SAVED.into_iter().zip(dsts) {
+                instrs.push(movq!(VarArg::Reg { reg }, var!(*dst)));
+            }
+
             instrs
         }
     }

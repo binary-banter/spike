@@ -38,8 +38,7 @@ pub enum AExpr<'p> {
     },
     Apply {
         fun: Atom<'p>,
-        args: Vec<Atom<'p>>,
-        fn_typ: Type<UniqueSym<'p>>,
+        args: Vec<(Atom<'p>, Type<UniqueSym<'p>>)>,
         typ: Type<UniqueSym<'p>>,
     },
     FunRef {
@@ -178,7 +177,7 @@ impl<'p> From<AExpr<'p>> for TExpr<'p, UniqueSym<'p>> {
             },
             AExpr::Apply { fun, args, typ, .. } => TExpr::Apply {
                 fun: Box::new(fun.into()),
-                args: args.into_iter().map(Into::into).collect(),
+                args: args.into_iter().map(|(a, _)| a.into()).collect(),
                 typ,
             },
             AExpr::FunRef { sym, typ } => TExpr::Var { sym, typ },
