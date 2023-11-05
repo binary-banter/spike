@@ -8,7 +8,8 @@ use petgraph::Directed;
 impl<'p> PrgTypeChecked<'p> {
     pub fn check_sized(&self) -> Result<(), ValidateError> {
         let mut size_graph: GraphMap<&str, (), Directed> = GraphMap::new();
-        for (_, def) in &self.defs {
+        for def in self.defs.values() {
+            #[allow(clippy::single_match)]
             match def {
                 Def::TypeDef { sym, def } => match def {
                     TypeDef::Struct { fields } => {

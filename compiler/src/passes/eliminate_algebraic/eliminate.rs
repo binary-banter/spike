@@ -92,17 +92,13 @@ fn eliminate_seq<'p>(
 
             let (args, params): (Vec<_>, Vec<_>) = args
                 .into_iter()
-                .zip(params.into_iter())
-                .flat_map(|(atom, typ)| {
-                    match atom {
-                        Atom::Val { val } => vec![(Atom::Val { val }, typ)],
-                        Atom::Var { sym } => {
-                            flatten_params(sym, &typ, ctx, defs)
-                                .into_iter()
-                                .map(|(sym, typ)| (Atom::Var { sym }, typ))
-                                .collect()
-                        }
-                    }
+                .zip(params)
+                .flat_map(|(atom, typ)| match atom {
+                    Atom::Val { val } => vec![(Atom::Val { val }, typ)],
+                    Atom::Var { sym } => flatten_params(sym, &typ, ctx, defs)
+                        .into_iter()
+                        .map(|(sym, typ)| (Atom::Var { sym }, typ))
+                        .collect(),
                 })
                 .unzip();
 

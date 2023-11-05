@@ -95,7 +95,7 @@ impl<'p> PrgParsed<'p> {
                     sym,
                     Def::TypeDef {
                         sym,
-                        def: validate_typedef(sym, def, &mut scope)?,
+                        def: validate_typedef(sym, def, &scope)?,
                     },
                 )),
             })

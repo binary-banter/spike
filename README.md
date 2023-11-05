@@ -36,10 +36,14 @@ cargo run -- input.jj -o output && ./output ; echo $?
 * [ ] Improve algorithm for colouring the interference graph.
 * [ ] Add read and write functionality to the bencher to update locally.
 * [x] Lots, and lots, of refactoring!
+* [ ] Write test input in comments.
 
 # Upcoming Language Features
 * [x] Implement comments in code.
-* [ ] Algebraic Data Types (Enums and Structs).
+* [ ] Algebraic Data Types.
+  * [ ] Structs.
+    * [ ] Struct returns.
+  * [ ] Enums.
 * [ ] First-class functions.
 
 # Upcoming Optimizations
@@ -53,3 +57,4 @@ cargo run -- input.jj -o output && ./output ; echo $?
 * [ ] Make the compiler suggest hints.
 * [ ] Nested definitions.
 * [ ] Match statements.
+* [ ] LSP.

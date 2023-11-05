@@ -13,7 +13,7 @@ pub fn validate_typedef<'p>(
         TypeDef::Struct { fields } => {
             fields
                 .iter()
-                .try_for_each(|(_, typ)| validate_type(typ, &scope))?;
+                .try_for_each(|(_, typ)| validate_type(typ, scope))?;
             TypeDef::Struct { fields }
         }
         TypeDef::Enum { .. } => todo!(),
