@@ -280,10 +280,15 @@ ExprAtom<T>: Expr<'input, &'input str> = {
 }
 
 Struct: Expr<'input, &'input str> = {
-    <sym:Ident> "{" <fields:Comma<(<Ident> ":" <Expr>)>> "}" => Expr::Struct {
+    <sym:Ident> "{" <fields:Comma<StructArg>> "}" => Expr::Struct {
         sym,
         fields,
     },
+}
+
+StructArg : (&'input str, Expr<'input, &'input str>) = {
+    <Ident> ":" <Expr>,
+    <Ident> => (<>, Expr::Var { sym: <> })
 }
 
 Never: Expr<'input, &'input str> = {
