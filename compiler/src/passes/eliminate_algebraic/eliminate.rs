@@ -1,7 +1,7 @@
 use crate::passes::atomize::Atom;
 use crate::passes::eliminate_algebraic::eliminate_params::{eliminate_params, flatten_params};
-use crate::passes::eliminate_algebraic::{EExpr, PrgEliminated};
-use crate::passes::explicate::{CExpr, PrgExplicated, Tail};
+use crate::passes::eliminate_algebraic::{EExpr, ETail, PrgEliminated};
+use crate::passes::explicate::{CExpr, PrgExplicated, CTail};
 use crate::passes::parse::types::Type;
 use crate::passes::parse::TypeDef;
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
@@ -30,23 +30,22 @@ impl<'p> PrgExplicated<'p> {
 }
 
 fn eliminate_tail<'p>(
-    tail: Tail<'p, CExpr<'p>>,
+    tail: CTail<'p>,
     ctx: &mut Ctx<'p>,
     defs: &HashMap<UniqueSym<'p>, TypeDef<'p, UniqueSym<'p>>>,
-) -> Tail<'p, EExpr<'p>> {
+) -> ETail<'p> {
     match tail {
-        // TODO how to pass structs out of functions?
-        Tail::Return { expr } => Tail::Return { expr },
-        Tail::Seq { sym, bnd, tail } => {
+        CTail::Return { expr } => ETail::Return { expr: vec![expr] },
+        CTail::Seq { sym, bnd, tail } => {
             let tail = eliminate_tail(*tail, ctx, defs);
             eliminate_seq(sym, ctx, bnd, tail, defs)
         }
-        Tail::IfStmt { cnd, thn, els } => Tail::IfStmt {
+        CTail::IfStmt { cnd, thn, els } => ETail::IfStmt {
             cnd: map_expr(cnd),
             thn,
             els,
         },
-        Tail::Goto { lbl } => Tail::Goto { lbl },
+        CTail::Goto { lbl } => ETail::Goto { lbl },
     }
 }
 
@@ -54,9 +53,9 @@ fn eliminate_seq<'p>(
     sym: UniqueSym<'p>,
     ctx: &mut Ctx<'p>,
     bnd: CExpr<'p>,
-    tail: Tail<'p, EExpr<'p>>,
+    tail: ETail<'p>,
     defs: &HashMap<UniqueSym<'p>, TypeDef<'p, UniqueSym<'p>>>,
-) -> Tail<'p, EExpr<'p>> {
+) -> ETail<'p> {
     let bnd = match bnd {
         CExpr::AccessField {
             strct,
@@ -116,7 +115,7 @@ fn eliminate_seq<'p>(
     };
 
     match bnd.typ() {
-        Type::Int | Type::Bool | Type::Unit | Type::Never | Type::Fn { .. } => Tail::Seq {
+        Type::Int | Type::Bool | Type::Unit | Type::Never | Type::Fn { .. } => ETail::Seq {
             sym,
             bnd: map_expr(bnd),
             tail: Box::new(tail),
@@ -173,7 +172,7 @@ fn map_expr(e: CExpr) -> EExpr {
         } => EExpr::Apply {
             fun,
             args,
-            typ,
+            typ: vec![typ], //TODO baaaaad implementation, baaaaaaad
             fn_typ,
         },
         CExpr::FunRef { sym, typ } => EExpr::FunRef { sym, typ },

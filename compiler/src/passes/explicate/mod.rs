@@ -9,24 +9,24 @@ use std::collections::HashMap;
 
 #[derive(Debug, PartialEq)]
 pub struct PrgExplicated<'p> {
-    pub blocks: HashMap<UniqueSym<'p>, Tail<'p, CExpr<'p>>>,
+    pub blocks: HashMap<UniqueSym<'p>, CTail<'p>>,
     pub fn_params: HashMap<UniqueSym<'p>, Vec<Param<UniqueSym<'p>>>>,
     pub defs: HashMap<UniqueSym<'p>, TypeDef<'p, UniqueSym<'p>>>,
     pub entry: UniqueSym<'p>,
 }
 
 #[derive(Debug, PartialEq)]
-pub enum Tail<'p, E> {
+pub enum CTail<'p> {
     Return {
         expr: Atom<'p>,
     },
     Seq {
         sym: UniqueSym<'p>,
-        bnd: E,
-        tail: Box<Tail<'p, E>>,
+        bnd: CExpr<'p>,
+        tail: Box<CTail<'p>>,
     },
     IfStmt {
-        cnd: E,
+        cnd: CExpr<'p>,
         thn: UniqueSym<'p>,
         els: UniqueSym<'p>,
     },

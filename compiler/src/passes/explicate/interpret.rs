@@ -1,7 +1,7 @@
 use crate::interpreter::Val;
 use crate::interpreter::IO;
 use crate::passes::atomize::Atom;
-use crate::passes::explicate::{CExpr, PrgExplicated, Tail};
+use crate::passes::explicate::{CExpr, PrgExplicated, CTail};
 use crate::passes::parse::{Lit, Op};
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::push_map::PushMap;
@@ -14,24 +14,24 @@ impl<'p> PrgExplicated<'p> {
 
     fn interpret_tail(
         &self,
-        tail: &Tail<'p, CExpr<'p>>,
+        tail: &CTail<'p>,
         scope: &mut PushMap<UniqueSym<'p>, Val<'p, UniqueSym<'p>>>,
         io: &mut impl IO,
     ) -> Val<'p, UniqueSym<'p>> {
         match tail {
-            Tail::Return { expr } => self.interpret_atom(expr, scope),
-            Tail::Seq { sym, bnd, tail } => {
+            CTail::Return { expr } => self.interpret_atom(expr, scope),
+            CTail::Seq { sym, bnd, tail } => {
                 let bnd = self.interpret_expr(bnd, scope, io);
                 scope.push(*sym, bnd, |scope| self.interpret_tail(tail, scope, io))
             }
-            Tail::IfStmt { cnd, thn, els } => {
+            CTail::IfStmt { cnd, thn, els } => {
                 if self.interpret_expr(cnd, scope, io).bool() {
                     self.interpret_tail(&self.blocks[thn], scope, io)
                 } else {
                     self.interpret_tail(&self.blocks[els], scope, io)
                 }
             }
-            Tail::Goto { lbl } => self.interpret_tail(&self.blocks[lbl], scope, io),
+            CTail::Goto { lbl } => self.interpret_tail(&self.blocks[lbl], scope, io),
         }
     }
 

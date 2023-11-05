@@ -1,6 +1,5 @@
 use crate::passes::atomize::Atom;
-use crate::passes::eliminate_algebraic::{EExpr, PrgEliminated};
-use crate::passes::explicate::Tail;
+use crate::passes::eliminate_algebraic::{EExpr, ETail, PrgEliminated};
 use crate::passes::parse::{Op, Param};
 use crate::passes::select::io::Std;
 use crate::passes::select::{
@@ -32,7 +31,7 @@ impl<'p> PrgEliminated<'p> {
 
 fn select_block<'p>(
     sym: UniqueSym<'p>,
-    tail: Tail<'p, EExpr<'p>>,
+    tail: ETail<'p>,
     std: &Std<'p>,
     fn_params: &HashMap<UniqueSym<'p>, Vec<Param<UniqueSym<'p>>>>,
 ) -> Block<'p, VarArg<'p>> {
@@ -60,13 +59,13 @@ fn select_block<'p>(
 }
 
 fn select_tail<'p>(
-    tail: Tail<'p, EExpr<'p>>,
+    tail: ETail<'p>,
     instrs: &mut Vec<Instr<'p, VarArg<'p>>>,
     std: &Std<'p>,
 ) {
     match tail {
-        Tail::Return { expr: atm } => {
-            instrs.push(movq!(select_atom(&atm), reg!(RAX)));
+        ETail::Return { expr: atm } => {
+            instrs.push(movq!(select_atom(&atm[0]), reg!(RAX))); //TODO
 
             for reg in CALLEE_SAVED_NO_STACK.into_iter().rev() {
                 instrs.push(popq!(VarArg::Reg { reg }));
@@ -75,11 +74,11 @@ fn select_tail<'p>(
 
             instrs.push(retq!());
         }
-        Tail::Seq { sym, bnd, tail } => {
+        ETail::Seq { sym, bnd, tail } => {
             instrs.extend(select_assign(var!(sym), bnd, std));
             select_tail(*tail, instrs, std);
         }
-        Tail::IfStmt { cnd, thn, els } => match cnd {
+        ETail::IfStmt { cnd, thn, els } => match cnd {
             EExpr::Prim { op, args, .. } => {
                 let tmp = gen_sym("tmp");
                 instrs.extend(vec![
@@ -91,7 +90,7 @@ fn select_tail<'p>(
             }
             _ => unreachable!(),
         },
-        Tail::Goto { lbl } => {
+        ETail::Goto { lbl } => {
             instrs.push(jmp!(lbl));
         }
     }

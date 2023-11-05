@@ -1,12 +1,12 @@
 use crate::passes::atomize::{AExpr, Atom, PrgAtomized};
-use crate::passes::explicate::{CExpr, PrgExplicated, Tail};
+use crate::passes::explicate::{CExpr, PrgExplicated, CTail};
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, Lit, Op, TypeDef};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use std::collections::HashMap;
 
 struct Env<'a, 'p> {
-    blocks: &'a mut HashMap<UniqueSym<'p>, Tail<'p, CExpr<'p>>>,
+    blocks: &'a mut HashMap<UniqueSym<'p>, CTail<'p>>,
     /// (block to jump to, variable to write to)
     break_target: Option<(UniqueSym<'p>, UniqueSym<'p>)>,
     /// block to jump to
@@ -67,9 +67,9 @@ fn explicate_def<'p>(
     }
 }
 
-fn explicate_tail<'p>(expr: AExpr<'p>, env: &mut Env<'_, 'p>) -> Tail<'p, CExpr<'p>> {
+fn explicate_tail<'p>(expr: AExpr<'p>, env: &mut Env<'_, 'p>) -> CTail<'p> {
     let tmp = gen_sym("return");
-    let tail = Tail::Return {
+    let tail = CTail::Return {
         expr: Atom::Var { sym: tmp },
     };
     explicate_assign(tmp, expr, tail, env)
@@ -78,10 +78,10 @@ fn explicate_tail<'p>(expr: AExpr<'p>, env: &mut Env<'_, 'p>) -> Tail<'p, CExpr<
 fn explicate_assign<'p>(
     sym: UniqueSym<'p>,
     bnd: AExpr<'p>,
-    tail: Tail<'p, CExpr<'p>>,
+    tail: CTail<'p>,
     env: &mut Env<'_, 'p>,
-) -> Tail<'p, CExpr<'p>> {
-    let mut create_block = |goto: Tail<'p, CExpr<'p>>| {
+) -> CTail<'p> {
+    let mut create_block = |goto: CTail<'p>| {
         let sym = gen_sym("tmp");
         env.blocks.insert(sym, goto);
         sym
@@ -93,7 +93,7 @@ fn explicate_assign<'p>(
             args,
             typ,
             fn_typ,
-        } => Tail::Seq {
+        } => CTail::Seq {
             sym,
             bnd: CExpr::Apply {
                 fun,
@@ -103,17 +103,17 @@ fn explicate_assign<'p>(
             },
             tail: Box::new(tail),
         },
-        AExpr::FunRef { sym: sym_fn, typ } => Tail::Seq {
+        AExpr::FunRef { sym: sym_fn, typ } => CTail::Seq {
             sym,
             bnd: CExpr::FunRef { sym: sym_fn, typ },
             tail: Box::new(tail),
         },
-        AExpr::Atom { atm, typ } => Tail::Seq {
+        AExpr::Atom { atm, typ } => CTail::Seq {
             sym,
             bnd: CExpr::Atom { atm, typ },
             tail: Box::new(tail),
         },
-        AExpr::Prim { op, args, typ } => Tail::Seq {
+        AExpr::Prim { op, args, typ } => CTail::Seq {
             sym,
             bnd: CExpr::Prim { op, args, typ },
             tail: Box::new(tail),
@@ -128,8 +128,8 @@ fn explicate_assign<'p>(
             let tb = create_block(tail);
             explicate_pred(
                 *cnd,
-                explicate_assign(sym, *thn, Tail::Goto { lbl: tb }, env),
-                explicate_assign(sym, *els, Tail::Goto { lbl: tb }, env),
+                explicate_assign(sym, *thn, CTail::Goto { lbl: tb }, env),
+                explicate_assign(sym, *els, CTail::Goto { lbl: tb }, env),
                 env,
             )
         }
@@ -145,19 +145,19 @@ fn explicate_assign<'p>(
             let loop_block = explicate_assign(
                 gen_sym("ignore"),
                 *bdy,
-                Tail::Goto {
+                CTail::Goto {
                     lbl: loop_block_sym,
                 },
                 &mut env,
             );
             env.blocks.insert(loop_block_sym, loop_block);
-            Tail::Goto {
+            CTail::Goto {
                 lbl: loop_block_sym,
             }
         }
         AExpr::Break { bdy, .. } => {
             let (break_sym, break_var) = env.break_target.unwrap();
-            let break_goto = Tail::Goto { lbl: break_sym };
+            let break_goto = CTail::Goto { lbl: break_sym };
             explicate_assign(break_var, *bdy, break_goto, env)
         }
         AExpr::Seq { stmt, cnt, .. } => explicate_assign(
@@ -184,12 +184,12 @@ fn explicate_assign<'p>(
             ),
             env,
         ),
-        AExpr::Continue { .. } => Tail::Goto {
+        AExpr::Continue { .. } => CTail::Goto {
             lbl: env.continue_target.unwrap(),
         },
         AExpr::Return { bdy, .. } => {
             let tmp = gen_sym("return");
-            let tail = Tail::Return {
+            let tail = CTail::Return {
                 expr: Atom::Var { sym: tmp },
             };
             explicate_assign(tmp, *bdy, tail, env)
@@ -198,7 +198,7 @@ fn explicate_assign<'p>(
             sym: sym_,
             fields,
             typ,
-        } => Tail::Seq {
+        } => CTail::Seq {
             sym,
             bnd: CExpr::Struct {
                 sym: sym_,
@@ -207,7 +207,7 @@ fn explicate_assign<'p>(
             },
             tail: Box::new(tail),
         },
-        AExpr::AccessField { strct, field, typ } => Tail::Seq {
+        AExpr::AccessField { strct, field, typ } => CTail::Seq {
             sym,
             bnd: CExpr::AccessField { strct, field, typ },
             tail: Box::new(tail),
@@ -217,11 +217,11 @@ fn explicate_assign<'p>(
 
 fn explicate_pred<'p>(
     cnd: AExpr<'p>,
-    thn: Tail<'p, CExpr<'p>>,
-    els: Tail<'p, CExpr<'p>>,
+    thn: CTail<'p>,
+    els: CTail<'p>,
     env: &mut Env<'_, 'p>,
-) -> Tail<'p, CExpr<'p>> {
-    let mut create_block = |goto: Tail<'p, CExpr<'p>>| {
+) -> CTail<'p> {
+    let mut create_block = |goto: CTail<'p>| {
         let sym = gen_sym("tmp");
         env.blocks.insert(sym, goto);
         sym
@@ -231,7 +231,7 @@ fn explicate_pred<'p>(
         AExpr::Atom {
             atm: Atom::Var { sym },
             ..
-        } => Tail::IfStmt {
+        } => CTail::IfStmt {
             cnd: CExpr::Prim {
                 op: Op::EQ,
                 args: vec![
@@ -267,7 +267,7 @@ fn explicate_pred<'p>(
                 thn,
                 env,
             ),
-            Op::EQ | Op::NE | Op::GT | Op::GE | Op::LT | Op::LE => Tail::IfStmt {
+            Op::EQ | Op::NE | Op::GT | Op::GE | Op::LT | Op::LE => CTail::IfStmt {
                 cnd: CExpr::Prim {
                     op,
                     args,
@@ -317,14 +317,14 @@ fn explicate_pred<'p>(
                 *cnd_sub,
                 explicate_pred(
                     *thn_sub,
-                    Tail::Goto { lbl: thn },
-                    Tail::Goto { lbl: els },
+                    CTail::Goto { lbl: thn },
+                    CTail::Goto { lbl: els },
                     env,
                 ),
                 explicate_pred(
                     *els_sub,
-                    Tail::Goto { lbl: thn },
-                    Tail::Goto { lbl: els },
+                    CTail::Goto { lbl: thn },
+                    CTail::Goto { lbl: els },
                     env,
                 ),
                 env,
