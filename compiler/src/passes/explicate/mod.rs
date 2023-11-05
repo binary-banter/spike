@@ -2,29 +2,31 @@ pub mod explicate;
 pub mod interpret;
 
 use crate::passes::atomize::Atom;
-use crate::passes::parse::Op;
+use crate::passes::parse::types::Type;
+use crate::passes::parse::{Op, Param, TypeDef};
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
 
 #[derive(Debug, PartialEq)]
 pub struct PrgExplicated<'p> {
-    pub blocks: HashMap<UniqueSym<'p>, Tail<'p>>,
-    pub fn_params: HashMap<UniqueSym<'p>, Vec<UniqueSym<'p>>>,
+    pub blocks: HashMap<UniqueSym<'p>, Tail<'p, CExpr<'p>>>,
+    pub fn_params: HashMap<UniqueSym<'p>, Vec<Param<UniqueSym<'p>>>>,
+    pub defs: HashMap<UniqueSym<'p>, TypeDef<'p, UniqueSym<'p>>>,
     pub entry: UniqueSym<'p>,
 }
 
 #[derive(Debug, PartialEq)]
-pub enum Tail<'p> {
+pub enum Tail<'p, E> {
     Return {
-        expr: CExpr<'p>,
+        expr: Atom<'p>,
     },
     Seq {
         sym: UniqueSym<'p>,
-        bnd: CExpr<'p>,
-        tail: Box<Tail<'p>>,
+        bnd: E,
+        tail: Box<Tail<'p, E>>,
     },
     IfStmt {
-        cnd: CExpr<'p>,
+        cnd: E,
         thn: UniqueSym<'p>,
         els: UniqueSym<'p>,
     },
@@ -35,10 +37,49 @@ pub enum Tail<'p> {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum CExpr<'p> {
-    Atom { atm: Atom<'p> },
-    Prim { op: Op, args: Vec<Atom<'p>> },
-    Apply { fun: Atom<'p>, args: Vec<Atom<'p>> },
-    FunRef { sym: UniqueSym<'p> },
+    Atom {
+        atm: Atom<'p>,
+        typ: Type<UniqueSym<'p>>,
+    },
+    Prim {
+        op: Op,
+        args: Vec<Atom<'p>>,
+        typ: Type<UniqueSym<'p>>,
+    },
+    Apply {
+        fun: Atom<'p>,
+        args: Vec<Atom<'p>>,
+        typ: Type<UniqueSym<'p>>,
+        fn_typ: Type<UniqueSym<'p>>,
+    },
+    FunRef {
+        sym: UniqueSym<'p>,
+        typ: Type<UniqueSym<'p>>,
+    },
+    Struct {
+        sym: UniqueSym<'p>,
+        // todo: this does not need to be atom!
+        fields: Vec<(&'p str, Atom<'p>)>,
+        typ: Type<UniqueSym<'p>>,
+    },
+    AccessField {
+        strct: Atom<'p>,
+        field: &'p str,
+        typ: Type<UniqueSym<'p>>,
+    },
+}
+
+impl<'p> CExpr<'p> {
+    pub fn typ(&self) -> &Type<UniqueSym<'p>> {
+        match self {
+            CExpr::Atom { typ, .. }
+            | CExpr::Prim { typ, .. }
+            | CExpr::Apply { typ, .. }
+            | CExpr::FunRef { typ, .. }
+            | CExpr::Struct { typ, .. }
+            | CExpr::AccessField { typ, .. } => typ,
+        }
+    }
 }
 
 #[cfg(test)]
@@ -50,7 +91,7 @@ mod tests {
     fn explicated([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);
         let program = program
-            .type_check()
+            .validate()
             .unwrap()
             .uniquify()
             .reveal()

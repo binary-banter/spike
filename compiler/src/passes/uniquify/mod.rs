@@ -1,9 +1,15 @@
 pub mod uniquify;
 
-use crate::passes::parse::PrgGenericVar;
+use crate::passes::parse::Def;
+use crate::passes::validate::TExpr;
 use crate::utils::gen_sym::UniqueSym;
+use std::collections::HashMap;
 
-pub type PrgUniquified<'p> = PrgGenericVar<UniqueSym<'p>>;
+#[derive(Debug, PartialEq)]
+pub struct PrgUniquified<'p> {
+    pub defs: HashMap<UniqueSym<'p>, Def<'p, UniqueSym<'p>, TExpr<'p, UniqueSym<'p>>>>,
+    pub entry: UniqueSym<'p>,
+}
 
 #[cfg(test)]
 mod tests {
@@ -13,7 +19,7 @@ mod tests {
 
     fn unique([test]: [&str; 1]) {
         let (input, expected_output, expected_return, program) = split_test(test);
-        let uniquified_program = program.type_check().unwrap().uniquify();
+        let uniquified_program = program.validate().unwrap().uniquify();
         let mut io = TestIO::new(input);
         let result = uniquified_program.interpret(&mut io);
 

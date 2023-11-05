@@ -1,0 +1,34 @@
+3 4 5
+5 12 13
+1 2 3
+0
+#
+1
+1
+0
+#
+unit
+#
+
+struct Triple {
+    a: Int,
+    b: Int,
+    c: Int,
+}
+
+fn is_triple(triple: Triple) -> Bool {
+    triple.a * triple.a + triple.b * triple.b == triple.c * triple.c
+}
+
+fn main() {
+    let mut a = 0;
+    while (a = read(); a != 0) {
+        let triple = Triple { a: a, b: read(), c: read() };
+
+        if is_triple(triple) {
+            print(1);
+        } else {
+            print(0);
+        }
+    }
+}

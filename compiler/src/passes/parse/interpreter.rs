@@ -1,15 +1,19 @@
 use crate::interpreter::Val;
 use crate::interpreter::IO;
-use crate::passes::parse::{Def, Expr, Lit, Op, PrgGenericVar};
+use crate::passes::parse::{Def, Lit, Op};
+use crate::passes::uniquify::PrgUniquified;
+use crate::passes::validate::TExpr;
+use crate::utils::gen_sym::UniqueSym;
 use crate::utils::push_map::PushMap;
-use std::fmt::{Debug, Display};
+use std::collections::HashMap;
+use std::fmt::Display;
 use std::hash::Hash;
 
-#[derive(Copy, Clone)]
-pub enum ControlFlow<A: Copy + Hash + Eq + Display> {
-    Val(Val<A>),
-    Break(Val<A>),
-    Return(Val<A>),
+#[derive(Clone)]
+pub enum ControlFlow<'p, A: Copy + Hash + Eq + Display> {
+    Val(Val<'p, A>),
+    Break(Val<'p, A>),
+    Return(Val<'p, A>),
     Continue,
 }
 
@@ -24,8 +28,8 @@ macro_rules! b {
     }};
 }
 
-impl<A: Copy + Hash + Eq + Debug + Display> PrgGenericVar<A> {
-    pub fn interpret(&self, io: &mut impl IO) -> Val<A> {
+impl<'p> PrgUniquified<'p> {
+    pub fn interpret(&'p self, io: &mut impl IO) -> Val<'p, UniqueSym<'p>> {
         let mut scope = PushMap::from_iter(
             self.defs
                 .iter()
@@ -35,36 +39,37 @@ impl<A: Copy + Hash + Eq + Debug + Display> PrgGenericVar<A> {
     }
 
     fn interpret_fn(
-        &self,
-        sym: A,
-        args: Vec<Val<A>>,
-        scope: &mut PushMap<A, Val<A>>,
+        &'p self,
+        sym: UniqueSym<'p>,
+        args: Vec<Val<'p, UniqueSym<'p>>>,
+        scope: &mut PushMap<UniqueSym<'p>, Val<'p, UniqueSym<'p>>>,
         io: &mut impl IO,
-    ) -> Val<A> {
+    ) -> Val<'p, UniqueSym<'p>> {
         match &self.defs[&sym] {
             Def::Fn { params, bdy, .. } => scope.push_iter(
                 params
                     .iter()
                     .zip(args.iter())
-                    .map(|(param, v)| (param.sym, *v)),
+                    .map(|(param, v)| (param.sym, v.clone())),
                 |scope| match self.interpret_expr(bdy, scope, io) {
                     ControlFlow::Return(val) | ControlFlow::Val(val) => val,
                     ControlFlow::Continue | ControlFlow::Break(_) => unreachable!(),
                 },
             ),
+            Def::TypeDef { .. } => unreachable!(),
         }
     }
 
     pub fn interpret_expr(
-        &self,
-        expr: &Expr<A>,
-        scope: &mut PushMap<A, Val<A>>,
+        &'p self,
+        expr: &'p TExpr<UniqueSym<'p>>,
+        scope: &mut PushMap<UniqueSym<'p>, Val<'p, UniqueSym<'p>>>,
         io: &mut impl IO,
-    ) -> ControlFlow<A> {
+    ) -> ControlFlow<'p, UniqueSym<'p>> {
         ControlFlow::Val(match expr {
-            Expr::Lit { val } => (*val).into(),
-            Expr::Var { sym } => scope[sym],
-            Expr::Prim { op, args } => match (op, args.as_slice()) {
+            TExpr::Lit { val, .. } => (*val).into(),
+            TExpr::Var { sym, .. } => scope[sym].clone(),
+            TExpr::Prim { op, args, .. } => match (op, args.as_slice()) {
                 (Op::Read, []) => io.read().into(),
                 (Op::Print, [v]) => {
                     let val = b!(self.interpret_expr(v, scope, io));
@@ -155,18 +160,18 @@ impl<A: Copy + Hash + Eq + Debug + Display> PrgGenericVar<A> {
                 }
                 _ => unreachable!(),
             },
-            Expr::Let { sym, bnd, bdy, .. } => {
+            TExpr::Let { sym, bnd, bdy, .. } => {
                 let bnd = b!(self.interpret_expr(bnd, scope, io));
                 b!(scope.push(*sym, bnd, |scope| self.interpret_expr(bdy, scope, io)))
             }
-            Expr::If { cnd, thn, els } => {
+            TExpr::If { cnd, thn, els, .. } => {
                 if b!(self.interpret_expr(cnd, scope, io)).bool() {
                     b!(self.interpret_expr(thn, scope, io))
                 } else {
                     b!(self.interpret_expr(els, scope, io))
                 }
             }
-            Expr::Apply { fun, args } => {
+            TExpr::Apply { fun, args, .. } => {
                 let sym = b!(self.interpret_expr(fun, scope, io)).fun();
 
                 let mut fn_args = Vec::new();
@@ -176,47 +181,44 @@ impl<A: Copy + Hash + Eq + Debug + Display> PrgGenericVar<A> {
 
                 self.interpret_fn(sym, fn_args, scope, io)
             }
-            Expr::Loop { bdy } => loop {
+            TExpr::Loop { bdy, .. } => loop {
                 match self.interpret_expr(bdy, scope, io) {
                     ControlFlow::Return(val) => return ControlFlow::Return(val),
                     ControlFlow::Break(val) => return ControlFlow::Val(val),
                     ControlFlow::Continue | ControlFlow::Val(_) => {}
                 }
             },
-            Expr::Break { bdy } => {
+            TExpr::Break { bdy, .. } => {
                 return ControlFlow::Break(b!(self.interpret_expr(bdy, scope, io)))
             }
-            Expr::Seq { stmt, cnt } => {
+            TExpr::Seq { stmt, cnt, .. } => {
                 b!(self.interpret_expr(stmt, scope, io));
                 b!(self.interpret_expr(cnt, scope, io))
             }
-            Expr::Assign { sym, bnd } => {
+            TExpr::Assign { sym, bnd, .. } => {
                 let bnd = b!(self.interpret_expr(bnd, scope, io));
                 scope.0.insert(*sym, bnd);
                 Val::Unit
             }
-            Expr::Continue => return ControlFlow::Continue,
-            Expr::Return { bdy } => {
+            TExpr::Continue { .. } => return ControlFlow::Continue,
+            TExpr::Return { bdy, .. } => {
                 return ControlFlow::Return(b!(self.interpret_expr(bdy, scope, io)))
             }
+            TExpr::Struct { fields, .. } => {
+                let mut field_values = HashMap::new();
+                for (sym, field) in fields {
+                    field_values.insert(*sym, b!(self.interpret_expr(field, scope, io)));
+                }
+                Val::StructInstance {
+                    fields: field_values,
+                }
+            }
+            TExpr::Variant { .. } => todo!(),
+            TExpr::AccessField { strct, field, .. } => {
+                let s = b!(self.interpret_expr(strct, scope, io));
+                s.strct()[field].clone()
+            }
+            TExpr::Switch { .. } => todo!(),
         })
     }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::interpreter::TestIO;
-    use crate::utils::split_test::split_test;
-    use test_each_file::test_each_file;
-
-    fn interpret([test]: [&str; 1]) {
-        let (input, expected_output, expected_return, program) = split_test(test);
-        let mut io = TestIO::new(input);
-        let result = program.type_check().unwrap().interpret(&mut io);
-
-        assert_eq!(result, expected_return.into());
-        assert_eq!(io.outputs(), &expected_output);
-    }
-
-    test_each_file! { for ["test"] in "./programs/good" as interpreter => interpret }
 }

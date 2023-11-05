@@ -1,7 +1,7 @@
 use std::str::FromStr;
-use crate::passes::parse::{Def, Expr, Lit, Op, Param};
+use crate::passes::parse::{Def, TypeDef, Expr, Lit, Op, Param};
 use crate::passes::parse::PrgParsed;
-use crate::passes::type_check::Type;
+use crate::passes::parse::Type;
 
 grammar;
 
@@ -17,6 +17,10 @@ match {
     "continue",
     "return",
     "mut",
+    "struct",
+    "enum",
+    "switch",
+    "never",
 
     // Structural tokens
     "(",
@@ -28,6 +32,9 @@ match {
     ";",
     ",",
     ":",
+    ".",
+    "::",
+    "=>",
 
     // Identifier
     r"[_a-zA-Z][_a-zA-Z0-9]*",
@@ -86,17 +93,21 @@ pub Program: PrgParsed<'input> = {
     }
 }
 
-Def: Def<&'input str, Expr<&'input str>> = {
-    Fn,
-}
-
-Fn: Def<&'input str, Expr<&'input str>> = {
-    "fn" <sym:Ident> "(" <params:Comma<Param>> ")" <typ:("->" <Type>)?> "{" <bdy: Expr> "}" => Def::Fn {
+Def: Def<'input, &'input str, Expr<'input, &'input str>> = {
+    "struct" <sym:Ident> "{" <fields:Comma<(<Ident> ":" <Type>)>> "}" => Def::TypeDef {
+        sym,
+        def: TypeDef::Struct { fields },
+    },
+    "enum" <sym:Ident> "{" <variants:Comma<(<Ident> ":" <Type>)>> "}" => Def::TypeDef {
+        sym,
+        def: TypeDef::Enum { variants },
+    },
+    "fn" <sym:Ident> "(" <params:Comma<Param>> ")" <typ:("->" <Type>)?> "{" <bdy: Expr?> "}" => Def::Fn {
         sym,
         params,
         typ: typ.unwrap_or(Type::Unit),
-        bdy
-    }
+        bdy: bdy.unwrap_or(Expr::Lit { val: Lit::Unit }),
+    },
 }
 
 Param: Param<&'input str> = {
@@ -107,11 +118,12 @@ Param: Param<&'input str> = {
     }
 }
 
-Type: Type = {
+Type: Type<&'input str> = {
     "Int" => Type::Int,
     "Bool" => Type::Bool,
     "Unit" => Type::Unit,
     "Never" => Type::Never,
+    <sym:Ident> => Type::Var { sym },
 }
 
 // We have the following precedence:
@@ -124,13 +136,14 @@ Type: Type = {
 // ExprAdditive
 // ExprMultiplicative
 // ExprUnary
+// ExprAccess
 // ExprCall
 // ExprAtom
 // Num/Bool/Ident
 Expr = ExprStmt;
 
-ExprStmt: Expr<&'input str> = {
-    "let" <mutable:"mut"?> <sym:Ident> "=" <bnd:ExprLogicalOr> ";" <bdy:ExprStmt?> => Expr::Let {
+ExprStmt: Expr<'input, &'input str> = {
+    "let" <mutable:"mut"?> <sym:Ident> "=" <bnd:ExprLogicalOr<Struct>> ";" <bdy:ExprStmt?> => Expr::Let {
         sym,
         mutable: mutable.is_some(),
         bnd: Box::new(bnd),
@@ -143,12 +156,12 @@ ExprStmt: Expr<&'input str> = {
     ExprInStmt,
 }
 
-ExprInStmt: Expr<&'input str> = {
-    <sym:Ident> "=" <bnd:ExprLogicalOr> => Expr::Assign {
+ExprInStmt: Expr<'input, &'input str> = {
+    <sym:Ident> "=" <bnd:ExprLogicalOr<Struct>> => Expr::Assign {
         sym,
         bnd: Box::new(bnd),
     },
-    "if" <cnd:ExprLogicalOr> "{" <thn:Expr> "}" <els:("else" "{" <Expr> "}")?> => Expr::If {
+    "if" <cnd:ExprLogicalOr<Never>> "{" <thn:Expr> "}" <els:("else" "{" <Expr> "}")?> => Expr::If {
         cnd: Box::new(cnd),
         thn: Box::new(thn),
         els: Box::new(els.unwrap_or(Expr::Lit { val: Lit::Unit })),
@@ -156,7 +169,7 @@ ExprInStmt: Expr<&'input str> = {
     "loop" "{" <bdy:Expr> "}" => Expr::Loop {
         bdy: Box::new(bdy),
     },
-    "while" <cnd:ExprLogicalOr> "{" <bdy:Expr> "}" => Expr::Loop {
+    "while" <cnd:ExprLogicalOr<Never>> "{" <bdy:Expr> "}" => Expr::Loop {
         bdy: Box::new(Expr::If {
             cnd: Box::new(cnd),
             thn: Box::new(bdy),
@@ -166,17 +179,21 @@ ExprInStmt: Expr<&'input str> = {
             }),
         }),
     },
-    "break" <bdy:ExprLogicalOr?> => Expr::Break {
+    "switch" <enm:ExprLogicalOr<Never>> "{" <arms:Comma<(<Ident> "(" <Ident> ")" "=>" <Expr> )>> "}"  => Expr::Switch {
+        enm: Box::new(enm),
+        arms: arms.into_iter().map(|(s1, s2, e)| (s1, s2, Box::new(e))).collect(),
+     },
+    "break" <bdy:ExprLogicalOr<Struct>?> => Expr::Break {
         bdy: Box::new(bdy.unwrap_or(Expr::Lit { val: Lit::Unit })),
     },
-    "return" <bdy:ExprLogicalOr?> => Expr::Return {
+    "return" <bdy:ExprLogicalOr<Struct>?> => Expr::Return {
         bdy: Box::new(bdy.unwrap_or(Expr::Lit { val: Lit::Unit })),
     },
     "continue" => Expr::Continue,
-    ExprLogicalOr,
+    ExprLogicalOr<Struct>,
 }
 
-BinaryOps<Op,Next>: Expr<&'input str> = {
+BinaryOps<Op,Next>: Expr<'input, &'input str> = {
     <e1:BinaryOps<Op,Next>> <op:Op> <e2:Next> => Expr::Prim {
         op,
         args: vec![e1, e2],
@@ -184,12 +201,12 @@ BinaryOps<Op,Next>: Expr<&'input str> = {
     Next,
 }
 
-ExprLogicalOr = BinaryOps<LogicalOrOp, ExprLogicalAnd>;
-ExprLogicalAnd = BinaryOps<LogicalAndOp, ExprComparative>;
-ExprComparative = BinaryOps<ComparativeOp, ExprXor>;
-ExprXor = BinaryOps<XorOp, ExprAdditive>;
-ExprAdditive = BinaryOps<AdditiveOp, ExprMultiplicative>;
-ExprMultiplicative = BinaryOps<MultiplicativeOp, ExprUnary>;
+ExprLogicalOr<T> = BinaryOps<LogicalOrOp, ExprLogicalAnd<T>>;
+ExprLogicalAnd<T> = BinaryOps<LogicalAndOp, ExprComparative<T>>;
+ExprComparative<T> = BinaryOps<ComparativeOp, ExprXor<T>>;
+ExprXor<T> = BinaryOps<XorOp, ExprAdditive<T>>;
+ExprAdditive<T> = BinaryOps<AdditiveOp, ExprMultiplicative<T>>;
+ExprMultiplicative<T> = BinaryOps<MultiplicativeOp, ExprUnary<T>>;
 
 LogicalOrOp: Op = "||" => Op::LOr;
 LogicalAndOp: Op = "&&" => Op::LAnd;
@@ -216,15 +233,23 @@ UnaryOp: Op = {
     "!" => Op::Not,
 }
 
-ExprUnary: Expr<&'input str> = {
-    <op:UnaryOp> <e:ExprUnary> => Expr::Prim {
+ExprUnary<T>: Expr<'input, &'input str> = {
+    <op:UnaryOp> <e:ExprUnary<T>> => Expr::Prim {
         op,
         args: vec![e],
     },
-    ExprCall,
+    ExprAccess<T>,
 }
 
-ExprCall: Expr<&'input str> = {
+ExprAccess<T>: Expr<'input, &'input str> = {
+    <strct:ExprAccess<T>> "." <field:Ident> => Expr::AccessField {
+        strct: Box::new(strct),
+        field,
+    },
+    ExprCall<T>,
+}
+
+ExprCall<T>: Expr<'input, &'input str> = {
     "read" "(" ")" => Expr::Prim {
         op: Op::Read,
         args: vec![],
@@ -233,19 +258,41 @@ ExprCall: Expr<&'input str> = {
         op: Op::Print,
         args: vec![e],
     },
-    <fun:ExprAtom> "(" <args:Comma<Expr>> ")" => Expr::Apply {
+    <fun:ExprAtom<T>> "(" <args:Comma<Expr>> ")" => Expr::Apply {
         fun: Box::new(fun),
         args,
     },
-    ExprAtom,
+    ExprAtom<T>,
 }
 
-ExprAtom: Expr<&'input str> = {
-    Num => Expr::Lit{ val: Lit::Int { val: <> }},
-    Bool => Expr::Lit { val: Lit::Bool { val: <> }},
+ExprAtom<T>: Expr<'input, &'input str> = {
+    <val:Num> => Expr::Lit{ val: Lit::Int { val }},
+    <val:Bool> => Expr::Lit { val: Lit::Bool { val }},
     "unit" => Expr::Lit { val: Lit::Unit },
-    Ident => Expr::Var { sym: <> },
+    <sym:Ident> => Expr::Var { sym },
+    <enum_sym:Ident> "::" <variant_sym:Ident> "(" <bdy:Expr> ")" => Expr::Variant {
+        enum_sym,
+        variant_sym,
+        bdy: Box::new(bdy),
+    },
     "(" <Expr> ")",
+    <T>,
+}
+
+Struct: Expr<'input, &'input str> = {
+    <sym:Ident> "{" <fields:Comma<StructArg>> "}" => Expr::Struct {
+        sym,
+        fields,
+    },
+}
+
+StructArg : (&'input str, Expr<'input, &'input str>) = {
+    <Ident> ":" <Expr>,
+    <Ident> => (<>, Expr::Var { sym: <> })
+}
+
+Never: Expr<'input, &'input str> = {
+    "never" => panic!("The reserved keyword 'never' should never be parsed.")
 }
 
 Ident: &'input str = r"[_a-zA-Z][_a-zA-Z0-9]*";

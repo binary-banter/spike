@@ -137,6 +137,12 @@ struct Args {
 }
 
 fn main() {
+    let args = Args::parse();
+    assert!(
+        args.read || args.write,
+        "Should compare results or write new ones."
+    );
+
     let mongo_pw =
         env::var("MONGO_PW").expect("No environment variable was set to connect to the database.");
     let address = env::var("MONGO_ADDRESS")
@@ -185,8 +191,13 @@ fn main() {
     let new_stats =
         bson::from_bson::<HashMap<String, Stats>>(Bson::Document(test_data.clone())).unwrap();
 
-    assert!(check_parents(&benches, &commit, &new_stats));
-    write_commit(&benches, &commit, &test_data);
+    if args.read {
+        assert!(check_parents(&benches, &commit, &new_stats));
+    }
+
+    if args.write {
+        write_commit(&benches, &commit, &test_data);
+    }
 }
 
 fn check_parents(
@@ -260,12 +271,13 @@ impl Stats {
 
         let prg_concluded = parse_program(program)
             .unwrap()
-            .type_check()
+            .validate()
             .unwrap()
             .uniquify()
             .reveal()
             .atomize()
             .explicate()
+            .eliminate()
             .select()
             .add_liveness()
             .compute_interference()

@@ -1,0 +1,9 @@
+###
+struct MyStruct {
+    field_1: Int,
+}
+
+fn main() {
+    let x = MyStruct { };
+    unit
+}

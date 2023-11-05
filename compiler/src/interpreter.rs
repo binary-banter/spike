@@ -1,5 +1,6 @@
 use crate::passes::parse::Lit;
 use derive_more::Display;
+use std::collections::HashMap;
 use std::fmt::Display;
 use std::hash::Hash;
 use std::io::stdin;
@@ -60,8 +61,8 @@ impl IO for TestIO {
     }
 }
 
-#[derive(Eq, PartialEq, Copy, Clone, Debug, Display)]
-pub enum Val<A: Copy + Hash + Eq + Display> {
+#[derive(Eq, PartialEq, Clone, Debug, Display)]
+pub enum Val<'p, A: Copy + Hash + Eq + Display> {
     #[display(fmt = "{val}")]
     Int { val: i64 },
     #[display(fmt = "{}", r#"if *val { "true" } else { "false" }"#)]
@@ -70,9 +71,13 @@ pub enum Val<A: Copy + Hash + Eq + Display> {
     Unit,
     #[display(fmt = "fn pointer `{sym}`")]
     Function { sym: A },
+    #[display(fmt = "struct instance")]
+    StructInstance {
+        fields: HashMap<&'p str, Val<'p, A>>,
+    },
 }
 
-impl<A: Copy + Hash + Eq + Display> From<Lit> for Val<A> {
+impl<'p, A: Copy + Hash + Eq + Display> From<Lit> for Val<'p, A> {
     fn from(value: Lit) -> Self {
         match value {
             Lit::Int { val } => Val::Int { val },
@@ -82,31 +87,32 @@ impl<A: Copy + Hash + Eq + Display> From<Lit> for Val<A> {
     }
 }
 
-impl<A: Copy + Hash + Eq + Display> Val<A> {
-    pub fn int(self) -> i64 {
+impl<'p, A: Copy + Hash + Eq + Display> Val<'p, A> {
+    pub fn int(&self) -> i64 {
         match self {
-            Val::Int { val } => val,
-            Val::Bool { .. } => panic!(),
-            Val::Function { .. } => panic!(),
-            Val::Unit => panic!(),
+            Val::Int { val } => *val,
+            _ => panic!(),
         }
     }
 
-    pub fn bool(self) -> bool {
+    pub fn bool(&self) -> bool {
         match self {
-            Val::Int { .. } => panic!(),
-            Val::Bool { val } => val,
-            Val::Function { .. } => panic!(),
-            Val::Unit => panic!(),
+            Val::Bool { val } => *val,
+            _ => panic!(),
         }
     }
 
-    pub fn fun(self) -> A {
+    pub fn fun(&self) -> A {
         match self {
-            Val::Int { .. } => panic!(),
-            Val::Bool { .. } => panic!(),
-            Val::Function { sym } => sym,
-            Val::Unit => panic!(),
+            Val::Function { sym } => *sym,
+            _ => panic!(),
+        }
+    }
+
+    pub fn strct(&self) -> &HashMap<&'p str, Val<'p, A>> {
+        match self {
+            Val::StructInstance { fields } => fields,
+            _ => panic!(),
         }
     }
 }

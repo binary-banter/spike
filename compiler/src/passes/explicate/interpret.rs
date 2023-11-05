@@ -5,26 +5,27 @@ use crate::passes::explicate::{CExpr, PrgExplicated, Tail};
 use crate::passes::parse::{Lit, Op};
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::push_map::PushMap;
+use std::collections::HashMap;
 
 impl<'p> PrgExplicated<'p> {
-    pub fn interpret(&self, io: &mut impl IO) -> Val<UniqueSym<'p>> {
+    pub fn interpret(&self, io: &mut impl IO) -> Val<'p, UniqueSym<'p>> {
         self.interpret_tail(&self.blocks[&self.entry], &mut PushMap::default(), io)
     }
 
     fn interpret_tail(
         &self,
-        tail: &Tail<'p>,
-        scope: &mut PushMap<UniqueSym<'p>, Val<UniqueSym<'p>>>,
+        tail: &Tail<'p, CExpr<'p>>,
+        scope: &mut PushMap<UniqueSym<'p>, Val<'p, UniqueSym<'p>>>,
         io: &mut impl IO,
-    ) -> Val<UniqueSym<'p>> {
+    ) -> Val<'p, UniqueSym<'p>> {
         match tail {
-            Tail::Return { expr } => self.interpret_expr(&expr.clone(), scope, io),
+            Tail::Return { expr } => self.interpret_atom(expr, scope),
             Tail::Seq { sym, bnd, tail } => {
-                let bnd = self.interpret_expr(&bnd.clone(), scope, io);
+                let bnd = self.interpret_expr(bnd, scope, io);
                 scope.push(*sym, bnd, |scope| self.interpret_tail(tail, scope, io))
             }
             Tail::IfStmt { cnd, thn, els } => {
-                if self.interpret_expr(&cnd.clone(), scope, io).bool() {
+                if self.interpret_expr(cnd, scope, io).bool() {
                     self.interpret_tail(&self.blocks[thn], scope, io)
                 } else {
                     self.interpret_tail(&self.blocks[els], scope, io)
@@ -37,11 +38,11 @@ impl<'p> PrgExplicated<'p> {
     pub fn interpret_expr(
         &self,
         expr: &CExpr<'p>,
-        scope: &mut PushMap<UniqueSym<'p>, Val<UniqueSym<'p>>>,
+        scope: &mut PushMap<UniqueSym<'p>, Val<'p, UniqueSym<'p>>>,
         io: &mut impl IO,
-    ) -> Val<UniqueSym<'p>> {
+    ) -> Val<'p, UniqueSym<'p>> {
         match expr {
-            CExpr::Prim { op, args } => match (op, args.as_slice()) {
+            CExpr::Prim { op, args, .. } => match (op, args.as_slice()) {
                 (Op::Read, []) => io.read().into(),
                 (Op::Print, [v]) => {
                     let val = self.interpret_atom(v, scope);
@@ -132,19 +133,32 @@ impl<'p> PrgExplicated<'p> {
                 }
                 _ => unreachable!(),
             },
-            CExpr::Atom { atm } => self.interpret_atom(atm, scope),
-            CExpr::FunRef { sym } => Val::Function { sym: *sym },
-            CExpr::Apply { fun, args } => {
+            CExpr::Atom { atm, .. } => self.interpret_atom(atm, scope),
+            CExpr::FunRef { sym, .. } => Val::Function { sym: *sym },
+            CExpr::Apply { fun, args, .. } => {
                 let fn_sym = self.interpret_atom(fun, scope).fun();
                 let args = self.fn_params[&fn_sym]
                     .iter()
                     .zip(args.iter())
-                    .map(|(sym, atm)| (*sym, self.interpret_atom(atm, scope)))
+                    .map(|(param, atm)| (param.sym, self.interpret_atom(atm, scope)))
                     .collect::<Vec<_>>();
 
                 scope.push_iter(args.into_iter(), |scope| {
                     self.interpret_tail(&self.blocks[&fn_sym], scope, io)
                 })
+            }
+            CExpr::Struct { fields, .. } => {
+                let mut field_values = HashMap::new();
+                for (sym, field) in fields {
+                    field_values.insert(*sym, self.interpret_atom(field, scope));
+                }
+                Val::StructInstance {
+                    fields: field_values,
+                }
+            }
+            CExpr::AccessField { strct, field, .. } => {
+                let s = self.interpret_atom(strct, scope);
+                s.strct()[field].clone()
             }
         }
     }
@@ -153,11 +167,11 @@ impl<'p> PrgExplicated<'p> {
     pub fn interpret_atom(
         &self,
         atom: &Atom<'p>,
-        scope: &PushMap<UniqueSym<'p>, Val<UniqueSym<'p>>>,
-    ) -> Val<UniqueSym<'p>> {
+        scope: &PushMap<UniqueSym<'p>, Val<'p, UniqueSym<'p>>>,
+    ) -> Val<'p, UniqueSym<'p>> {
         match atom {
             Atom::Val { val } => (*val).into(),
-            Atom::Var { sym } => scope[sym],
+            Atom::Var { sym } => scope[sym].clone(),
         }
     }
 }

@@ -1,11 +1,12 @@
 use crate::passes::atomize::{AExpr, Atom, PrgAtomized};
 use crate::passes::explicate::{CExpr, PrgExplicated, Tail};
-use crate::passes::parse::{Def, Lit, Op};
+use crate::passes::parse::types::Type;
+use crate::passes::parse::{Def, Lit, Op, TypeDef};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use std::collections::HashMap;
 
 struct Env<'a, 'p> {
-    blocks: &'a mut HashMap<UniqueSym<'p>, Tail<'p>>,
+    blocks: &'a mut HashMap<UniqueSym<'p>, Tail<'p, CExpr<'p>>>,
     /// (block to jump to, variable to write to)
     break_target: Option<(UniqueSym<'p>, UniqueSym<'p>)>,
     /// block to jump to
@@ -22,41 +23,54 @@ impl<'p> PrgAtomized<'p> {
             continue_target: None,
         };
 
-        let fn_params = self
-            .defs
-            .iter()
-            .map(|(fn_sym, def)| match def {
-                Def::Fn { params, .. } => (*fn_sym, params.iter().map(|param| param.sym).collect()),
-            })
-            .collect();
+        let mut fn_params = HashMap::new();
+
+        for (sym, def) in &self.defs {
+            match def {
+                Def::Fn { params, .. } => {
+                    fn_params.insert(*sym, params.clone());
+                }
+                Def::TypeDef { .. } => {
+                    // todo?
+                }
+            }
+        }
+
+        let mut defs = HashMap::new();
 
         for (_, def) in self.defs {
-            explicate_def(def, &mut env);
+            explicate_def(def, &mut env, &mut defs);
         }
 
         PrgExplicated {
             blocks,
             fn_params,
+            defs,
             entry: self.entry,
         }
     }
 }
 
-fn explicate_def<'p>(def: Def<UniqueSym<'p>, AExpr<'p>>, env: &mut Env<'_, 'p>) {
+fn explicate_def<'p>(
+    def: Def<'p, UniqueSym<'p>, AExpr<'p>>,
+    env: &mut Env<'_, 'p>,
+    defs: &mut HashMap<UniqueSym<'p>, TypeDef<'p, UniqueSym<'p>>>,
+) {
     match def {
         Def::Fn { sym, bdy, .. } => {
             let tail = explicate_tail(bdy, env);
             env.blocks.insert(sym, tail);
         }
+        Def::TypeDef { sym, def } => {
+            defs.insert(sym, def);
+        }
     }
 }
 
-fn explicate_tail<'p>(expr: AExpr<'p>, env: &mut Env<'_, 'p>) -> Tail<'p> {
+fn explicate_tail<'p>(expr: AExpr<'p>, env: &mut Env<'_, 'p>) -> Tail<'p, CExpr<'p>> {
     let tmp = gen_sym("return");
     let tail = Tail::Return {
-        expr: CExpr::Atom {
-            atm: Atom::Var { sym: tmp },
-        },
+        expr: Atom::Var { sym: tmp },
     };
     explicate_assign(tmp, expr, tail, env)
 }
@@ -64,42 +78,53 @@ fn explicate_tail<'p>(expr: AExpr<'p>, env: &mut Env<'_, 'p>) -> Tail<'p> {
 fn explicate_assign<'p>(
     sym: UniqueSym<'p>,
     bnd: AExpr<'p>,
-    tail: Tail<'p>,
+    tail: Tail<'p, CExpr<'p>>,
     env: &mut Env<'_, 'p>,
-) -> Tail<'p> {
-    let mut create_block = |goto: Tail<'p>| {
+) -> Tail<'p, CExpr<'p>> {
+    let mut create_block = |goto: Tail<'p, CExpr<'p>>| {
         let sym = gen_sym("tmp");
         env.blocks.insert(sym, goto);
         sym
     };
 
     match bnd {
-        AExpr::Apply { fun, args } => Tail::Seq {
+        AExpr::Apply {
+            fun,
+            args,
+            typ,
+            fn_typ,
+        } => Tail::Seq {
             sym,
-            bnd: CExpr::Apply { fun, args },
+            bnd: CExpr::Apply {
+                fun,
+                args,
+                typ,
+                fn_typ,
+            },
             tail: Box::new(tail),
         },
-        AExpr::FunRef { sym: sym_fn } => Tail::Seq {
+        AExpr::FunRef { sym: sym_fn, typ } => Tail::Seq {
             sym,
-            bnd: CExpr::FunRef { sym: sym_fn },
+            bnd: CExpr::FunRef { sym: sym_fn, typ },
             tail: Box::new(tail),
         },
-        AExpr::Atom { atm } => Tail::Seq {
+        AExpr::Atom { atm, typ } => Tail::Seq {
             sym,
-            bnd: CExpr::Atom { atm },
+            bnd: CExpr::Atom { atm, typ },
             tail: Box::new(tail),
         },
-        AExpr::Prim { op, args } => Tail::Seq {
+        AExpr::Prim { op, args, typ } => Tail::Seq {
             sym,
-            bnd: CExpr::Prim { op, args },
+            bnd: CExpr::Prim { op, args, typ },
             tail: Box::new(tail),
         },
         AExpr::Let {
             sym: sym_,
             bnd: bnd_,
             bdy: bdy_,
+            ..
         } => explicate_assign(sym_, *bnd_, explicate_assign(sym, *bdy_, tail, env), env),
-        AExpr::If { cnd, thn, els } => {
+        AExpr::If { cnd, thn, els, .. } => {
             let tb = create_block(tail);
             explicate_pred(
                 *cnd,
@@ -108,7 +133,7 @@ fn explicate_assign<'p>(
                 env,
             )
         }
-        AExpr::Loop { bdy } => {
+        AExpr::Loop { bdy, .. } => {
             let loop_block_sym = gen_sym("tmp");
             let tail = create_block(tail);
             let mut env = Env {
@@ -130,12 +155,12 @@ fn explicate_assign<'p>(
                 lbl: loop_block_sym,
             }
         }
-        AExpr::Break { bdy } => {
+        AExpr::Break { bdy, .. } => {
             let (break_sym, break_var) = env.break_target.unwrap();
             let break_goto = Tail::Goto { lbl: break_sym };
             explicate_assign(break_var, *bdy, break_goto, env)
         }
-        AExpr::Seq { stmt, cnt } => explicate_assign(
+        AExpr::Seq { stmt, cnt, .. } => explicate_assign(
             gen_sym("ignore"),
             *stmt,
             explicate_assign(sym, *cnt, tail, env),
@@ -144,6 +169,7 @@ fn explicate_assign<'p>(
         AExpr::Assign {
             sym: sym_,
             bnd: bnd_,
+            ..
         } => explicate_assign(
             sym_,
             *bnd_,
@@ -151,34 +177,51 @@ fn explicate_assign<'p>(
                 sym,
                 AExpr::Atom {
                     atm: Atom::Val { val: Lit::Unit },
+                    typ: Type::Unit,
                 },
                 tail,
                 env,
             ),
             env,
         ),
-        AExpr::Continue => Tail::Goto {
+        AExpr::Continue { .. } => Tail::Goto {
             lbl: env.continue_target.unwrap(),
         },
-        AExpr::Return { bdy } => {
+        AExpr::Return { bdy, .. } => {
             let tmp = gen_sym("return");
             let tail = Tail::Return {
-                expr: CExpr::Atom {
-                    atm: Atom::Var { sym: tmp },
-                },
+                expr: Atom::Var { sym: tmp },
             };
             explicate_assign(tmp, *bdy, tail, env)
         }
+        AExpr::Struct {
+            sym: sym_,
+            fields,
+            typ,
+        } => Tail::Seq {
+            sym,
+            bnd: CExpr::Struct {
+                sym: sym_,
+                fields,
+                typ,
+            },
+            tail: Box::new(tail),
+        },
+        AExpr::AccessField { strct, field, typ } => Tail::Seq {
+            sym,
+            bnd: CExpr::AccessField { strct, field, typ },
+            tail: Box::new(tail),
+        },
     }
 }
 
 fn explicate_pred<'p>(
     cnd: AExpr<'p>,
-    thn: Tail<'p>,
-    els: Tail<'p>,
+    thn: Tail<'p, CExpr<'p>>,
+    els: Tail<'p, CExpr<'p>>,
     env: &mut Env<'_, 'p>,
-) -> Tail<'p> {
-    let mut create_block = |goto: Tail<'p>| {
+) -> Tail<'p, CExpr<'p>> {
+    let mut create_block = |goto: Tail<'p, CExpr<'p>>| {
         let sym = gen_sym("tmp");
         env.blocks.insert(sym, goto);
         sym
@@ -187,6 +230,7 @@ fn explicate_pred<'p>(
     match cnd {
         AExpr::Atom {
             atm: Atom::Var { sym },
+            ..
         } => Tail::IfStmt {
             cnd: CExpr::Prim {
                 op: Op::EQ,
@@ -196,6 +240,7 @@ fn explicate_pred<'p>(
                         val: Lit::Bool { val: true },
                     },
                 ],
+                typ: Type::Bool,
             },
             thn: create_block(thn),
             els: create_block(els),
@@ -204,6 +249,7 @@ fn explicate_pred<'p>(
             atm: Atom::Val {
                 val: Lit::Bool { val },
             },
+            ..
         } => {
             if val {
                 thn
@@ -211,10 +257,22 @@ fn explicate_pred<'p>(
                 els
             }
         }
-        AExpr::Prim { op, args } => match op {
-            Op::Not => explicate_pred(AExpr::Atom { atm: args[0] }, els, thn, env),
+        AExpr::Prim { op, args, .. } => match op {
+            Op::Not => explicate_pred(
+                AExpr::Atom {
+                    atm: args[0],
+                    typ: Type::Bool,
+                },
+                els,
+                thn,
+                env,
+            ),
             Op::EQ | Op::NE | Op::GT | Op::GE | Op::LT | Op::LE => Tail::IfStmt {
-                cnd: CExpr::Prim { op, args },
+                cnd: CExpr::Prim {
+                    op,
+                    args,
+                    typ: Type::Bool,
+                },
                 thn: create_block(thn),
                 els: create_block(els),
             },
@@ -222,10 +280,15 @@ fn explicate_pred<'p>(
                 let tmp = gen_sym("tmp");
                 explicate_assign(
                     tmp,
-                    AExpr::Prim { op, args },
+                    AExpr::Prim {
+                        op,
+                        args,
+                        typ: Type::Bool,
+                    },
                     explicate_pred(
                         AExpr::Atom {
                             atm: Atom::Var { sym: tmp },
+                            typ: Type::Bool,
                         },
                         thn,
                         els,
@@ -238,13 +301,14 @@ fn explicate_pred<'p>(
                 unreachable!()
             }
         },
-        AExpr::Let { sym, bnd, bdy } => {
+        AExpr::Let { sym, bnd, bdy, .. } => {
             explicate_assign(sym, *bnd, explicate_pred(*bdy, thn, els, env), env)
         }
         AExpr::If {
             cnd: cnd_sub,
             thn: thn_sub,
             els: els_sub,
+            ..
         } => {
             let thn = create_block(thn);
             let els = create_block(els);
@@ -266,14 +330,22 @@ fn explicate_pred<'p>(
                 env,
             )
         }
-        AExpr::Apply { fun, args } => {
+        AExpr::Apply {
+            fun, args, fn_typ, ..
+        } => {
             let tmp = gen_sym("tmp");
             explicate_assign(
                 tmp,
-                AExpr::Apply { fun, args },
+                AExpr::Apply {
+                    fun,
+                    args,
+                    typ: Type::Bool,
+                    fn_typ,
+                },
                 explicate_pred(
                     AExpr::Atom {
                         atm: Atom::Var { sym: tmp },
+                        typ: Type::Bool,
                     },
                     thn,
                     els,
@@ -286,25 +358,50 @@ fn explicate_pred<'p>(
             let tmp = gen_sym("tmp");
             let cnd_ = AExpr::Atom {
                 atm: Atom::Var { sym: tmp },
+                typ: Type::Bool,
             };
             explicate_assign(tmp, cnd, explicate_pred(cnd_, thn, els, env), env)
         }
-        AExpr::Seq { stmt, cnt } => explicate_assign(
+        AExpr::Seq { stmt, cnt, .. } => explicate_assign(
             gen_sym("ignore"),
             *stmt,
             explicate_pred(*cnt, thn, els, env),
             env,
         ),
+        AExpr::AccessField { strct, field, .. } => {
+            let tmp = gen_sym("tmp");
+            explicate_assign(
+                tmp,
+                AExpr::AccessField {
+                    strct,
+                    field,
+                    typ: Type::Bool,
+                },
+                explicate_pred(
+                    AExpr::Atom {
+                        atm: Atom::Var { sym: tmp },
+                        typ: Type::Bool,
+                    },
+                    thn,
+                    els,
+                    env,
+                ),
+                env,
+            )
+        }
+
         // cargo format should get some help
         AExpr::FunRef { .. }
         | AExpr::Atom {
             atm: Atom::Val {
                 val: Lit::Int { .. } | Lit::Unit,
             },
+            ..
         }
         | AExpr::Assign { .. }
         | AExpr::Break { .. }
-        | AExpr::Continue
-        | AExpr::Return { .. } => unreachable!(),
+        | AExpr::Continue { .. }
+        | AExpr::Return { .. }
+        | AExpr::Struct { .. } => unreachable!(),
     }
 }

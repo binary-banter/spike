@@ -1,0 +1,22 @@
+#
+#
+5
+#
+struct Foo {
+    a : Int,
+    b : Bool
+}
+
+struct Bar {
+    c: Foo,
+    d: Int
+}
+
+fn test(x: Bar, y: Bool) -> Int {
+    5
+}
+
+fn main() -> Int {
+    let z = Bar { c: Foo { a : 5, b: true }, d: 7 };
+    test(z, false)
+}

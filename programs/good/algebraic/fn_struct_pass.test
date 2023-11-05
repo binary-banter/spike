@@ -1,0 +1,20 @@
+#
+#
+5
+#
+struct TestStruct {
+    field_1: Int,
+    field_2: Bool,
+}
+
+fn test(v: TestStruct) -> Int {
+    5
+}
+
+fn main() -> Int {
+    let x = TestStruct {
+        field_1: 5,
+        field_2: true,
+    };
+    test(x)
+}

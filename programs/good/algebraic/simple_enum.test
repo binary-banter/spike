@@ -1,0 +1,12 @@
+#
+#
+unit
+#
+/*enum TestStruct {
+    Variant1: Int,
+    Variant2: Bool,
+}*/
+
+fn main() {
+    unit
+}

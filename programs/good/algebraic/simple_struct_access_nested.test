@@ -1,0 +1,16 @@
+#
+#
+5
+#
+struct Foo {
+    x : Int,
+}
+
+struct Bar {
+    y: Foo,
+}
+
+fn main() -> Int {
+    let z = Bar { y: Foo { x : 5 } };
+    z.y.x
+}

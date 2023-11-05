@@ -12,11 +12,12 @@ pub fn compile(program: &str, output: &Path) -> miette::Result<()> {
     let mut file = File::create(output).unwrap();
 
     parse_program(program)?
-        .type_check()?
+        .validate()?
         .uniquify()
         .reveal()
         .atomize()
         .explicate()
+        .eliminate()
         .select()
         .add_liveness()
         .compute_interference()

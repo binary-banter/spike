@@ -59,12 +59,13 @@ mod tests {
         let expected_return = expected_return.into();
 
         let mut program: X86Selected = program
-            .type_check()
+            .validate()
             .unwrap()
             .uniquify()
             .reveal()
             .atomize()
             .explicate()
+            .eliminate()
             .select()
             .add_liveness()
             .compute_interference()
