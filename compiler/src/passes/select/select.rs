@@ -74,7 +74,7 @@ fn select_tail<'p>(
 
             instrs.push(retq!());
         }
-        ETail::Seq { sym, bnd, tail } => {
+        ETail::Seq { syms: sym, bnd, tail } => {
             instrs.extend(select_assign(&sym, bnd, std));
             select_tail(*tail, instrs, std);
         }

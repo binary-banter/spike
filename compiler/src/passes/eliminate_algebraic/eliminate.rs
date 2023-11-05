@@ -104,7 +104,7 @@ fn eliminate_seq<'p>(
 
     match bnd.typ() {
         Type::Int | Type::Bool | Type::Unit | Type::Never | Type::Fn { .. } => ETail::Seq {
-            sym: vec![sym],
+            syms: vec![sym],
             bnd: map_expr(bnd),
             tail: Box::new(tail),
         },
