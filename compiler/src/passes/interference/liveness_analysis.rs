@@ -2,7 +2,7 @@ use crate::utils::gen_sym::UniqueSym;
 
 use crate::passes::interference::{LArg, LBlock, LX86VarProgram};
 use crate::passes::select::{
-    Block, Instr, Reg, VarArg, X86Selected, ARG_PASSING_REGS, CALLER_SAVED, SYSCALL_REGS,
+    Block, Instr, Reg, VarArg, X86Selected, CALLER_SAVED, SYSCALL_REGS,
 };
 use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet};
@@ -158,11 +158,11 @@ pub fn handle_instr<'p>(
             arg(dst, RW);
         }
         Instr::CallqDirect { arity, .. } => {
-            for reg in CALLER_SAVED {
+            for reg in CALLER_SAVED.into_iter().skip(*arity) {
                 arg(&VarArg::Reg { reg }, W);
             }
-            for reg in ARG_PASSING_REGS.into_iter().take(*arity) {
-                arg(&VarArg::Reg { reg }, R);
+            for reg in CALLER_SAVED.into_iter().take(*arity) {
+                arg(&VarArg::Reg { reg }, RW);
             }
         }
         Instr::Syscall { arity } => {
@@ -199,11 +199,11 @@ pub fn handle_instr<'p>(
             arg(dst, W);
         }
         Instr::CallqIndirect { src, arity } => {
-            for reg in CALLER_SAVED {
+            for reg in CALLER_SAVED.into_iter().skip(*arity) {
                 arg(&VarArg::Reg { reg }, W);
             }
-            for reg in ARG_PASSING_REGS.into_iter().take(*arity) {
-                arg(&VarArg::Reg { reg }, R);
+            for reg in CALLER_SAVED.into_iter().take(*arity) {
+                arg(&VarArg::Reg { reg }, RW);
             }
             arg(src, R);
         }

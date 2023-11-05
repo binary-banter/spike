@@ -2,9 +2,7 @@ use crate::passes::atomize::Atom;
 use crate::passes::eliminate_algebraic::{EExpr, ETail, PrgEliminated};
 use crate::passes::parse::{Op, Param};
 use crate::passes::select::io::Std;
-use crate::passes::select::{
-    Block, Cnd, Instr, VarArg, X86Selected, ARG_PASSING_REGS, CALLEE_SAVED_NO_STACK,
-};
+use crate::passes::select::{Block, Cnd, Instr, VarArg, X86Selected, CALLEE_SAVED_NO_STACK, CALLER_SAVED};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use crate::*;
 use std::collections::HashMap;
@@ -44,11 +42,11 @@ fn select_block<'p>(
             instrs.push(pushq!(VarArg::Reg { reg }));
         }
 
-        for (reg, param) in ARG_PASSING_REGS.into_iter().zip(params.iter()) {
+        for (reg, param) in CALLER_SAVED.into_iter().zip(params.iter()) {
             instrs.push(movq!(VarArg::Reg { reg }, VarArg::XVar { sym: param.sym }));
         }
         assert!(
-            params.len() <= 6,
+            params.len() <= 9,
             "Argument passing to stack is not yet implemented."
         );
     }
@@ -163,11 +161,11 @@ fn select_assign<'p>(
         EExpr::Apply { fun, args, .. } => {
             let mut instrs = vec![];
 
-            for ((arg, _), reg) in args.iter().zip(ARG_PASSING_REGS.into_iter()) {
+            for ((arg, _), reg) in args.iter().zip(CALLER_SAVED.into_iter()) {
                 instrs.push(movq!(select_atom(arg), VarArg::Reg { reg }));
             }
             assert!(
-                args.len() <= 6,
+                args.len() <= 9,
                 "Argument passing to stack is not yet implemented."
             );
 
