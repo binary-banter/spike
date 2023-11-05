@@ -138,7 +138,10 @@ struct Args {
 
 fn main() {
     let args = Args::parse();
-    assert!(args.read || args.write, "Should compare results or write new ones.");
+    assert!(
+        args.read || args.write,
+        "Should compare results or write new ones."
+    );
 
     let mongo_pw =
         env::var("MONGO_PW").expect("No environment variable was set to connect to the database.");
