@@ -46,12 +46,10 @@ fn eliminate_tail<'p>(
 
                 ETail::Return {
                     // exprs: vec![(Atom::Var { sym }, typ)]
-
-
                     exprs: flatten_type(sym, &typ, ctx, defs)
                         .fmap(|(sym, typ)| (Atom::Var { sym }, typ)),
                 }
-            },
+            }
         },
         CTail::Seq { sym, bnd, tail } => {
             let tail = eliminate_tail(*tail, ctx, defs);

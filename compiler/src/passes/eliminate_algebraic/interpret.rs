@@ -76,7 +76,7 @@ impl<'p> PrgEliminated<'p> {
     ) -> Vec<EVal<'p>> {
         match tail {
             ETail::Return { exprs: expr } => expr
-                .into_iter()
+                .iter()
                 .map(|(atm, _)| self.interpret_atom(atm, scope))
                 .collect(),
             ETail::Seq { syms, bnd, tail } => {
@@ -223,7 +223,7 @@ impl<'p> PrgEliminated<'p> {
     ) -> EVal<'p> {
         match atom {
             Atom::Val { val } => (*val).into(),
-            Atom::Var { sym } => scope[sym].clone(),
+            Atom::Var { sym } => scope[sym],
         }
     }
 }

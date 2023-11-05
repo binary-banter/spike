@@ -1,9 +1,7 @@
 use crate::utils::gen_sym::UniqueSym;
 
 use crate::passes::interference::{LArg, LBlock, LX86VarProgram};
-use crate::passes::select::{
-    Block, Instr, Reg, VarArg, X86Selected, CALLER_SAVED, SYSCALL_REGS,
-};
+use crate::passes::select::{Block, Instr, Reg, VarArg, X86Selected, CALLER_SAVED, SYSCALL_REGS};
 use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet};
 

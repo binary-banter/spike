@@ -18,13 +18,11 @@ impl<'p> PrgRevealed<'p> {
                             params,
                             typ,
                             bdy,
-                        } => {
-                            Def::Fn {
-                                sym,
-                                params,
-                                typ,
-                                bdy: atomize_expr(bdy),
-                            }
+                        } => Def::Fn {
+                            sym,
+                            params,
+                            typ,
+                            bdy: atomize_expr(bdy),
                         },
                         Def::TypeDef { sym, def } => Def::TypeDef { sym, def },
                     };
