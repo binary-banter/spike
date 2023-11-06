@@ -1,7 +1,4 @@
-#
-#
-true
-#
+//* ret: true
 struct TestStruct {
     field_1: Int,
     field_2: Bool,

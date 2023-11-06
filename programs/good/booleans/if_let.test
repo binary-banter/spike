@@ -1,6 +1,4 @@
-##
-42
-#
+//* ret: 42
 fn main() -> Int {
     if (let x = true; x) {
         42

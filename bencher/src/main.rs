@@ -1,8 +1,7 @@
 use clap::Parser;
-use compiler::interpreter::{TestIO, IO};
-use compiler::passes::parse::parse::parse_program;
+use compiler::interpreter::TestIO;
 use compiler::passes::select::interpreter::IStats;
-use compiler::utils::split_test::split_test_raw;
+use compiler::utils::split_test::split_test;
 use git2::{Commit, Repository};
 use mongodb::bson;
 use mongodb::bson::{doc, to_bson, Bson, Document};
@@ -166,9 +165,7 @@ fn main() {
         .filter_map(|e| e.ok())
         .filter(|f| f.file_type().is_file())
     {
-        let content = read_to_string(entry.path()).unwrap();
-        let (input, _, _, program) = split_test_raw(&content);
-        let mut io = TestIO::new(input);
+        let program = read_to_string(entry.path()).unwrap();
 
         let mut path = diff_paths(entry.path(), "./programs/good").unwrap();
         path.set_extension("");
@@ -178,7 +175,7 @@ fn main() {
             .to_string()
             .replace(['/', '\\'], "::");
 
-        test_data.insert(path, to_bson(&Stats::new(program, &mut io)).unwrap());
+        test_data.insert(path, to_bson(&Stats::from_program(&program)).unwrap());
     }
 
     let db = client.database("rust-compiler-construction");
@@ -265,12 +262,14 @@ fn write_commit(benches: &Collection<Document>, commit: &Commit<'_>, test_data: 
 }
 
 impl Stats {
-    fn new(program: &str, io: &mut impl IO) -> Self {
+    fn from_program(program: &str) -> Self {
+        let (input, _, _, program) = split_test(program);
+        let mut io = TestIO::new(input);
+
         let tempdir = TempDir::new("cc-bench").unwrap();
         let output = tempdir.path().join("output");
 
-        let prg_concluded = parse_program(program)
-            .unwrap()
+        let prg_concluded = program
             .validate()
             .unwrap()
             .uniquify()
@@ -286,7 +285,7 @@ impl Stats {
             .patch()
             .conclude();
 
-        let (_, interpreter_stats) = prg_concluded.interpret_with_stats(io);
+        let (_, interpreter_stats) = prg_concluded.interpret_with_stats(&mut io);
 
         let mut file = File::create(&output).unwrap();
         prg_concluded.emit().write(&mut file);

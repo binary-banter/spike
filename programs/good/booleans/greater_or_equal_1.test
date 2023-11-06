@@ -1,6 +1,4 @@
-##
-true
-#
+//* ret: true
 fn main() -> Bool {
     42 >= 13
 }

@@ -1,7 +1,5 @@
-45
-##
-42
-#
+//* inp: 45
+//* ret: 42
 fn main() -> Int {
     let mut x = read();
     if x > 42 {

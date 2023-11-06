@@ -1,7 +1,4 @@
-#
-#
-42
-#
+//* ret: 42
 fn main() -> Int {
     20 + /* Return the meaning of life */ 22
 }

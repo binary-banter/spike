@@ -1,35 +1,39 @@
 use crate::interpreter::Val;
 use crate::passes::parse::parse::parse_program;
 use crate::passes::parse::{Lit, PrgParsed};
+use std::cell::OnceCell;
 use std::hash::Hash;
+use std::str::SplitWhitespace;
 
-pub fn split_test_raw(test: &str) -> (Vec<Lit>, Vec<Lit>, Lit, &str) {
-    let mut test = test.split('#');
-    let input = test.next().unwrap().trim();
-    let expected_output = test.next().unwrap().trim();
-
-    let expected_return = test.next().unwrap().trim();
-
-    let program = test.next().unwrap().trim();
-
-    let input = input
-        .split_whitespace()
-        .map(str::parse)
-        .collect::<Result<Vec<_>, _>>()
-        .unwrap();
-    let expected_output = expected_output
-        .split_whitespace()
-        .map(str::parse)
-        .collect::<Result<Vec<_>, _>>()
-        .unwrap();
-    let expected_return = expected_return.parse().unwrap();
-
-    (input, expected_output, expected_return, program)
-}
-
+/// Splits the inputs, expected outputs and expected return from the test.
+/// The values must be preceded by `//*` and `inp:`, `out:` or `ret:`.
 #[must_use]
 pub fn split_test(test: &str) -> (Vec<Lit>, Vec<Lit>, Lit, PrgParsed) {
-    let (input, expected_output, expected_return, program) = split_test_raw(test);
-    let program = parse_program(program).unwrap();
-    (input, expected_output, expected_return, program)
+    let mut input = OnceCell::new();
+    let mut output = OnceCell::new();
+    let mut expected_return = OnceCell::new();
+
+    for line in test.lines() {
+        let mut parts = line.split_whitespace();
+
+        match (parts.next(), parts.next()) {
+            (Some("//*"), Some("inp:")) => input
+                .set(parts.map(str::parse).collect::<Result<_, _>>().unwrap())
+                .unwrap(),
+            (Some("//*"), Some("out:")) => output
+                .set(parts.map(str::parse).collect::<Result<_, _>>().unwrap())
+                .unwrap(),
+            (Some("//*"), Some("ret:")) => expected_return
+                .set(parts.next().unwrap().parse().unwrap())
+                .unwrap(),
+            _ => {}
+        }
+    }
+
+    (
+        input.take().unwrap_or_default(),
+        output.take().unwrap_or_default(),
+        expected_return.take().unwrap_or(Lit::Unit),
+        parse_program(test).unwrap(),
+    )
 }

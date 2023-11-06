@@ -1,7 +1,3 @@
-#
-#
-unit
-#
 struct Foo {
     x : Int,
 }

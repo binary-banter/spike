@@ -1,7 +1,3 @@
-#
-#
-unit
-#
 struct TestStruct1 {
     field_1: TestStruct2,
     field_2: Bool,

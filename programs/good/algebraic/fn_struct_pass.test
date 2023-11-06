@@ -1,7 +1,4 @@
-#
-#
-5
-#
+//* ret: 5
 struct TestStruct {
     field_1: Int,
     field_2: Bool,

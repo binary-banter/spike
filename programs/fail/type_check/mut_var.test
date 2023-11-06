@@ -1,6 +1,4 @@
-##
-6
-#
+//* ret: 6
 fn test(x: Int) -> Int {
     x = 42;
     x
