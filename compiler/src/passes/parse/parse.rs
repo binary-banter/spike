@@ -40,26 +40,28 @@ pub fn parse_program<'p>(src: &'p str, file: &'p str) -> Result<PrgParsed<'p>, P
 }
 
 fn prettify_error<'p>(
-    error: ParseError<usize, Token<'p>, &'p str>,
+    err: ParseError<usize, Token<'p>, &'p str>,
     src: &'p str,
     file: &'p str,
 ) -> PrettyParseError {
-    match error {
+    let src = NamedSource::new(file, src.to_string());
+
+    match err {
         ParseError::InvalidToken { location } => PrettyParseError::InvalidToken {
-            src: NamedSource::new(file, src.to_string()),
+            src,
             fail: (location, 1),
         },
         ParseError::UnrecognizedEof { location, expected } => PrettyParseError::UnexpectedEOF {
-            src: NamedSource::new(file, src.to_string()),
+            src,
             fail: (location, 1),
             expected: expected.into_iter().format(", ").to_string(),
         },
         ParseError::UnrecognizedToken { token, expected } => PrettyParseError::UnexpectedToken {
-            src: NamedSource::new(file, src.to_string()),
+            src,
             fail: (token.0, token.2 - token.0),
             expected: expected.into_iter().format(", ").to_string(),
         },
-        ParseError::ExtraToken { token } => todo!(),
+        ParseError::ExtraToken { .. } => unreachable!("Our grammar always consumes the entire input."),
         ParseError::User { .. } => unreachable!("No custom `ParseError`s are implemented."),
     }
 }
