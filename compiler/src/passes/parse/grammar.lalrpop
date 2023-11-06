@@ -2,6 +2,8 @@ use std::str::FromStr;
 use crate::passes::parse::{Def, TypeDef, Expr, Lit, Op, Param};
 use crate::passes::parse::PrgParsed;
 use crate::passes::parse::Type;
+use crate::passes::parse::Spanned;
+use functor_derive::Functor;
 
 grammar;
 
@@ -92,7 +94,7 @@ pub Program: PrgParsed<'input> = {
     }
 }
 
-Def: Def<'input, &'input str, Expr<'input>> = {
+Def: Def<'input, &'input str, Spanned<Expr<'input>>> = {
     "struct" <sym:Ident> "{" <fields:Comma<(<Ident> ":" <Type>)>> "}" => Def::TypeDef {
         sym,
         def: TypeDef::Struct { fields },
@@ -101,11 +103,11 @@ Def: Def<'input, &'input str, Expr<'input>> = {
         sym,
         def: TypeDef::Enum { variants },
     },
-    "fn" <sym:Ident> "(" <params:Comma<Param>> ")" <typ:("->" <Type>)?> "{" <bdy: Expr?> "}" => Def::Fn {
+    "fn" <sym:Ident> "(" <params:Comma<Param>> ")" <typ:("->" <Type>)?> "{" <bdy: Spanned<Expr?>> "}" => Def::Fn {
         sym,
         params,
         typ: typ.unwrap_or(Type::Unit),
-        bdy: bdy.unwrap_or(Expr::Lit { val: Lit::Unit }),
+        bdy: bdy.fmap(|bdy| bdy.unwrap_or(Expr::Lit { val: Lit::Unit })),
     },
 }
 
@@ -142,58 +144,58 @@ Type: Type<&'input str> = {
 Expr = ExprStmt;
 
 ExprStmt: Expr<'input> = {
-    "let" <mutable:"mut"?> <sym:Ident> "=" <bnd:ExprLogicalOr<Struct>> ";" <bdy:ExprStmt?> => Expr::Let {
+    "let" <mutable:"mut"?> <sym:Ident> "=" <bnd:Spanned<ExprLogicalOr<Struct>>> ";" <bdy:Spanned<ExprStmt?>> => Expr::Let {
         sym,
         mutable: mutable.is_some(),
         bnd: Box::new(bnd),
-        bdy: Box::new(bdy.unwrap_or(Expr::Lit { val: Lit::Unit })),
+        bdy: Box::new(bdy.fmap(|bdy| bdy.unwrap_or(Expr::Lit { val: Lit::Unit }))),
     },
-    <stmt:ExprInStmt> ";" <cnt:ExprStmt?> => Expr::Seq {
+    <stmt:Spanned<ExprInStmt>> ";" <cnt:Spanned<ExprStmt?>> => Expr::Seq {
         stmt: Box::new(stmt),
-        cnt: Box::new(cnt.unwrap_or(Expr::Lit { val: Lit::Unit })),
+        cnt: Box::new(cnt.fmap(|cnt| cnt.unwrap_or(Expr::Lit { val: Lit::Unit }))),
     },
     ExprInStmt,
 }
 
 ExprInStmt: Expr<'input> = {
-    <sym:Ident> "=" <bnd:ExprLogicalOr<Struct>> => Expr::Assign {
+    <sym:Ident> "=" <bnd:Spanned<ExprLogicalOr<Struct>>> => Expr::Assign {
         sym,
         bnd: Box::new(bnd),
     },
-    "if" <cnd:ExprLogicalOr<Never>> "{" <thn:Expr> "}" <els:("else" "{" <Expr> "}")?> => Expr::If {
+    "if" <cnd:Spanned<ExprLogicalOr<Never>>> "{" <thn:Spanned<Expr>> "}" <l:@L> <els:("else" "{" <Spanned<Expr>> "}")?> <r:@R> => Expr::If {
         cnd: Box::new(cnd),
         thn: Box::new(thn),
-        els: Box::new(els.unwrap_or(Expr::Lit { val: Lit::Unit })),
+        els: Box::new(els.unwrap_or(Spanned { span: (l, r), expr: Expr::Lit { val: Lit::Unit }})),
     },
-    "loop" "{" <bdy:Expr> "}" => Expr::Loop {
+    "loop" "{" <bdy:Spanned<Expr>> "}" => Expr::Loop {
         bdy: Box::new(bdy),
     },
-    "while" <cnd:ExprLogicalOr<Never>> "{" <bdy:Expr> "}" => Expr::Loop {
+    "while" <cnd:Spanned<ExprLogicalOr<Never>>> "{" <bdy:Spanned<Expr>> "}" => Expr::Loop {
         bdy: Box::new(Expr::If {
             cnd: Box::new(cnd),
             thn: Box::new(bdy),
-            els: Box::new(Expr::Seq {
+            els: Box::new(Expr::Seq { // todo this desugaring doesnt have a span
                 stmt: Box::new(Expr::Break { bdy: Box::new(Expr::Lit { val: Lit::Unit }) }),
                 cnt: Box::new(Expr::Lit { val: Lit::Unit }),
             }),
         }),
     },
-    "switch" <enm:ExprLogicalOr<Never>> "{" <arms:Comma<(<Ident> "(" <Ident> ")" "=>" <Expr> )>> "}"  => Expr::Switch {
+    "switch" <enm:Spanned<ExprLogicalOr<Never>>> "{" <arms:Comma<(<Ident> "(" <Ident> ")" "=>" <Spanned<Expr>> )>> "}"  => Expr::Switch {
         enm: Box::new(enm),
         arms: arms.into_iter().map(|(s1, s2, e)| (s1, s2, Box::new(e))).collect(),
      },
-    "break" <bdy:ExprLogicalOr<Struct>?> => Expr::Break {
-        bdy: Box::new(bdy.unwrap_or(Expr::Lit { val: Lit::Unit })),
+    "break" <bdy:Spanned<ExprLogicalOr<Struct>?>> => Expr::Break {
+        bdy: Box::new(bdy.fmap(|bdy| bdy.unwrap_or(Expr::Lit { val: Lit::Unit }))),
     },
-    "return" <bdy:ExprLogicalOr<Struct>?> => Expr::Return {
-        bdy: Box::new(bdy.unwrap_or(Expr::Lit { val: Lit::Unit })),
+    "return" <bdy:Spanned<ExprLogicalOr<Struct>?>> => Expr::Return {
+        bdy: Box::new(bdy.fmap(|bdy| bdy.unwrap_or(Expr::Lit { val: Lit::Unit }))),
     },
     "continue" => Expr::Continue,
     ExprLogicalOr<Struct>,
 }
 
 BinaryOps<Op,Next>: Expr<'input> = {
-    <e1:BinaryOps<Op,Next>> <op:Op> <e2:Next> => Expr::Prim {
+    <e1:Spanned<BinaryOps<Op,Next>>> <op:Op> <e2:Spanned<Next>> => Expr::Prim {
         op,
         args: vec![e1, e2],
     },
@@ -233,7 +235,7 @@ UnaryOp: Op = {
 }
 
 ExprUnary<T>: Expr<'input> = {
-    <op:UnaryOp> <e:ExprUnary<T>> => Expr::Prim {
+    <op:UnaryOp> <e:Spanned<ExprUnary<T>>> => Expr::Prim {
         op,
         args: vec![e],
     },
@@ -241,7 +243,7 @@ ExprUnary<T>: Expr<'input> = {
 }
 
 ExprAccess<T>: Expr<'input> = {
-    <strct:ExprAccess<T>> "." <field:Ident> => Expr::AccessField {
+    <strct:Spanned<ExprAccess<T>>> "." <field:Ident> => Expr::AccessField {
         strct: Box::new(strct),
         field,
     },
@@ -253,11 +255,11 @@ ExprCall<T>: Expr<'input> = {
         op: Op::Read,
         args: vec![],
     },
-    "print" "(" <e: Expr> ")" => Expr::Prim {
+    "print" "(" <e:Spanned<Expr>> ")" => Expr::Prim {
         op: Op::Print,
         args: vec![e],
     },
-    <fun:ExprAtom<T>> "(" <args:Comma<Expr>> ")" => Expr::Apply {
+    <fun:Spanned<ExprAtom<T>>> "(" <args:Comma<Spanned<Expr>>> ")" => Expr::Apply {
         fun: Box::new(fun),
         args,
     },
@@ -265,11 +267,11 @@ ExprCall<T>: Expr<'input> = {
 }
 
 ExprAtom<T>: Expr<'input> = {
-    <val:Num> => Expr::Lit{ val: Lit::Int { val }},
-    <val:Bool> => Expr::Lit { val: Lit::Bool { val }},
+    <val:Num> => Expr::Lit { val: Lit::Int { val } },
+    <val:Bool> => Expr::Lit { val: Lit::Bool { val } },
     "unit" => Expr::Lit { val: Lit::Unit },
     <sym:Ident> => Expr::Var { sym },
-    <enum_sym:Ident> "::" <variant_sym:Ident> "(" <bdy:Expr> ")" => Expr::Variant {
+    <enum_sym:Ident> "::" <variant_sym:Ident> "(" <bdy:Spanned<Expr>> ")" => Expr::Variant {
         enum_sym,
         variant_sym,
         bdy: Box::new(bdy),
@@ -285,9 +287,9 @@ Struct: Expr<'input> = {
     },
 }
 
-StructArg : (&'input str, Expr<'input>) = {
-    <Ident> ":" <Expr>,
-    <Ident> => (<>, Expr::Var { sym: <> })
+StructArg : (&'input str, Spanned<Expr<'input>>) = {
+    <Ident> ":" <Spanned<Expr>>,
+    <l:@L> <sym:Ident> <r:@R> => (sym, Spanned { span: (l, r), expr: Expr::Var { sym } })
 }
 
 Never: Expr<'input> = {};
@@ -312,6 +314,5 @@ Comma<T>: Vec<T> = {
     }
 }
 
-Spanned<T>: (usize, usize) = {
-    <l:@L> T <r:@R> => (l, r),
-}
+Spanned<T>: Spanned<T> = <l:@L> <expr:T> <r:@R> => Spanned { span: (l, r), expr };
+

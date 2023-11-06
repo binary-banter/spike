@@ -19,7 +19,7 @@ use types::Type;
 #[derive(Debug, PartialEq)]
 pub struct PrgParsed<'p> {
     /// The global program definitions.
-    pub defs: Vec<Def<'p, &'p str, Expr<'p>>>,
+    pub defs: Vec<Def<'p, &'p str, Spanned<Expr<'p>>>>,
     /// The symbol representing the entry point of the program.
     pub entry: &'p str,
 }
