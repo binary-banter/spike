@@ -1,5 +1,5 @@
 use crate::passes::parse::grammar::ProgramParser;
-use crate::passes::parse::PrgParsed;
+use crate::passes::parse::{Expr, PrgParsed};
 use itertools::Itertools;
 use lalrpop_util::lexer::Token;
 use lalrpop_util::ParseError;

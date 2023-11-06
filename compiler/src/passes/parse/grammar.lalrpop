@@ -92,7 +92,7 @@ pub Program: PrgParsed<'input> = {
     }
 }
 
-Def: Def<'input, &'input str, Expr<'input, &'input str>> = {
+Def: Def<'input, &'input str, Expr<'input>> = {
     "struct" <sym:Ident> "{" <fields:Comma<(<Ident> ":" <Type>)>> "}" => Def::TypeDef {
         sym,
         def: TypeDef::Struct { fields },
@@ -141,7 +141,7 @@ Type: Type<&'input str> = {
 // Num/Bool/Ident
 Expr = ExprStmt;
 
-ExprStmt: Expr<'input, &'input str> = {
+ExprStmt: Expr<'input> = {
     "let" <mutable:"mut"?> <sym:Ident> "=" <bnd:ExprLogicalOr<Struct>> ";" <bdy:ExprStmt?> => Expr::Let {
         sym,
         mutable: mutable.is_some(),
@@ -155,7 +155,7 @@ ExprStmt: Expr<'input, &'input str> = {
     ExprInStmt,
 }
 
-ExprInStmt: Expr<'input, &'input str> = {
+ExprInStmt: Expr<'input> = {
     <sym:Ident> "=" <bnd:ExprLogicalOr<Struct>> => Expr::Assign {
         sym,
         bnd: Box::new(bnd),
@@ -192,7 +192,7 @@ ExprInStmt: Expr<'input, &'input str> = {
     ExprLogicalOr<Struct>,
 }
 
-BinaryOps<Op,Next>: Expr<'input, &'input str> = {
+BinaryOps<Op,Next>: Expr<'input> = {
     <e1:BinaryOps<Op,Next>> <op:Op> <e2:Next> => Expr::Prim {
         op,
         args: vec![e1, e2],
@@ -232,7 +232,7 @@ UnaryOp: Op = {
     "!" => Op::Not,
 }
 
-ExprUnary<T>: Expr<'input, &'input str> = {
+ExprUnary<T>: Expr<'input> = {
     <op:UnaryOp> <e:ExprUnary<T>> => Expr::Prim {
         op,
         args: vec![e],
@@ -240,7 +240,7 @@ ExprUnary<T>: Expr<'input, &'input str> = {
     ExprAccess<T>,
 }
 
-ExprAccess<T>: Expr<'input, &'input str> = {
+ExprAccess<T>: Expr<'input> = {
     <strct:ExprAccess<T>> "." <field:Ident> => Expr::AccessField {
         strct: Box::new(strct),
         field,
@@ -248,7 +248,7 @@ ExprAccess<T>: Expr<'input, &'input str> = {
     ExprCall<T>,
 }
 
-ExprCall<T>: Expr<'input, &'input str> = {
+ExprCall<T>: Expr<'input> = {
     "read" "(" ")" => Expr::Prim {
         op: Op::Read,
         args: vec![],
@@ -264,7 +264,7 @@ ExprCall<T>: Expr<'input, &'input str> = {
     ExprAtom<T>,
 }
 
-ExprAtom<T>: Expr<'input, &'input str> = {
+ExprAtom<T>: Expr<'input> = {
     <val:Num> => Expr::Lit{ val: Lit::Int { val }},
     <val:Bool> => Expr::Lit { val: Lit::Bool { val }},
     "unit" => Expr::Lit { val: Lit::Unit },
@@ -278,19 +278,19 @@ ExprAtom<T>: Expr<'input, &'input str> = {
     <T>,
 }
 
-Struct: Expr<'input, &'input str> = {
+Struct: Expr<'input> = {
     <sym:Ident> "{" <fields:Comma<StructArg>> "}" => Expr::Struct {
         sym,
         fields,
     },
 }
 
-StructArg : (&'input str, Expr<'input, &'input str>) = {
+StructArg : (&'input str, Expr<'input>) = {
     <Ident> ":" <Expr>,
     <Ident> => (<>, Expr::Var { sym: <> })
 }
 
-Never: Expr<'input, &'input str> = {};
+Never: Expr<'input> = {};
 
 Ident: &'input str = identifier;
 
@@ -312,3 +312,6 @@ Comma<T>: Vec<T> = {
     }
 }
 
+Spanned<T>: (usize, usize) = {
+    <l:@L> T <r:@R> => (l, r),
+}

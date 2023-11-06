@@ -8,7 +8,7 @@ use crate::passes::validate::TExpr;
 pub fn validate_prim<'p>(
     env: &mut Env<'_, 'p>,
     op: Op,
-    args: Vec<Expr<'p, &'p str>>,
+    args: Vec<Expr<'p>>,
 ) -> Result<TExpr<'p, &'p str>, TypeError> {
     let args = args
         .into_iter()

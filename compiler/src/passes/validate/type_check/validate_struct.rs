@@ -12,7 +12,7 @@ use std::collections::{HashMap, HashSet};
 pub fn validate_struct<'p>(
     env: &mut Env<'_, 'p>,
     sym: &'p str,
-    fields: Vec<(&'p str, Expr<'p, &'p str>)>,
+    fields: Vec<(&'p str, Expr<'p>)>,
 ) -> Result<TExpr<'p, &'p str>, TypeError> {
     let entry = env.scope.get(&sym).ok_or(UndeclaredVar {
         sym: sym.to_string(),
