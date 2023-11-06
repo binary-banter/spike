@@ -1,26 +1,65 @@
 use crate::passes::parse::grammar::ProgramParser;
 use crate::passes::parse::PrgParsed;
-use miette::{Diagnostic, SourceSpan};
+use itertools::Itertools;
+use lalrpop_util::lexer::Token;
+use lalrpop_util::ParseError;
+use miette::{Diagnostic, NamedSource};
 use thiserror::Error;
 
 #[derive(Error, Debug, Diagnostic)]
-#[error("Parse error!")]
-#[diagnostic(
-    code(oops::my::bad),
-    url(docsrs),
-    help("try doing it better next time?")
-)]
-pub struct PrettyParseError {
-    #[source_code]
-    src: String,
-
-    #[label("Failed to parse here")]
-    fail: SourceSpan,
+pub enum PrettyParseError {
+    #[error("Parse error: Invalid token.")]
+    InvalidToken {
+        #[source_code]
+        src: NamedSource,
+        #[label("Failed to parse here, invalid token starting here.")]
+        fail: (usize, usize),
+    },
+    #[error("Parse error: Unexpected token.")]
+    UnexpectedToken {
+        #[source_code]
+        src: NamedSource,
+        #[label("Failed to parse here, expected one of: {expected}.")]
+        fail: (usize, usize),
+        expected: String,
+    },
+    #[error("Parse error: Unexpected end of file.")]
+    UnexpectedEOF {
+        #[source_code]
+        src: NamedSource,
+        #[label("Unexpected end-of-file, expected one of: {expected}.")]
+        fail: (usize, usize),
+        expected: String,
+    },
 }
 
-pub fn parse_program(src: &str) -> Result<PrgParsed, PrettyParseError> {
-    ProgramParser::new().parse(src).map_err(|e| {
-        dbg!(e);
-        panic!();
-    })
+pub fn parse_program<'p>(src: &'p str, file: &'p str) -> Result<PrgParsed<'p>, PrettyParseError> {
+    ProgramParser::new()
+        .parse(src)
+        .map_err(|error| prettify_error(error, src, file))
+}
+
+fn prettify_error<'p>(
+    error: ParseError<usize, Token<'p>, &'p str>,
+    src: &'p str,
+    file: &'p str,
+) -> PrettyParseError {
+    match error {
+        ParseError::InvalidToken { location } => PrettyParseError::InvalidToken {
+            src: NamedSource::new(file, src.to_string()),
+            fail: (location, 1),
+        },
+        ParseError::UnrecognizedEof { location, expected } => PrettyParseError::UnexpectedEOF {
+            src: NamedSource::new(file, src.to_string()),
+            fail: (location, 1),
+            expected: expected.into_iter().format(", ").to_string(),
+        },
+        ParseError::UnrecognizedToken { token, expected } => PrettyParseError::UnexpectedToken {
+            src: NamedSource::new(file, src.to_string()),
+            fail: (token.0, token.2 - token.0),
+            expected: expected.into_iter().format(", ").to_string(),
+        },
+        ParseError::ExtraToken { token } => todo!(),
+        ParseError::User { .. } => unreachable!("No custom `ParseError`s are implemented."),
+    }
 }

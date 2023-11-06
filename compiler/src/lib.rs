@@ -1,5 +1,7 @@
 #![allow(clippy::module_inception)]
 
+extern crate core;
+
 pub mod interpreter;
 pub mod passes;
 pub mod utils;
@@ -8,10 +10,10 @@ use crate::passes::parse::parse::parse_program;
 use std::fs::File;
 use std::path::Path;
 
-pub fn compile(program: &str, output: &Path) -> miette::Result<()> {
+pub fn compile(program: &str, filename: &str, output: &Path) -> miette::Result<()> {
     let mut file = File::create(output).unwrap();
 
-    parse_program(program)?
+    parse_program(program, filename)?
         .validate()?
         .uniquify()
         .reveal()

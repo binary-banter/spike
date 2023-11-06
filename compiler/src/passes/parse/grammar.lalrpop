@@ -36,7 +36,7 @@ match {
     "=>",
 
     // Identifier
-    r"[_a-zA-Z][_a-zA-Z0-9]*",
+    r"[_a-zA-Z][_a-zA-Z0-9]*" => identifier,
 
     // Integer operators
     "+",
@@ -59,7 +59,7 @@ match {
     "true",
     "false",
     "unit",
-    r"[0-9]+",
+    r"[0-9]+" => integer,
 
     // Logical operators
     "^",
@@ -292,9 +292,9 @@ StructArg : (&'input str, Expr<'input, &'input str>) = {
 
 Never: Expr<'input, &'input str> = {};
 
-Ident: &'input str = r"[_a-zA-Z][_a-zA-Z0-9]*";
+Ident: &'input str = identifier;
 
-Num: i64 = <s:r"[0-9]+"> => i64::from_str(s).unwrap();
+Num: i64 = <s:integer> => i64::from_str(s).unwrap();
 
 Bool: bool = {
     "true" => true,

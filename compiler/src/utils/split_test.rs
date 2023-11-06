@@ -34,6 +34,6 @@ pub fn split_test(test: &str) -> (Vec<Lit>, Vec<Lit>, Lit, PrgParsed) {
         input.take().unwrap_or_default(),
         output.take().unwrap_or_default(),
         expected_return.take().unwrap_or(Lit::Unit),
-        parse_program(test).unwrap(),
+        parse_program(test, "test").unwrap(), // todo: pass test file name
     )
 }
