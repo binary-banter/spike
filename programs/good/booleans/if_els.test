@@ -1,6 +1,4 @@
-##
-13
-#
+//* ret: 13
 fn main() -> Int {
     if false {
         42

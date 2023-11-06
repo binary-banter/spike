@@ -1,6 +1,4 @@
-##
-true
-#
+//* ret: true
 fn main() -> Bool {
     true || true
 }

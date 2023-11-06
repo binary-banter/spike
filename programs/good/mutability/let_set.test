@@ -1,6 +1,4 @@
-##
-6
-#
+//* ret: 6
 fn main() -> Int {
     let mut x = 5;
     x = 6;

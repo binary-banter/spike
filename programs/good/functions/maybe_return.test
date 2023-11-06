@@ -1,8 +1,4 @@
-#
-42 13
-#
-unit
-#
+//* out: 42 13
 fn add(x: Int, y: Int) -> Int {
     if x + y != 13 {
         return 42;

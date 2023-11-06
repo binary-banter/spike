@@ -22,10 +22,7 @@ mod tests {
     use test_each_file::test_each_file;
 
     fn validate([test]: [&str; 1], should_fail: bool) {
-        let mut test = test.split('#');
-        let program = test.nth(3).unwrap().trim();
-        let program = parse_program(program).unwrap();
-        let res = program.validate();
+        let res = parse_program(test).unwrap().validate();
 
         match (res, should_fail) {
             (Ok(_), true) => panic!("Program should not pass type-checking."),

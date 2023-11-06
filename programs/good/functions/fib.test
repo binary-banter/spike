@@ -1,6 +1,4 @@
-##
-34
-#
+//* ret: 34
 fn fib(n: Int) -> Int {
     if n <= 1 {
         if n  == 0 { 0 } else { 1 }

@@ -1,6 +1,4 @@
-##
-false
-#
+//* ret: false
 fn main() -> Bool {
     42 != 42
 }

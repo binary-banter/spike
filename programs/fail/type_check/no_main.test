@@ -1,4 +1,3 @@
-###
 fn unmain() -> Int {
     1
 }

@@ -1,4 +1,3 @@
-###
 struct MyStruct {
     field_1: Int,
 }

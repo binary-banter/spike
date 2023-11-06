@@ -1,4 +1,3 @@
-###
 fn main() -> Int {
     let y = x; 1
 }

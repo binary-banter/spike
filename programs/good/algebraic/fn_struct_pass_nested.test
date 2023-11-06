@@ -1,7 +1,4 @@
-#
-#
-5
-#
+//* ret: 5
 struct Foo {
     a : Int,
     b : Bool

@@ -1,6 +1,3 @@
-##
-unit
-#
 fn test() -> Unit {
     unit;
 }
