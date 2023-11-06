@@ -20,7 +20,6 @@ match {
     "struct",
     "enum",
     "switch",
-    "never",
 
     // Structural tokens
     "(",
@@ -291,9 +290,7 @@ StructArg : (&'input str, Expr<'input, &'input str>) = {
     <Ident> => (<>, Expr::Var { sym: <> })
 }
 
-Never: Expr<'input, &'input str> = {
-    "never" => panic!("The reserved keyword 'never' should never be parsed.")
-}
+Never: Expr<'input, &'input str> = {};
 
 Ident: &'input str = r"[_a-zA-Z][_a-zA-Z0-9]*";
 
@@ -314,3 +311,4 @@ Comma<T>: Vec<T> = {
         }
     }
 }
+

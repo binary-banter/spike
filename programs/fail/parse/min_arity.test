@@ -1,3 +1,5 @@
+//* err: ParseToken
 fn main() -> Int {
     -
+//  ^
 }
