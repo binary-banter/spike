@@ -1,0 +1,4 @@
+//* ret: 2
+fn main() -> Int {
+    if (let x = 5; x > 5) {1} else {2}
+}

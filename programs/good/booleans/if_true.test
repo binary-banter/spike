@@ -1,0 +1,4 @@
+//* ret: 1
+fn main() -> Int {
+    if true {1} else {2}
+}

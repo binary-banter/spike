@@ -1,0 +1,6 @@
+//* inp: 8
+//* ret: 8
+fn main() -> Int {
+    let x = (let y = read(); y);
+    x
+}

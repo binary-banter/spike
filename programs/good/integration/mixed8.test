@@ -1,0 +1,9 @@
+//* inp: 82
+//* ret: 82
+fn main() -> Int {
+    let a = read();
+    let b = a;
+    let c = b;
+    let d = c;
+    d
+}
