@@ -3,7 +3,7 @@ mod type_check;
 pub mod validate;
 
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Def, Lit, Op};
+use crate::passes::parse::{Def, Op};
 use crate::passes::validate::type_check::error::TypeError;
 use derive_more::Display;
 use miette::Diagnostic;

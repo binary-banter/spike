@@ -7,7 +7,7 @@ pub mod passes;
 pub mod utils;
 
 use crate::passes::parse::parse::parse_program;
-use miette::{IntoDiagnostic, NamedSource, Report};
+use miette::{NamedSource, Report};
 use std::fs::File;
 use std::path::Path;
 

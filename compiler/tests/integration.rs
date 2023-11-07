@@ -1,6 +1,5 @@
 #![cfg(unix)]
 
-use compiler::passes::parse::Lit;
 use compiler::passes::validate::TLit;
 use compiler::utils::split_test::split_test;
 use std::fs::OpenOptions;

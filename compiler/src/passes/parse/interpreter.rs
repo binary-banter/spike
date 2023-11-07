@@ -1,6 +1,6 @@
 use crate::interpreter::Val;
 use crate::interpreter::IO;
-use crate::passes::parse::{Def, Lit, Op};
+use crate::passes::parse::{Def, Op};
 use crate::passes::uniquify::PrgUniquified;
 use crate::passes::validate::{TExpr, TLit};
 use crate::utils::gen_sym::UniqueSym;
