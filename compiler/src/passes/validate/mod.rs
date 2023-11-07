@@ -121,9 +121,9 @@ impl<'p, A: Copy + Hash + Eq + Display> TExpr<'p, A> {
 }
 
 #[derive(Debug, Error, Diagnostic)]
-#[diagnostic()]
 pub enum ValidateError {
     #[error(transparent)]
+    #[diagnostic(transparent)]
     TypeError(#[from] TypeError),
     #[error("The program doesn't have a main function.")]
     NoMain,

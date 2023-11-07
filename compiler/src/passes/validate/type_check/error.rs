@@ -3,12 +3,9 @@ use miette::Diagnostic;
 use thiserror::Error;
 
 #[derive(Debug, Error, Diagnostic)]
-#[diagnostic()]
 pub enum TypeError {
     #[error("Variable '{sym}' was not declared yet.")]
-    UndeclaredVar {
-        sym: String
-    },
+    UndeclaredVar { sym: String },
     #[error("Types were mismatched. Expected '{expect}', but found '{got}'.")]
     TypeMismatchExpect {
         expect: Type<String>,
@@ -42,4 +39,10 @@ pub enum TypeError {
     TypeShouldBeStruct { typ: Type<String> },
     #[error("The type definition `{sym}` is not sized.'")]
     UnsizedType { sym: String },
+
+    #[error("Integer out of bounds.")]
+    IntegerOutOfBounds {
+        #[label = "This number does not fit in an i32: `-2147483648..=2147483647`"]
+        span: (usize, usize)
+    },
 }

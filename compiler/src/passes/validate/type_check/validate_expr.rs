@@ -12,14 +12,18 @@ pub fn validate_expr<'p>(
     expr: Spanned<Expr<'p>>,
     env: &mut Env<'_, 'p>,
 ) -> Result<TExpr<'p, &'p str>, TypeError> {
+    let span = (expr.span.0, expr.span.1 - expr.span.0);
+
     Ok(match expr.expr {
-        Expr::Lit { val,  .. } => TExpr::Lit {
-            val,
-            typ: match val {
-                Lit::Int { .. } => Type::Int,
-                Lit::Bool { .. } => Type::Bool,
-                Lit::Unit => Type::Unit,
+        Expr::Lit { val } => match val {
+            Lit::Int { val } => {
+                // todo: fix this mess by passing in a string!
+                let val = i32::try_from(val).map_err(|_| IntegerOutOfBounds { span })?;
+                let val = val as i64;
+                TExpr::Lit { val: Lit::Int { val }, typ: Type::Int }
             },
+            val @ Lit::Bool { .. } => TExpr::Lit { val, typ: Type::Bool },
+            val @ Lit::Unit => TExpr::Lit { val, typ : Type::Unit },
         },
         Expr::Var { sym, .. } => {
             let entry = env.scope.get(&sym).ok_or(UndeclaredVar {

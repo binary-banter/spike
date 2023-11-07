@@ -9,10 +9,10 @@ pub mod parse;
 pub mod types;
 
 use derive_more::Display;
+use functor_derive::Functor;
 use std::fmt::Display;
 use std::hash::Hash;
 use std::str::FromStr;
-use functor_derive::Functor;
 use types::Type;
 
 /// A parsed program with global definitions and an entry point.
@@ -226,7 +226,7 @@ pub enum Expr<'p> {
 #[derive(Debug, PartialEq, Functor)]
 pub struct Spanned<T> {
     pub span: (usize, usize),
-    pub expr: T
+    pub expr: T,
 }
 
 /// A primitive operation.
