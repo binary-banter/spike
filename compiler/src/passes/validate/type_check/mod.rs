@@ -78,7 +78,7 @@ impl<'p> PrgParsed<'p> {
                             in_loop: false,
                             return_type: &typ,
                         };
-                        let bdy = validate_expr(bdy.expr, &mut env)?;
+                        let bdy = validate_expr(bdy, &mut env)?;
                         expect_type(&bdy, &typ)?;
                         Ok((
                             sym,

@@ -6,7 +6,9 @@ use thiserror::Error;
 #[diagnostic()]
 pub enum TypeError {
     #[error("Variable '{sym}' was not declared yet.")]
-    UndeclaredVar { sym: String },
+    UndeclaredVar {
+        sym: String
+    },
     #[error("Types were mismatched. Expected '{expect}', but found '{got}'.")]
     TypeMismatchExpect {
         expect: Type<String>,

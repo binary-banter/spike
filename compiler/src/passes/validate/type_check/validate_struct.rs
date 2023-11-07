@@ -32,7 +32,7 @@ pub fn validate_struct<'p>(
     let fields = fields
         .into_iter()
         .map(|(field, expr)| {
-            let expr = validate_expr(expr.expr, env)?;
+            let expr = validate_expr(expr, env)?;
 
             expect(
                 new_provided_fields.insert(field),
