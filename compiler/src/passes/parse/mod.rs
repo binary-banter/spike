@@ -225,8 +225,8 @@ pub enum Expr<'p> {
 
 #[derive(Debug, PartialEq, Functor)]
 pub struct Spanned<T> {
-    span: (usize, usize),
-    expr: T
+    pub span: (usize, usize),
+    pub expr: T
 }
 
 /// A primitive operation.

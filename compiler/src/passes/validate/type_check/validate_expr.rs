@@ -45,14 +45,14 @@ pub fn validate_expr<'p>(
             bdy,
             ..
         } => {
-            let bnd = validate_expr(*bnd, env)?;
+            let bnd = validate_expr(bnd.expr, env)?;
             let bdy = env.push(
                 sym,
                 EnvEntry::Type {
                     mutable,
                     typ: bnd.typ().clone(),
                 },
-                |env| validate_expr(*bdy, env),
+                |env| validate_expr(bdy.expr, env),
             )?;
 
             TExpr::Let {
@@ -63,9 +63,9 @@ pub fn validate_expr<'p>(
             }
         }
         Expr::If { cnd, thn, els, .. } => {
-            let cnd = validate_expr(*cnd, env)?;
-            let thn = validate_expr(*thn, env)?;
-            let els = validate_expr(*els, env)?;
+            let cnd = validate_expr(cnd.expr, env)?;
+            let thn = validate_expr(thn.expr, env)?;
+            let els = validate_expr(els.expr, env)?;
 
             expect_type(&cnd, &Type::Bool)?;
             expect_type_eq(&thn, &els)?;

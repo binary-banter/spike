@@ -170,14 +170,30 @@ ExprInStmt: Expr<'input> = {
     "loop" "{" <bdy:Spanned<Expr>> "}" => Expr::Loop {
         bdy: Box::new(bdy),
     },
-    "while" <cnd:Spanned<ExprLogicalOr<Never>>> "{" <bdy:Spanned<Expr>> "}" => Expr::Loop {
-        bdy: Box::new(Expr::If {
-            cnd: Box::new(cnd),
-            thn: Box::new(bdy),
-            els: Box::new(Expr::Seq { // todo this desugaring doesnt have a span
-                stmt: Box::new(Expr::Break { bdy: Box::new(Expr::Lit { val: Lit::Unit }) }),
-                cnt: Box::new(Expr::Lit { val: Lit::Unit }),
-            }),
+    // todo: the spans in this desugaring do not make a lot sense.
+    <l:@L> "while" <r:@R> <cnd:Spanned<ExprLogicalOr<Never>>> "{" <bdy:Spanned<Expr>> "}" => Expr::Loop {
+        bdy: Box::new(Spanned {
+            span: (l, r),
+            expr: Expr::If {
+                cnd: Box::new(cnd),
+                thn: Box::new(bdy),
+                els: Box::new(Spanned {
+                    span: (l, r),
+                    expr: Expr::Seq {
+                        stmt: Box::new(Spanned {
+                            span: (l, r),
+                            expr: Expr::Break { bdy: Box::new(Spanned {
+                                span: (l, r),
+                                expr: Expr::Lit { val: Lit::Unit },
+                            })},
+                        }),
+                        cnt: Box::new(Spanned {
+                            span: (l, r),
+                            expr: Expr::Lit { val: Lit::Unit },
+                        }),
+                    },
+                }),
+            },
         }),
     },
     "switch" <enm:Spanned<ExprLogicalOr<Never>>> "{" <arms:Comma<(<Ident> "(" <Ident> ")" "=>" <Spanned<Expr>> )>> "}"  => Expr::Switch {

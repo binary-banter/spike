@@ -1,5 +1,5 @@
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Expr, Op};
+use crate::passes::parse::{Expr, Op, Spanned};
 use crate::passes::validate::type_check::error::TypeError;
 use crate::passes::validate::type_check::validate_expr::validate_expr;
 use crate::passes::validate::type_check::{expect_type, expect_type_eq, Env};
@@ -8,11 +8,11 @@ use crate::passes::validate::TExpr;
 pub fn validate_prim<'p>(
     env: &mut Env<'_, 'p>,
     op: Op,
-    args: Vec<Expr<'p>>,
+    args: Vec<Spanned<Expr<'p>>>,
 ) -> Result<TExpr<'p, &'p str>, TypeError> {
     let args = args
         .into_iter()
-        .map(|arg| validate_expr(arg, env))
+        .map(|arg| validate_expr(arg.ex, env))
         .collect::<Result<Vec<_>, _>>()?;
 
     let typ = match &(op, args.as_slice()) {
