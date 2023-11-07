@@ -12,7 +12,7 @@ pub fn validate_prim<'p>(
 ) -> Result<TExpr<'p, &'p str>, TypeError> {
     let args = args
         .into_iter()
-        .map(|arg| validate_expr(arg.ex, env))
+        .map(|arg| validate_expr(arg.expr, env))
         .collect::<Result<Vec<_>, _>>()?;
 
     let typ = match &(op, args.as_slice()) {

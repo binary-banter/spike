@@ -1,5 +1,5 @@
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Expr, TypeDef};
+use crate::passes::parse::{Expr, Spanned, TypeDef};
 use crate::passes::validate::type_check::error::TypeError;
 use crate::passes::validate::type_check::error::TypeError::*;
 use crate::passes::validate::type_check::expect_type;
@@ -12,7 +12,7 @@ use std::collections::{HashMap, HashSet};
 pub fn validate_struct<'p>(
     env: &mut Env<'_, 'p>,
     sym: &'p str,
-    fields: Vec<(&'p str, Expr<'p>)>,
+    fields: Vec<(&'p str, Spanned<Expr<'p>>)>,
 ) -> Result<TExpr<'p, &'p str>, TypeError> {
     let entry = env.scope.get(&sym).ok_or(UndeclaredVar {
         sym: sym.to_string(),
@@ -32,7 +32,7 @@ pub fn validate_struct<'p>(
     let fields = fields
         .into_iter()
         .map(|(field, expr)| {
-            let expr = validate_expr(expr, env)?;
+            let expr = validate_expr(expr.expr, env)?;
 
             expect(
                 new_provided_fields.insert(field),

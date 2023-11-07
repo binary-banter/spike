@@ -78,10 +78,10 @@ pub fn validate_expr<'p>(
             }
         }
         Expr::Apply { fun, args, .. } => {
-            let fun = validate_expr(*fun, env)?;
+            let fun = validate_expr(fun.expr, env)?;
             let args = args
                 .into_iter()
-                .map(|arg| validate_expr(arg, env))
+                .map(|arg| validate_expr(arg.expr, env))
                 .collect::<Result<Vec<_>, _>>()?;
 
             let Type::Fn { params, typ } = fun.typ() else {
@@ -116,7 +116,7 @@ pub fn validate_expr<'p>(
                 in_loop: true,
                 return_type: env.return_type,
             };
-            let bdy = validate_expr(*bdy, &mut env)?;
+            let bdy = validate_expr(bdy.expr, &mut env)?;
             TExpr::Loop {
                 bdy: Box::new(bdy),
                 typ: loop_type.unwrap_or(Type::Never),
@@ -125,7 +125,7 @@ pub fn validate_expr<'p>(
         Expr::Break { bdy, .. } => {
             expect(env.in_loop, BreakOutsideLoop)?;
 
-            let bdy = validate_expr(*bdy, env)?;
+            let bdy = validate_expr(bdy.expr, env)?;
 
             if let Some(loop_type) = env.loop_type {
                 expect_type(&bdy, loop_type)?;
@@ -139,8 +139,8 @@ pub fn validate_expr<'p>(
             }
         }
         Expr::Seq { stmt, cnt, .. } => {
-            let stmt = validate_expr(*stmt, env)?;
-            let cnt = validate_expr(*cnt, env)?;
+            let stmt = validate_expr(stmt.expr, env)?;
+            let cnt = validate_expr(cnt.expr, env)?;
 
             TExpr::Seq {
                 typ: cnt.typ().clone(),
@@ -166,7 +166,7 @@ pub fn validate_expr<'p>(
                 },
             )?;
 
-            let bnd = validate_expr(*bnd, env)?;
+            let bnd = validate_expr(bnd.expr, env)?;
             TExpr::Assign {
                 sym,
                 bnd: Box::new(bnd),
@@ -175,7 +175,7 @@ pub fn validate_expr<'p>(
         }
         Expr::Continue { .. } => TExpr::Continue { typ: Type::Never },
         Expr::Return { bdy, .. } => {
-            let bdy = validate_expr(*bdy, env)?;
+            let bdy = validate_expr(bdy.expr, env)?;
             expect_type(&bdy, env.return_type)?;
             TExpr::Return {
                 bdy: Box::new(bdy),
@@ -184,7 +184,7 @@ pub fn validate_expr<'p>(
         }
         Expr::Struct { sym, fields, .. } => validate_struct(env, sym, fields)?,
         Expr::AccessField { strct, field, .. } => {
-            let strct = validate_expr(*strct, env)?;
+            let strct = validate_expr(strct.expr, env)?;
 
             let Type::Var { sym } = strct.typ() else {
                 return Err(TypeShouldBeStruct {
