@@ -43,6 +43,6 @@ pub enum TypeError {
     #[error("Integer out of bounds.")]
     IntegerOutOfBounds {
         #[label = "This number does not fit in an i32: `-2147483648..=2147483647`"]
-        span: (usize, usize)
+        span: (usize, usize),
     },
 }

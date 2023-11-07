@@ -3,7 +3,7 @@ use crate::passes::parse::PrgParsed;
 use itertools::Itertools;
 use lalrpop_util::lexer::Token;
 use lalrpop_util::ParseError;
-use miette::{Diagnostic};
+use miette::Diagnostic;
 use thiserror::Error;
 
 #[derive(Error, Debug, Diagnostic)]

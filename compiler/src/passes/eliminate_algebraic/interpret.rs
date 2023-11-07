@@ -2,7 +2,8 @@ use crate::interpreter::Val;
 use crate::interpreter::IO;
 use crate::passes::atomize::Atom;
 use crate::passes::eliminate_algebraic::{EExpr, ETail, PrgEliminated};
-use crate::passes::parse::{Lit, Op};
+use crate::passes::parse::{Op};
+use crate::passes::validate::TLit;
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::push_map::PushMap;
 use derive_more::Display;
@@ -53,12 +54,12 @@ impl<'p> From<EVal<'p>> for Val<'p, UniqueSym<'p>> {
     }
 }
 
-impl<'p> From<Lit> for EVal<'p> {
-    fn from(value: Lit) -> Self {
+impl<'p> From<TLit> for EVal<'p> {
+    fn from(value: TLit) -> Self {
         match value {
-            Lit::Int { val } => Self::Int { val },
-            Lit::Bool { val } => Self::Bool { val },
-            Lit::Unit => Self::Unit,
+            TLit::Int { val } => Self::Int { val: val as i64 },
+            TLit::Bool { val } => Self::Bool { val },
+            TLit::Unit => Self::Unit,
         }
     }
 }
@@ -108,7 +109,9 @@ impl<'p> PrgEliminated<'p> {
                 (Op::Read, []) => io.read().into(),
                 (Op::Print, [v]) => {
                     let val = self.interpret_atom(v, scope);
-                    io.print(Lit::Int { val: val.int() });
+                    io.print(TLit::Int {
+                        val: val.int() as i32,
+                    });
                     val
                 }
                 (Op::Plus, [e1, e2]) => {

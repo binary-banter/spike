@@ -312,7 +312,7 @@ Never: Expr<'input> = {};
 
 Ident: &'input str = identifier;
 
-Num: i64 = <s:integer> => i64::from_str(s).unwrap();
+Num: &'input str = <integer>;
 
 Bool: bool = {
     "true" => true,

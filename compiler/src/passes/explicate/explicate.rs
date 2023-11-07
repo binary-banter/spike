@@ -1,7 +1,8 @@
 use crate::passes::atomize::{AExpr, Atom, PrgAtomized};
 use crate::passes::explicate::{CExpr, CTail, PrgExplicated};
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Def, Lit, Op, TypeDef};
+use crate::passes::parse::{Def, Op, TypeDef};
+use crate::passes::validate::TLit;
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use std::collections::HashMap;
 
@@ -167,7 +168,7 @@ fn explicate_assign<'p>(
             explicate_assign(
                 sym,
                 AExpr::Atom {
-                    atm: Atom::Val { val: Lit::Unit },
+                    atm: Atom::Val { val: TLit::Unit },
                     typ: Type::Unit,
                 },
                 tail,
@@ -229,7 +230,7 @@ fn explicate_pred<'p>(
                 args: vec![
                     Atom::Var { sym },
                     Atom::Val {
-                        val: Lit::Bool { val: true },
+                        val: TLit::Bool { val: true },
                     },
                 ],
                 typ: Type::Bool,
@@ -239,7 +240,7 @@ fn explicate_pred<'p>(
         },
         AExpr::Atom {
             atm: Atom::Val {
-                val: Lit::Bool { val },
+                val: TLit::Bool { val },
             },
             ..
         } => {
@@ -383,7 +384,7 @@ fn explicate_pred<'p>(
         AExpr::FunRef { .. }
         | AExpr::Atom {
             atm: Atom::Val {
-                val: Lit::Int { .. } | Lit::Unit,
+                val: TLit::Int { .. } | TLit::Unit,
             },
             ..
         }

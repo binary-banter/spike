@@ -1,9 +1,9 @@
 pub mod atomize;
 
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Def, Lit, Op};
+use crate::passes::parse::{Def, Op};
 use crate::passes::uniquify::PrgUniquified;
-use crate::passes::validate::TExpr;
+use crate::passes::validate::{TExpr, TLit};
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
 
@@ -105,7 +105,7 @@ impl<'p> AExpr<'p> {
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Atom<'p> {
-    Val { val: Lit },
+    Val { val: TLit },
     Var { sym: UniqueSym<'p> },
 }
 

@@ -12,7 +12,6 @@ use derive_more::Display;
 use functor_derive::Functor;
 use std::fmt::Display;
 use std::hash::Hash;
-use std::str::FromStr;
 use types::Type;
 
 /// A parsed program with global definitions and an entry point.
@@ -91,7 +90,7 @@ pub enum Expr<'p> {
     /// A literal value. See [`Lit`].
     Lit {
         /// Value of the literal. See [`Lit`].
-        val: Lit,
+        val: Lit<'p>,
     },
     /// A variable.
     Var {
@@ -270,69 +269,16 @@ pub enum Op {
 
 /// A literal value.
 #[derive(Copy, Clone, Debug, PartialEq, Display)]
-pub enum Lit {
+pub enum Lit<'p> {
     /// Integer literal, representing a signed 64-bit number.
     #[display(fmt = "{val}")]
-    Int { val: i64 },
+    Int { val: &'p str },
     /// Boolean literal, representing a value of *true* or *false*.
     #[display(fmt = "{}", r#"if *val { "true" } else { "false" }"#)]
     Bool { val: bool },
     /// Unit literal, representing the absence of a value.
     #[display(fmt = "unit")]
     Unit,
-}
-
-impl Lit {
-    /// Returns the integer value if `Lit` is `Int`.
-    /// # Panics
-    /// Panics if `Lit` is not `Int`.
-    #[must_use]
-    pub fn int(self) -> i64 {
-        if let Lit::Int { val } = self {
-            val
-        } else {
-            panic!()
-        }
-    }
-
-    /// Returns the boolean value if `Lit` is `Bool`.
-    /// # Panics
-    /// Panics if `Lit` is not `Bool`.
-    #[must_use]
-    pub fn bool(self) -> bool {
-        if let Lit::Bool { val } = self {
-            val
-        } else {
-            panic!()
-        }
-    }
-}
-
-// todo: we probably want to get rid off this
-impl From<Lit> for i64 {
-    fn from(value: Lit) -> Self {
-        match value {
-            Lit::Int { val } => val,
-            Lit::Bool { val } => val as i64,
-            Lit::Unit => 0,
-        }
-    }
-}
-
-// This implementation is used by the parser.
-impl FromStr for Lit {
-    type Err = ();
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(match s {
-            "false" => Lit::Bool { val: false },
-            "true" => Lit::Bool { val: true },
-            "unit" => Lit::Unit,
-            s => Lit::Int {
-                val: s.parse().map_err(|_| ())?,
-            },
-        })
-    }
 }
 
 #[cfg(test)]

@@ -1,6 +1,7 @@
 #![cfg(unix)]
 
 use compiler::passes::parse::Lit;
+use compiler::passes::validate::TLit;
 use compiler::utils::split_test::split_test;
 use std::fs::OpenOptions;
 use std::io::{BufRead, Write};
@@ -73,7 +74,7 @@ fn integration([test]: [&str; 1]) {
     );
 
     for (got, expected) in out.stdout.lines().map(|r| r.unwrap()).zip(expected_output) {
-        assert_eq!(got.parse::<Lit>().unwrap(), expected);
+        assert_eq!(got.parse::<TLit>().unwrap(), expected);
     }
 }
 

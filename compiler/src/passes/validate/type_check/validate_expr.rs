@@ -5,7 +5,7 @@ use crate::passes::validate::type_check::error::TypeError::*;
 use crate::passes::validate::type_check::validate_prim::validate_prim;
 use crate::passes::validate::type_check::validate_struct::validate_struct;
 use crate::passes::validate::type_check::{expect_type, expect_type_eq, Env, EnvEntry};
-use crate::passes::validate::TExpr;
+use crate::passes::validate::{TExpr, TLit};
 use crate::utils::expect::expect;
 
 pub fn validate_expr<'p>(
@@ -17,13 +17,20 @@ pub fn validate_expr<'p>(
     Ok(match expr.expr {
         Expr::Lit { val } => match val {
             Lit::Int { val } => {
-                // todo: fix this mess by passing in a string!
-                let val = i32::try_from(val).map_err(|_| IntegerOutOfBounds { span })?;
-                let val = val as i64;
-                TExpr::Lit { val: Lit::Int { val }, typ: Type::Int }
+                let val = val.parse().map_err(|_| IntegerOutOfBounds { span })?;
+                TExpr::Lit {
+                    val: TLit::Int { val },
+                    typ: Type::Int,
+                }
+            }
+            Lit::Bool { val } => TExpr::Lit {
+                val: TLit::Bool { val },
+                typ: Type::Bool,
             },
-            val @ Lit::Bool { .. } => TExpr::Lit { val, typ: Type::Bool },
-            val @ Lit::Unit => TExpr::Lit { val, typ : Type::Unit },
+            Lit::Unit => TExpr::Lit {
+                val: TLit::Unit,
+                typ: Type::Unit,
+            },
         },
         Expr::Var { sym, .. } => {
             let entry = env.scope.get(&sym).ok_or(UndeclaredVar {

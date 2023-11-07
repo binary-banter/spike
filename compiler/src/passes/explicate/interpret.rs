@@ -2,7 +2,8 @@ use crate::interpreter::Val;
 use crate::interpreter::IO;
 use crate::passes::atomize::Atom;
 use crate::passes::explicate::{CExpr, CTail, PrgExplicated};
-use crate::passes::parse::{Lit, Op};
+use crate::passes::parse::{Op};
+use crate::passes::validate::TLit;
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::push_map::PushMap;
 use std::collections::HashMap;
@@ -46,7 +47,9 @@ impl<'p> PrgExplicated<'p> {
                 (Op::Read, []) => io.read().into(),
                 (Op::Print, [v]) => {
                     let val = self.interpret_atom(v, scope);
-                    io.print(Lit::Int { val: val.int() });
+                    io.print(TLit::Int {
+                        val: val.int() as i32,
+                    });
                     val
                 }
                 (Op::Plus, [e1, e2]) => {

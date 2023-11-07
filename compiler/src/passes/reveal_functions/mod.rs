@@ -3,7 +3,7 @@ pub mod reveal_functions;
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, Lit, Op};
 use crate::passes::uniquify::PrgUniquified;
-use crate::passes::validate::TExpr;
+use crate::passes::validate::{TExpr, TLit};
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
 
@@ -16,7 +16,7 @@ pub struct PrgRevealed<'p> {
 #[derive(Debug, PartialEq)]
 pub enum RExpr<'p> {
     Lit {
-        val: Lit,
+        val: TLit,
         typ: Type<UniqueSym<'p>>,
     },
     Var {
