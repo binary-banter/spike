@@ -1,5 +1,5 @@
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Def, Expr, Param, PrgParsed, Spanned, TypeDef};
+use crate::passes::parse::{Def, DefParsed, DefUniquified, Expr, ExprParsed, ExprUniquified, Param, PrgParsed, Spanned, TypeDef};
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::error::TypeError::{NoMain, UndeclaredVar};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
@@ -8,13 +8,7 @@ use crate::utils::push_map::PushMap;
 #[derive(Debug, PartialEq)]
 pub struct PrgUniquified<'p> {
     /// The global program definitions.
-    pub defs: Vec<
-        Def<
-            Spanned<UniqueSym<'p>>,
-            Spanned<&'p str>,
-            Spanned<Expr<'p, Spanned<UniqueSym<'p>>, Spanned<&'p str>>>,
-        >,
-    >,
+    pub defs: Vec<DefUniquified<'p>>,
     /// The symbol representing the entry point of the program.
     pub entry: UniqueSym<'p>,
 }
@@ -41,20 +35,9 @@ impl<'p> PrgParsed<'p> {
 }
 
 fn uniquify_def<'p>(
-    def: Def<
-        Spanned<&'p str>,
-        Spanned<&'p str>,
-        Spanned<Expr<'p, Spanned<&'p str>, Spanned<&'p str>>>,
-    >,
+    def: DefParsed<'p>,
     scope: &mut PushMap<&'p str, UniqueSym<'p>>,
-) -> Result<
-    Def<
-        Spanned<UniqueSym<'p>>,
-        Spanned<&'p str>,
-        Spanned<Expr<'p, Spanned<UniqueSym<'p>>, Spanned<&'p str>>>,
-    >,
-    TypeError,
-> {
+) -> Result<DefUniquified<'p>, TypeError> {
     match def {
         Def::Fn {
             sym,
@@ -135,9 +118,9 @@ fn uniquify_type<'p>(
 }
 
 fn uniquify_expression<'p>(
-    expr: Spanned<Expr<'p, Spanned<&'p str>, Spanned<&'p str>>>,
+    expr: Spanned<ExprParsed<'p>>,
     scope: &mut PushMap<&'p str, UniqueSym<'p>>,
-) -> Result<Spanned<Expr<'p, Spanned<UniqueSym<'p>>, Spanned<&'p str>>>, TypeError> {
+) -> Result<Spanned<ExprUniquified<'p>>, TypeError> {
     let inner: Expr<'p, Spanned<UniqueSym<'p>>, Spanned<&'p str>> = match expr.inner {
         Expr::Let {
             sym,

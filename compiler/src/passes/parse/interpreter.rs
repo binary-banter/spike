@@ -1,10 +1,4 @@
 use crate::interpreter::Val;
-use crate::interpreter::IO;
-use crate::passes::parse::{Def, Op};
-use crate::passes::validate::{TExpr, TLit};
-use crate::utils::gen_sym::UniqueSym;
-use crate::utils::push_map::PushMap;
-use std::collections::HashMap;
 use std::fmt::Display;
 use std::hash::Hash;
 
@@ -16,16 +10,16 @@ pub enum ControlFlow<'p, A: Copy + Hash + Eq + Display> {
     Continue,
 }
 
-/// This macro unwraps values and bubbles up continues, breaks and returns.
-macro_rules! b {
-    ($e: expr) => {{
-        let e = $e;
-        match e {
-            ControlFlow::Val(val) => val,
-            ControlFlow::Break(_) | ControlFlow::Return(_) | ControlFlow::Continue => return e,
-        }
-    }};
-}
+// /// This macro unwraps values and bubbles up continues, breaks and returns.
+// macro_rules! b {
+//     ($e: expr) => {{
+//         let e = $e;
+//         match e {
+//             ControlFlow::Val(val) => val,
+//             ControlFlow::Break(_) | ControlFlow::Return(_) | ControlFlow::Continue => return e,
+//         }
+//     }};
+// }
 
 // impl<'p> PrgUniquified<'p> {
 //     pub fn interpret(&'p self, io: &mut impl IO) -> Val<'p, UniqueSym<'p>> {

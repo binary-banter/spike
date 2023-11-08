@@ -13,41 +13,42 @@ use functor_derive::Functor;
 use std::fmt::{Display, Formatter};
 use std::hash::Hash;
 use types::Type;
+use crate::utils::gen_sym::UniqueSym;
 
 /// A parsed program with global definitions and an entry point.
 #[derive(Debug, PartialEq)]
 pub struct PrgParsed<'p> {
     /// The global program definitions.
-    pub defs: Vec<
-        Def<
-            Spanned<&'p str>,
-            Spanned<&'p str>,
-            Spanned<Expr<'p, Spanned<&'p str>, Spanned<&'p str>>>,
-        >,
-    >,
+    pub defs: Vec<DefParsed<'p>>,
     /// The symbol representing the entry point of the program.
     pub entry: &'p str,
 }
 
 /// A definition.
 #[derive(Debug, PartialEq)]
-pub enum Def<A: Copy + Hash + Eq + Display, A2: Copy + Hash + Eq + Display, B> {
+pub enum Def<IdentVars: Copy + Hash + Eq + Display, IdentFields: Copy + Hash + Eq + Display, Expr> {
     /// A function definition.
     Fn {
         /// Symbol representing the function.
-        sym: A,
+        sym: IdentVars,
         /// Parameters of the function.
-        params: Vec<Param<A>>,
+        params: Vec<Param<IdentVars>>,
         /// Return type of the function.
-        typ: Type<A>,
+        typ: Type<IdentVars>,
         /// Function body.
-        bdy: B,
+        bdy: Expr,
     },
     TypeDef {
-        sym: A,
-        def: TypeDef<A, A2>,
+        sym: IdentVars,
+        def: TypeDef<IdentVars, IdentFields>,
     },
 }
+
+pub type DefParsed<'p> = Def<Spanned<&'p str>, Spanned<&'p str>, Spanned<ExprParsed<'p>>>;
+pub type ExprParsed<'p> = Expr<'p, Spanned<&'p str>, Spanned<&'p str>>;
+
+pub type DefUniquified<'p> = Def<Spanned<UniqueSym<'p>>, Spanned<&'p str>, Spanned<ExprUniquified<'p>>>;
+pub type ExprUniquified<'p> = Expr<'p, Spanned<UniqueSym<'p>>, Spanned<&'p str>>;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum TypeDef<A: Copy + Hash + Eq + Display, A2: Copy + Hash + Eq + Display> {
@@ -63,9 +64,9 @@ pub enum TypeDef<A: Copy + Hash + Eq + Display, A2: Copy + Hash + Eq + Display> 
     },
 }
 
-impl<A: Copy + Hash + Eq + Display, A2: Copy + Hash + Eq + Display, B> Def<A, A2, B> {
+impl<IdentVars: Copy + Hash + Eq + Display, IdentFields: Copy + Hash + Eq + Display, Expr> Def<IdentVars, IdentFields, Expr> {
     /// Returns the symbol representing the definition.
-    pub fn sym(&self) -> &A {
+    pub fn sym(&self) -> &IdentVars {
         match self {
             Def::Fn { sym, .. } => sym,
             Def::TypeDef { sym, .. } => sym,
@@ -224,13 +225,15 @@ pub enum Expr<'p, IdentVars: Copy + Hash + Eq + Display, IdentFields: Copy + Has
     /// todo: documentation
     Switch {
         enm: Box<Spanned<Expr<'p, IdentVars, IdentFields>>>,
-        arms: Vec<(
-            IdentVars,
-            IdentFields,
-            Box<Spanned<Expr<'p, IdentVars, IdentFields>>>,
-        )>,
+        arms: Vec<SwitchArm<'p, IdentVars, IdentFields>>,
     },
 }
+
+pub type SwitchArm<'p, IdentVars, IdentFields> = (
+    IdentVars,
+    IdentFields,
+    Box<Spanned<Expr<'p, IdentVars, IdentFields>>>,
+);
 
 #[derive(Debug, PartialEq, Functor, Hash, Eq, Copy, Clone)]
 pub struct Spanned<T> {

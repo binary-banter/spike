@@ -1,8 +1,6 @@
 use crate::passes::parse::PrgParsed;
 use crate::passes::validate::error::TypeError;
-use crate::passes::validate::error::TypeError::NoMain;
 use crate::passes::validate::PrgValidated;
-use crate::utils::expect::expect;
 
 impl<'p> PrgParsed<'p> {
     pub fn validate(self) -> Result<PrgValidated<'p>, TypeError> {
