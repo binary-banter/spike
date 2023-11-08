@@ -21,20 +21,22 @@ pub struct PrgUniquified<'p> {
 
 impl<'p> PrgParsed<'p> {
     pub fn uniquify(self) -> Result<PrgUniquified<'p>, TypeError> {
-        todo!()
-        // let mut scope =
-        //     PushMap::from_iter(self.defs.iter().map(|def| (*def.sym(), gen_sym(def.sym()))));
-        //
-        // let entry = *scope.get(&"main").ok_or(NoMain)?;
-        //
-        // Ok(PrgUniquified {
-        //     defs: self
-        //         .defs
-        //         .into_iter()
-        //         .map(|def| uniquify_def(def, &mut scope))
-        //         .collect::<Result<_, _>>()?,
-        //     entry,
-        // })
+        let mut scope = PushMap::from_iter(
+            self.defs
+                .iter()
+                .map(|def| (def.sym().inner, gen_sym(def.sym().inner))),
+        );
+
+        let entry = *scope.get(&"main").ok_or(NoMain)?;
+
+        Ok(PrgUniquified {
+            defs: self
+                .defs
+                .into_iter()
+                .map(|def| uniquify_def(def, &mut scope))
+                .collect::<Result<_, _>>()?,
+            entry,
+        })
     }
 }
 
@@ -59,32 +61,25 @@ fn uniquify_def<'p>(
             params,
             typ,
             bdy,
-        } => {
-            scope.push_iter(
-                params
+        } => scope.push_iter::<Result<_, _>>(
+            params
+                .iter()
+                .map(|param| (param.sym.inner, gen_spanned_sym(param.sym).inner)),
+            |scope| {
+                let params = params
                     .iter()
-                    .map(|param| (param.sym.inner, gen_spanned_sym(param.sym).inner)),
-                |scope| {
-                    todo!()
-                    //         let params = params
-                    //             .iter()
-                    //             .map(|param| Param {
-                    //                 sym: scope[&param.sym],
-                    //                 mutable: param.mutable,
-                    //                 typ: param.typ.clone().fmap(|v| scope[v]),
-                    //             })
-                    //             .collect();
-                    //         let bdy = uniquify_expression(bdy, scope)?;
-                    //
-                    //         Ok(Def::Fn {
-                    //             sym: scope[&sym],
-                    //             params,
-                    //             typ: typ.fmap(|v| scope[v]),
-                    //             bdy,
-                    //         })
-                },
-            )
-        }
+                    .map(|param| uniquify_param(param, scope))
+                    .collect::<Result<_, _>>()?;
+                let bdy = uniquify_expression(bdy, scope)?;
+
+                Ok(Def::Fn {
+                    sym: try_get(sym, scope)?,
+                    params,
+                    typ: uniquify_type(typ, scope)?,
+                    bdy,
+                })
+            },
+        ),
         Def::TypeDef { sym, def } => {
             let def = match def {
                 TypeDef::Struct { fields } => TypeDef::Struct {
@@ -104,6 +99,17 @@ fn uniquify_def<'p>(
     }
 }
 
+fn uniquify_param<'p>(
+    param: &Param<Spanned<&'p str>>,
+    scope: &mut PushMap<&'p str, UniqueSym<'p>>,
+) -> Result<Param<Spanned<UniqueSym<'p>>>, TypeError> {
+    Ok(Param {
+        sym: try_get(param.sym, scope)?,
+        mutable: param.mutable,
+        typ: uniquify_type(param.typ.clone(), scope)?,
+    })
+}
+
 fn uniquify_type<'p>(
     typ: Type<Spanned<&'p str>>,
     scope: &mut PushMap<&'p str, UniqueSym<'p>>,
@@ -120,7 +126,9 @@ fn uniquify_type<'p>(
                 .collect::<Result<_, _>>()?,
             typ: Box::new(uniquify_type(*typ, scope)?),
         },
-        Type::Var { sym } => Type::Var { sym: try_get(sym, scope)? },
+        Type::Var { sym } => Type::Var {
+            sym: try_get(sym, scope)?,
+        },
     };
 
     Ok(typ)
