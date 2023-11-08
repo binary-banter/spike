@@ -11,7 +11,7 @@ use std::collections::HashMap;
 pub struct PrgExplicated<'p> {
     pub blocks: HashMap<UniqueSym<'p>, CTail<'p>>,
     pub fn_params: HashMap<UniqueSym<'p>, Vec<Param<UniqueSym<'p>>>>,
-    pub defs: HashMap<UniqueSym<'p>, TypeDef<'p, UniqueSym<'p>>>,
+    pub defs: HashMap<UniqueSym<'p>, TypeDef<UniqueSym<'p>, &'p str>>,
     pub entry: UniqueSym<'p>,
 }
 

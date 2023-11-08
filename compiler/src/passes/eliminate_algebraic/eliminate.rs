@@ -33,7 +33,7 @@ impl<'p> PrgExplicated<'p> {
 fn eliminate_tail<'p>(
     tail: CTail<'p>,
     ctx: &mut Ctx<'p>,
-    defs: &HashMap<UniqueSym<'p>, TypeDef<'p, UniqueSym<'p>>>,
+    defs: &HashMap<UniqueSym<'p>, TypeDef<UniqueSym<'p>, &'p str>>,
 ) -> ETail<'p> {
     match tail {
         CTail::Return { expr, typ } => match expr {
@@ -69,7 +69,7 @@ fn eliminate_seq<'p>(
     ctx: &mut Ctx<'p>,
     bnd: CExpr<'p>,
     tail: ETail<'p>,
-    defs: &HashMap<UniqueSym<'p>, TypeDef<'p, UniqueSym<'p>>>,
+    defs: &HashMap<UniqueSym<'p>, TypeDef<UniqueSym<'p>, &'p str>>,
 ) -> ETail<'p> {
     let bnd = match bnd {
         CExpr::AccessField {

@@ -41,7 +41,7 @@ pub struct Env<'a, 'p> {
 
 pub enum EnvEntry<'p> {
     Type { mutable: bool, typ: Type<&'p str> },
-    Def { def: TypeDef<'p, &'p str> },
+    Def { def: TypeDef<&'p str> },
 }
 
 impl<'a, 'p> Env<'a, 'p> {

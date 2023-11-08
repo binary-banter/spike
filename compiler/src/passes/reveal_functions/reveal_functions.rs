@@ -22,9 +22,9 @@ impl<'p> PrgValidated<'p> {
 }
 
 fn reveal_def<'p>(
-    def: Def<'p, UniqueSym<'p>, TExpr<'p, UniqueSym<'p>>>,
+    def: Def<UniqueSym<'p>, &'p str, TExpr<'p>>,
     scope: &mut PushMap<UniqueSym<'p>, ()>,
-) -> Def<'p, UniqueSym<'p>, RExpr<'p>> {
+) -> Def<UniqueSym<'p>, &'p str, RExpr<'p>> {
     match def {
         Def::Fn {
             sym,
@@ -42,7 +42,7 @@ fn reveal_def<'p>(
 }
 
 fn reveal_expr<'p>(
-    expr: TExpr<'p, UniqueSym<'p>>,
+    expr: TExpr<'p>,
     scope: &mut PushMap<UniqueSym<'p>, ()>,
 ) -> RExpr<'p> {
     match expr {

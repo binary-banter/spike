@@ -89,11 +89,11 @@ match {
 pub Program: PrgParsed<'input> = {
     <defs: Def*> => PrgParsed {
         defs,
-        entry: "main"
+        entry: "main",
     }
 }
 
-Def: Def<'input, &'input str, Spanned<Expr<'input, &'input str>>> = {
+Def: Def<Spanned<&'input str>, Spanned<&'input str>, Spanned<Expr<'input, Spanned<&'input str>, Spanned<&'input str>>>> = {
     "struct" <sym:Ident> "{" <fields:Comma<(<Ident> ":" <Type>)>> "}" => Def::TypeDef {
         sym,
         def: TypeDef::Struct { fields },
@@ -110,7 +110,7 @@ Def: Def<'input, &'input str, Spanned<Expr<'input, &'input str>>> = {
     },
 }
 
-Param: Param<&'input str> = {
+Param: Param<Spanned<&'input str>> = {
     <mutable:"mut"?> <sym:Ident> ":" <typ:Type> => Param {
         mutable: mutable.is_some(),
         sym,
@@ -118,7 +118,7 @@ Param: Param<&'input str> = {
     }
 }
 
-Type: Type<&'input str> = {
+Type: Type<Spanned<&'input str>> = {
     "Int" => Type::Int,
     "Bool" => Type::Bool,
     "Unit" => Type::Unit,
@@ -142,7 +142,7 @@ Type: Type<&'input str> = {
 // Num/Bool/Ident
 Expr = ExprStmt;
 
-ExprStmt: Expr<'input, &'input str> = {
+ExprStmt: Expr<'input, Spanned<&'input str>, Spanned<&'input str>> = {
     "let" <mutable:"mut"?> <sym:Ident> "=" <bnd:Spanned<ExprLogicalOr<Struct>>> ";" <bdy:Spanned<ExprStmt?>> => Expr::Let {
         sym,
         mutable: mutable.is_some(),
@@ -156,8 +156,8 @@ ExprStmt: Expr<'input, &'input str> = {
     ExprInStmt,
 }
 
-ExprInStmt: Expr<'input, &'input str> = {
-    <sym:Spanned<Ident>> "=" <bnd:Spanned<ExprLogicalOr<Struct>>> => Expr::Assign {
+ExprInStmt: Expr<'input, Spanned<&'input str>, Spanned<&'input str>> = {
+    <sym:Ident> "=" <bnd:Spanned<ExprLogicalOr<Struct>>> => Expr::Assign {
         sym,
         bnd: Box::new(bnd),
     },
@@ -209,7 +209,7 @@ ExprInStmt: Expr<'input, &'input str> = {
     ExprLogicalOr<Struct>,
 }
 
-BinaryOps<Op,Next>: Expr<'input, &'input str> = {
+BinaryOps<Op,Next>: Expr<'input, Spanned<&'input str>, Spanned<&'input str>> = {
     <e1:Spanned<BinaryOps<Op,Next>>> <op:Op> <e2:Spanned<Next>> => Expr::Prim {
         op,
         args: vec![e1, e2],
@@ -249,7 +249,7 @@ UnaryOp: Op = {
     "!" => Op::Not,
 }
 
-ExprUnary<T>: Expr<'input, &'input str> = {
+ExprUnary<T>: Expr<'input, Spanned<&'input str>, Spanned<&'input str>> = {
     <op:UnaryOp> <e:Spanned<ExprUnary<T>>> => Expr::Prim {
         op,
         args: vec![e],
@@ -257,7 +257,7 @@ ExprUnary<T>: Expr<'input, &'input str> = {
     ExprAccess<T>,
 }
 
-ExprAccess<T>: Expr<'input, &'input str> = {
+ExprAccess<T>: Expr<'input, Spanned<&'input str>, Spanned<&'input str>> = {
     <strct:Spanned<ExprAccess<T>>> "." <field:Ident> => Expr::AccessField {
         strct: Box::new(strct),
         field,
@@ -265,7 +265,7 @@ ExprAccess<T>: Expr<'input, &'input str> = {
     ExprCall<T>,
 }
 
-ExprCall<T>: Expr<'input, &'input str> = {
+ExprCall<T>: Expr<'input, Spanned<&'input str>, Spanned<&'input str>> = {
     "read" "(" ")" => Expr::Prim {
         op: Op::Read,
         args: vec![],
@@ -281,7 +281,7 @@ ExprCall<T>: Expr<'input, &'input str> = {
     ExprAtom<T>,
 }
 
-ExprAtom<T>: Expr<'input, &'input str> = {
+ExprAtom<T>: Expr<'input, Spanned<&'input str>, Spanned<&'input str>> = {
     <val:Num> => Expr::Lit { val: Lit::Int { val } },
     <val:Bool> => Expr::Lit { val: Lit::Bool { val } },
     "unit" => Expr::Lit { val: Lit::Unit },
@@ -295,21 +295,21 @@ ExprAtom<T>: Expr<'input, &'input str> = {
     <T>,
 }
 
-Struct: Expr<'input, &'input str> = {
+Struct: Expr<'input, Spanned<&'input str>, Spanned<&'input str>> = {
     <sym:Ident> "{" <fields:Comma<StructArg>> "}" => Expr::Struct {
         sym,
         fields,
     },
 }
 
-StructArg : (&'input str, Spanned<Expr<'input, &'input str>>) = {
+StructArg : (Spanned<&'input str>, Spanned<Expr<'input, Spanned<&'input str>, Spanned<&'input str>>>) = {
     <Ident> ":" <Spanned<Expr>>,
     <l:@L> <sym:Ident> <r:@R> => (sym, Spanned { span: (l, r), inner: Expr::Var { sym } })
 }
 
-Never: Expr<'input, &'input str> = {};
+Never: Expr<'input, Spanned<&'input str>, Spanned<&'input str>> = {};
 
-Ident: &'input str = identifier;
+Ident: Spanned<&'input str> = Spanned<identifier>;
 
 Num: &'input str = <integer>;
 

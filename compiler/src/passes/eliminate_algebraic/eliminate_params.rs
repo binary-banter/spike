@@ -7,7 +7,7 @@ use std::collections::HashMap;
 pub fn eliminate_params<'p>(
     fn_params: HashMap<UniqueSym<'p>, Vec<Param<UniqueSym<'p>>>>,
     ctx: &mut Ctx<'p>,
-    defs: &HashMap<UniqueSym<'p>, TypeDef<'p, UniqueSym<'p>>>,
+    defs: &HashMap<UniqueSym<'p>, TypeDef<UniqueSym<'p>, &'p str>>,
 ) -> HashMap<UniqueSym<'p>, Vec<Param<UniqueSym<'p>>>> {
     fn_params
         .into_iter()
@@ -37,7 +37,7 @@ pub fn flatten_type<'p>(
     sym: UniqueSym<'p>,
     typ: &Type<UniqueSym<'p>>,
     ctx: &mut Ctx<'p>,
-    defs: &HashMap<UniqueSym<'p>, TypeDef<'p, UniqueSym<'p>>>,
+    defs: &HashMap<UniqueSym<'p>, TypeDef<UniqueSym<'p>, &'p str>>,
 ) -> Vec<(UniqueSym<'p>, Type<UniqueSym<'p>>)> {
     match typ {
         Type::Int | Type::Bool | Type::Unit | Type::Never | Type::Fn { .. } => {

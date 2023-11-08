@@ -8,7 +8,7 @@ use std::collections::HashMap;
 
 #[derive(Debug, PartialEq)]
 pub struct PrgAtomized<'p> {
-    pub defs: HashMap<UniqueSym<'p>, Def<'p, UniqueSym<'p>, AExpr<'p>>>,
+    pub defs: HashMap<UniqueSym<'p>, Def<UniqueSym<'p>, &'p str, AExpr<'p>>>,
     pub entry: UniqueSym<'p>,
 }
 
@@ -119,28 +119,28 @@ impl<'p> Atom<'p> {
 }
 
 // TODO functor time
-impl<'p> From<Def<'p, UniqueSym<'p>, AExpr<'p>>>
-    for Def<'p, UniqueSym<'p>, TExpr<'p, UniqueSym<'p>>>
-{
-    fn from(value: Def<'p, UniqueSym<'p>, AExpr<'p>>) -> Self {
-        match value {
-            Def::Fn {
-                sym,
-                params,
-                typ,
-                bdy,
-            } => Def::Fn {
-                sym,
-                params,
-                typ,
-                bdy: bdy.into(),
-            },
-            Def::TypeDef { sym, def } => Def::TypeDef { sym, def },
-        }
-    }
-}
+// impl<'p> From<Def<UniqueSym<'p>, AExpr<'p>>>
+//     for Def<UniqueSym<'p>, TExpr<'p>>
+// {
+//     fn from(value: Def<UniqueSym<'p>, AExpr<'p>>) -> Self {
+//         match value {
+//             Def::Fn {
+//                 sym,
+//                 params,
+//                 typ,
+//                 bdy,
+//             } => Def::Fn {
+//                 sym,
+//                 params,
+//                 typ,
+//                 bdy: bdy.into(),
+//             },
+//             Def::TypeDef { sym, def } => Def::TypeDef { sym, def },
+//         }
+//     }
+// }
 
-impl<'p> From<AExpr<'p>> for TExpr<'p, UniqueSym<'p>> {
+impl<'p> From<AExpr<'p>> for TExpr<'p> {
     fn from(value: AExpr<'p>) -> Self {
         match value {
             AExpr::Atom { atm, .. } => atm.into(),
@@ -208,7 +208,7 @@ impl<'p> From<AExpr<'p>> for TExpr<'p, UniqueSym<'p>> {
 }
 
 // Note that casting to Never here is safe because this `From` is only used by the interpreter which doesn't care about the type information
-impl<'p> From<Atom<'p>> for TExpr<'p, UniqueSym<'p>> {
+impl<'p> From<Atom<'p>> for TExpr<'p> {
     fn from(value: Atom<'p>) -> Self {
         match value {
             Atom::Val { val } => TExpr::Lit {

@@ -7,7 +7,7 @@ use crate::utils::push_map::PushMap;
 
 #[derive(Debug, PartialEq)]
 pub struct PrgUniquified<'p> {
-    pub defs: HashMap<UniqueSym<'p>, Def<'p, UniqueSym<'p>, Expr<'p, UniqueSym<'p>>>>,
+    pub defs: HashMap<UniqueSym<'p>, Def<UniqueSym<'p>, Expr<'p, UniqueSym<'p>>>>,
     pub entry: UniqueSym<'p>,
 }
 
@@ -16,7 +16,7 @@ impl<'p> PrgParsed<'p> {
     pub fn uniquify(self) -> Result<PrgUniquified<'p>, TypeError> {
         todo!()
         // let mut scope = PushMap::from_iter(self.defs.iter().map(|(&sym, _)| (sym, gen_sym(sym))));
-        // 
+        //
         // PrgUniquified {
         //     defs: self
         //         .defs
@@ -29,9 +29,9 @@ impl<'p> PrgParsed<'p> {
 }
 
 fn uniquify_def<'p>(
-    def: Def<'p, &'p str, TExpr<'p, &'p str>>,
+    def: Def<&'p str, TExpr<'p, &'p str>>,
     scope: &mut PushMap<&'p str, UniqueSym<'p>>,
-) -> Def<'p, UniqueSym<'p>, TExpr<'p, UniqueSym<'p>>> {
+) -> Def<UniqueSym<'p>, TExpr<'p>> {
     match def {
         Def::Fn {
             sym,
@@ -79,7 +79,7 @@ fn uniquify_def<'p>(
 fn uniquify_expression<'p>(
     expr: TExpr<'p, &'p str>,
     scope: &mut PushMap<&'p str, UniqueSym<'p>>,
-) -> TExpr<'p, UniqueSym<'p>> {
+) -> TExpr<'p> {
     match expr {
         TExpr::Let { sym, bnd, bdy, typ } => {
             let unique_bnd = uniquify_expression(*bnd, scope);

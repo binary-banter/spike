@@ -9,94 +9,96 @@ pub mod validate;
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, Op};
 use derive_more::Display;
+use miette::Diagnostic;
 use std::collections::HashMap;
 use std::fmt::Display;
 use std::hash::Hash;
 use std::str::FromStr;
+use crate::utils::gen_sym::UniqueSym;
 
 #[derive(Debug, PartialEq)]
 pub struct PrgValidated<'p> {
-    pub defs: HashMap<&'p str, Def<'p, &'p str, TExpr<'p, &'p str>>>,
+    pub defs: HashMap<&'p str, Def<UniqueSym<'p>, &'p str, TExpr<'p>>>,
     pub entry: &'p str,
 }
 
 #[derive(Debug, PartialEq)]
-pub enum TExpr<'p, A: Copy + Hash + Eq + Display> {
+pub enum TExpr<'p> {
     Lit {
         val: TLit,
-        typ: Type<A>,
+        typ: Type<UniqueSym<'p>>,
     },
     Var {
-        sym: A,
-        typ: Type<A>,
+        sym: UniqueSym<'p>,
+        typ: Type<UniqueSym<'p>>,
     },
     Prim {
         op: Op,
-        args: Vec<TExpr<'p, A>>,
-        typ: Type<A>,
+        args: Vec<TExpr<'p>>,
+        typ: Type<UniqueSym<'p>>,
     },
     Let {
-        sym: A,
-        bnd: Box<TExpr<'p, A>>,
-        bdy: Box<TExpr<'p, A>>,
-        typ: Type<A>,
+        sym: UniqueSym<'p>,
+        bnd: Box<TExpr<'p>>,
+        bdy: Box<TExpr<'p>>,
+        typ: Type<UniqueSym<'p>>,
     },
     If {
-        cnd: Box<TExpr<'p, A>>,
-        thn: Box<TExpr<'p, A>>,
-        els: Box<TExpr<'p, A>>,
-        typ: Type<A>,
+        cnd: Box<TExpr<'p>>,
+        thn: Box<TExpr<'p>>,
+        els: Box<TExpr<'p>>,
+        typ: Type<UniqueSym<'p>>,
     },
     Apply {
-        fun: Box<TExpr<'p, A>>,
-        args: Vec<TExpr<'p, A>>,
-        typ: Type<A>,
+        fun: Box<TExpr<'p>>,
+        args: Vec<TExpr<'p>>,
+        typ: Type<UniqueSym<'p>>,
     },
     Loop {
-        bdy: Box<TExpr<'p, A>>,
-        typ: Type<A>,
+        bdy: Box<TExpr<'p>>,
+        typ: Type<UniqueSym<'p>>,
     },
     Break {
-        bdy: Box<TExpr<'p, A>>,
-        typ: Type<A>,
+        bdy: Box<TExpr<'p>>,
+        typ: Type<UniqueSym<'p>>,
     },
     Continue {
-        typ: Type<A>,
+        typ: Type<UniqueSym<'p>>,
     },
     Return {
-        bdy: Box<TExpr<'p, A>>,
-        typ: Type<A>,
+        bdy: Box<TExpr<'p>>,
+        typ: Type<UniqueSym<'p>>,
     },
     Seq {
-        stmt: Box<TExpr<'p, A>>,
-        cnt: Box<TExpr<'p, A>>,
-        typ: Type<A>,
+        stmt: Box<TExpr<'p>>,
+        cnt: Box<TExpr<'p>>,
+        typ: Type<UniqueSym<'p>>,
     },
     Assign {
-        sym: A,
-        bnd: Box<TExpr<'p, A>>,
-        typ: Type<A>,
+        sym: UniqueSym<'p>,
+        bnd: Box<TExpr<'p>>,
+        typ: Type<UniqueSym<'p>>,
     },
     Struct {
-        sym: A,
-        fields: Vec<(&'p str, TExpr<'p, A>)>,
-        typ: Type<A>,
+        sym: UniqueSym<'p>,
+        fields: Vec<(&'p str, TExpr<'p>)>,
+        typ: Type<UniqueSym<'p>>,
     },
     Variant {
-        enum_sym: A,
-        variant_sym: A,
-        bdy: Box<TExpr<'p, A>>,
-        typ: Type<A>,
+        enum_sym: UniqueSym<'p>,
+        variant_sym: &'p str,
+        bdy: Box<TExpr<'p>>,
+        typ: Type<UniqueSym<'p>>,
     },
     AccessField {
-        strct: Box<TExpr<'p, A>>,
+        strct: Box<TExpr<'p>>,
         field: &'p str,
-        typ: Type<A>,
+        typ: Type<UniqueSym<'p>>,
     },
     Switch {
-        enm: Box<TExpr<'p, A>>,
-        arms: Vec<(A, A, Box<TExpr<'p, A>>)>,
-        typ: Type<A>,
+        enm: Box<TExpr<'p>>,
+        arms: Vec<(UniqueSym<'p>, &'p str, Box<TExpr<'p>>)>,
+        typ: Type<UniqueSym<'p>>,
     },
 }
 
@@ -162,8 +164,8 @@ impl FromStr for TLit {
     }
 }
 
-impl<'p, A: Copy + Hash + Eq + Display> TExpr<'p, A> {
-    pub fn typ(&self) -> &Type<A> {
+impl<'p> TExpr<'p> {
+    pub fn typ(&self) -> &Type<UniqueSym<'p>> {
         match self {
             TExpr::Lit { typ, .. }
             | TExpr::Var { typ, .. }

@@ -8,7 +8,7 @@ use std::collections::HashMap;
 
 #[derive(Debug, PartialEq)]
 pub struct PrgRevealed<'p> {
-    pub defs: HashMap<UniqueSym<'p>, Def<'p, UniqueSym<'p>, RExpr<'p>>>,
+    pub defs: HashMap<UniqueSym<'p>, Def<UniqueSym<'p>, &'p str, RExpr<'p>>>,
     pub entry: UniqueSym<'p>,
 }
 
@@ -120,28 +120,28 @@ impl<'p> RExpr<'p> {
 //     }
 // }
 
-impl<'p> From<Def<'p, UniqueSym<'p>, RExpr<'p>>>
-    for Def<'p, UniqueSym<'p>, TExpr<'p, UniqueSym<'p>>>
-{
-    fn from(value: Def<'p, UniqueSym<'p>, RExpr<'p>>) -> Self {
-        match value {
-            Def::Fn {
-                sym,
-                params,
-                typ,
-                bdy,
-            } => Def::Fn {
-                sym,
-                params,
-                typ,
-                bdy: bdy.into(),
-            },
-            Def::TypeDef { sym, def } => Def::TypeDef { sym, def },
-        }
-    }
-}
+// impl<'p> From<Def<UniqueSym<'p>, RExpr<'p>>>
+//     for Def<UniqueSym<'p>, TExpr<'p>>
+// {
+//     fn from(value: Def<UniqueSym<'p>, RExpr<'p>>) -> Self {
+//         match value {
+//             Def::Fn {
+//                 sym,
+//                 params,
+//                 typ,
+//                 bdy,
+//             } => Def::Fn {
+//                 sym,
+//                 params,
+//                 typ,
+//                 bdy: bdy.into(),
+//             },
+//             Def::TypeDef { sym, def } => Def::TypeDef { sym, def },
+//         }
+//     }
+// }
 
-impl<'p> From<RExpr<'p>> for TExpr<'p, UniqueSym<'p>> {
+impl<'p> From<RExpr<'p>> for TExpr<'p> {
     fn from(value: RExpr<'p>) -> Self {
         match value {
             RExpr::Lit { val, typ } => TExpr::Lit { val, typ },

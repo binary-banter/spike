@@ -10,7 +10,7 @@ pub mod types;
 
 use derive_more::Display;
 use functor_derive::Functor;
-use std::fmt::Display;
+use std::fmt::{Display, Formatter};
 use std::hash::Hash;
 use types::Type;
 
@@ -18,14 +18,14 @@ use types::Type;
 #[derive(Debug, PartialEq)]
 pub struct PrgParsed<'p> {
     /// The global program definitions.
-    pub defs: Vec<Def<'p, &'p str, Spanned<Expr<'p, &'p str>>>>,
+    pub defs: Vec<Def<Spanned<&'p str>, Spanned<&'p str>, Spanned<Expr<'p, Spanned<&'p str>, Spanned<&'p str>>>>>,
     /// The symbol representing the entry point of the program.
     pub entry: &'p str,
 }
 
 /// A definition.
 #[derive(Debug, PartialEq)]
-pub enum Def<'p, A: Copy + Hash + Eq + Display, B> {
+pub enum Def<A: Copy + Hash + Eq + Display, A2: Copy + Hash + Eq + Display, B> {
     /// A function definition.
     Fn {
         /// Symbol representing the function.
@@ -39,25 +39,25 @@ pub enum Def<'p, A: Copy + Hash + Eq + Display, B> {
     },
     TypeDef {
         sym: A,
-        def: TypeDef<'p, A>,
+        def: TypeDef<A, A2>,
     },
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum TypeDef<'p, A: Copy + Hash + Eq + Display> {
+pub enum TypeDef<A: Copy + Hash + Eq + Display, A2: Copy + Hash + Eq + Display> {
     /// A struct definition.
     Struct {
         /// Fields of the struct, consisting of field symbols and their types.
-        fields: Vec<(&'p str, Type<A>)>,
+        fields: Vec<(A2, Type<A>)>,
     },
     /// An enum definition.
     Enum {
         /// Variants of the enum, consisting of variant symbols and their types.
-        variants: Vec<(&'p str, Type<A>)>,
+        variants: Vec<(A2, Type<A>)>,
     },
 }
 
-impl<'p, A: Copy + Hash + Eq + Display, B> Def<'p, A, B> {
+impl<A: Copy + Hash + Eq + Display, A2: Copy + Hash + Eq + Display, B> Def<A, A2, B> {
     /// Returns the symbol representing the definition.
     pub fn sym(&self) -> &A {
         match self {
@@ -86,7 +86,7 @@ pub struct Param<A: Copy + Hash + Eq + Display> {
 /// Expressions are generic and can use symbols that are either `&str` or
 /// [`UniqueSym`](crate::utils::gen_sym::UniqueSym) for all passes after uniquify.
 #[derive(Debug, PartialEq)]
-pub enum Expr<'p, A: Copy + Hash + Eq + Display> {
+pub enum Expr<'p, A: Copy + Hash + Eq + Display, A2: Copy + Hash + Eq + Display> {
     /// A literal value. See [`Lit`].
     Lit {
         /// Value of the literal. See [`Lit`].
@@ -102,7 +102,7 @@ pub enum Expr<'p, A: Copy + Hash + Eq + Display> {
         /// Primitive operation (e.g. `Xor`). See [`Op`].
         op: Op,
         /// Arguments used by the primitive operation.
-        args: Vec<Spanned<Expr<'p, A>>>,
+        args: Vec<Spanned<Expr<'p, A, A2>>>,
     },
     /// A let binding.
     ///
@@ -115,9 +115,9 @@ pub enum Expr<'p, A: Copy + Hash + Eq + Display> {
         /// Indicates whether the variable is mutable (true) or immutable (false).
         mutable: bool,
         /// The expression to which the variable is bound.
-        bnd: Box<Spanned<Expr<'p, A>>>,
+        bnd: Box<Spanned<Expr<'p, A, A2>>>,
         /// The expression that is evaluated using the new variable binding.
-        bdy: Box<Spanned<Expr<'p, A>>>,
+        bdy: Box<Spanned<Expr<'p, A, A2>>>,
     },
     /// An if statement.
     ///
@@ -125,11 +125,11 @@ pub enum Expr<'p, A: Copy + Hash + Eq + Display> {
     /// the result is true, it executes the `thn` expression; otherwise, it executes the `els` expression.
     If {
         /// The conditional expression that determines the execution path.
-        cnd: Box<Spanned<Expr<'p, A>>>,
+        cnd: Box<Spanned<Expr<'p, A, A2>>>,
         /// The expression to execute if the condition is true.
-        thn: Box<Spanned<Expr<'p, A>>>,
+        thn: Box<Spanned<Expr<'p, A, A2>>>,
         /// The expression to execute if the condition is false.
-        els: Box<Spanned<Expr<'p, A>>>,
+        els: Box<Spanned<Expr<'p, A, A2>>>,
     },
     /// A function application.
     ///
@@ -137,9 +137,9 @@ pub enum Expr<'p, A: Copy + Hash + Eq + Display> {
     /// evaluated to obtain a function symbol, which is invoked with the arguments in `args`.
     Apply {
         /// The expression that, when evaluated, represents the function symbol to be invoked.
-        fun: Box<Spanned<Expr<'p, A>>>,
+        fun: Box<Spanned<Expr<'p, A, A2>>>,
         /// The ordered arguments that are passed to the function.
-        args: Vec<Spanned<Expr<'p, A>>>,
+        args: Vec<Spanned<Expr<'p, A, A2>>>,
     },
     /// A loop construct.
     ///
@@ -147,7 +147,7 @@ pub enum Expr<'p, A: Copy + Hash + Eq + Display> {
     /// expression is evaluated.
     Loop {
         /// The expression that defines the body of the loop.
-        bdy: Box<Spanned<Expr<'p, A>>>,
+        bdy: Box<Spanned<Expr<'p, A, A2>>>,
     },
     /// A break statement.
     ///
@@ -155,7 +155,7 @@ pub enum Expr<'p, A: Copy + Hash + Eq + Display> {
     /// current loop and returns the value of the `bdy` expression from the loop upon termination.
     Break {
         /// The expression to be evaluated and returned from the loop.
-        bdy: Box<Spanned<Expr<'p, A>>>,
+        bdy: Box<Spanned<Expr<'p, A, A2>>>,
     },
     /// A continue statement.
     ///
@@ -167,7 +167,7 @@ pub enum Expr<'p, A: Copy + Hash + Eq + Display> {
     /// The `Return` expression exits the current function and returns the value of the `bdy` expression.
     Return {
         /// The expression to be evaluated and returned from the function.
-        bdy: Box<Spanned<Expr<'p, A>>>,
+        bdy: Box<Spanned<Expr<'p, A, A2>>>,
     },
     /// A sequence of two expressions.
     ///
@@ -176,9 +176,9 @@ pub enum Expr<'p, A: Copy + Hash + Eq + Display> {
     /// the `cnt` expression is evaluated.
     Seq {
         /// The first expression to be executed in the sequence.
-        stmt: Box<Spanned<Expr<'p, A>>>,
+        stmt: Box<Spanned<Expr<'p, A, A2>>>,
         /// The second expression to be executed in the sequence.
-        cnt: Box<Spanned<Expr<'p, A>>>,
+        cnt: Box<Spanned<Expr<'p, A, A2>>>,
     },
     /// A variable assignment.
     ///
@@ -187,45 +187,51 @@ pub enum Expr<'p, A: Copy + Hash + Eq + Display> {
     /// Only mutable or uninitialized immutable variables can be assigned a new value.
     Assign {
         /// Symbol representing the variable to which the assignment is made.
-        sym: Spanned<A>,
+        sym: A,
         /// The expression whose result is assigned to the variable.
-        bnd: Box<Spanned<Expr<'p, A>>>,
+        bnd: Box<Spanned<Expr<'p, A, A2>>>,
     },
     /// An instance of a struct.
     ///
     /// todo: documentation
     Struct {
         sym: A,
-        fields: Vec<(&'p str, Spanned<Expr<'p, A>>)>,
+        fields: Vec<(A2, Spanned<Expr<'p, A, A2>>)>,
     },
     /// A variant of an enum.
     ///
     /// todo: documentation
     Variant {
         enum_sym: A,
-        variant_sym: &'p str,
-        bdy: Box<Spanned<Expr<'p, A>>>,
+        variant_sym: A2,
+        bdy: Box<Spanned<Expr<'p, A, A2>>>,
     },
     /// A field access.
     ///
     /// todo: documentation
     AccessField {
-        strct: Box<Spanned<Expr<'p, A>>>,
-        field: &'p str,
+        strct: Box<Spanned<Expr<'p, A, A2>>>,
+        field: A2,
     },
     /// A switch statement.
     ///
     /// todo: documentation
     Switch {
-        enm: Box<Spanned<Expr<'p, A>>>,
-        arms: Vec<(A, &'p str, Box<Spanned<Expr<'p, A>>>)>,
+        enm: Box<Spanned<Expr<'p, A, A2>>>,
+        arms: Vec<(A, A2, Box<Spanned<Expr<'p, A, A2>>>)>,
     },
 }
 
-#[derive(Debug, PartialEq, Functor)]
+#[derive(Debug, PartialEq, Functor, Hash, Eq, Copy, Clone)]
 pub struct Spanned<T> {
     pub span: (usize, usize),
     pub inner: T,
+}
+
+impl<T: Display> Display for Spanned<T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", &self.inner)
+    }
 }
 
 /// A primitive operation.

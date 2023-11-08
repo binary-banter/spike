@@ -53,9 +53,9 @@ impl<'p> PrgAtomized<'p> {
 }
 
 fn explicate_def<'p>(
-    def: Def<'p, UniqueSym<'p>, AExpr<'p>>,
+    def: Def<UniqueSym<'p>, &'p str, AExpr<'p>>,
     env: &mut Env<'_, 'p>,
-    defs: &mut HashMap<UniqueSym<'p>, TypeDef<'p, UniqueSym<'p>>>,
+    defs: &mut HashMap<UniqueSym<'p>, TypeDef<UniqueSym<'p>, &'p str>>,
 ) {
     match def {
         Def::Fn { sym, bdy, .. } => {
