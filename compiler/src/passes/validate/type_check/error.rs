@@ -10,15 +10,24 @@ pub enum TypeError {
         #[label = "This variable `{sym}` was not declared yet"]
         span: (usize, usize),
     },
-    #[error("Types were mismatched. Expected '{expect}', but found '{got}'.")]
-    TypeMismatchExpect {
+    #[error("Type was mismatched.")]
+    MismatchedType {
         expect: Type<String>,
         got: Type<String>,
+        #[label = "Expected this to be of type `{expect}`, but got `{got}`"]
+        span: (usize, usize),
     },
     #[error("Types were mismatched. Expected function, but found '{got}'.")]
     TypeMismatchExpectFn { got: Type<String> },
     #[error("Types were mismatched. Expected '{t1}' and '{t2}' to be equal.")]
-    TypeMismatchEqual { t1: Type<String>, t2: Type<String> },
+    MismatchedTypes {
+        t1: Type<String>,
+        t2: Type<String>,
+        #[label = "This has type `{t1}`"]
+        span_t1: (usize, usize),
+        #[label = "but this has type `{t2}`"]
+        span_t2: (usize, usize),
+    },
     #[error("There are multiple functions named `{sym}`.")]
     DuplicateFunction { sym: String },
     #[error("Function `{sym}` has duplicate argument names.")]

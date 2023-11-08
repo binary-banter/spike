@@ -7,13 +7,14 @@ mod validate_type;
 mod validate_typedef;
 
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Def, PrgParsed, TypeDef};
+use crate::passes::parse::{Def, PrgParsed, Spanned, TypeDef};
 use crate::passes::validate::type_check::error::TypeError;
 use crate::passes::validate::type_check::error::TypeError::*;
 use crate::passes::validate::type_check::uncover_globals::uncover_globals;
 use crate::passes::validate::type_check::validate_expr::validate_expr;
 use crate::passes::validate::type_check::validate_typedef::validate_typedef;
 use crate::passes::validate::{PrgTypeChecked, TExpr};
+use crate::s;
 use crate::utils::expect::expect;
 use crate::utils::push_map::PushMap;
 use std::collections::HashMap;
@@ -85,7 +86,7 @@ impl<'p> PrgParsed<'p> {
                             Def::Fn {
                                 sym,
                                 params,
-                                bdy,
+                                bdy: bdy.inner,
                                 typ,
                             },
                         ))
@@ -109,31 +110,43 @@ impl<'p> PrgParsed<'p> {
 }
 
 pub fn expect_type_eq<'p>(
-    e1: &TExpr<'p, &'p str>,
-    e2: &TExpr<'p, &'p str>,
+    e1: &Spanned<TExpr<'p, &'p str>>,
+    e2: &Spanned<TExpr<'p, &'p str>>,
 ) -> Result<Type<&'p str>, TypeError> {
-    let t1 = e1.typ();
-    let t2 = e2.typ();
+    let t1 = e1.inner.typ();
+    let t2 = e2.inner.typ();
+
     expect(
         t1 == t2,
-        TypeMismatchEqual {
+        MismatchedTypes {
             t1: t1.clone().fmap(str::to_string),
             t2: t2.clone().fmap(str::to_string),
+            span_t1: s!(e1.span),
+            span_t2: s!(e2.span),
         },
     )?;
+
     Ok(t1.clone())
 }
 
 pub fn expect_type<'p>(
-    expr: &TExpr<'p, &'p str>,
+    expr: &Spanned<TExpr<'p, &'p str>>,
     expected: &Type<&'p str>,
 ) -> Result<(), TypeError> {
-    let t = expr.typ();
+    let typ = expr.inner.typ();
     expect(
-        t == expected,
-        TypeMismatchExpect {
-            got: t.clone().fmap(str::to_string),
+        typ == expected,
+        MismatchedType {
+            got: typ.clone().fmap(str::to_string),
             expect: expected.clone().fmap(str::to_string),
+            span: s!(expr.span),
         },
     )
+}
+
+#[macro_export]
+macro_rules! s {
+    ($span:expr) => {
+        ($span.0, $span.1 - $span.0)
+    };
 }

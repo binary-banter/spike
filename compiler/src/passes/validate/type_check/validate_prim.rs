@@ -4,6 +4,7 @@ use crate::passes::validate::type_check::error::TypeError;
 use crate::passes::validate::type_check::validate_expr::validate_expr;
 use crate::passes::validate::type_check::{expect_type, expect_type_eq, Env};
 use crate::passes::validate::TExpr;
+use functor_derive::Functor;
 
 pub fn validate_prim<'p>(
     env: &mut Env<'_, 'p>,
@@ -52,5 +53,9 @@ pub fn validate_prim<'p>(
         _ => panic!("Found incorrect operator during type checking"),
     };
 
-    Ok(TExpr::Prim { op, args, typ })
+    Ok(TExpr::Prim {
+        op,
+        args: args.fmap(|arg| arg.inner),
+        typ,
+    })
 }

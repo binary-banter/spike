@@ -7,6 +7,7 @@ use crate::passes::validate::type_check::validate_expr::validate_expr;
 use crate::passes::validate::type_check::{Env, EnvEntry};
 use crate::passes::validate::TExpr;
 use crate::utils::expect::expect;
+use functor_derive::Functor;
 use std::collections::{HashMap, HashSet};
 
 pub fn validate_struct<'p>(
@@ -65,7 +66,7 @@ pub fn validate_struct<'p>(
 
     Ok(TExpr::Struct {
         sym,
-        fields,
+        fields: fields.fmap(|(sym, field)| (sym, field.inner)),
         typ: Type::Var { sym },
     })
 }
