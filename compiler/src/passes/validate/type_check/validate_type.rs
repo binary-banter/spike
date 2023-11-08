@@ -24,6 +24,7 @@ pub fn validate_type<'p>(
                 scope.contains(sym),
                 UndeclaredVar {
                     sym: sym.to_string(),
+                    span: (0, 0), // todo: not correct
                 },
             )?;
         }

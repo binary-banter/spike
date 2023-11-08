@@ -11,26 +11,27 @@ impl<'p> PrgRevealed<'p> {
             defs: self
                 .defs
                 .into_iter()
-                .map(|(sym, def)| {
-                    let def = match def {
-                        Def::Fn {
-                            sym,
-                            params,
-                            typ,
-                            bdy,
-                        } => Def::Fn {
-                            sym,
-                            params,
-                            typ,
-                            bdy: atomize_expr(bdy),
-                        },
-                        Def::TypeDef { sym, def } => Def::TypeDef { sym, def },
-                    };
-                    (sym, def)
-                })
+                .map(|(sym, def)| (sym, atomize_def(def)))
                 .collect(),
             entry: self.entry,
         }
+    }
+}
+
+fn atomize_def<'p>(def: Def<'p, UniqueSym<'p>, RExpr<'p>>) -> Def<'p, UniqueSym<'p>, AExpr<'p>> {
+    match def {
+        Def::Fn {
+            sym,
+            params,
+            typ,
+            bdy,
+        } => Def::Fn {
+            sym,
+            params,
+            typ,
+            bdy: atomize_expr(bdy),
+        },
+        Def::TypeDef { sym, def } => Def::TypeDef { sym, def },
     }
 }
 

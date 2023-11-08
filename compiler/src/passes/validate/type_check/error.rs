@@ -3,19 +3,31 @@ use miette::Diagnostic;
 use thiserror::Error;
 
 #[derive(Debug, Error, Diagnostic)]
-#[diagnostic()]
 pub enum TypeError {
-    #[error("Variable '{sym}' was not declared yet.")]
-    UndeclaredVar { sym: String },
-    #[error("Types were mismatched. Expected '{expect}', but found '{got}'.")]
-    TypeMismatchExpect {
+    #[error("Encountered an undeclared variable.")]
+    UndeclaredVar {
+        sym: String,
+        #[label = "This variable `{sym}` was not declared yet"]
+        span: (usize, usize),
+    },
+    #[error("Type was mismatched.")]
+    MismatchedType {
         expect: Type<String>,
         got: Type<String>,
+        #[label = "Expected this to be of type `{expect}`, but got `{got}`"]
+        span: (usize, usize),
     },
     #[error("Types were mismatched. Expected function, but found '{got}'.")]
     TypeMismatchExpectFn { got: Type<String> },
     #[error("Types were mismatched. Expected '{t1}' and '{t2}' to be equal.")]
-    TypeMismatchEqual { t1: Type<String>, t2: Type<String> },
+    MismatchedTypes {
+        t1: Type<String>,
+        t2: Type<String>,
+        #[label = "This has type `{t1}`"]
+        span_t1: (usize, usize),
+        #[label = "but this has type `{t2}`"]
+        span_t2: (usize, usize),
+    },
     #[error("There are multiple functions named `{sym}`.")]
     DuplicateFunction { sym: String },
     #[error("Function `{sym}` has duplicate argument names.")]
@@ -40,4 +52,10 @@ pub enum TypeError {
     TypeShouldBeStruct { typ: Type<String> },
     #[error("The type definition `{sym}` is not sized.'")]
     UnsizedType { sym: String },
+
+    #[error("Integer out of bounds.")]
+    IntegerOutOfBounds {
+        #[label = "This number does not fit in an i32: `-2147483648..=2147483647`"]
+        span: (usize, usize),
+    },
 }

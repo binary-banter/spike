@@ -9,10 +9,10 @@ thiserror = "1.0.50"
 bitflags = "2.4.1"
 petgraph = "0.6.4"
 itertools = "0.11.0"
-serde = { version = "1.0.190", features = ["derive"] }
+serde = { version = "1.0.192", features = ["derive"] }
 clap = { version = "4.4.7", features = ["derive"] }
 miette = { version = "5.10.0", features = ["fancy"] }
-zerocopy = { version = "0.7.21", features = ["derive"] }
+zerocopy = { version = "0.7.25", features = ["derive"] }
 lalrpop-util = { version = "0.20.0", features = ["lexer", "unicode"] }
 derive_more = "0.99.17"
 functor_derive = "0.2.3"
@@ -21,5 +21,5 @@ functor_derive = "0.2.3"
 lalrpop = "0.20.0"
 
 [dev-dependencies]
-test_each_file = "0.1.0"
+test_each_file = "0.1.1"
 tempfile = "3.8.1"

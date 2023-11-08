@@ -1,0 +1,9 @@
+//* ret: 42
+fn main() -> Int {
+    let a = 1;
+    let b = 42;
+    let g = b;
+    let e = a + b;
+    let d = g;
+    d
+}

@@ -1,15 +1,17 @@
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Expr, Op};
+use crate::passes::parse::{Expr, Op, Spanned};
 use crate::passes::validate::type_check::error::TypeError;
 use crate::passes::validate::type_check::validate_expr::validate_expr;
 use crate::passes::validate::type_check::{expect_type, expect_type_eq, Env};
 use crate::passes::validate::TExpr;
+use functor_derive::Functor;
 
 pub fn validate_prim<'p>(
-    env: &mut Env<'_, 'p>,
     op: Op,
-    args: Vec<Expr<'p, &'p str>>,
-) -> Result<TExpr<'p, &'p str>, TypeError> {
+    args: Vec<Spanned<Expr<'p>>>,
+    span: (usize, usize),
+    env: &mut Env<'_, 'p>,
+) -> Result<Spanned<TExpr<'p, &'p str>>, TypeError> {
     let args = args
         .into_iter()
         .map(|arg| validate_expr(arg, env))
@@ -52,5 +54,12 @@ pub fn validate_prim<'p>(
         _ => panic!("Found incorrect operator during type checking"),
     };
 
-    Ok(TExpr::Prim { op, args, typ })
+    Ok(Spanned {
+        span,
+        inner: TExpr::Prim {
+            op,
+            args: args.fmap(|arg| arg.inner),
+            typ,
+        },
+    })
 }

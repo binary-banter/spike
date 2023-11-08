@@ -1,0 +1,7 @@
+//* inp: 3 5
+//* ret: -2
+fn main() -> Int {
+    let x = read();
+    let y = read();
+    x - y
+}

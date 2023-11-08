@@ -1,9 +1,10 @@
 use crate::interpreter::IO;
 use crate::passes::conclude::X86Concluded;
-use crate::passes::parse::Lit;
+
 use crate::passes::select::{
     Block, Cnd, Instr, Reg, VarArg, X86Selected, CALLEE_SAVED, CALLER_SAVED,
 };
+use crate::passes::validate::TLit;
 use crate::utils::gen_sym::UniqueSym;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -357,7 +358,7 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                     .unwrap()
                     .parse()
                     .unwrap();
-                self.io.print(Lit::Int { val });
+                self.io.print(TLit::Int { val });
                 self.write_buffer.clear();
             }
             val => {

@@ -1,0 +1,7 @@
+//* inp: 40 5 7
+//* ret: 42
+fn main() -> Int {
+    let x = read();
+    let y = read();
+    x + (let z = read(); z + -y)
+}

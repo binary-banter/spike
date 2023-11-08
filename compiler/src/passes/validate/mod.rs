@@ -3,12 +3,14 @@ mod type_check;
 pub mod validate;
 
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Def, Lit, Op};
+use crate::passes::parse::{Def, Op};
 use crate::passes::validate::type_check::error::TypeError;
+use derive_more::Display;
 use miette::Diagnostic;
 use std::collections::HashMap;
 use std::fmt::Display;
 use std::hash::Hash;
+use std::str::FromStr;
 use thiserror::Error;
 
 #[derive(Debug, PartialEq)]
@@ -20,7 +22,7 @@ pub struct PrgTypeChecked<'p> {
 #[derive(Debug, PartialEq)]
 pub enum TExpr<'p, A: Copy + Hash + Eq + Display> {
     Lit {
-        val: Lit,
+        val: TLit,
         typ: Type<A>,
     },
     Var {
@@ -97,6 +99,68 @@ pub enum TExpr<'p, A: Copy + Hash + Eq + Display> {
     },
 }
 
+#[derive(Copy, Clone, Debug, PartialEq, Display)]
+pub enum TLit {
+    #[display(fmt = "{val}")]
+    Int { val: i32 },
+    #[display(fmt = "{}", r#"if *val { "true" } else { "false" }"#)]
+    Bool { val: bool },
+    #[display(fmt = "unit")]
+    Unit,
+}
+
+impl TLit {
+    /// Returns the integer value if `TLit` is `Int`.
+    /// # Panics
+    /// Panics if `TLit` is not `Int`.
+    #[must_use]
+    pub fn int(self) -> i64 {
+        if let TLit::Int { val } = self {
+            val as i64
+        } else {
+            panic!()
+        }
+    }
+
+    /// Returns the boolean value if `TLit` is `Bool`.
+    /// # Panics
+    /// Panics if `TLit` is not `Bool`.
+    #[must_use]
+    pub fn bool(self) -> bool {
+        if let TLit::Bool { val } = self {
+            val
+        } else {
+            panic!()
+        }
+    }
+}
+
+impl From<TLit> for i64 {
+    fn from(value: TLit) -> Self {
+        match value {
+            TLit::Int { val } => val as i64,
+            TLit::Bool { val } => val as i64,
+            TLit::Unit => 0,
+        }
+    }
+}
+
+// This implementation is used by the parser.
+impl FromStr for TLit {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(match s {
+            "false" => TLit::Bool { val: false },
+            "true" => TLit::Bool { val: true },
+            "unit" => TLit::Unit,
+            s => TLit::Int {
+                val: s.parse().map_err(|_| ())?,
+            },
+        })
+    }
+}
+
 impl<'p, A: Copy + Hash + Eq + Display> TExpr<'p, A> {
     pub fn typ(&self) -> &Type<A> {
         match self {
@@ -121,9 +185,9 @@ impl<'p, A: Copy + Hash + Eq + Display> TExpr<'p, A> {
 }
 
 #[derive(Debug, Error, Diagnostic)]
-#[diagnostic()]
 pub enum ValidateError {
     #[error(transparent)]
+    #[diagnostic(transparent)]
     TypeError(#[from] TypeError),
     #[error("The program doesn't have a main function.")]
     NoMain,

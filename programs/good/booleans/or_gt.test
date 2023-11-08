@@ -1,0 +1,4 @@
+//* ret: true
+fn main() -> Bool {
+    5 > 3 || 3 > 5
+}

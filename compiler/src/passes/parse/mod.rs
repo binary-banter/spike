@@ -9,16 +9,16 @@ pub mod parse;
 pub mod types;
 
 use derive_more::Display;
+use functor_derive::Functor;
 use std::fmt::Display;
 use std::hash::Hash;
-use std::str::FromStr;
 use types::Type;
 
 /// A parsed program with global definitions and an entry point.
 #[derive(Debug, PartialEq)]
 pub struct PrgParsed<'p> {
     /// The global program definitions.
-    pub defs: Vec<Def<'p, &'p str, Expr<'p, &'p str>>>,
+    pub defs: Vec<Def<'p, &'p str, Spanned<Expr<'p>>>>,
     /// The symbol representing the entry point of the program.
     pub entry: &'p str,
 }
@@ -86,23 +86,23 @@ pub struct Param<A: Copy + Hash + Eq + Display> {
 /// Expressions are generic and can use symbols that are either `&str` or
 /// [`UniqueSym`](crate::utils::gen_sym::UniqueSym) for all passes after uniquify.
 #[derive(Debug, PartialEq)]
-pub enum Expr<'p, A: Copy + Hash + Eq> {
+pub enum Expr<'p> {
     /// A literal value. See [`Lit`].
     Lit {
         /// Value of the literal. See [`Lit`].
-        val: Lit,
+        val: Lit<'p>,
     },
     /// A variable.
     Var {
         /// Symbol representing the variable.
-        sym: A,
+        sym: &'p str,
     },
     /// A primitive operation with an arbitrary number of arguments.
     Prim {
         /// Primitive operation (e.g. `Xor`). See [`Op`].
         op: Op,
         /// Arguments used by the primitive operation.
-        args: Vec<Expr<'p, A>>,
+        args: Vec<Spanned<Expr<'p>>>,
     },
     /// A let binding.
     ///
@@ -111,13 +111,13 @@ pub enum Expr<'p, A: Copy + Hash + Eq> {
     /// The variable can be immutable or mutable depending on the presence of the `mut` keyword.
     Let {
         /// Symbol representing the newly introduced variable.
-        sym: A,
+        sym: &'p str,
         /// Indicates whether the variable is mutable (true) or immutable (false).
         mutable: bool,
         /// The expression to which the variable is bound.
-        bnd: Box<Expr<'p, A>>,
+        bnd: Box<Spanned<Expr<'p>>>,
         /// The expression that is evaluated using the new variable binding.
-        bdy: Box<Expr<'p, A>>,
+        bdy: Box<Spanned<Expr<'p>>>,
     },
     /// An if statement.
     ///
@@ -125,11 +125,11 @@ pub enum Expr<'p, A: Copy + Hash + Eq> {
     /// the result is true, it executes the `thn` expression; otherwise, it executes the `els` expression.
     If {
         /// The conditional expression that determines the execution path.
-        cnd: Box<Expr<'p, A>>,
+        cnd: Box<Spanned<Expr<'p>>>,
         /// The expression to execute if the condition is true.
-        thn: Box<Expr<'p, A>>,
+        thn: Box<Spanned<Expr<'p>>>,
         /// The expression to execute if the condition is false.
-        els: Box<Expr<'p, A>>,
+        els: Box<Spanned<Expr<'p>>>,
     },
     /// A function application.
     ///
@@ -137,9 +137,9 @@ pub enum Expr<'p, A: Copy + Hash + Eq> {
     /// evaluated to obtain a function symbol, which is invoked with the arguments in `args`.
     Apply {
         /// The expression that, when evaluated, represents the function symbol to be invoked.
-        fun: Box<Expr<'p, A>>,
+        fun: Box<Spanned<Expr<'p>>>,
         /// The ordered arguments that are passed to the function.
-        args: Vec<Expr<'p, A>>,
+        args: Vec<Spanned<Expr<'p>>>,
     },
     /// A loop construct.
     ///
@@ -147,7 +147,7 @@ pub enum Expr<'p, A: Copy + Hash + Eq> {
     /// expression is evaluated.
     Loop {
         /// The expression that defines the body of the loop.
-        bdy: Box<Expr<'p, A>>,
+        bdy: Box<Spanned<Expr<'p>>>,
     },
     /// A break statement.
     ///
@@ -155,7 +155,7 @@ pub enum Expr<'p, A: Copy + Hash + Eq> {
     /// current loop and returns the value of the `bdy` expression from the loop upon termination.
     Break {
         /// The expression to be evaluated and returned from the loop.
-        bdy: Box<Expr<'p, A>>,
+        bdy: Box<Spanned<Expr<'p>>>,
     },
     /// A continue statement.
     ///
@@ -167,7 +167,7 @@ pub enum Expr<'p, A: Copy + Hash + Eq> {
     /// The `Return` expression exits the current function and returns the value of the `bdy` expression.
     Return {
         /// The expression to be evaluated and returned from the function.
-        bdy: Box<Expr<'p, A>>,
+        bdy: Box<Spanned<Expr<'p>>>,
     },
     /// A sequence of two expressions.
     ///
@@ -176,9 +176,9 @@ pub enum Expr<'p, A: Copy + Hash + Eq> {
     /// the `cnt` expression is evaluated.
     Seq {
         /// The first expression to be executed in the sequence.
-        stmt: Box<Expr<'p, A>>,
+        stmt: Box<Spanned<Expr<'p>>>,
         /// The second expression to be executed in the sequence.
-        cnt: Box<Expr<'p, A>>,
+        cnt: Box<Spanned<Expr<'p>>>,
     },
     /// A variable assignment.
     ///
@@ -187,39 +187,45 @@ pub enum Expr<'p, A: Copy + Hash + Eq> {
     /// Only mutable or uninitialized immutable variables can be assigned a new value.
     Assign {
         /// Symbol representing the variable to which the assignment is made.
-        sym: A,
+        sym: Spanned<&'p str>,
         /// The expression whose result is assigned to the variable.
-        bnd: Box<Expr<'p, A>>,
+        bnd: Box<Spanned<Expr<'p>>>,
     },
     /// An instance of a struct.
     ///
     /// todo: documentation
     Struct {
-        sym: A,
-        fields: Vec<(&'p str, Expr<'p, A>)>,
+        sym: &'p str,
+        fields: Vec<(&'p str, Spanned<Expr<'p>>)>,
     },
     /// A variant of an enum.
     ///
     /// todo: documentation
     Variant {
-        enum_sym: A,
-        variant_sym: A,
-        bdy: Box<Expr<'p, A>>,
+        enum_sym: &'p str,
+        variant_sym: &'p str,
+        bdy: Box<Spanned<Expr<'p>>>,
     },
     /// A field access.
     ///
     /// todo: documentation
     AccessField {
-        strct: Box<Expr<'p, A>>,
+        strct: Box<Spanned<Expr<'p>>>,
         field: &'p str,
     },
     /// A switch statement.
     ///
     /// todo: documentation
     Switch {
-        enm: Box<Expr<'p, A>>,
-        arms: Vec<(A, A, Box<Expr<'p, A>>)>,
+        enm: Box<Spanned<Expr<'p>>>,
+        arms: Vec<(&'p str, &'p str, Box<Spanned<Expr<'p>>>)>,
     },
+}
+
+#[derive(Debug, PartialEq, Functor)]
+pub struct Spanned<T> {
+    pub span: (usize, usize),
+    pub inner: T,
 }
 
 /// A primitive operation.
@@ -263,69 +269,16 @@ pub enum Op {
 
 /// A literal value.
 #[derive(Copy, Clone, Debug, PartialEq, Display)]
-pub enum Lit {
+pub enum Lit<'p> {
     /// Integer literal, representing a signed 64-bit number.
     #[display(fmt = "{val}")]
-    Int { val: i64 },
+    Int { val: &'p str },
     /// Boolean literal, representing a value of *true* or *false*.
     #[display(fmt = "{}", r#"if *val { "true" } else { "false" }"#)]
     Bool { val: bool },
     /// Unit literal, representing the absence of a value.
     #[display(fmt = "unit")]
     Unit,
-}
-
-impl Lit {
-    /// Returns the integer value if `Lit` is `Int`.
-    /// # Panics
-    /// Panics if `Lit` is not `Int`.
-    #[must_use]
-    pub fn int(self) -> i64 {
-        if let Lit::Int { val } = self {
-            val
-        } else {
-            panic!()
-        }
-    }
-
-    /// Returns the boolean value if `Lit` is `Bool`.
-    /// # Panics
-    /// Panics if `Lit` is not `Bool`.
-    #[must_use]
-    pub fn bool(self) -> bool {
-        if let Lit::Bool { val } = self {
-            val
-        } else {
-            panic!()
-        }
-    }
-}
-
-// todo: we probably want to get rid off this
-impl From<Lit> for i64 {
-    fn from(value: Lit) -> Self {
-        match value {
-            Lit::Int { val } => val,
-            Lit::Bool { val } => val as i64,
-            Lit::Unit => 0,
-        }
-    }
-}
-
-// This implementation is used by the parser.
-impl FromStr for Lit {
-    type Err = ();
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(match s {
-            "false" => Lit::Bool { val: false },
-            "true" => Lit::Bool { val: true },
-            "unit" => Lit::Unit,
-            s => Lit::Int {
-                val: s.parse().map_err(|_| ())?,
-            },
-        })
-    }
 }
 
 #[cfg(test)]

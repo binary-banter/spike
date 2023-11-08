@@ -1,6 +1,7 @@
 use crate::interpreter::Val;
 use crate::passes::parse::parse::parse_program;
 use crate::passes::parse::{Lit, PrgParsed};
+use crate::passes::validate::TLit;
 use std::cell::OnceCell;
 use std::hash::Hash;
 use std::str::SplitWhitespace;
@@ -8,7 +9,7 @@ use std::str::SplitWhitespace;
 /// Splits the inputs, expected outputs and expected return from the test.
 /// The values must be preceded by `//*` and `inp:`, `out:` or `ret:`.
 #[must_use]
-pub fn split_test(test: &str) -> (Vec<Lit>, Vec<Lit>, Lit, PrgParsed) {
+pub fn split_test(test: &str) -> (Vec<TLit>, Vec<TLit>, TLit, PrgParsed) {
     let mut input = OnceCell::new();
     let mut output = OnceCell::new();
     let mut expected_return = OnceCell::new();
@@ -33,7 +34,7 @@ pub fn split_test(test: &str) -> (Vec<Lit>, Vec<Lit>, Lit, PrgParsed) {
     (
         input.take().unwrap_or_default(),
         output.take().unwrap_or_default(),
-        expected_return.take().unwrap_or(Lit::Unit),
-        parse_program(test).unwrap(),
+        expected_return.take().unwrap_or(TLit::Unit),
+        parse_program(test).unwrap(), // todo: pass test file name
     )
 }

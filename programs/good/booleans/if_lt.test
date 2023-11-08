@@ -1,0 +1,4 @@
+//* ret: 2
+fn main() -> Int {
+    if 5 < 3 { 1 } else { 2}
+}

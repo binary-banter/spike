@@ -1,8 +1,8 @@
 use crate::interpreter::Val;
 use crate::interpreter::IO;
-use crate::passes::parse::{Def, Lit, Op};
+use crate::passes::parse::{Def, Op};
 use crate::passes::uniquify::PrgUniquified;
-use crate::passes::validate::TExpr;
+use crate::passes::validate::{TExpr, TLit};
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::push_map::PushMap;
 use std::collections::HashMap;
@@ -73,7 +73,9 @@ impl<'p> PrgUniquified<'p> {
                 (Op::Read, []) => io.read().into(),
                 (Op::Print, [v]) => {
                     let val = b!(self.interpret_expr(v, scope, io));
-                    io.print(Lit::Int { val: val.int() });
+                    io.print(TLit::Int {
+                        val: val.int() as i32,
+                    });
                     val
                 }
                 (Op::Plus, [e1, e2]) => {

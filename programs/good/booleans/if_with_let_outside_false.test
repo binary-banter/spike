@@ -1,0 +1,5 @@
+//* ret: 1
+fn main() -> Int {
+    let x = true;
+    if x { 1 } else {2}
+}

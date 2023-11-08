@@ -1,0 +1,4 @@
+//* ret: 1
+fn main() -> Int {
+    if (if 5 > 3 { true } else { false}) {1} else {2}
+}
