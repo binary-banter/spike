@@ -187,7 +187,7 @@ pub enum Expr<'p> {
     /// Only mutable or uninitialized immutable variables can be assigned a new value.
     Assign {
         /// Symbol representing the variable to which the assignment is made.
-        sym: &'p str,
+        sym: Spanned<&'p str>,
         /// The expression whose result is assigned to the variable.
         bnd: Box<Spanned<Expr<'p>>>,
     },
@@ -225,7 +225,7 @@ pub enum Expr<'p> {
 #[derive(Debug, PartialEq, Functor)]
 pub struct Spanned<T> {
     pub span: (usize, usize),
-    pub expr: T,
+    pub inner: T,
 }
 
 /// A primitive operation.

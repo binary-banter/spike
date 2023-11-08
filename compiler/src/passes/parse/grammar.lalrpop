@@ -1,4 +1,3 @@
-use std::str::FromStr;
 use crate::passes::parse::{Def, TypeDef, Expr, Lit, Op, Param};
 use crate::passes::parse::PrgParsed;
 use crate::passes::parse::Type;
@@ -158,14 +157,14 @@ ExprStmt: Expr<'input> = {
 }
 
 ExprInStmt: Expr<'input> = {
-    <sym:Ident> "=" <bnd:Spanned<ExprLogicalOr<Struct>>> => Expr::Assign {
+    <sym:Spanned<Ident>> "=" <bnd:Spanned<ExprLogicalOr<Struct>>> => Expr::Assign {
         sym,
         bnd: Box::new(bnd),
     },
     "if" <cnd:Spanned<ExprLogicalOr<Never>>> "{" <thn:Spanned<Expr>> "}" <l:@L> <els:("else" "{" <Spanned<Expr>> "}")?> <r:@R> => Expr::If {
         cnd: Box::new(cnd),
         thn: Box::new(thn),
-        els: Box::new(els.unwrap_or(Spanned { span: (l, r), expr: Expr::Lit { val: Lit::Unit }})),
+        els: Box::new(els.unwrap_or(Spanned { span: (l, r), inner: Expr::Lit { val: Lit::Unit }})),
     },
     "loop" "{" <bdy:Spanned<Expr>> "}" => Expr::Loop {
         bdy: Box::new(bdy),
@@ -174,22 +173,22 @@ ExprInStmt: Expr<'input> = {
     <l:@L> "while" <r:@R> <cnd:Spanned<ExprLogicalOr<Never>>> "{" <bdy:Spanned<Expr>> "}" => Expr::Loop {
         bdy: Box::new(Spanned {
             span: (l, r),
-            expr: Expr::If {
+            inner: Expr::If {
                 cnd: Box::new(cnd),
                 thn: Box::new(bdy),
                 els: Box::new(Spanned {
                     span: (l, r),
-                    expr: Expr::Seq {
+                    inner: Expr::Seq {
                         stmt: Box::new(Spanned {
                             span: (l, r),
-                            expr: Expr::Break { bdy: Box::new(Spanned {
+                            inner: Expr::Break { bdy: Box::new(Spanned {
                                 span: (l, r),
-                                expr: Expr::Lit { val: Lit::Unit },
+                                inner: Expr::Lit { val: Lit::Unit },
                             })},
                         }),
                         cnt: Box::new(Spanned {
                             span: (l, r),
-                            expr: Expr::Lit { val: Lit::Unit },
+                            inner: Expr::Lit { val: Lit::Unit },
                         }),
                     },
                 }),
@@ -305,7 +304,7 @@ Struct: Expr<'input> = {
 
 StructArg : (&'input str, Spanned<Expr<'input>>) = {
     <Ident> ":" <Spanned<Expr>>,
-    <l:@L> <sym:Ident> <r:@R> => (sym, Spanned { span: (l, r), expr: Expr::Var { sym } })
+    <l:@L> <sym:Ident> <r:@R> => (sym, Spanned { span: (l, r), inner: Expr::Var { sym } })
 }
 
 Never: Expr<'input> = {};
@@ -330,5 +329,5 @@ Comma<T>: Vec<T> = {
     }
 }
 
-Spanned<T>: Spanned<T> = <l:@L> <expr:T> <r:@R> => Spanned { span: (l, r), expr };
+Spanned<T>: Spanned<T> = <l:@L> <inner:T> <r:@R> => Spanned { span: (l, r), inner };
 

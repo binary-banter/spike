@@ -16,6 +16,7 @@ pub fn validate_struct<'p>(
 ) -> Result<TExpr<'p, &'p str>, TypeError> {
     let entry = env.scope.get(&sym).ok_or(UndeclaredVar {
         sym: sym.to_string(),
+        span: (0, 0), // todo: not correct
     })?;
 
     #[rustfmt::skip]

@@ -8,16 +8,22 @@ use crate::passes::validate::type_check::{expect_type, expect_type_eq, Env, EnvE
 use crate::passes::validate::{TExpr, TLit};
 use crate::utils::expect::expect;
 
+macro_rules! s {
+    ($span:expr) => {
+        ($span.0, $span.1 - $span.0)
+    };
+}
+
 pub fn validate_expr<'p>(
     expr: Spanned<Expr<'p>>,
     env: &mut Env<'_, 'p>,
 ) -> Result<TExpr<'p, &'p str>, TypeError> {
-    let span = (expr.span.0, expr.span.1 - expr.span.0);
-
-    Ok(match expr.expr {
+    Ok(match expr.inner {
         Expr::Lit { val } => match val {
             Lit::Int { val } => {
-                let val = val.parse().map_err(|_| IntegerOutOfBounds { span })?;
+                let val = val.parse().map_err(|_| IntegerOutOfBounds {
+                    span: s!(expr.span),
+                })?;
                 TExpr::Lit {
                     val: TLit::Int { val },
                     typ: Type::Int,
@@ -35,6 +41,7 @@ pub fn validate_expr<'p>(
         Expr::Var { sym, .. } => {
             let entry = env.scope.get(&sym).ok_or(UndeclaredVar {
                 sym: (*sym).to_string(),
+                span: s!(expr.span),
             })?;
 
             if let EnvEntry::Type { typ, .. } = entry {
@@ -160,26 +167,27 @@ pub fn validate_expr<'p>(
             }
         }
         Expr::Assign { sym, bnd, .. } => {
-            let entry = env.scope.get(&sym).ok_or(UndeclaredVar {
-                sym: (*sym).to_string(),
+            let entry = env.scope.get(&sym.inner).ok_or(UndeclaredVar {
+                sym: (*sym.inner).to_string(),
+                span: s!(sym.span),
             })?;
 
             let EnvEntry::Type { typ: _, mutable } = entry else {
                 return Err(VariableShouldBeExpr {
-                    sym: (*sym).to_string(),
+                    sym: (*sym.inner).to_string(),
                 });
             };
 
             expect(
                 *mutable,
                 ModifyImmutable {
-                    sym: (*sym).to_string(),
+                    sym: (*sym.inner).to_string(),
                 },
             )?;
 
             let bnd = validate_expr(*bnd, env)?;
             TExpr::Assign {
-                sym,
+                sym: sym.inner,
                 bnd: Box::new(bnd),
                 typ: Type::Unit,
             }

@@ -4,8 +4,12 @@ use thiserror::Error;
 
 #[derive(Debug, Error, Diagnostic)]
 pub enum TypeError {
-    #[error("Variable '{sym}' was not declared yet.")]
-    UndeclaredVar { sym: String },
+    #[error("Encountered an undeclared variable.")]
+    UndeclaredVar {
+        sym: String,
+        #[label = "This variable `{sym}` was not declared yet"]
+        span: (usize, usize),
+    },
     #[error("Types were mismatched. Expected '{expect}', but found '{got}'.")]
     TypeMismatchExpect {
         expect: Type<String>,
