@@ -1,24 +1,24 @@
 pub mod error;
-mod uncover_globals;
-mod validate_access_field;
-mod validate_apply;
-mod validate_assign;
-mod validate_break;
-mod validate_continue;
-mod validate_expr;
-mod validate_if;
-mod validate_let;
-mod validate_lit;
-mod validate_loop;
-mod validate_prim;
-mod validate_return;
-mod validate_seq;
-mod validate_struct;
-mod validate_switch;
-mod validate_type;
-mod validate_typedef;
-mod validate_var;
-mod validate_variant;
+// mod uncover_globals;
+// mod validate_access_field;
+// mod validate_apply;
+// mod validate_assign;
+// mod validate_break;
+// mod validate_continue;
+// mod validate_expr;
+// mod validate_if;
+// mod validate_let;
+// mod validate_lit;
+// mod validate_loop;
+// mod validate_prim;
+// mod validate_return;
+// mod validate_seq;
+// mod validate_struct;
+// mod validate_switch;
+// mod validate_type;
+// mod validate_typedef;
+// mod validate_var;
+// mod validate_variant;
 
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, PrgParsed, Spanned, TypeDef};
@@ -27,7 +27,7 @@ use crate::passes::validate::type_check::error::TypeError::*;
 use crate::passes::validate::type_check::uncover_globals::uncover_globals;
 use crate::passes::validate::type_check::validate_expr::validate_expr;
 use crate::passes::validate::type_check::validate_typedef::validate_typedef;
-use crate::passes::validate::{PrgTypeChecked, TExpr};
+use crate::passes::validate::{PrgValidated, TExpr};
 use crate::utils::expect::expect;
 use crate::utils::push_map::PushMap;
 use std::collections::HashMap;
@@ -63,7 +63,7 @@ impl<'a, 'p> Env<'a, 'p> {
 }
 
 impl<'p> PrgParsed<'p> {
-    pub(super) fn type_check(self) -> Result<PrgTypeChecked<'p>, TypeError> {
+    pub(super) fn type_check(self) -> Result<PrgValidated<'p>, TypeError> {
         let mut scope = uncover_globals(&self)?;
 
         let defs = self
@@ -115,7 +115,7 @@ impl<'p> PrgParsed<'p> {
             })
             .collect::<Result<HashMap<_, _>, _>>()?;
 
-        Ok(PrgTypeChecked {
+        Ok(PrgValidated {
             defs,
             entry: self.entry,
         })

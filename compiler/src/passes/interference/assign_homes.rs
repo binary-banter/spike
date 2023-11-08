@@ -88,7 +88,6 @@ mod tests {
         let mut program: X86Selected = program
             .validate()
             .unwrap()
-            .uniquify()
             .reveal()
             .atomize()
             .explicate()

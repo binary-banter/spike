@@ -1,17 +1,16 @@
 use crate::passes::parse::PrgParsed;
-use crate::passes::validate::PrgTypeChecked;
-use crate::passes::validate::ValidateError;
-use crate::passes::validate::ValidateError::NoMain;
+use crate::passes::validate::error::TypeError;
+use crate::passes::validate::error::TypeError::NoMain;
+use crate::passes::validate::PrgValidated;
 use crate::utils::expect::expect;
 
 impl<'p> PrgParsed<'p> {
-    pub fn validate(self) -> Result<PrgTypeChecked<'p>, ValidateError> {
-        let program = self.type_check()?;
-
+    pub fn validate(self) -> Result<PrgValidated<'p>, TypeError> {
+        let program = self.uniquify()?;
+        let assignments = program.generate_constraints().solve()?;
+        let program = program.resolve_types(assignments);
         program.check_sized()?;
-
         expect(program.defs.contains_key("main"), NoMain)?;
-
         Ok(program)
     }
 }

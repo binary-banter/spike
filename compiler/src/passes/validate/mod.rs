@@ -1,20 +1,21 @@
-mod check_sized;
-mod type_check;
 pub mod validate;
+pub mod error;
+pub mod uniquify;
+mod resolve_types;
+mod solve_constraints;
+mod generate_constraints;
+mod check_sized;
 
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, Op};
-use crate::passes::validate::type_check::error::TypeError;
 use derive_more::Display;
-use miette::Diagnostic;
 use std::collections::HashMap;
 use std::fmt::Display;
 use std::hash::Hash;
 use std::str::FromStr;
-use thiserror::Error;
 
 #[derive(Debug, PartialEq)]
-pub struct PrgTypeChecked<'p> {
+pub struct PrgValidated<'p> {
     pub defs: HashMap<&'p str, Def<'p, &'p str, TExpr<'p, &'p str>>>,
     pub entry: &'p str,
 }
@@ -182,15 +183,4 @@ impl<'p, A: Copy + Hash + Eq + Display> TExpr<'p, A> {
             | TExpr::Switch { typ, .. } => typ,
         }
     }
-}
-
-#[derive(Debug, Error, Diagnostic)]
-pub enum ValidateError {
-    #[error(transparent)]
-    #[diagnostic(transparent)]
-    TypeError(#[from] TypeError),
-    #[error("The program doesn't have a main function.")]
-    NoMain,
-    #[error("The type '{sym}' is not sized.")]
-    UnsizedType { sym: String },
 }

@@ -1,12 +1,12 @@
 use clap::Parser;
 use compiler::compile;
 use compiler::passes::parse::parse::PrettyParseError;
-use compiler::passes::validate::ValidateError;
 use miette::{Diagnostic, IntoDiagnostic};
 use std::fs;
 use std::io::Read;
 use std::path::Path;
 use thiserror::Error;
+use compiler::passes::validate::error::TypeError;
 
 #[derive(Debug, Error, Diagnostic)]
 enum MainError {
@@ -15,7 +15,7 @@ enum MainError {
     ParseError(#[from] PrettyParseError),
     #[error(transparent)]
     #[diagnostic(transparent)]
-    ValidateError(#[from] ValidateError),
+    ValidateError(#[from] TypeError),
 }
 
 #[derive(Parser, Debug)]

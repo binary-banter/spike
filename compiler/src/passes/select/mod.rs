@@ -176,7 +176,6 @@ mod tests {
         let mut program = program
             .validate()
             .unwrap()
-            .uniquify()
             .reveal()
             .atomize()
             .explicate()

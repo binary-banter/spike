@@ -26,7 +26,6 @@ fn integration([test]: [&str; 1]) {
     program
         .validate()
         .unwrap()
-        .uniquify()
         .reveal()
         .atomize()
         .explicate()

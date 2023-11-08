@@ -23,7 +23,6 @@ pub fn compile(program: &str, filename: &str, output: &Path) -> miette::Result<(
         .validate()
         .map_err(Into::into)
         .map_err(add_source)?
-        .uniquify()
         .reveal()
         .atomize()
         .explicate()

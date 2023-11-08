@@ -1,22 +1,30 @@
-use crate::passes::parse::{Def, Param, TypeDef};
-use crate::passes::uniquify::PrgUniquified;
-use crate::passes::validate::{PrgTypeChecked, TExpr};
+use std::collections::HashMap;
+use crate::passes::parse::{Def, Expr, Param, PrgParsed, TypeDef};
+use crate::passes::validate::{PrgValidated, TExpr};
+use crate::passes::validate::error::TypeError;
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use crate::utils::push_map::PushMap;
 
-impl<'p> PrgTypeChecked<'p> {
-    #[must_use]
-    pub fn uniquify(self) -> PrgUniquified<'p> {
-        let mut scope = PushMap::from_iter(self.defs.iter().map(|(&sym, _)| (sym, gen_sym(sym))));
+#[derive(Debug, PartialEq)]
+pub struct PrgUniquified<'p> {
+    pub defs: HashMap<UniqueSym<'p>, Def<'p, UniqueSym<'p>, Expr<'p, UniqueSym<'p>>>>,
+    pub entry: UniqueSym<'p>,
+}
 
-        PrgUniquified {
-            defs: self
-                .defs
-                .into_iter()
-                .map(|(sym, def)| (scope[&sym], uniquify_def(def, &mut scope)))
-                .collect(),
-            entry: scope[&self.entry],
-        }
+impl<'p> PrgParsed<'p> {
+    #[must_use]
+    pub fn uniquify(self) -> Result<PrgUniquified<'p>, TypeError> {
+        todo!()
+        // let mut scope = PushMap::from_iter(self.defs.iter().map(|(&sym, _)| (sym, gen_sym(sym))));
+        //
+        // PrgUniquified {
+        //     defs: self
+        //         .defs
+        //         .into_iter()
+        //         .map(|(sym, def)| (scope[&sym], uniquify_def(def, &mut scope)))
+        //         .collect(),
+        //     entry: scope[&self.entry],
+        // }
     }
 }
 

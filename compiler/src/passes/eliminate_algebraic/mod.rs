@@ -69,7 +69,6 @@ mod tests {
         let program = program
             .validate()
             .unwrap()
-            .uniquify()
             .reveal()
             .atomize()
             .explicate()

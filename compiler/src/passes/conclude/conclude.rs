@@ -43,7 +43,6 @@ mod tests {
         let program: X86Selected = program
             .validate()
             .unwrap()
-            .uniquify()
             .reveal()
             .atomize()
             .explicate()

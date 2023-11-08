@@ -2,7 +2,6 @@ pub mod reveal_functions;
 
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, Op};
-use crate::passes::uniquify::PrgUniquified;
 use crate::passes::validate::{TExpr, TLit};
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
@@ -108,18 +107,18 @@ impl<'p> RExpr<'p> {
     }
 }
 
-impl<'p> From<PrgRevealed<'p>> for PrgUniquified<'p> {
-    fn from(value: PrgRevealed<'p>) -> Self {
-        PrgUniquified {
-            defs: value
-                .defs
-                .into_iter()
-                .map(|(sym, def)| (sym, def.into()))
-                .collect(),
-            entry: value.entry,
-        }
-    }
-}
+// impl<'p> From<PrgRevealed<'p>> for PrgUniquified<'p> {
+//     fn from(value: PrgRevealed<'p>) -> Self {
+//         PrgUniquified {
+//             defs: value
+//                 .defs
+//                 .into_iter()
+//                 .map(|(sym, def)| (sym, def.into()))
+//                 .collect(),
+//             entry: value.entry,
+//         }
+//     }
+// }
 
 impl<'p> From<Def<'p, UniqueSym<'p>, RExpr<'p>>>
     for Def<'p, UniqueSym<'p>, TExpr<'p, UniqueSym<'p>>>
@@ -209,23 +208,22 @@ impl<'p> From<RExpr<'p>> for TExpr<'p, UniqueSym<'p>> {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use crate::interpreter::TestIO;
-    use crate::passes::uniquify::PrgUniquified;
-    use crate::utils::split_test::split_test;
-    use test_each_file::test_each_file;
-
-    fn reveal([test]: [&str; 1]) {
-        let (input, expected_output, expected_return, program) = split_test(test);
-        let uniquified_program: PrgUniquified =
-            program.validate().unwrap().uniquify().reveal().into();
-        let mut io = TestIO::new(input);
-        let result = uniquified_program.interpret(&mut io);
-
-        assert_eq!(result, expected_return.into(), "Incorrect program result.");
-        assert_eq!(io.outputs(), &expected_output, "Incorrect program output.");
-    }
-
-    test_each_file! { for ["test"] in "./programs/good" as reveal => reveal }
-}
+// #[cfg(test)]
+// mod tests {
+//     use crate::interpreter::TestIO;
+//     use crate::utils::split_test::split_test;
+//     use test_each_file::test_each_file;
+//
+//     fn reveal([test]: [&str; 1]) {
+//         let (input, expected_output, expected_return, program) = split_test(test);
+//         let uniquified_program: PrgUniquified =
+//             program.validate().unwrap().uniquify().reveal().into();
+//         let mut io = TestIO::new(input);
+//         let result = uniquified_program.interpret(&mut io);
+//
+//         assert_eq!(result, expected_return.into(), "Incorrect program result.");
+//         assert_eq!(io.outputs(), &expected_output, "Incorrect program output.");
+//     }
+//
+//     test_each_file! { for ["test"] in "./programs/good" as reveal => reveal }
+// }
