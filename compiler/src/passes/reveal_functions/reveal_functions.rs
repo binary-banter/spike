@@ -41,10 +41,7 @@ fn reveal_def<'p>(
     }
 }
 
-fn reveal_expr<'p>(
-    expr: TExpr<'p>,
-    scope: &mut PushMap<UniqueSym<'p>, ()>,
-) -> RExpr<'p> {
+fn reveal_expr<'p>(expr: TExpr<'p>, scope: &mut PushMap<UniqueSym<'p>, ()>) -> RExpr<'p> {
     match expr {
         TExpr::Lit { val, typ } => RExpr::Lit { val, typ },
         TExpr::Var { sym, typ } => {

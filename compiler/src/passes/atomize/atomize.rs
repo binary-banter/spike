@@ -18,7 +18,9 @@ impl<'p> PrgRevealed<'p> {
     }
 }
 
-fn atomize_def<'p>(def: Def<UniqueSym<'p>, &'p str, RExpr<'p>>) -> Def<UniqueSym<'p>, &'p str,AExpr<'p>> {
+fn atomize_def<'p>(
+    def: Def<UniqueSym<'p>, &'p str, RExpr<'p>>,
+) -> Def<UniqueSym<'p>, &'p str, AExpr<'p>> {
     match def {
         Def::Fn {
             sym,

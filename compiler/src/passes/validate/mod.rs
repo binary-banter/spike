@@ -8,13 +8,13 @@ pub mod validate;
 
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, Op};
+use crate::utils::gen_sym::UniqueSym;
 use derive_more::Display;
 use miette::Diagnostic;
 use std::collections::HashMap;
 use std::fmt::Display;
 use std::hash::Hash;
 use std::str::FromStr;
-use crate::utils::gen_sym::UniqueSym;
 
 #[derive(Debug, PartialEq)]
 pub struct PrgValidated<'p> {

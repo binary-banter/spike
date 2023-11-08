@@ -18,7 +18,13 @@ use types::Type;
 #[derive(Debug, PartialEq)]
 pub struct PrgParsed<'p> {
     /// The global program definitions.
-    pub defs: Vec<Def<Spanned<&'p str>, Spanned<&'p str>, Spanned<Expr<'p, Spanned<&'p str>, Spanned<&'p str>>>>>,
+    pub defs: Vec<
+        Def<
+            Spanned<&'p str>,
+            Spanned<&'p str>,
+            Spanned<Expr<'p, Spanned<&'p str>, Spanned<&'p str>>>,
+        >,
+    >,
     /// The symbol representing the entry point of the program.
     pub entry: &'p str,
 }
@@ -86,7 +92,7 @@ pub struct Param<A: Copy + Hash + Eq + Display> {
 /// Expressions are generic and can use symbols that are either `&str` or
 /// [`UniqueSym`](crate::utils::gen_sym::UniqueSym) for all passes after uniquify.
 #[derive(Debug, PartialEq)]
-pub enum Expr<'p, A: Copy + Hash + Eq + Display, A2: Copy + Hash + Eq + Display> {
+pub enum Expr<'p, IdentVars: Copy + Hash + Eq + Display, IdentFields: Copy + Hash + Eq + Display> {
     /// A literal value. See [`Lit`].
     Lit {
         /// Value of the literal. See [`Lit`].
@@ -95,14 +101,14 @@ pub enum Expr<'p, A: Copy + Hash + Eq + Display, A2: Copy + Hash + Eq + Display>
     /// A variable.
     Var {
         /// Symbol representing the variable.
-        sym: A,
+        sym: IdentVars,
     },
     /// A primitive operation with an arbitrary number of arguments.
     Prim {
         /// Primitive operation (e.g. `Xor`). See [`Op`].
         op: Op,
         /// Arguments used by the primitive operation.
-        args: Vec<Spanned<Expr<'p, A, A2>>>,
+        args: Vec<Spanned<Expr<'p, IdentVars, IdentFields>>>,
     },
     /// A let binding.
     ///
@@ -111,13 +117,13 @@ pub enum Expr<'p, A: Copy + Hash + Eq + Display, A2: Copy + Hash + Eq + Display>
     /// The variable can be immutable or mutable depending on the presence of the `mut` keyword.
     Let {
         /// Symbol representing the newly introduced variable.
-        sym: A,
+        sym: IdentVars,
         /// Indicates whether the variable is mutable (true) or immutable (false).
         mutable: bool,
         /// The expression to which the variable is bound.
-        bnd: Box<Spanned<Expr<'p, A, A2>>>,
+        bnd: Box<Spanned<Expr<'p, IdentVars, IdentFields>>>,
         /// The expression that is evaluated using the new variable binding.
-        bdy: Box<Spanned<Expr<'p, A, A2>>>,
+        bdy: Box<Spanned<Expr<'p, IdentVars, IdentFields>>>,
     },
     /// An if statement.
     ///
@@ -125,11 +131,11 @@ pub enum Expr<'p, A: Copy + Hash + Eq + Display, A2: Copy + Hash + Eq + Display>
     /// the result is true, it executes the `thn` expression; otherwise, it executes the `els` expression.
     If {
         /// The conditional expression that determines the execution path.
-        cnd: Box<Spanned<Expr<'p, A, A2>>>,
+        cnd: Box<Spanned<Expr<'p, IdentVars, IdentFields>>>,
         /// The expression to execute if the condition is true.
-        thn: Box<Spanned<Expr<'p, A, A2>>>,
+        thn: Box<Spanned<Expr<'p, IdentVars, IdentFields>>>,
         /// The expression to execute if the condition is false.
-        els: Box<Spanned<Expr<'p, A, A2>>>,
+        els: Box<Spanned<Expr<'p, IdentVars, IdentFields>>>,
     },
     /// A function application.
     ///
@@ -137,9 +143,9 @@ pub enum Expr<'p, A: Copy + Hash + Eq + Display, A2: Copy + Hash + Eq + Display>
     /// evaluated to obtain a function symbol, which is invoked with the arguments in `args`.
     Apply {
         /// The expression that, when evaluated, represents the function symbol to be invoked.
-        fun: Box<Spanned<Expr<'p, A, A2>>>,
+        fun: Box<Spanned<Expr<'p, IdentVars, IdentFields>>>,
         /// The ordered arguments that are passed to the function.
-        args: Vec<Spanned<Expr<'p, A, A2>>>,
+        args: Vec<Spanned<Expr<'p, IdentVars, IdentFields>>>,
     },
     /// A loop construct.
     ///
@@ -147,7 +153,7 @@ pub enum Expr<'p, A: Copy + Hash + Eq + Display, A2: Copy + Hash + Eq + Display>
     /// expression is evaluated.
     Loop {
         /// The expression that defines the body of the loop.
-        bdy: Box<Spanned<Expr<'p, A, A2>>>,
+        bdy: Box<Spanned<Expr<'p, IdentVars, IdentFields>>>,
     },
     /// A break statement.
     ///
@@ -155,7 +161,7 @@ pub enum Expr<'p, A: Copy + Hash + Eq + Display, A2: Copy + Hash + Eq + Display>
     /// current loop and returns the value of the `bdy` expression from the loop upon termination.
     Break {
         /// The expression to be evaluated and returned from the loop.
-        bdy: Box<Spanned<Expr<'p, A, A2>>>,
+        bdy: Box<Spanned<Expr<'p, IdentVars, IdentFields>>>,
     },
     /// A continue statement.
     ///
@@ -167,7 +173,7 @@ pub enum Expr<'p, A: Copy + Hash + Eq + Display, A2: Copy + Hash + Eq + Display>
     /// The `Return` expression exits the current function and returns the value of the `bdy` expression.
     Return {
         /// The expression to be evaluated and returned from the function.
-        bdy: Box<Spanned<Expr<'p, A, A2>>>,
+        bdy: Box<Spanned<Expr<'p, IdentVars, IdentFields>>>,
     },
     /// A sequence of two expressions.
     ///
@@ -176,9 +182,9 @@ pub enum Expr<'p, A: Copy + Hash + Eq + Display, A2: Copy + Hash + Eq + Display>
     /// the `cnt` expression is evaluated.
     Seq {
         /// The first expression to be executed in the sequence.
-        stmt: Box<Spanned<Expr<'p, A, A2>>>,
+        stmt: Box<Spanned<Expr<'p, IdentVars, IdentFields>>>,
         /// The second expression to be executed in the sequence.
-        cnt: Box<Spanned<Expr<'p, A, A2>>>,
+        cnt: Box<Spanned<Expr<'p, IdentVars, IdentFields>>>,
     },
     /// A variable assignment.
     ///
@@ -187,38 +193,42 @@ pub enum Expr<'p, A: Copy + Hash + Eq + Display, A2: Copy + Hash + Eq + Display>
     /// Only mutable or uninitialized immutable variables can be assigned a new value.
     Assign {
         /// Symbol representing the variable to which the assignment is made.
-        sym: A,
+        sym: IdentVars,
         /// The expression whose result is assigned to the variable.
-        bnd: Box<Spanned<Expr<'p, A, A2>>>,
+        bnd: Box<Spanned<Expr<'p, IdentVars, IdentFields>>>,
     },
     /// An instance of a struct.
     ///
     /// todo: documentation
     Struct {
-        sym: A,
-        fields: Vec<(A2, Spanned<Expr<'p, A, A2>>)>,
+        sym: IdentVars,
+        fields: Vec<(IdentFields, Spanned<Expr<'p, IdentVars, IdentFields>>)>,
     },
     /// A variant of an enum.
     ///
     /// todo: documentation
     Variant {
-        enum_sym: A,
-        variant_sym: A2,
-        bdy: Box<Spanned<Expr<'p, A, A2>>>,
+        enum_sym: IdentVars,
+        variant_sym: IdentFields,
+        bdy: Box<Spanned<Expr<'p, IdentVars, IdentFields>>>,
     },
     /// A field access.
     ///
     /// todo: documentation
     AccessField {
-        strct: Box<Spanned<Expr<'p, A, A2>>>,
-        field: A2,
+        strct: Box<Spanned<Expr<'p, IdentVars, IdentFields>>>,
+        field: IdentFields,
     },
     /// A switch statement.
     ///
     /// todo: documentation
     Switch {
-        enm: Box<Spanned<Expr<'p, A, A2>>>,
-        arms: Vec<(A, A2, Box<Spanned<Expr<'p, A, A2>>>)>,
+        enm: Box<Spanned<Expr<'p, IdentVars, IdentFields>>>,
+        arms: Vec<(
+            IdentVars,
+            IdentFields,
+            Box<Spanned<Expr<'p, IdentVars, IdentFields>>>,
+        )>,
     },
 }
 
