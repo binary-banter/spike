@@ -28,7 +28,6 @@ use crate::passes::validate::type_check::uncover_globals::uncover_globals;
 use crate::passes::validate::type_check::validate_expr::validate_expr;
 use crate::passes::validate::type_check::validate_typedef::validate_typedef;
 use crate::passes::validate::{PrgTypeChecked, TExpr};
-use crate::s;
 use crate::utils::expect::expect;
 use crate::utils::push_map::PushMap;
 use std::collections::HashMap;
@@ -135,8 +134,8 @@ pub fn expect_type_eq<'p>(
         MismatchedTypes {
             t1: t1.clone().fmap(str::to_string),
             t2: t2.clone().fmap(str::to_string),
-            span_t1: s!(e1.span),
-            span_t2: s!(e2.span),
+            span_t1: s(e1.span),
+            span_t2: s(e2.span),
         },
     )?;
 
@@ -153,14 +152,11 @@ pub fn expect_type<'p>(
         MismatchedType {
             got: typ.clone().fmap(str::to_string),
             expect: expected.clone().fmap(str::to_string),
-            span: s!(expr.span),
+            span: s(expr.span),
         },
     )
 }
 
-#[macro_export]
-macro_rules! s {
-    ($span:expr) => {
-        ($span.0, $span.1 - $span.0)
-    };
+pub fn s(span: (usize, usize)) -> (usize, usize) {
+    (span.0, span.1 - span.0)
 }

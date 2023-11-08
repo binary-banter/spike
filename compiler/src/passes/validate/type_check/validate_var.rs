@@ -1,9 +1,8 @@
 use crate::passes::parse::Spanned;
 use crate::passes::validate::type_check::error::TypeError;
 use crate::passes::validate::type_check::error::TypeError::*;
-use crate::passes::validate::type_check::{Env, EnvEntry};
+use crate::passes::validate::type_check::{Env, EnvEntry, s};
 use crate::passes::validate::TExpr;
-use crate::s;
 
 pub fn validate_var<'p>(
     sym: &'p str,
@@ -12,7 +11,7 @@ pub fn validate_var<'p>(
 ) -> Result<Spanned<TExpr<'p, &'p str>>, TypeError> {
     let entry = env.scope.get(&sym).ok_or(UndeclaredVar {
         sym: (*sym).to_string(),
-        span: s!(span),
+        span: s(span),
     })?;
 
     let EnvEntry::Type { typ, .. } = entry else {

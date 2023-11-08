@@ -3,7 +3,7 @@ use crate::passes::parse::{Lit, Spanned};
 use crate::passes::validate::type_check::error::TypeError;
 use crate::passes::validate::type_check::error::TypeError::*;
 use crate::passes::validate::{TExpr, TLit};
-use crate::s;
+use crate::passes::validate::type_check::s;
 
 pub fn validate_lit<'p>(
     val: Lit,
@@ -13,7 +13,7 @@ pub fn validate_lit<'p>(
         Lit::Int { val } => {
             let val = val
                 .parse()
-                .map_err(|_| IntegerOutOfBounds { span: s!(span) })?;
+                .map_err(|_| IntegerOutOfBounds { span: s(span) })?;
 
             TExpr::Lit {
                 val: TLit::Int { val },

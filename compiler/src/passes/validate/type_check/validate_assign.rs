@@ -3,9 +3,8 @@ use crate::passes::parse::{Expr, Spanned};
 use crate::passes::validate::type_check::error::TypeError;
 use crate::passes::validate::type_check::error::TypeError::*;
 use crate::passes::validate::type_check::validate_expr::validate_expr;
-use crate::passes::validate::type_check::{Env, EnvEntry};
+use crate::passes::validate::type_check::{Env, EnvEntry, s};
 use crate::passes::validate::TExpr;
-use crate::s;
 use crate::utils::expect::expect;
 
 pub fn validate_assign<'p>(
@@ -16,7 +15,7 @@ pub fn validate_assign<'p>(
 ) -> Result<Spanned<TExpr<'p, &'p str>>, TypeError> {
     let entry = env.scope.get(&sym.inner).ok_or(UndeclaredVar {
         sym: (*sym.inner).to_string(),
-        span: s!(sym.span),
+        span: s(sym.span),
     })?;
 
     let EnvEntry::Type { mutable, .. } = entry else {
