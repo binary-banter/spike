@@ -1,6 +1,6 @@
-use crate::passes::validate::PrgValidated;
 use crate::passes::validate::solve_constraints::Assignments;
 use crate::passes::validate::uniquify::PrgUniquified;
+use crate::passes::validate::PrgValidated;
 
 impl<'p> PrgUniquified<'p> {
     #[must_use]

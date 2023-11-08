@@ -1,10 +1,10 @@
-pub mod validate;
+mod check_sized;
 pub mod error;
-pub mod uniquify;
+mod generate_constraints;
 mod resolve_types;
 mod solve_constraints;
-mod generate_constraints;
-mod check_sized;
+pub mod uniquify;
+pub mod validate;
 
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, Op};

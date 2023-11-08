@@ -111,7 +111,7 @@ pub enum Expr<'p, A: Copy + Hash + Eq + Display> {
     /// The variable can be immutable or mutable depending on the presence of the `mut` keyword.
     Let {
         /// Symbol representing the newly introduced variable.
-        sym: &'p str,
+        sym: A,
         /// Indicates whether the variable is mutable (true) or immutable (false).
         mutable: bool,
         /// The expression to which the variable is bound.
@@ -187,7 +187,7 @@ pub enum Expr<'p, A: Copy + Hash + Eq + Display> {
     /// Only mutable or uninitialized immutable variables can be assigned a new value.
     Assign {
         /// Symbol representing the variable to which the assignment is made.
-        sym: Spanned<&'p str>,
+        sym: Spanned<A>,
         /// The expression whose result is assigned to the variable.
         bnd: Box<Spanned<Expr<'p, A>>>,
     },
@@ -195,14 +195,14 @@ pub enum Expr<'p, A: Copy + Hash + Eq + Display> {
     ///
     /// todo: documentation
     Struct {
-        sym: &'p str,
+        sym: A,
         fields: Vec<(&'p str, Spanned<Expr<'p, A>>)>,
     },
     /// A variant of an enum.
     ///
     /// todo: documentation
     Variant {
-        enum_sym: &'p str,
+        enum_sym: A,
         variant_sym: &'p str,
         bdy: Box<Spanned<Expr<'p, A>>>,
     },
@@ -218,7 +218,7 @@ pub enum Expr<'p, A: Copy + Hash + Eq + Display> {
     /// todo: documentation
     Switch {
         enm: Box<Spanned<Expr<'p, A>>>,
-        arms: Vec<(&'p str, &'p str, Box<Spanned<Expr<'p, A>>>)>,
+        arms: Vec<(A, &'p str, Box<Spanned<Expr<'p, A>>>)>,
     },
 }
 

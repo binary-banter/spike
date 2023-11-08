@@ -16,7 +16,7 @@ impl<'p> PrgParsed<'p> {
     pub fn uniquify(self) -> Result<PrgUniquified<'p>, TypeError> {
         todo!()
         // let mut scope = PushMap::from_iter(self.defs.iter().map(|(&sym, _)| (sym, gen_sym(sym))));
-        //
+        // 
         // PrgUniquified {
         //     defs: self
         //         .defs

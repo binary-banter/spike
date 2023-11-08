@@ -1,17 +1,178 @@
-use crate::passes::parse::{Def, Expr, PrgParsed, Spanned};
+use crate::passes::parse::{Def, Expr, Param, PrgParsed, Spanned, TypeDef};
 use crate::passes::validate::error::TypeError;
-use crate::utils::gen_sym::UniqueSym;
+use crate::passes::validate::error::TypeError::{NoMain, UndeclaredVar};
+use crate::utils::gen_sym::{gen_sym, UniqueSym};
+use crate::utils::push_map::PushMap;
 
 #[derive(Debug, PartialEq)]
 pub struct PrgUniquified<'p> {
     /// The global program definitions.
-    pub defs: Vec<Def<'p, &'p str, Spanned<Expr<'p, UniqueSym<'p>>>>>,
+    pub defs: Vec<Def<'p, UniqueSym<'p>, Spanned<Expr<'p, UniqueSym<'p>>>>>,
     /// The symbol representing the entry point of the program.
-    pub entry: &'p str,
+    pub entry: UniqueSym<'p>,
 }
 
 impl<'p> PrgParsed<'p> {
     pub fn uniquify(self) -> Result<PrgUniquified<'p>, TypeError> {
-        todo!()
+        let mut scope =
+            PushMap::from_iter(self.defs.iter().map(|def| (*def.sym(), gen_sym(def.sym()))));
+
+        let entry = *scope.get(&"main").ok_or(NoMain)?;
+
+        Ok(PrgUniquified {
+            defs: self
+                .defs
+                .into_iter()
+                .map(|def| uniquify_def(def, &mut scope))
+                .collect::<Result<_, _>>()?,
+            entry,
+        })
     }
+}
+
+fn uniquify_def<'p>(
+    def: Def<'p, &'p str, Spanned<Expr<'p, &'p str>>>,
+    scope: &mut PushMap<&'p str, UniqueSym<'p>>,
+) -> Result<Def<'p, UniqueSym<'p>, Spanned<Expr<'p, UniqueSym<'p>>>>, TypeError> {
+    match def {
+        Def::Fn {
+            sym,
+            params,
+            typ,
+            bdy,
+        } => scope.push_iter(
+            params.iter().map(|param| (param.sym, gen_sym(param.sym))),
+            |scope| {
+                let params = params
+                    .iter()
+                    .map(|param| Param {
+                        sym: scope[&param.sym],
+                        mutable: param.mutable,
+                        typ: param.typ.clone().fmap(|v| scope[v]),
+                    })
+                    .collect();
+                let bdy = uniquify_expression(bdy, scope)?;
+
+                Ok(Def::Fn {
+                    sym: scope[&sym],
+                    params,
+                    typ: typ.fmap(|v| scope[v]),
+                    bdy,
+                })
+            },
+        ),
+        Def::TypeDef { sym, def } => {
+            let def = match def {
+                TypeDef::Struct { fields } => TypeDef::Struct {
+                    fields: fields
+                        .into_iter()
+                        .map(|(sym, typ)| (sym, typ.fmap(|sym| scope[sym])))
+                        .collect(),
+                },
+                TypeDef::Enum { .. } => todo!(),
+            };
+
+            Ok(Def::TypeDef {
+                sym: scope[&sym],
+                def,
+            })
+        }
+    }
+}
+
+fn uniquify_expression<'p>(
+    expr: Spanned<Expr<'p, &'p str>>,
+    scope: &mut PushMap<&'p str, UniqueSym<'p>>,
+) -> Result<Spanned<Expr<'p, UniqueSym<'p>>>, TypeError> {
+    let cnv_id = |sym: Spanned<&'p str>| {
+        scope
+            .get(&sym.inner)
+            .ok_or(UndeclaredVar {
+                sym: sym.inner.to_string(),
+                span: sym.span,
+            })
+            .map(|&inner| Spanned {
+                span: sym.span,
+                inner,
+            })
+    };
+
+    let inner = match expr.inner {
+        Expr::Let {
+            sym,
+            bnd,
+            bdy,
+            mutable,
+        } => {
+            let unique_bnd = uniquify_expression(*bnd, scope)?;
+            let unique_sym = gen_sym(sym);
+            let unique_bdy =
+                scope.push(sym, unique_sym, |scope| uniquify_expression(*bdy, scope))?;
+
+            Expr::Let {
+                sym: unique_sym,
+                mutable,
+                bnd: Box::new(unique_bnd),
+                bdy: Box::new(unique_bdy),
+            }
+        }
+        Expr::Var { sym } => Expr::Var { sym: todo!() },
+        Expr::Assign { sym, bnd } => Expr::Assign {
+            sym: cnv_id(sym)?,
+            bnd: Box::new(uniquify_expression(*bnd, scope)?),
+        },
+        Expr::Struct { sym, fields } => Expr::Struct {
+            sym: todo!(),
+            fields: fields
+                .into_iter()
+                .map(|(sym, expr)| uniquify_expression(expr, scope).map(|expr| (sym, expr)))
+                .collect::<Result<_, _>>()?,
+        },
+
+        Expr::Lit { val } => Expr::Lit { val },
+        Expr::Prim { op, args } => Expr::Prim {
+            op,
+            args: args
+                .into_iter()
+                .map(|arg| uniquify_expression(arg, scope))
+                .collect::<Result<_, _>>()?,
+        },
+        Expr::If { cnd, thn, els } => Expr::If {
+            cnd: Box::new(uniquify_expression(*cnd, scope)?),
+            thn: Box::new(uniquify_expression(*thn, scope)?),
+            els: Box::new(uniquify_expression(*els, scope)?),
+        },
+        Expr::Apply { fun, args } => Expr::Apply {
+            fun: Box::new(uniquify_expression(*fun, scope)?),
+            args: args
+                .into_iter()
+                .map(|arg| uniquify_expression(arg, scope))
+                .collect::<Result<_, _>>()?,
+        },
+        Expr::Loop { bdy } => Expr::Loop {
+            bdy: Box::new(uniquify_expression(*bdy, scope)?),
+        },
+        Expr::Break { bdy } => Expr::Break {
+            bdy: Box::new(uniquify_expression(*bdy, scope)?),
+        },
+        Expr::Seq { stmt, cnt } => Expr::Seq {
+            stmt: Box::new(uniquify_expression(*stmt, scope)?),
+            cnt: Box::new(uniquify_expression(*cnt, scope)?),
+        },
+        Expr::Continue => Expr::Continue,
+        Expr::Return { bdy } => Expr::Return {
+            bdy: Box::new(uniquify_expression(*bdy, scope)?),
+        },
+        Expr::AccessField { strct, field } => Expr::AccessField {
+            strct: Box::new(uniquify_expression(*strct, scope)?),
+            field,
+        },
+        Expr::Variant { .. } => todo!(),
+        Expr::Switch { .. } => todo!(),
+    };
+
+    Ok(Spanned {
+        inner,
+        span: expr.span,
+    })
 }

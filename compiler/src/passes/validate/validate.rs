@@ -10,7 +10,6 @@ impl<'p> PrgParsed<'p> {
         let assignments = program.generate_constraints().solve()?;
         let program = program.resolve_types(assignments);
         program.check_sized()?;
-        expect(program.defs.contains_key("main"), NoMain)?;
         Ok(program)
     }
 }
