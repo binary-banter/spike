@@ -2,8 +2,8 @@ use crate::passes::parse::types::Type;
 use crate::passes::parse::{Lit, Spanned};
 use crate::passes::validate::type_check::error::TypeError;
 use crate::passes::validate::type_check::error::TypeError::*;
-use crate::passes::validate::{TExpr, TLit};
 use crate::passes::validate::type_check::s;
+use crate::passes::validate::{TExpr, TLit};
 
 pub fn validate_lit<'p>(
     val: Lit,

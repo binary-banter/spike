@@ -1,7 +1,7 @@
 use crate::passes::parse::Spanned;
 use crate::passes::validate::type_check::error::TypeError;
 use crate::passes::validate::type_check::error::TypeError::*;
-use crate::passes::validate::type_check::{Env, EnvEntry, s};
+use crate::passes::validate::type_check::{s, Env, EnvEntry};
 use crate::passes::validate::TExpr;
 
 pub fn validate_var<'p>(

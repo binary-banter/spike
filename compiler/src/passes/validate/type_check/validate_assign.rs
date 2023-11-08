@@ -3,7 +3,7 @@ use crate::passes::parse::{Expr, Spanned};
 use crate::passes::validate::type_check::error::TypeError;
 use crate::passes::validate::type_check::error::TypeError::*;
 use crate::passes::validate::type_check::validate_expr::validate_expr;
-use crate::passes::validate::type_check::{Env, EnvEntry, s};
+use crate::passes::validate::type_check::{s, Env, EnvEntry};
 use crate::passes::validate::TExpr;
 use crate::utils::expect::expect;
 
