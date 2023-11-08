@@ -1,10 +1,24 @@
 pub mod error;
 mod uncover_globals;
+mod validate_access_field;
+mod validate_apply;
+mod validate_assign;
+mod validate_break;
+mod validate_continue;
 mod validate_expr;
+mod validate_if;
+mod validate_let;
+mod validate_lit;
+mod validate_loop;
 mod validate_prim;
+mod validate_return;
+mod validate_seq;
 mod validate_struct;
+mod validate_switch;
 mod validate_type;
 mod validate_typedef;
+mod validate_var;
+mod validate_variant;
 
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, PrgParsed, Spanned, TypeDef};
