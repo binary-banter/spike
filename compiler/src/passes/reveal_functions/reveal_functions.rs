@@ -13,27 +13,30 @@ impl<'p> PrgUniquified<'p> {
             defs: self
                 .defs
                 .into_iter()
-                .map(|(sym, def)| {
-                    let def = match def {
-                        Def::Fn {
-                            sym,
-                            params,
-                            typ,
-                            bdy,
-                        } => Def::Fn {
-                            sym,
-                            params,
-                            typ,
-                            bdy: reveal_expr(bdy, &mut scope),
-                        },
-                        Def::TypeDef { sym, def } => Def::TypeDef { sym, def },
-                    };
-
-                    (sym, def)
-                })
+                .map(|(sym, def)| (sym, reveal_def(def, &mut scope)))
                 .collect(),
             entry: self.entry,
         }
+    }
+}
+
+fn reveal_def<'p>(
+    def: Def<'p, UniqueSym<'p>, TExpr<'p, UniqueSym<'p>>>,
+    scope: &mut PushMap<UniqueSym<'p>, ()>,
+) -> Def<'p, UniqueSym<'p>, RExpr<'p>> {
+    match def {
+        Def::Fn {
+            sym,
+            params,
+            typ,
+            bdy,
+        } => Def::Fn {
+            sym,
+            params,
+            typ,
+            bdy: reveal_expr(bdy, scope),
+        },
+        Def::TypeDef { sym, def } => Def::TypeDef { sym, def },
     }
 }
 
