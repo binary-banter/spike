@@ -1,5 +1,5 @@
-use crate::passes::reveal_functions::{PrgRevealed};
-use crate::passes::validate::{PrgValidated};
+use crate::passes::reveal_functions::PrgRevealed;
+use crate::passes::validate::PrgValidated;
 
 impl<'p> PrgValidated<'p> {
     #[must_use]

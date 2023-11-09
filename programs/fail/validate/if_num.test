@@ -1,0 +1,8 @@
+//* err: todo!
+fn main() -> Int {
+    if 1 {
+        true
+    } else {
+        false
+    }
+}

@@ -1,0 +1,6 @@
+//* err: todo!
+fn main() -> Int {
+    loop {
+        break
+    }
+}

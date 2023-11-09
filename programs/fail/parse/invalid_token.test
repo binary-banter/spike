@@ -1,3 +1,4 @@
+//* err: InvalidToken
 fn main() -> Int {
     @
 }

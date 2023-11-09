@@ -2,7 +2,6 @@ use derive_more::Index;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::hash::Hash;
-use std::ops::Index;
 
 #[derive(Index)]
 pub struct PushMap<K: Hash + Eq + Clone, V>(pub HashMap<K, V>);

@@ -1,0 +1,9 @@
+//* err: todo!
+fn test(x: Int) -> Int {
+    x = 42;
+    x
+}
+
+fn main() -> Int {
+    test(8)
+}

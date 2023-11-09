@@ -1,0 +1,5 @@
+//* err: todo!
+fn main() -> Int {
+    let x = unit;
+    x
+}

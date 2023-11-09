@@ -1,5 +1,0 @@
-fn main() -> Int {
-    loop {
-        break
-    }
-}

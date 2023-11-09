@@ -1,0 +1,5 @@
+//* err: todo!
+fn main() -> Bool {
+    42
+}
+

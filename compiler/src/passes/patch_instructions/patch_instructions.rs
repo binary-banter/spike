@@ -48,6 +48,7 @@ fn patch_args<'p>(src: Arg, dst: Arg, op: fn(Arg, Arg) -> Instr<'p, Arg>) -> Vec
 #[cfg(test)]
 mod tests {
     use crate::interpreter::TestIO;
+    use crate::passes::parse::parse::parse_program;
     use crate::passes::select::X86Selected;
     use crate::utils::gen_sym::gen_sym;
     use crate::utils::split_test::split_test;
@@ -55,10 +56,10 @@ mod tests {
     use test_each_file::test_each_file;
 
     fn patch_instructions([test]: [&str; 1]) {
-        let (input, expected_output, expected_return, program) = split_test(test);
-        let expected_return = expected_return.into();
+        let (input, expected_output, expected_return, _) = split_test(test);
 
-        let mut program: X86Selected = program
+        let mut program: X86Selected = parse_program(test)
+            .unwrap()
             .validate()
             .unwrap()
             .reveal()
@@ -88,7 +89,7 @@ mod tests {
         let mut io = TestIO::new(input);
         let result = program.interpret(&mut io);
 
-        assert_eq!(result, expected_return, "Incorrect program result.");
+        assert_eq!(result, expected_return.into(), "Incorrect program result.");
         assert_eq!(io.outputs(), &expected_output, "Incorrect program output.");
     }
 

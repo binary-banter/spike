@@ -8,12 +8,12 @@ pub mod interpreter;
 pub mod parse;
 pub mod types;
 
+use crate::utils::gen_sym::UniqueSym;
 use derive_more::Display;
 use functor_derive::Functor;
 use std::fmt::{Display, Formatter};
 use std::hash::Hash;
 use types::Type;
-use crate::utils::gen_sym::UniqueSym;
 
 /// A parsed program with global definitions and an entry point.
 #[derive(Debug, PartialEq)]
@@ -47,7 +47,8 @@ pub enum Def<IdentVars: Copy + Hash + Eq + Display, IdentFields: Copy + Hash + E
 pub type DefParsed<'p> = Def<Spanned<&'p str>, Spanned<&'p str>, Spanned<ExprParsed<'p>>>;
 pub type ExprParsed<'p> = Expr<'p, Spanned<&'p str>, Spanned<&'p str>>;
 
-pub type DefUniquified<'p> = Def<Spanned<UniqueSym<'p>>, Spanned<&'p str>, Spanned<ExprUniquified<'p>>>;
+pub type DefUniquified<'p> =
+    Def<Spanned<UniqueSym<'p>>, Spanned<&'p str>, Spanned<ExprUniquified<'p>>>;
 pub type ExprUniquified<'p> = Expr<'p, Spanned<UniqueSym<'p>>, Spanned<&'p str>>;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -64,7 +65,9 @@ pub enum TypeDef<A: Copy + Hash + Eq + Display, A2: Copy + Hash + Eq + Display> 
     },
 }
 
-impl<IdentVars: Copy + Hash + Eq + Display, IdentFields: Copy + Hash + Eq + Display, Expr> Def<IdentVars, IdentFields, Expr> {
+impl<IdentVars: Copy + Hash + Eq + Display, IdentFields: Copy + Hash + Eq + Display, Expr>
+    Def<IdentVars, IdentFields, Expr>
+{
     /// Returns the symbol representing the definition.
     pub fn sym(&self) -> &IdentVars {
         match self {
@@ -302,13 +305,37 @@ pub enum Lit<'p> {
 
 #[cfg(test)]
 mod tests {
+    use crate::passes::parse::parse::{parse_program, PrettyParseError};
     use crate::utils::split_test::split_test;
     use test_each_file::test_each_file;
 
     fn parse([test]: [&str; 1]) {
-        let _ = split_test(test);
+        let (_, _, _, expected_error) = split_test(test);
+
+        let result = parse_program(test);
+
+        match (result, expected_error) {
+            (Ok(_), None) => {}
+            (Err(error), None) => {
+                panic!("Should have succeeded, but panicked with `{error}` instead")
+            }
+            (Ok(_), Some(expected_error)) => {
+                panic!("Expected error `{expected_error}`, but succeeded instead.")
+            }
+            (Err(error), Some(expected_error)) => match error {
+                PrettyParseError::InvalidToken { .. } => {
+                    assert_eq!(expected_error, "InvalidToken")
+                }
+                PrettyParseError::UnexpectedToken { .. } => {
+                    assert_eq!(expected_error, "UnexpectedToken")
+                }
+                PrettyParseError::UnexpectedEOF { .. } => {
+                    assert_eq!(expected_error, "UnexpectedEOF")
+                }
+            },
+        }
     }
 
-    test_each_file! { for ["test"] in "./programs/good" as parse => parse }
-    // todo: add negative tests.
+    test_each_file! { for ["test"] in "./programs/good" as parse_succeed => parse }
+    test_each_file! { for ["test"] in "./programs/fail/parse" as parse_fail => parse }
 }

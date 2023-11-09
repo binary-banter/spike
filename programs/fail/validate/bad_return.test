@@ -1,0 +1,9 @@
+//* err: todo!
+fn add(x: Int, y: Int) -> Int {
+    return true;
+    8
+}
+
+fn main() -> Int {
+    add(40, 2)
+}

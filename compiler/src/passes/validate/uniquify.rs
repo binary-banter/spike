@@ -1,5 +1,8 @@
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Def, DefParsed, DefUniquified, Expr, ExprParsed, ExprUniquified, Param, PrgParsed, Spanned, TypeDef};
+use crate::passes::parse::{
+    Def, DefParsed, DefUniquified, Expr, ExprParsed, ExprUniquified, Param, PrgParsed, Spanned,
+    TypeDef,
+};
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::error::TypeError::{NoMain, UndeclaredVar};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
@@ -206,7 +209,7 @@ fn uniquify_expression<'p>(
 
 fn try_get<'p>(
     sym: Spanned<&'p str>,
-    scope: &mut PushMap<&'p str, UniqueSym<'p>>,
+    scope: &PushMap<&'p str, UniqueSym<'p>>,
 ) -> Result<Spanned<UniqueSym<'p>>, TypeError> {
     scope
         .get(&sym.inner)
