@@ -8,11 +8,12 @@ use std::os::unix::prelude::OpenOptionsExt;
 use std::process::{Command, Stdio};
 use tempfile::TempDir;
 use test_each_file::test_each_file;
+use compiler::passes::parse::parse::parse_program;
 
 fn integration([test]: [&str; 1]) {
     let tempdir = TempDir::with_prefix("rust-compiler-construction-integration").unwrap();
 
-    let (input, expected_output, expected_return, program) = split_test(test);
+    let (input, expected_output, expected_return, _) = split_test(test);
     let expected_return: i64 = expected_return.into();
 
     let input_path = tempdir.path().join("output");
@@ -23,7 +24,7 @@ fn integration([test]: [&str; 1]) {
         .open(input_path)
         .unwrap();
 
-    program
+    parse_program(test).unwrap()
         .validate()
         .unwrap()
         .reveal()
@@ -31,10 +32,7 @@ fn integration([test]: [&str; 1]) {
         .explicate()
         .eliminate()
         .select()
-        .add_liveness()
-        .compute_interference()
-        .color_interference()
-        .assign_homes()
+        .assign()
         .patch()
         .conclude()
         .emit()
