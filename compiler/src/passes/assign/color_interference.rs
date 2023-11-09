@@ -6,7 +6,7 @@ use std::collections::{HashMap, HashSet};
 
 impl<'p> InterferenceGraph<'p> {
     #[must_use]
-    pub fn solve(self) -> (HashMap<UniqueSym<'p>, Arg>, usize) {
+    pub fn color(self) -> (HashMap<UniqueSym<'p>, Arg>, usize) {
         let graph = self.0;
         let mut queue = Vec::new();
         let mut node_map = HashMap::<LArg, isize>::new();

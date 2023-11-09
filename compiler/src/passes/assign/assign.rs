@@ -9,7 +9,7 @@ impl<'p> X86Selected<'p> {
     pub fn assign(self) -> X86Assigned<'p> {
         let program = self.include_liveness();
         let interference = program.compute_interference();
-        let (color_map, stack_space) = interference.solve();
+        let (color_map, stack_space) = interference.color();
 
         let blocks = program
             .blocks
