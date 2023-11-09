@@ -18,10 +18,7 @@ fn patch([test]: [&str; 1]) {
         .explicate()
         .eliminate()
         .select()
-        .add_liveness()
-        .compute_interference()
-        .color_interference()
-        .assign_homes()
+        .assign()
         .patch()
         .into();
 

@@ -1,7 +1,7 @@
-pub mod assign_homes;
-pub mod coloring_interference;
-pub mod compute_interference;
-pub mod liveness_analysis;
+mod assign;
+mod color_interference;
+mod compute_interference;
+mod include_liveness;
 #[cfg(test)]
 mod tests;
 
@@ -22,37 +22,6 @@ pub struct X86Assigned<'p> {
     pub std: Std<'p>,
 }
 
-#[derive(Debug, PartialEq)]
-pub struct LX86VarProgram<'p> {
-    pub blocks: HashMap<UniqueSym<'p>, LBlock<'p>>,
-    pub entry: UniqueSym<'p>,
-    pub std: Std<'p>,
-}
-
-#[derive(Debug)]
-pub struct X86WithInterference<'p> {
-    pub blocks: HashMap<UniqueSym<'p>, Block<'p, VarArg<'p>>>,
-    pub entry: UniqueSym<'p>,
-    pub interference: InterferenceGraph<'p>,
-    pub std: Std<'p>,
-}
-
-#[derive(Debug)]
-pub struct X86Colored<'p> {
-    pub blocks: HashMap<UniqueSym<'p>, Block<'p, VarArg<'p>>>,
-    pub entry: UniqueSym<'p>,
-    pub color_map: HashMap<UniqueSym<'p>, Arg>,
-    pub stack_space: usize,
-    pub std: Std<'p>,
-}
-
-pub type InterferenceGraph<'p> = GraphMap<LArg<'p>, (), Undirected>;
-
-#[derive(Debug, PartialEq)]
-pub struct LBlock<'p> {
-    pub instrs: Vec<(Instr<'p, VarArg<'p>>, HashSet<LArg<'p>>)>,
-}
-
 #[derive(Debug, PartialEq, Copy, Clone, Hash, Eq, Display)]
 pub enum Arg {
     #[display(fmt = "${val}")]
@@ -61,6 +30,19 @@ pub enum Arg {
     Reg { reg: Reg },
     #[display(fmt = "[%{reg} + ${off}]")]
     Deref { reg: Reg, off: i64 },
+}
+
+pub struct InterferenceGraph<'p>(GraphMap<LArg<'p>, (), Undirected>);
+
+pub struct LX86VarProgram<'p> {
+    pub blocks: HashMap<UniqueSym<'p>, LBlock<'p>>,
+    pub entry: UniqueSym<'p>,
+    pub std: Std<'p>,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct LBlock<'p> {
+    pub instrs: Vec<(Instr<'p, VarArg<'p>>, HashSet<LArg<'p>>)>,
 }
 
 #[derive(Debug, PartialEq, Clone, Copy, Hash, Eq, Ord, PartialOrd)]

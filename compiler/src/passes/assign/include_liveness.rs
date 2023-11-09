@@ -1,15 +1,13 @@
 use crate::utils::gen_sym::UniqueSym;
 
-use crate::passes::interference::{LArg, LBlock, LX86VarProgram};
+use crate::passes::assign::{LArg, LBlock, LX86VarProgram};
 use crate::passes::select::{Block, Instr, Reg, VarArg, X86Selected, CALLER_SAVED, SYSCALL_REGS};
 use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet};
 
 impl<'p> X86Selected<'p> {
     #[must_use]
-    pub fn add_liveness(self) -> LX86VarProgram<'p> {
-        // let graph = create_graph(&self.blocks);
-
+    pub(super) fn include_liveness(self) -> LX86VarProgram<'p> {
         // maps block names to what is live before the block
         let mut before_map = HashMap::<UniqueSym, HashSet<LArg>>::new();
         // maps block names to blocks with liveness info added
@@ -58,25 +56,6 @@ impl<'p> X86Selected<'p> {
         }
     }
 }
-
-// todo: implement more efficient way to update blocks
-// fn create_graph<'p>(blocks: &HashMap<UniqueSym<'p>, Block<'p, VarArg<'p>>>) -> GraphMap<UniqueSym<'p>, (), Directed> {
-//     let mut graph = GraphMap::default();
-//
-//     for (src, block) in blocks{
-//         graph.add_node(*src);
-//         for instr in &block.instrs {
-//             match instr {
-//                 Instr::Jmp { lbl } | Instr::Jcc { lbl, .. } => {
-//                     graph.add_edge(*src, *lbl, ());
-//                 }
-//                 _ => {}
-//             }
-//         }
-//     }
-//
-//     graph
-// }
 
 fn block_liveness<'p>(
     block: &Block<'p, VarArg<'p>>,

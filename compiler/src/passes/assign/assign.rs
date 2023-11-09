@@ -1,36 +1,41 @@
-use crate::passes::interference::{Arg, X86Assigned, X86Colored};
-use crate::passes::select::{Block, Instr, VarArg};
+use crate::passes::assign::{Arg, X86Assigned};
+use crate::passes::select::{Block, Instr, VarArg, X86Selected};
 use crate::utils::gen_sym::UniqueSym;
-use crate::{
-    addq, andq, callq_direct, callq_indirect, cmpq, divq, jcc, jmp, load_lbl, movq, mulq, negq,
-    notq, orq, popq, pushq, retq, setcc, subq, syscall, xorq,
-};
+use crate::*;
 use std::collections::HashMap;
 
-impl<'p> X86Colored<'p> {
+impl<'p> X86Selected<'p> {
     #[must_use]
-    pub fn assign_homes(self) -> X86Assigned<'p> {
+    pub fn assign(self) -> X86Assigned<'p> {
+        let program = self.include_liveness();
+        let interference = program.compute_interference();
+        let (color_map, stack_space) = interference.solve();
+
+        let blocks = program
+            .blocks
+            .into_iter()
+            .map(|(lbl, block)| (lbl, assign_block(block.into(), &color_map)))
+            .collect();
+
         X86Assigned {
-            blocks: self
-                .blocks
-                .into_iter()
-                .map(|(name, block)| {
-                    (
-                        name,
-                        Block {
-                            instrs: block
-                                .instrs
-                                .into_iter()
-                                .map(|instr| assign_instr(instr, &self.color_map))
-                                .collect(),
-                        },
-                    )
-                })
-                .collect(),
-            entry: self.entry,
-            stack_space: self.stack_space,
-            std: self.std,
+            blocks,
+            entry: program.entry,
+            stack_space,
+            std: program.std,
         }
+    }
+}
+
+fn assign_block<'p>(
+    block: Block<'p, VarArg>,
+    color_map: &HashMap<UniqueSym, Arg>,
+) -> Block<'p, Arg> {
+    Block {
+        instrs: block
+            .instrs
+            .into_iter()
+            .map(|instr| assign_instr(instr, color_map))
+            .collect(),
     }
 }
 

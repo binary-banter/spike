@@ -1,4 +1,4 @@
-use crate::passes::interference::{Arg, X86Assigned};
+use crate::passes::assign::{Arg, X86Assigned};
 use crate::passes::patch::X86Patched;
 use crate::passes::select::{Block, Instr};
 use crate::{addq, movq, reg, subq};

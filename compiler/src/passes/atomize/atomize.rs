@@ -1,7 +1,7 @@
 use crate::passes::atomize::{AExpr, Atom, PrgAtomized};
 use crate::passes::parse::types::Type;
 use crate::passes::parse::Def;
-use crate::passes::reveal_functions::{PrgRevealed, RExpr};
+use crate::passes::reveal::{PrgRevealed, RExpr};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 
 impl<'p> PrgRevealed<'p> {

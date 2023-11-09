@@ -1,4 +1,4 @@
-pub mod reveal_functions;
+pub mod reveal;
 #[cfg(test)]
 mod tests;
 

@@ -2,7 +2,7 @@ pub mod patch;
 #[cfg(test)]
 mod tests;
 
-use crate::passes::interference::Arg;
+use crate::passes::assign::Arg;
 use crate::passes::select::io::Std;
 use crate::passes::select::{Block, X86Selected};
 use crate::utils::gen_sym::UniqueSym;

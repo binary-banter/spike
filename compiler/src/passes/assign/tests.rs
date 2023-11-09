@@ -6,7 +6,7 @@ use crate::utils::split_test::split_test;
 use crate::{block, callq_direct, movq, reg};
 use test_each_file::test_each_file;
 
-fn assign_homes([test]: [&str; 1]) {
+fn assign([test]: [&str; 1]) {
     let (input, expected_output, expected_return, _) = split_test(test);
 
     let mut program: X86Selected = parse_program(test)
@@ -18,10 +18,7 @@ fn assign_homes([test]: [&str; 1]) {
         .explicate()
         .eliminate()
         .select()
-        .add_liveness()
-        .compute_interference()
-        .color_interference()
-        .assign_homes()
+        .assign()
         .into();
 
     // Redirect program to exit
@@ -43,4 +40,4 @@ fn assign_homes([test]: [&str; 1]) {
     assert_eq!(io.outputs(), &expected_output, "Incorrect program output.");
 }
 
-test_each_file! { for ["test"] in "./programs/good" as assign_homes => assign_homes }
+test_each_file! { for ["test"] in "./programs/good" as assign => assign }

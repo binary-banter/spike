@@ -1,11 +1,11 @@
+pub mod assign;
 pub mod atomize;
 pub mod conclude;
 pub mod eliminate;
 pub mod emit;
 pub mod explicate;
-pub mod interference;
 pub mod parse;
 pub mod patch;
-pub mod reveal_functions;
+pub mod reveal;
 pub mod select;
 pub mod validate;
