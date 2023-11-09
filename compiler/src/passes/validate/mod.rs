@@ -3,6 +3,8 @@ pub mod error;
 mod generate_constraints;
 mod resolve_types;
 mod solve_constraints;
+#[cfg(test)]
+mod tests;
 pub mod uniquify;
 pub mod validate;
 

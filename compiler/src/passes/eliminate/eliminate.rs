@@ -1,6 +1,6 @@
 use crate::passes::atomize::Atom;
-use crate::passes::eliminate_algebraic::eliminate_params::{eliminate_params, flatten_type};
-use crate::passes::eliminate_algebraic::{EExpr, ETail, PrgEliminated};
+use crate::passes::eliminate::eliminate_params::{eliminate_params, flatten_type};
+use crate::passes::eliminate::{EExpr, ETail, PrgEliminated};
 use crate::passes::explicate::{CExpr, CTail, PrgExplicated};
 use crate::passes::parse::types::Type;
 use crate::passes::parse::TypeDef;

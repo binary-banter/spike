@@ -1,4 +1,5 @@
 pub mod atomize;
+mod tests;
 
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, Op};
@@ -222,28 +223,3 @@ impl<'p> From<Atom<'p>> for TExpr<'p> {
         }
     }
 }
-
-// #[cfg(test)]
-// mod tests {
-//     use crate::interpreter::TestIO;
-//     use crate::utils::split_test::split_test;
-//     use test_each_file::test_each_file;
-//
-//     fn atomize([test]: [&str; 1]) {
-//         let (input, expected_output, expected_return, program) = split_test(test);
-//         let program: PrgUniquified = program
-//             .validate()
-//             .unwrap()
-//             .uniquify()
-//             .reveal()
-//             .atomize()
-//             .into();
-//         let mut io = TestIO::new(input);
-//         let result = program.interpret(&mut io);
-//
-//         assert_eq!(result, expected_return.into(), "Incorrect program result.");
-//         assert_eq!(io.outputs(), &expected_output, "Incorrect program output.");
-//     }
-//
-//     test_each_file! { for ["test"] in "./programs/good" as atomize => atomize }
-// }

@@ -6,6 +6,8 @@ use functor_derive::Functor;
 use std::collections::HashMap;
 
 pub mod conclude;
+#[cfg(test)]
+mod tests;
 
 #[derive(Debug, PartialEq)]
 pub struct X86Concluded<'p> {

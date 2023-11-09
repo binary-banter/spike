@@ -1,11 +1,11 @@
 pub mod atomize;
 pub mod conclude;
-pub mod eliminate_algebraic;
+pub mod eliminate;
 pub mod emit;
 pub mod explicate;
 pub mod interference;
 pub mod parse;
-pub mod patch_instructions;
+pub mod patch;
 pub mod reveal_functions;
 pub mod select;
 pub mod validate;

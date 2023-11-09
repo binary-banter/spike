@@ -1,5 +1,5 @@
 use crate::passes::atomize::Atom;
-use crate::passes::eliminate_algebraic::{EExpr, ETail, PrgEliminated};
+use crate::passes::eliminate::{EExpr, ETail, PrgEliminated};
 use crate::passes::parse::{Op, Param};
 use crate::passes::select::io::Std;
 use crate::passes::select::{

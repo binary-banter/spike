@@ -1,11 +1,13 @@
+pub mod patch;
+#[cfg(test)]
+mod tests;
+
 use crate::passes::interference::Arg;
 use crate::passes::select::io::Std;
 use crate::passes::select::{Block, X86Selected};
 use crate::utils::gen_sym::UniqueSym;
 use functor_derive::Functor;
 use std::collections::HashMap;
-
-pub mod patch_instructions;
 
 #[derive(Debug, PartialEq)]
 pub struct X86Patched<'p> {

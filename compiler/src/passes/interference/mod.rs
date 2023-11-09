@@ -1,3 +1,10 @@
+pub mod assign_homes;
+pub mod coloring_interference;
+pub mod compute_interference;
+pub mod liveness_analysis;
+#[cfg(test)]
+mod tests;
+
 use crate::passes::select::io::Std;
 use crate::passes::select::{Block, Instr, Reg, VarArg, X86Selected};
 use crate::utils::gen_sym::UniqueSym;
@@ -6,11 +13,6 @@ use functor_derive::Functor;
 use petgraph::graphmap::GraphMap;
 use petgraph::Undirected;
 use std::collections::{HashMap, HashSet};
-
-pub mod assign_homes;
-pub mod coloring_interference;
-pub mod compute_interference;
-pub mod liveness_analysis;
 
 #[derive(Debug, PartialEq)]
 pub struct X86Assigned<'p> {

@@ -1,4 +1,4 @@
-use crate::passes::eliminate_algebraic::eliminate::Ctx;
+use crate::passes::eliminate::eliminate::Ctx;
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Param, TypeDef};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};

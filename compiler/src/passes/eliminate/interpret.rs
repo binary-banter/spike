@@ -1,7 +1,7 @@
 use crate::interpreter::Val;
 use crate::interpreter::IO;
 use crate::passes::atomize::Atom;
-use crate::passes::eliminate_algebraic::{EExpr, ETail, PrgEliminated};
+use crate::passes::eliminate::{EExpr, ETail, PrgEliminated};
 use crate::passes::parse::Op;
 use crate::passes::validate::TLit;
 use crate::utils::gen_sym::UniqueSym;
