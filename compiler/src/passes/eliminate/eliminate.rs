@@ -4,7 +4,7 @@ use crate::passes::eliminate::{EExpr, ETail, PrgEliminated};
 use crate::passes::explicate::{CExpr, CTail, PrgExplicated};
 use crate::passes::parse::types::Type;
 use crate::passes::parse::TypeDef;
-use crate::utils::gen_sym::{gen_sym, UniqueSym};
+use crate::utils::gen_sym::UniqueSym;
 use functor_derive::Functor;
 use std::collections::HashMap;
 
@@ -80,7 +80,7 @@ fn eliminate_seq<'p>(
             let strct = strct.var();
             let new_sym = *ctx
                 .entry((strct, field))
-                .or_insert_with(|| gen_sym(sym.sym));
+                .or_insert_with(|| sym.fresh());
 
             return eliminate_seq(
                 sym,
@@ -120,10 +120,10 @@ fn eliminate_seq<'p>(
             TypeDef::Struct { fields: def_fields } => match bnd {
                 CExpr::Atom { atm, .. } => {
                     def_fields.iter().fold(tail, |tail, (field, field_type)| {
-                        let sym_lhs = *ctx.entry((sym, field)).or_insert_with(|| gen_sym(sym.sym));
+                        let sym_lhs = *ctx.entry((sym, field)).or_insert_with(|| sym.fresh());
                         let sym_rhs = *ctx
                             .entry((atm.var(), field))
-                            .or_insert_with(|| gen_sym(atm.var().sym));
+                            .or_insert_with(|| atm.var().fresh());
 
                         eliminate_seq(
                             sym_lhs,
@@ -141,7 +141,7 @@ fn eliminate_seq<'p>(
                     let field_values = fields.into_iter().collect::<HashMap<_, _>>();
 
                     def_fields.iter().fold(tail, |tail, (field, field_type)| {
-                        let sym_lhs = *ctx.entry((sym, field)).or_insert_with(|| gen_sym(sym.sym));
+                        let sym_lhs = *ctx.entry((sym, field)).or_insert_with(|| sym.fresh());
                         let sym_rhs = field_values[field];
 
                         eliminate_seq(

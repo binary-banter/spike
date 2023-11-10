@@ -1,7 +1,7 @@
 use crate::passes::eliminate::eliminate::Ctx;
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Param, TypeDef};
-use crate::utils::gen_sym::{gen_sym, UniqueSym};
+use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
 
 pub fn eliminate_params<'p>(
@@ -49,7 +49,7 @@ pub fn flatten_type<'p>(
                 .flat_map(|(field_name, field_type)| {
                     let new_sym = *ctx
                         .entry((sym, field_name))
-                        .or_insert_with(|| gen_sym(sym.sym));
+                        .or_insert_with(|| sym.fresh());
 
                     flatten_type(new_sym, field_type, ctx, defs).into_iter()
                 })
