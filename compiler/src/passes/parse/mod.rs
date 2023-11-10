@@ -9,14 +9,18 @@ pub mod parse;
 #[cfg(test)]
 mod tests;
 pub mod types;
+mod display;
 
 use crate::utils::gen_sym::UniqueSym;
 use derive_more::Display;
 use functor_derive::Functor;
 use std::fmt::{Display, Formatter};
 use types::Type;
+use itertools::Itertools;
 
 /// A parsed program with global definitions and an entry point.
+#[derive(Display)]
+#[display(fmt = "{}", r#"defs.into_iter().format("\n\n")"#)]
 pub struct PrgParsed<'p> {
     /// The global program definitions.
     pub defs: Vec<DefParsed<'p>>,
@@ -78,6 +82,9 @@ impl<IdentVars, IdentFields, Expr> Def<IdentVars, IdentFields, Expr> {
 /// Parameters are generic and can use symbols that are either `&str` or
 /// [`UniqueSym`](crate::utils::gen_sym::UniqueSym) for all passes after uniquify.
 #[derive(Clone)]
+#[derive(Display)]
+#[display(bound = "A: Display")]
+#[display(fmt = "{}{sym}: {typ}", r#"if *mutable { "mut " } else { "" }"#)]
 pub struct Param<A> {
     /// Symbol representing the parameter.
     pub sym: A,
@@ -246,6 +253,7 @@ impl<T: Display> Display for Spanned<T> {
 }
 
 /// A primitive operation.
+#[derive(Display)]
 pub enum Op {
     /// Read signed integer from stdin.
     Read,
