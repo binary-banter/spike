@@ -15,13 +15,11 @@ use derive_more::Display;
 use std::collections::HashMap;
 use std::str::FromStr;
 
-#[derive(Debug, PartialEq)]
 pub struct PrgValidated<'p> {
     pub defs: HashMap<&'p str, Def<UniqueSym<'p>, &'p str, TExpr<'p>>>,
     pub entry: &'p str,
 }
 
-#[derive(Debug, PartialEq)]
 pub enum TExpr<'p> {
     Lit {
         val: TLit,

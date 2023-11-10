@@ -14,7 +14,6 @@ use petgraph::graphmap::GraphMap;
 use petgraph::Undirected;
 use std::collections::{HashMap, HashSet};
 
-#[derive(Debug, PartialEq)]
 pub struct X86Assigned<'p> {
     pub blocks: HashMap<UniqueSym<'p>, Block<'p, Arg>>,
     pub entry: UniqueSym<'p>,
@@ -22,7 +21,7 @@ pub struct X86Assigned<'p> {
     pub std: Std<'p>,
 }
 
-#[derive(Debug, PartialEq, Copy, Clone, Hash, Eq, Display)]
+#[derive(Clone, Display)]
 pub enum Arg {
     #[display(fmt = "${val}")]
     Imm { val: i64 },
@@ -40,12 +39,12 @@ pub struct LX86VarProgram<'p> {
     pub std: Std<'p>,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(PartialEq)]
 pub struct LBlock<'p> {
     pub instrs: Vec<(Instr<'p, VarArg<'p>>, HashSet<LArg<'p>>)>,
 }
 
-#[derive(Debug, PartialEq, Clone, Copy, Hash, Eq, Ord, PartialOrd)]
+#[derive(Hash, Clone, Copy, Eq, Ord, PartialEq, PartialOrd)]
 pub enum LArg<'p> {
     Var { sym: UniqueSym<'p> },
     Reg { reg: Reg },

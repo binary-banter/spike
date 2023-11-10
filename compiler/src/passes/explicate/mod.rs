@@ -9,7 +9,6 @@ use crate::passes::parse::{Op, Param, TypeDef};
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
 
-#[derive(Debug, PartialEq)]
 pub struct PrgExplicated<'p> {
     pub blocks: HashMap<UniqueSym<'p>, CTail<'p>>,
     pub fn_params: HashMap<UniqueSym<'p>, Vec<Param<UniqueSym<'p>>>>,
@@ -17,7 +16,6 @@ pub struct PrgExplicated<'p> {
     pub entry: UniqueSym<'p>,
 }
 
-#[derive(Debug, PartialEq)]
 pub enum CTail<'p> {
     Return {
         expr: Atom<'p>,
@@ -38,7 +36,6 @@ pub enum CTail<'p> {
     },
 }
 
-#[derive(Clone, Debug, PartialEq)]
 pub enum CExpr<'p> {
     Atom {
         atm: Atom<'p>,

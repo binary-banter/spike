@@ -7,13 +7,11 @@ use crate::passes::validate::{TExpr, TLit};
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
 
-#[derive(Debug, PartialEq)]
 pub struct PrgAtomized<'p> {
     pub defs: HashMap<UniqueSym<'p>, Def<UniqueSym<'p>, &'p str, AExpr<'p>>>,
     pub entry: UniqueSym<'p>,
 }
 
-#[derive(Debug, PartialEq)]
 pub enum AExpr<'p> {
     Atom {
         atm: Atom<'p>,
@@ -103,7 +101,7 @@ impl<'p> AExpr<'p> {
     }
 }
 
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Copy, Clone)]
 pub enum Atom<'p> {
     Val { val: TLit },
     Var { sym: UniqueSym<'p> },

@@ -13,7 +13,7 @@ use itertools::Itertools;
 use std::collections::HashMap;
 use std::fmt::Display;
 
-#[derive(Debug, PartialEq, Display)]
+#[derive(Display)]
 #[display(
     fmt = "{}",
     r#"blocks.iter().map(|(sym, block)| format!("{sym}:\n{block}")).format("\n")"#
@@ -24,13 +24,13 @@ pub struct X86Selected<'p> {
     pub std: Std<'p>,
 }
 
-#[derive(Debug, PartialEq, Clone, Display, Functor)]
+#[derive(Clone, Display, Functor)]
 #[display(fmt = "\t{}", r#"instrs.iter().format("\n\t")"#)]
 pub struct Block<'p, A: Display> {
     pub instrs: Vec<Instr<'p, A>>,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Display)]
+#[derive(Copy, Clone, PartialEq, Display)]
 pub enum Cnd {
     Above,
     AboveOrEqual,
@@ -52,7 +52,7 @@ pub enum Cnd {
     Sign,
 }
 
-#[derive(Clone, Debug, PartialEq, Display, Functor)]
+#[derive(Clone, PartialEq, Display, Functor)]
 pub enum Instr<'p, A: Display> {
     #[display(fmt = "addq\t{src}\t{dst}")]
     Addq { src: A, dst: A },
@@ -98,7 +98,7 @@ pub enum Instr<'p, A: Display> {
     CallqIndirect { src: A, arity: usize },
 }
 
-#[derive(Debug, PartialEq, Clone, Copy, Hash, Eq, Display)]
+#[derive(PartialEq, Clone, Display)]
 pub enum VarArg<'p> {
     #[display(fmt = "${val}")]
     Imm { val: i64 },
@@ -142,7 +142,7 @@ pub const SYSCALL_REGS: [Reg; 7] = [
     Reg::R9,
 ];
 
-#[derive(Debug, PartialEq, Clone, Copy, Eq, Hash, Ord, PartialOrd, Display)]
+#[derive(Hash, Clone, Copy, Eq, Ord, PartialEq, PartialOrd, Display)]
 #[allow(clippy::upper_case_acronyms)]
 pub enum Reg {
     RSP,

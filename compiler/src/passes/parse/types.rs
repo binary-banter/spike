@@ -2,10 +2,9 @@ use derive_more::Display;
 use functor_derive::Functor;
 use itertools::Itertools;
 use std::fmt::Display;
-use std::hash::Hash;
 
-#[derive(Debug, Clone, PartialEq, Display)]
-pub enum Type<A: Hash + Eq + Display> {
+#[derive(Debug, Clone, Display)]
+pub enum Type<A: Display> {
     #[display(fmt = "Int")]
     Int,
     #[display(fmt = "Bool")]
@@ -23,12 +22,9 @@ pub enum Type<A: Hash + Eq + Display> {
     Var { sym: A },
 }
 
-impl<A: Hash + Eq + Display> Type<A> {
-    pub fn fmap<__B: Hash + Eq + Display>(self, __f: impl Fn(A) -> __B) -> Type<__B> {
-        fn fmap_ref<A: Hash + Eq + Display, __B: Hash + Eq + Display>(
-            s: Type<A>,
-            __f: &impl Fn(A) -> __B,
-        ) -> Type<__B> {
+impl<A: Display> Type<A> {
+    pub fn fmap<__B: Display>(self, __f: impl Fn(A) -> __B) -> Type<__B> {
+        fn fmap_ref<A: Display, __B: Display>(s: Type<A>, __f: &impl Fn(A) -> __B) -> Type<__B> {
             match s {
                 Type::Int => Type::Int,
                 Type::Bool => Type::Bool,

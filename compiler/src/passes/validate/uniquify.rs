@@ -8,7 +8,6 @@ use crate::passes::validate::error::TypeError::{NoMain, UndeclaredVar};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use crate::utils::push_map::PushMap;
 
-#[derive(Debug, PartialEq)]
 pub struct PrgUniquified<'p> {
     /// The global program definitions.
     pub defs: Vec<DefUniquified<'p>>,
@@ -50,7 +49,7 @@ fn uniquify_def<'p>(
         } => scope.push_iter::<Result<_, _>>(
             params
                 .iter()
-                .map(|param| (param.sym.inner, gen_spanned_sym(param.sym).inner)),
+                .map(|param| (param.sym.inner, gen_spanned_sym(param.sym.clone()).inner)),
             |scope| {
                 let params = params
                     .iter()
@@ -90,7 +89,7 @@ fn uniquify_param<'p>(
     scope: &mut PushMap<&'p str, UniqueSym<'p>>,
 ) -> Result<Param<Spanned<UniqueSym<'p>>>, TypeError> {
     Ok(Param {
-        sym: try_get(param.sym, scope)?,
+        sym: try_get(param.sym.clone(), scope)?,
         mutable: param.mutable,
         typ: uniquify_type(param.typ.clone(), scope)?,
     })
@@ -132,7 +131,7 @@ fn uniquify_expression<'p>(
             mutable,
         } => {
             let unique_bnd = uniquify_expression(*bnd, scope)?;
-            let unique_sym = gen_spanned_sym(sym);
+            let unique_sym = gen_spanned_sym(sym.clone());
             let unique_bdy = scope.push(sym.inner, unique_sym.inner, |scope| {
                 uniquify_expression(*bdy, scope)
             })?;

@@ -14,11 +14,9 @@ use crate::utils::gen_sym::UniqueSym;
 use derive_more::Display;
 use functor_derive::Functor;
 use std::fmt::{Display, Formatter};
-use std::hash::Hash;
 use types::Type;
 
 /// A parsed program with global definitions and an entry point.
-#[derive(Debug, PartialEq)]
 pub struct PrgParsed<'p> {
     /// The global program definitions.
     pub defs: Vec<DefParsed<'p>>,
@@ -27,8 +25,7 @@ pub struct PrgParsed<'p> {
 }
 
 /// A definition.
-#[derive(Debug, PartialEq)]
-pub enum Def<IdentVars: Copy + Hash + Eq + Display, IdentFields: Copy + Hash + Eq + Display, Expr> {
+pub enum Def<IdentVars: Display, IdentFields: Display, Expr> {
     /// A function definition.
     Fn {
         /// Symbol representing the function.
@@ -53,8 +50,7 @@ pub type DefUniquified<'p> =
     Def<Spanned<UniqueSym<'p>>, Spanned<&'p str>, Spanned<ExprUniquified<'p>>>;
 pub type ExprUniquified<'p> = Expr<'p, Spanned<UniqueSym<'p>>, Spanned<&'p str>>;
 
-#[derive(Clone, Debug, PartialEq)]
-pub enum TypeDef<A: Copy + Hash + Eq + Display, A2: Copy + Hash + Eq + Display> {
+pub enum TypeDef<A: Display, A2: Display> {
     /// A struct definition.
     Struct {
         /// Fields of the struct, consisting of field symbols and their types.
@@ -67,9 +63,7 @@ pub enum TypeDef<A: Copy + Hash + Eq + Display, A2: Copy + Hash + Eq + Display> 
     },
 }
 
-impl<IdentVars: Copy + Hash + Eq + Display, IdentFields: Copy + Hash + Eq + Display, Expr>
-    Def<IdentVars, IdentFields, Expr>
-{
+impl<IdentVars: Display, IdentFields: Display, Expr> Def<IdentVars, IdentFields, Expr> {
     /// Returns the symbol representing the definition.
     pub fn sym(&self) -> &IdentVars {
         match self {
@@ -83,8 +77,8 @@ impl<IdentVars: Copy + Hash + Eq + Display, IdentFields: Copy + Hash + Eq + Disp
 ///
 /// Parameters are generic and can use symbols that are either `&str` or
 /// [`UniqueSym`](crate::utils::gen_sym::UniqueSym) for all passes after uniquify.
-#[derive(Debug, PartialEq, Clone)]
-pub struct Param<A: Copy + Hash + Eq + Display> {
+#[derive(Clone)]
+pub struct Param<A: Display> {
     /// Symbol representing the parameter.
     pub sym: A,
     /// The type of the parameter. See [`Type`]
@@ -97,8 +91,7 @@ pub struct Param<A: Copy + Hash + Eq + Display> {
 ///
 /// Expressions are generic and can use symbols that are either `&str` or
 /// [`UniqueSym`](crate::utils::gen_sym::UniqueSym) for all passes after uniquify.
-#[derive(Debug, PartialEq)]
-pub enum Expr<'p, IdentVars: Copy + Hash + Eq + Display, IdentFields: Copy + Hash + Eq + Display> {
+pub enum Expr<'p, IdentVars: Display, IdentFields: Display> {
     /// A literal value. See [`Lit`].
     Lit {
         /// Value of the literal. See [`Lit`].
@@ -240,7 +233,7 @@ pub type SwitchArm<'p, IdentVars, IdentFields> = (
     Box<Spanned<Expr<'p, IdentVars, IdentFields>>>,
 );
 
-#[derive(Debug, PartialEq, Functor, Hash, Eq, Copy, Clone)]
+#[derive(Functor, Clone)]
 pub struct Spanned<T> {
     pub span: (usize, usize),
     pub inner: T,
@@ -253,7 +246,6 @@ impl<T: Display> Display for Spanned<T> {
 }
 
 /// A primitive operation.
-#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Op {
     /// Read signed integer from stdin.
     Read,
@@ -292,7 +284,7 @@ pub enum Op {
 }
 
 /// A literal value.
-#[derive(Copy, Clone, Debug, PartialEq, Display)]
+#[derive(Display)]
 pub enum Lit<'p> {
     /// Integer literal, representing a signed 64-bit number.
     #[display(fmt = "{val}")]

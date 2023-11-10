@@ -9,7 +9,6 @@ use crate::utils::gen_sym::UniqueSym;
 use functor_derive::Functor;
 use std::collections::HashMap;
 
-#[derive(Debug, PartialEq)]
 pub struct X86Patched<'p> {
     pub blocks: HashMap<UniqueSym<'p>, Block<'p, Arg>>,
     pub entry: UniqueSym<'p>,

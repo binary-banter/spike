@@ -9,7 +9,6 @@ pub mod conclude;
 #[cfg(test)]
 mod tests;
 
-#[derive(Debug, PartialEq)]
 pub struct X86Concluded<'p> {
     pub blocks: HashMap<UniqueSym<'p>, Block<'p, Arg>>,
     pub entry: UniqueSym<'p>,

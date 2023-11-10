@@ -8,13 +8,11 @@ use crate::passes::validate::{TExpr, TLit};
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
 
-#[derive(Debug, PartialEq)]
 pub struct PrgRevealed<'p> {
     pub defs: HashMap<UniqueSym<'p>, Def<UniqueSym<'p>, &'p str, RExpr<'p>>>,
     pub entry: UniqueSym<'p>,
 }
 
-#[derive(Debug, PartialEq)]
 pub enum RExpr<'p> {
     Lit {
         val: TLit,

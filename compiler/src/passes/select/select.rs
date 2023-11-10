@@ -119,9 +119,15 @@ fn select_assign<'p>(
             ..
         } => vec![movq!(var!(sym), dst)],
         EExpr::Prim { op, args, .. } => match (op, args.as_slice()) {
-            (Op::Plus, [a0, a1]) => vec![movq!(select_atom(a0), dst), addq!(select_atom(a1), dst)],
-            (Op::Minus, [a0, a1]) => vec![movq!(select_atom(a0), dst), subq!(select_atom(a1), dst)],
-            (Op::Minus, [a0]) => vec![movq!(select_atom(a0), dst), negq!(dst)],
+            (Op::Plus, [a0, a1]) => vec![
+                movq!(select_atom(a0), dst.clone()),
+                addq!(select_atom(a1), dst),
+            ],
+            (Op::Minus, [a0, a1]) => vec![
+                movq!(select_atom(a0), dst.clone()),
+                subq!(select_atom(a1), dst),
+            ],
+            (Op::Minus, [a0]) => vec![movq!(select_atom(a0), dst.clone()), negq!(dst)],
             (Op::Mul, [a0, a1]) => vec![
                 movq!(select_atom(a1), reg!(RAX)),
                 movq!(select_atom(a0), reg!(RBX)),
@@ -150,10 +156,19 @@ fn select_assign<'p>(
                 callq_direct!(std.print_int, 1),
                 movq!(select_atom(a0), dst),
             ],
-            (Op::LAnd, [a0, a1]) => vec![movq!(select_atom(a0), dst), andq!(select_atom(a1), dst)],
-            (Op::LOr, [a0, a1]) => vec![movq!(select_atom(a0), dst), orq!(select_atom(a1), dst)],
-            (Op::Not, [a0]) => vec![movq!(select_atom(a0), dst), xorq!(imm!(1), dst)],
-            (Op::Xor, [a0, a1]) => vec![movq!(select_atom(a0), dst), xorq!(select_atom(a1), dst)],
+            (Op::LAnd, [a0, a1]) => vec![
+                movq!(select_atom(a0), dst.clone()),
+                andq!(select_atom(a1), dst),
+            ],
+            (Op::LOr, [a0, a1]) => vec![
+                movq!(select_atom(a0), dst.clone()),
+                orq!(select_atom(a1), dst),
+            ],
+            (Op::Not, [a0]) => vec![movq!(select_atom(a0), dst.clone()), xorq!(imm!(1), dst)],
+            (Op::Xor, [a0, a1]) => vec![
+                movq!(select_atom(a0), dst.clone()),
+                xorq!(select_atom(a1), dst),
+            ],
             (op @ (Op::GT | Op::GE | Op::EQ | Op::LE | Op::LT | Op::NE), [a0, a1]) => {
                 let tmp = gen_sym("tmp");
                 vec![

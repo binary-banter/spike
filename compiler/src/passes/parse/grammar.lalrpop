@@ -304,7 +304,7 @@ Struct: Expr<'input, Spanned<&'input str>, Spanned<&'input str>> = {
 
 StructArg : (Spanned<&'input str>, Spanned<Expr<'input, Spanned<&'input str>, Spanned<&'input str>>>) = {
     <Ident> ":" <Spanned<Expr>>,
-    <l:@L> <sym:Ident> <r:@R> => (sym, Spanned { span: (l, r), inner: Expr::Var { sym } })
+    <l:@L> <sym:Ident> <r:@R> => (sym.clone(), Spanned { span: (l, r), inner: Expr::Var { sym } })
 }
 
 Never: Expr<'input, Spanned<&'input str>, Spanned<&'input str>> = {};
