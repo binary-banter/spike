@@ -1,5 +1,6 @@
 #![cfg(unix)]
 
+use compiler::passes::parse::parse::parse_program;
 use compiler::passes::validate::TLit;
 use compiler::utils::split_test::split_test;
 use std::fs::OpenOptions;
@@ -8,7 +9,6 @@ use std::os::unix::prelude::OpenOptionsExt;
 use std::process::{Command, Stdio};
 use tempfile::TempDir;
 use test_each_file::test_each_file;
-use compiler::passes::parse::parse::parse_program;
 
 fn integration([test]: [&str; 1]) {
     let tempdir = TempDir::with_prefix("rust-compiler-construction-integration").unwrap();
@@ -24,7 +24,8 @@ fn integration([test]: [&str; 1]) {
         .open(input_path)
         .unwrap();
 
-    parse_program(test).unwrap()
+    parse_program(test)
+        .unwrap()
         .validate()
         .unwrap()
         .reveal()

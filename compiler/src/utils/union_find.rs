@@ -23,7 +23,10 @@ impl<T> UnionFind<T> {
         UnionIndex(index)
     }
 
-    pub fn add_iter(&mut self, values: impl Iterator<Item=T>) -> impl Iterator<Item=UnionIndex> {
+    pub fn add_iter(
+        &mut self,
+        values: impl Iterator<Item = T>,
+    ) -> impl Iterator<Item = UnionIndex> {
         let i = self.parents.len();
         self.data.extend(values);
         self.parents.extend(i..self.data.len());
@@ -36,14 +39,14 @@ impl<T> UnionFind<T> {
 
         // early exit if root
         if parent == child {
-            return UnionIndex(parent)
+            return UnionIndex(parent);
         }
 
         let parent_parent = self.parents[parent];
 
         // early exit if one away from root
         if parent_parent == parent {
-            return UnionIndex(parent_parent)
+            return UnionIndex(parent_parent);
         }
 
         let mut child_indexes = vec![child, parent];
@@ -96,14 +99,14 @@ impl<T> IndexMut<UnionIndex> for UnionFind<T> {
 
 #[cfg(test)]
 mod tests {
-    use itertools::Itertools;
     use super::*;
+    use itertools::Itertools;
 
     #[test]
     fn test_simple() {
         let mut uf = UnionFind::new();
         let x = uf.add(0);
-        let y= uf.add(1);
+        let y = uf.add(1);
 
         assert_eq!(uf.find(x), x);
         assert_eq!(uf.find(y), y);

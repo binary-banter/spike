@@ -25,7 +25,7 @@ pub struct PrgParsed<'p> {
 }
 
 /// A definition.
-pub enum Def<IdentVars: Display, IdentFields: Display, Expr> {
+pub enum Def<IdentVars, IdentFields, Expr> {
     /// A function definition.
     Fn {
         /// Symbol representing the function.
@@ -50,20 +50,20 @@ pub type DefUniquified<'p> =
     Def<Spanned<UniqueSym<'p>>, Spanned<&'p str>, Spanned<ExprUniquified<'p>>>;
 pub type ExprUniquified<'p> = Expr<'p, Spanned<UniqueSym<'p>>, Spanned<&'p str>>;
 
-pub enum TypeDef<A: Display, A2: Display> {
+pub enum TypeDef<IdentVars, IdentFields> {
     /// A struct definition.
     Struct {
         /// Fields of the struct, consisting of field symbols and their types.
-        fields: Vec<(A2, Type<A>)>,
+        fields: Vec<(IdentFields, Type<IdentVars>)>,
     },
     /// An enum definition.
     Enum {
         /// Variants of the enum, consisting of variant symbols and their types.
-        variants: Vec<(A2, Type<A>)>,
+        variants: Vec<(IdentFields, Type<IdentVars>)>,
     },
 }
 
-impl<IdentVars: Display, IdentFields: Display, Expr> Def<IdentVars, IdentFields, Expr> {
+impl<IdentVars, IdentFields, Expr> Def<IdentVars, IdentFields, Expr> {
     /// Returns the symbol representing the definition.
     pub fn sym(&self) -> &IdentVars {
         match self {
@@ -78,7 +78,7 @@ impl<IdentVars: Display, IdentFields: Display, Expr> Def<IdentVars, IdentFields,
 /// Parameters are generic and can use symbols that are either `&str` or
 /// [`UniqueSym`](crate::utils::gen_sym::UniqueSym) for all passes after uniquify.
 #[derive(Clone)]
-pub struct Param<A: Display> {
+pub struct Param<A> {
     /// Symbol representing the parameter.
     pub sym: A,
     /// The type of the parameter. See [`Type`]
@@ -91,7 +91,7 @@ pub struct Param<A: Display> {
 ///
 /// Expressions are generic and can use symbols that are either `&str` or
 /// [`UniqueSym`](crate::utils::gen_sym::UniqueSym) for all passes after uniquify.
-pub enum Expr<'p, IdentVars: Display, IdentFields: Display> {
+pub enum Expr<'p, IdentVars, IdentFields> {
     /// A literal value. See [`Lit`].
     Lit {
         /// Value of the literal. See [`Lit`].

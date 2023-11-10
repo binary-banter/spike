@@ -78,9 +78,7 @@ fn eliminate_seq<'p>(
             typ: field_typ,
         } => {
             let strct = strct.var();
-            let new_sym = *ctx
-                .entry((strct, field))
-                .or_insert_with(|| sym.fresh());
+            let new_sym = *ctx.entry((strct, field)).or_insert_with(|| sym.fresh());
 
             return eliminate_seq(
                 sym,

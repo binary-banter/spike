@@ -1,6 +1,6 @@
+use derive_more::Display;
 use std::fmt::{Display, Formatter};
 use std::marker::PhantomData;
-use derive_more::Display;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 static COUNT: AtomicUsize = AtomicUsize::new(0);
@@ -33,7 +33,6 @@ impl Display for UniqueSym<'_> {
         r
     }
 }
-
 
 #[cfg(not(release))]
 pub fn gen_sym(_sym: &str) -> UniqueSym<'_> {

@@ -47,9 +47,7 @@ pub fn flatten_type<'p>(
             TypeDef::Struct { fields } => fields
                 .iter()
                 .flat_map(|(field_name, field_type)| {
-                    let new_sym = *ctx
-                        .entry((sym, field_name))
-                        .or_insert_with(|| sym.fresh());
+                    let new_sym = *ctx.entry((sym, field_name)).or_insert_with(|| sym.fresh());
 
                     flatten_type(new_sym, field_type, ctx, defs).into_iter()
                 })
