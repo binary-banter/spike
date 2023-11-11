@@ -52,7 +52,8 @@ match {
     "print",
 
     // Types
-    "Int",
+    "I64",
+    "U64",
     "Bool",
     "Unit",
     "Never",
@@ -120,7 +121,8 @@ Param: Param<Meta<Span, &'input str>> = {
 }
 
 Type: Type<Meta<Span, &'input str>> = {
-    "Int" => Type::Int,
+    "I64" => Type::I64,
+    "U64" => Type::U64,
     "Bool" => Type::Bool,
     "Unit" => Type::Unit,
     "Never" => Type::Never,

@@ -29,7 +29,7 @@ pub struct PrgConstrained<'p> {
 
 pub type DefConstrained<'p> =
     Def<Meta<Span, UniqueSym<'p>>, Meta<Span, &'p str>, Meta<CMeta, ExprConstrained<'p>>>;
-pub type ExprConstrained<'p> = Expr<'p, Meta<Span, &'p str>, Meta<Span, &'p str>, CMeta>;
+pub type ExprConstrained<'p> = Expr<'p, Meta<Span, UniqueSym<'p>>, Meta<Span, &'p str>, CMeta>;
 
 pub struct CMeta {
     pub span: Span,

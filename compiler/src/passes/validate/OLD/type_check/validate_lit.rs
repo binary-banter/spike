@@ -32,9 +32,3 @@ pub fn validate_lit<'p>(
 
     Ok(Spanned { span, inner })
 }
-
-// uniquify
-// validate
-// - generate_constraints
-// - solve_constraints
-// - resolve_types

@@ -109,11 +109,13 @@ fn eliminate_seq<'p>(
     };
 
     match bnd.typ() {
-        Type::Int | Type::Bool | Type::Unit | Type::Never | Type::Fn { .. } => ETail::Seq {
-            syms: vec![sym],
-            bnd: map_expr(bnd),
-            tail: Box::new(tail),
-        },
+        Type::I64 | Type::U64 | Type::Bool | Type::Unit | Type::Never | Type::Fn { .. } => {
+            ETail::Seq {
+                syms: vec![sym],
+                bnd: map_expr(bnd),
+                tail: Box::new(tail),
+            }
+        }
         Type::Var { sym: def_sym } => match &defs[&def_sym] {
             TypeDef::Struct { fields: def_fields } => match bnd {
                 CExpr::Atom { atm, .. } => {

@@ -102,7 +102,8 @@ fn uniquify_type<'p>(
     scope: &mut PushMap<&'p str, UniqueSym<'p>>,
 ) -> Result<Type<Meta<Span, UniqueSym<'p>>>, TypeError> {
     let typ = match typ {
-        Type::Int => Type::Int,
+        Type::I64 => Type::I64,
+        Type::U64 => Type::U64,
         Type::Bool => Type::Bool,
         Type::Unit => Type::Unit,
         Type::Never => Type::Never,

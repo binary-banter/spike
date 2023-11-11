@@ -40,7 +40,7 @@ pub fn flatten_type<'p>(
     defs: &HashMap<UniqueSym<'p>, TypeDef<UniqueSym<'p>, &'p str>>,
 ) -> Vec<(UniqueSym<'p>, Type<UniqueSym<'p>>)> {
     match typ {
-        Type::Int | Type::Bool | Type::Unit | Type::Never | Type::Fn { .. } => {
+        Type::I64 | Type::U64 | Type::Bool | Type::Unit | Type::Never | Type::Fn { .. } => {
             vec![(sym, typ.clone())]
         }
         Type::Var { sym: def_sym } => match &defs[&def_sym] {

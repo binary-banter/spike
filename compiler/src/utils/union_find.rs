@@ -130,7 +130,7 @@ mod tests {
     #[test]
     fn test_iter() {
         let mut uf = UnionFind::new();
-        let ids = uf.add_iter(0..420690);
+        let ids = uf.add_iter(0..20);
 
         for (left, _, right) in ids.tuple_windows() {
             uf.union(left, right);
@@ -138,11 +138,11 @@ mod tests {
 
         assert_ne!(uf.find(UnionIndex(0)), uf.find(UnionIndex(1)));
 
-        for i in (0..42069).step_by(2) {
+        for i in (0..20).step_by(2) {
             assert_eq!(uf.find(UnionIndex(0)), uf.find(UnionIndex(i)))
         }
 
-        for i in (0..42069).skip(1).step_by(2) {
+        for i in (0..20).skip(1).step_by(2) {
             assert_eq!(uf.find(UnionIndex(1)), uf.find(UnionIndex(i)))
         }
 

@@ -2,11 +2,14 @@ use derive_more::Display;
 use itertools::Itertools;
 use std::fmt::Display;
 
+//TODO generic not needed
 #[derive(Debug, Clone, Display)]
 #[display(bound = "A: Display")]
 pub enum Type<A> {
-    #[display(fmt = "Int")]
-    Int,
+    #[display(fmt = "I64")]
+    I64,
+    #[display(fmt = "U64")]
+    U64,
     #[display(fmt = "Bool")]
     Bool,
     #[display(fmt = "Unit")]
