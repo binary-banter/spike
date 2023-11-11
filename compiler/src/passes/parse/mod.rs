@@ -243,8 +243,8 @@ pub type SwitchArm<'p, IdentVars, IdentFields, M> = (
 #[display(bound = "B: Display")]
 #[display(fmt = "{inner}")]
 pub struct Meta<M, B> {
-    meta: M,
-    inner: B
+    pub meta: M,
+    pub inner: B
 }
 
 impl<M, B> Functor<B> for Meta<M, B> {
