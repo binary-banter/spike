@@ -1,9 +1,10 @@
+use crate::passes::validate::PrgConstrained;
 use crate::passes::validate::uniquify::PrgUniquified;
 
 pub struct GraphThingy {}
 
 impl<'p> PrgUniquified<'p> {
-    pub fn generate_constraints(&self) -> GraphThingy {
+    pub fn add_constraints(self) -> PrgConstrained<'p> {
         todo!()
     }
 }
