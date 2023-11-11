@@ -32,35 +32,7 @@ use crate::utils::expect::expect;
 use crate::utils::push_map::PushMap;
 use std::collections::HashMap;
 
-pub struct Env<'a, 'p> {
-    pub scope: &'a mut PushMap<&'p str, EnvEntry<'p>>,
-    pub loop_type: &'a mut Option<Type<&'p str>>,
-    pub in_loop: bool,
-    pub return_type: &'a Type<&'p str>,
-}
 
-pub enum EnvEntry<'p> {
-    Type { mutable: bool, typ: Type<&'p str> },
-    Def { def: TypeDef<&'p str> },
-}
-
-impl<'a, 'p> Env<'a, 'p> {
-    pub fn push<O>(
-        &mut self,
-        k: &'p str,
-        v: EnvEntry<'p>,
-        sub: impl FnOnce(&mut Env<'_, 'p>) -> O,
-    ) -> O {
-        self.scope.push(k, v, |scope| {
-            sub(&mut Env {
-                scope,
-                loop_type: self.loop_type,
-                in_loop: self.in_loop,
-                return_type: self.return_type,
-            })
-        })
-    }
-}
 
 impl<'p> PrgParsed<'p> {
     pub(super) fn type_check(self) -> Result<PrgValidated<'p>, TypeError> {

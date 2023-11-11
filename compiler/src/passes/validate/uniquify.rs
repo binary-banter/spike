@@ -54,6 +54,8 @@ fn uniquify_def<'p>(
                     .collect::<Result<_, _>>()?;
                 let bdy = uniquify_expression(bdy, scope)?;
 
+                //TODO check if function names and param names are unique
+
                 Ok(Def::Fn {
                     sym: try_get(sym, scope)?,
                     params,

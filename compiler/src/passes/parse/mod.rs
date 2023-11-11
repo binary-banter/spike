@@ -54,6 +54,7 @@ pub type DefUniquified<'p> =
     Def<Meta<Span, UniqueSym<'p>>, Meta<Span, &'p str>, Meta<Span, ExprUniquified<'p>>>;
 pub type ExprUniquified<'p> = Expr<'p, Meta<Span, UniqueSym<'p>>, Meta<Span, &'p str>, Span>;
 
+#[derive(Clone)]
 pub enum TypeDef<IdentVars, IdentFields> {
     /// A struct definition.
     Struct {
