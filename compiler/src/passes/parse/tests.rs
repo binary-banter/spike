@@ -7,9 +7,6 @@ fn parse([test]: [&str; 1]) {
 
     let result = parse_program(test);
 
-    print!("{}", result.unwrap());
-    panic!();
-
     match (result, expected_error) {
         (Ok(_), None) => {}
         (Err(error), None) => {

@@ -1,6 +1,6 @@
 use clap::Parser;
 use compiler::compile;
-use compiler::passes::parse::parse::{parse_program, PrettyParseError};
+use compiler::passes::parse::parse::PrettyParseError;
 use compiler::passes::validate::error::TypeError;
 use miette::{Diagnostic, IntoDiagnostic};
 use std::fs;

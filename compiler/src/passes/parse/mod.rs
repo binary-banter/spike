@@ -4,23 +4,23 @@
 #[rustfmt::skip]
 #[allow(clippy::all, clippy::pedantic)]
 mod grammar;
+mod display;
 pub mod interpreter;
 pub mod parse;
 #[cfg(test)]
 mod tests;
 pub mod types;
-mod display;
 
 use crate::utils::gen_sym::UniqueSym;
 use derive_more::Display;
 use functor_derive::Functor;
+use itertools::Itertools;
 use std::fmt::{Display, Formatter};
 use types::Type;
-use itertools::Itertools;
 
 /// A parsed program with global definitions and an entry point.
 #[derive(Display)]
-#[display(fmt = "{}", r#"defs.into_iter().format("\n\n")"#)]
+#[display(fmt = "{}", r#"defs.iter().format("\n")"#)]
 pub struct PrgParsed<'p> {
     /// The global program definitions.
     pub defs: Vec<DefParsed<'p>>,
@@ -81,8 +81,7 @@ impl<IdentVars, IdentFields, Expr> Def<IdentVars, IdentFields, Expr> {
 ///
 /// Parameters are generic and can use symbols that are either `&str` or
 /// [`UniqueSym`](crate::utils::gen_sym::UniqueSym) for all passes after uniquify.
-#[derive(Clone)]
-#[derive(Display)]
+#[derive(Clone, Display)]
 #[display(bound = "A: Display")]
 #[display(fmt = "{}{sym}: {typ}", r#"if *mutable { "mut " } else { "" }"#)]
 pub struct Param<A> {
@@ -256,38 +255,55 @@ impl<T: Display> Display for Spanned<T> {
 #[derive(Display)]
 pub enum Op {
     /// Read signed integer from stdin.
+    #[display(fmt = "")]
     Read,
     /// Print signed integer to stdout.
+    #[display(fmt = "")]
     Print,
     /// Integer addition.
+    #[display(fmt = "+")]
     Plus,
     /// Integer subtraction or negation.
+    #[display(fmt = "-")]
     Minus,
     /// Integer multiplication.
+    #[display(fmt = "*")]
     Mul,
     /// Integer division.
+    #[display(fmt = "/")]
     Div,
     /// Modulo operation.
+    #[display(fmt = "%")]
     Mod,
     /// Logical AND.
+    #[display(fmt = "&&")]
     LAnd,
     /// Logical OR,
+    #[display(fmt = "||")]
     LOr,
     /// Logical NOT.
+    #[display(fmt = "!")]
     Not,
     /// XOR operation.
+    #[display(fmt = "^")]
     Xor,
     /// Greater Than comparison.
+    #[display(fmt = ">")]
     GT,
     /// Greater Than or Equal To comparison.
+    #[display(fmt = ">=")]
     GE,
     /// Equality comparison. Operates on `Int` and `Bool`.
+    #[display(fmt = "==")]
     EQ,
     /// Less Than or Equal To comparison.
+    #[display(fmt = "<=")]
     LE,
     /// Less Than comparison.
+    #[display(fmt = "<")]
     LT,
     /// Inequality comparison. Operates on `Int` and `Bool`.
+    #[display(fmt = "!=")]
     NE,
 }
 
