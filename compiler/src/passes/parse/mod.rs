@@ -15,7 +15,7 @@ use crate::utils::gen_sym::UniqueSym;
 use derive_more::Display;
 use functor_derive::Functor;
 use itertools::Itertools;
-use std::fmt::{Display, Formatter};
+use std::fmt::{Display};
 use types::Type;
 
 /// A parsed program with global definitions and an entry point.
@@ -47,12 +47,12 @@ pub enum Def<IdentVars, IdentFields, Expr> {
     },
 }
 
-pub type DefParsed<'p> = Def<Spanned<&'p str>, Spanned<&'p str>, Spanned<ExprParsed<'p>>>;
-pub type ExprParsed<'p> = Expr<'p, Spanned<&'p str>, Spanned<&'p str>>;
+pub type DefParsed<'p> = Def<Meta<Span, &'p str>, Meta<Span, &'p str>, Meta<Span, ExprParsed<'p>>>;
+pub type ExprParsed<'p> = Expr<'p, Meta<Span, &'p str>, Meta<Span, &'p str>, Span>;
 
 pub type DefUniquified<'p> =
-    Def<Spanned<UniqueSym<'p>>, Spanned<&'p str>, Spanned<ExprUniquified<'p>>>;
-pub type ExprUniquified<'p> = Expr<'p, Spanned<UniqueSym<'p>>, Spanned<&'p str>>;
+    Def<Meta<Span, UniqueSym<'p>>, Meta<Span, &'p str>, Meta<Span, ExprUniquified<'p>>>;
+pub type ExprUniquified<'p> = Expr<'p, Meta<Span, UniqueSym<'p>>, Meta<Span, &'p str>, Span>;
 
 pub enum TypeDef<IdentVars, IdentFields> {
     /// A struct definition.
@@ -97,7 +97,7 @@ pub struct Param<A> {
 ///
 /// Expressions are generic and can use symbols that are either `&str` or
 /// [`UniqueSym`](crate::utils::gen_sym::UniqueSym) for all passes after uniquify.
-pub enum Expr<'p, IdentVars, IdentFields> {
+pub enum Expr<'p, IdentVars, IdentFields, M> {
     /// A literal value. See [`Lit`].
     Lit {
         /// Value of the literal. See [`Lit`].
@@ -113,7 +113,7 @@ pub enum Expr<'p, IdentVars, IdentFields> {
         /// Primitive operation (e.g. `Xor`). See [`Op`].
         op: Op,
         /// Arguments used by the primitive operation.
-        args: Vec<Spanned<Expr<'p, IdentVars, IdentFields>>>,
+        args: Vec<Meta<M, Expr<'p, IdentVars, IdentFields, M>>>,
     },
     /// A let binding.
     ///
@@ -126,9 +126,9 @@ pub enum Expr<'p, IdentVars, IdentFields> {
         /// Indicates whether the variable is mutable (true) or immutable (false).
         mutable: bool,
         /// The expression to which the variable is bound.
-        bnd: Box<Spanned<Expr<'p, IdentVars, IdentFields>>>,
+        bnd: Box<Meta<M, Expr<'p, IdentVars, IdentFields, M>>>,
         /// The expression that is evaluated using the new variable binding.
-        bdy: Box<Spanned<Expr<'p, IdentVars, IdentFields>>>,
+        bdy: Box<Meta<M, Expr<'p, IdentVars, IdentFields, M>>>,
     },
     /// An if statement.
     ///
@@ -136,11 +136,11 @@ pub enum Expr<'p, IdentVars, IdentFields> {
     /// the result is true, it executes the `thn` expression; otherwise, it executes the `els` expression.
     If {
         /// The conditional expression that determines the execution path.
-        cnd: Box<Spanned<Expr<'p, IdentVars, IdentFields>>>,
+        cnd: Box<Meta<M, Expr<'p, IdentVars, IdentFields, M>>>,
         /// The expression to execute if the condition is true.
-        thn: Box<Spanned<Expr<'p, IdentVars, IdentFields>>>,
+        thn: Box<Meta<M, Expr<'p, IdentVars, IdentFields, M>>>,
         /// The expression to execute if the condition is false.
-        els: Box<Spanned<Expr<'p, IdentVars, IdentFields>>>,
+        els: Box<Meta<M, Expr<'p, IdentVars, IdentFields, M>>>,
     },
     /// A function application.
     ///
@@ -148,9 +148,9 @@ pub enum Expr<'p, IdentVars, IdentFields> {
     /// evaluated to obtain a function symbol, which is invoked with the arguments in `args`.
     Apply {
         /// The expression that, when evaluated, represents the function symbol to be invoked.
-        fun: Box<Spanned<Expr<'p, IdentVars, IdentFields>>>,
+        fun: Box<Meta<M, Expr<'p, IdentVars, IdentFields, M>>>,
         /// The ordered arguments that are passed to the function.
-        args: Vec<Spanned<Expr<'p, IdentVars, IdentFields>>>,
+        args: Vec<Meta<M, Expr<'p, IdentVars, IdentFields, M>>>,
     },
     /// A loop construct.
     ///
@@ -158,7 +158,7 @@ pub enum Expr<'p, IdentVars, IdentFields> {
     /// expression is evaluated.
     Loop {
         /// The expression that defines the body of the loop.
-        bdy: Box<Spanned<Expr<'p, IdentVars, IdentFields>>>,
+        bdy: Box<Meta<M, Expr<'p, IdentVars, IdentFields, M>>>,
     },
     /// A break statement.
     ///
@@ -166,7 +166,7 @@ pub enum Expr<'p, IdentVars, IdentFields> {
     /// current loop and returns the value of the `bdy` expression from the loop upon termination.
     Break {
         /// The expression to be evaluated and returned from the loop.
-        bdy: Box<Spanned<Expr<'p, IdentVars, IdentFields>>>,
+        bdy: Box<Meta<M, Expr<'p, IdentVars, IdentFields, M>>>,
     },
     /// A continue statement.
     ///
@@ -178,7 +178,7 @@ pub enum Expr<'p, IdentVars, IdentFields> {
     /// The `Return` expression exits the current function and returns the value of the `bdy` expression.
     Return {
         /// The expression to be evaluated and returned from the function.
-        bdy: Box<Spanned<Expr<'p, IdentVars, IdentFields>>>,
+        bdy: Box<Meta<M, Expr<'p, IdentVars, IdentFields, M>>>,
     },
     /// A sequence of two expressions.
     ///
@@ -187,9 +187,9 @@ pub enum Expr<'p, IdentVars, IdentFields> {
     /// the `cnt` expression is evaluated.
     Seq {
         /// The first expression to be executed in the sequence.
-        stmt: Box<Spanned<Expr<'p, IdentVars, IdentFields>>>,
+        stmt: Box<Meta<M, Expr<'p, IdentVars, IdentFields, M>>>,
         /// The second expression to be executed in the sequence.
-        cnt: Box<Spanned<Expr<'p, IdentVars, IdentFields>>>,
+        cnt: Box<Meta<M, Expr<'p, IdentVars, IdentFields, M>>>,
     },
     /// A variable assignment.
     ///
@@ -200,14 +200,14 @@ pub enum Expr<'p, IdentVars, IdentFields> {
         /// Symbol representing the variable to which the assignment is made.
         sym: IdentVars,
         /// The expression whose result is assigned to the variable.
-        bnd: Box<Spanned<Expr<'p, IdentVars, IdentFields>>>,
+        bnd: Box<Meta<M, Expr<'p, IdentVars, IdentFields, M>>>,
     },
     /// An instance of a struct.
     ///
     /// todo: documentation
     Struct {
         sym: IdentVars,
-        fields: Vec<(IdentFields, Spanned<Expr<'p, IdentVars, IdentFields>>)>,
+        fields: Vec<(IdentFields, Meta<M, Expr<'p, IdentVars, IdentFields, M>>)>,
     },
     /// A variant of an enum.
     ///
@@ -215,41 +215,50 @@ pub enum Expr<'p, IdentVars, IdentFields> {
     Variant {
         enum_sym: IdentVars,
         variant_sym: IdentFields,
-        bdy: Box<Spanned<Expr<'p, IdentVars, IdentFields>>>,
+        bdy: Box<Meta<M, Expr<'p, IdentVars, IdentFields, M>>>,
     },
     /// A field access.
     ///
     /// todo: documentation
     AccessField {
-        strct: Box<Spanned<Expr<'p, IdentVars, IdentFields>>>,
+        strct: Box<Meta<M, Expr<'p, IdentVars, IdentFields, M>>>,
         field: IdentFields,
     },
     /// A switch statement.
     ///
     /// todo: documentation
     Switch {
-        enm: Box<Spanned<Expr<'p, IdentVars, IdentFields>>>,
-        arms: Vec<SwitchArm<'p, IdentVars, IdentFields>>,
+        enm: Box<Meta<M, Expr<'p, IdentVars, IdentFields, M>>>,
+        arms: Vec<SwitchArm<'p, IdentVars, IdentFields, M>>,
     },
 }
 
-pub type SwitchArm<'p, IdentVars, IdentFields> = (
+pub type SwitchArm<'p, IdentVars, IdentFields, M> = (
     IdentVars,
     IdentFields,
-    Box<Spanned<Expr<'p, IdentVars, IdentFields>>>,
+    Box<Meta<M, Expr<'p, IdentVars, IdentFields, M>>>,
 );
 
-#[derive(Functor, Clone)]
-pub struct Spanned<T> {
-    pub span: (usize, usize),
-    pub inner: T,
+#[derive(Clone, Display)]
+#[display(bound = "B: Display")]
+#[display(fmt = "{inner}")]
+pub struct Meta<M, B> {
+    meta: M,
+    inner: B
 }
 
-impl<T: Display> Display for Spanned<T> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", &self.inner)
+impl<M, B> Functor<B> for Meta<M, B> {
+    type Target<T> = Meta<M, T>;
+
+    fn fmap<B2>(self, f: impl Fn(B) -> B2) -> Self::Target<B2> {
+        Meta {
+            meta: self.meta,
+            inner: f(self.inner),
+        }
     }
 }
+
+pub type Span = (usize, usize);
 
 /// A primitive operation.
 #[derive(Display)]

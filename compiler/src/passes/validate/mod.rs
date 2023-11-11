@@ -9,7 +9,7 @@ pub mod uniquify;
 pub mod validate;
 
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Def, ExprParsed, Op, Spanned};
+use crate::passes::parse::{Def, ExprParsed, Op};
 use crate::utils::gen_sym::UniqueSym;
 use derive_more::Display;
 use std::collections::HashMap;
@@ -21,10 +21,10 @@ pub struct PrgValidated<'p> {
     pub entry: &'p str,
 }
 
-pub struct PrgConstrained<'p> {
-    pub defs: HashMap<&'p str, Def<UniqueSym<'p>, &'p str, (Spanned<ExprParsed<'p>>, UnionIndex)>>,
-    pub entry: &'p str,
-}
+// pub struct PrgConstrained<'p> {
+//     pub defs: HashMap<&'p str, Def<UniqueSym<'p>, &'p str, (Spanned<ExprParsed<'p>>, UnionIndex)>>,
+//     pub entry: &'p str,
+// }
 
 pub enum TExpr<'p> {
     Lit {
