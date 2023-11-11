@@ -1,8 +1,8 @@
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, DefUniquified, Meta, Span, TypeDef};
-use std::collections::HashMap;
 use crate::passes::validate::uniquify::PrgUniquified;
 use crate::utils::gen_sym::UniqueSym;
+use std::collections::HashMap;
 
 pub struct Env<'a, 'p> {
     pub scope: &'a mut HashMap<UniqueSym<'p>, EnvEntry<'p>>,
@@ -12,8 +12,13 @@ pub struct Env<'a, 'p> {
 }
 
 pub enum EnvEntry<'p> {
-    Type { mutable: bool, typ: Type<Meta<Span, UniqueSym<'p>>> },
-    Def { def: TypeDef<Meta<Span, UniqueSym<'p>>, Meta<Span, &'p str>> },
+    Type {
+        mutable: bool,
+        typ: Type<Meta<Span, UniqueSym<'p>>>,
+    },
+    Def {
+        def: TypeDef<Meta<Span, UniqueSym<'p>>, Meta<Span, &'p str>>,
+    },
 }
 
 impl<'a, 'p> Env<'a, 'p> {
@@ -24,27 +29,26 @@ impl<'a, 'p> Env<'a, 'p> {
 
 /// Returns a `PushMap` with all the functions in scope.
 pub fn uncover_globals<'p>(program: &PrgUniquified<'p>) -> HashMap<UniqueSym<'p>, EnvEntry<'p>> {
-    program.defs.iter().map(|def| (def.sym().inner, uncover_def(def))).collect()
+    program
+        .defs
+        .iter()
+        .map(|def| (def.sym().inner, uncover_def(def)))
+        .collect()
 }
 
 fn uncover_def<'p>(def: &DefUniquified<'p>) -> EnvEntry<'p> {
     match def {
         Def::Fn {
-            params: args,
-            typ,
-            ..
-        } => {
-            EnvEntry::Type {
-                mutable: false,
-                typ: Type::Fn {
-                    typ: Box::new(typ.clone()),
-                    params: args.iter().map(|param| param.typ.clone()).collect(),
-                }}
-        }
-        Def::TypeDef { def, .. } => {
-            EnvEntry::Def {
-                def: (*def).clone(),
-            }
-        }
+            params: args, typ, ..
+        } => EnvEntry::Type {
+            mutable: false,
+            typ: Type::Fn {
+                typ: Box::new(typ.clone()),
+                params: args.iter().map(|param| param.typ.clone()).collect(),
+            },
+        },
+        Def::TypeDef { def, .. } => EnvEntry::Def {
+            def: (*def).clone(),
+        },
     }
 }

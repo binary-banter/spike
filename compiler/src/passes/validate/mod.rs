@@ -5,17 +5,17 @@ mod resolve_types;
 mod solve_constraints;
 #[cfg(test)]
 mod tests;
+mod uncover_globals;
 pub mod uniquify;
 pub mod validate;
-mod uncover_globals;
 
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, Expr, Meta, Op, Span};
 use crate::utils::gen_sym::UniqueSym;
+use crate::utils::union_find::UnionIndex;
 use derive_more::Display;
 use std::collections::HashMap;
 use std::str::FromStr;
-use crate::utils::union_find::UnionIndex;
 
 pub struct PrgValidated<'p> {
     pub defs: HashMap<&'p str, Def<UniqueSym<'p>, &'p str, TExpr<'p>>>,
@@ -27,7 +27,8 @@ pub struct PrgConstrained<'p> {
     pub entry: UniqueSym<'p>,
 }
 
-pub type DefConstrained<'p> = Def<Meta<Span, UniqueSym<'p>>, Meta<Span, &'p str>, Meta<CMeta, ExprConstrained<'p>>>;
+pub type DefConstrained<'p> =
+    Def<Meta<Span, UniqueSym<'p>>, Meta<Span, &'p str>, Meta<CMeta, ExprConstrained<'p>>>;
 pub type ExprConstrained<'p> = Expr<'p, Meta<Span, &'p str>, Meta<Span, &'p str>, CMeta>;
 
 pub struct CMeta {

@@ -78,7 +78,12 @@ impl<T> UnionFind<T> {
         a_root
     }
 
-    pub fn try_union_by<E>(&mut self, a: UnionIndex, b: UnionIndex, f: impl FnOnce(&T, &T) -> Result<T, E>) -> Result<UnionIndex, E> {
+    pub fn try_union_by<E>(
+        &mut self,
+        a: UnionIndex,
+        b: UnionIndex,
+        f: impl FnOnce(&T, &T) -> Result<T, E>,
+    ) -> Result<UnionIndex, E> {
         let root = self.union(a, b);
         self.data[root.0] = f(&self.data[a.0], &self.data[b.0])?;
         Ok(root)

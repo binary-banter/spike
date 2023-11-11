@@ -1,5 +1,8 @@
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Def, DefParsed, DefUniquified, Expr, ExprParsed, ExprUniquified, Meta, Param, PrgParsed, Span, TypeDef};
+use crate::passes::parse::{
+    Def, DefParsed, DefUniquified, Expr, ExprParsed, ExprUniquified, Meta, Param, PrgParsed, Span,
+    TypeDef,
+};
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::error::TypeError::{NoMain, UndeclaredVar};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};

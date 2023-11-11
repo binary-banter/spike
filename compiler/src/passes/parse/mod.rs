@@ -15,7 +15,7 @@ use crate::utils::gen_sym::UniqueSym;
 use derive_more::Display;
 use functor_derive::Functor;
 use itertools::Itertools;
-use std::fmt::{Display};
+use std::fmt::Display;
 use types::Type;
 
 /// A parsed program with global definitions and an entry point.
@@ -245,7 +245,7 @@ pub type SwitchArm<'p, IdentVars, IdentFields, M> = (
 #[display(fmt = "{inner}")]
 pub struct Meta<M, B> {
     pub meta: M,
-    pub inner: B
+    pub inner: B,
 }
 
 impl<M, B> Functor<B> for Meta<M, B> {
