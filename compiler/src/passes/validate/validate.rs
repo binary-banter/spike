@@ -4,10 +4,8 @@ use crate::passes::validate::PrgValidated;
 
 impl<'p> PrgParsed<'p> {
     pub fn validate(self) -> Result<PrgValidated<'p>, TypeError> {
-        let program = self.uniquify()?.constrain()?;
-        todo!()
-        // let program = program.resolve_types(assignments);
-        // program.check_sized()?;
-        // Ok(program)
+        let program = self.uniquify()?.constrain()?.resolve();
+        // program.check_sized()?; // todo
+        Ok(program)
     }
 }

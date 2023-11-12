@@ -3,7 +3,7 @@ mod tests;
 
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, Op};
-use crate::passes::validate::{TExpr, TLit};
+use crate::passes::validate::{ExprValidated, TLit};
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
 
@@ -139,85 +139,85 @@ impl<'p> Atom<'p> {
 //     }
 // }
 
-impl<'p> From<AExpr<'p>> for TExpr<'p> {
-    fn from(value: AExpr<'p>) -> Self {
-        match value {
-            AExpr::Atom { atm, .. } => atm.into(),
-            AExpr::Prim { op, args, typ } => TExpr::Prim {
-                op,
-                args: args.into_iter().map(Into::into).collect(),
-                typ,
-            },
-            AExpr::Let { sym, bnd, bdy, typ } => TExpr::Let {
-                sym,
-                bnd: Box::new((*bnd).into()),
-                bdy: Box::new((*bdy).into()),
-                typ,
-            },
-            AExpr::If { cnd, thn, els, typ } => TExpr::If {
-                cnd: Box::new((*cnd).into()),
-                thn: Box::new((*thn).into()),
-                els: Box::new((*els).into()),
-                typ,
-            },
-            AExpr::Apply { fun, args, typ, .. } => TExpr::Apply {
-                fun: Box::new(fun.into()),
-                args: args.into_iter().map(|(a, _)| a.into()).collect(),
-                typ,
-            },
-            AExpr::FunRef { sym, typ } => TExpr::Var { sym, typ },
-            AExpr::Loop { bdy, typ } => TExpr::Loop {
-                bdy: Box::new((*bdy).into()),
-                typ,
-            },
-            AExpr::Break { bdy, typ } => TExpr::Break {
-                bdy: Box::new((*bdy).into()),
-                typ,
-            },
-            AExpr::Seq { stmt, cnt, typ } => TExpr::Seq {
-                stmt: Box::new((*stmt).into()),
-                cnt: Box::new((*cnt).into()),
-                typ,
-            },
-            AExpr::Assign { sym, bnd, typ } => TExpr::Assign {
-                sym,
-                bnd: Box::new((*bnd).into()),
-                typ,
-            },
-            AExpr::Continue { typ } => TExpr::Continue { typ },
-            AExpr::Return { bdy, typ } => TExpr::Return {
-                bdy: Box::new((*bdy).into()),
-                typ,
-            },
-            AExpr::Struct { sym, fields, typ } => TExpr::Struct {
-                sym,
-                fields: fields
-                    .into_iter()
-                    .map(|(sym, atm)| (sym, atm.into()))
-                    .collect(),
-                typ,
-            },
-            AExpr::AccessField { strct, field, typ } => TExpr::AccessField {
-                strct: Box::new(strct.into()),
-                field,
-                typ,
-            },
-        }
-    }
-}
-
-// Note that casting to Never here is safe because this `From` is only used by the interpreter which doesn't care about the type information
-impl<'p> From<Atom<'p>> for TExpr<'p> {
-    fn from(value: Atom<'p>) -> Self {
-        match value {
-            Atom::Val { val } => TExpr::Lit {
-                val,
-                typ: Type::Never,
-            },
-            Atom::Var { sym } => TExpr::Var {
-                sym,
-                typ: Type::Never,
-            },
-        }
-    }
-}
+// impl<'p> From<AExpr<'p>> for ExprValidated<'p> {
+//     fn from(value: AExpr<'p>) -> Self {
+//         match value {
+//             AExpr::Atom { atm, .. } => atm.into(),
+//             AExpr::Prim { op, args, typ } => ExprValidated::Prim {
+//                 op,
+//                 args: args.into_iter().map(Into::into).collect(),
+//                 typ,
+//             },
+//             AExpr::Let { sym, bnd, bdy, typ } => ExprValidated::Let {
+//                 sym,
+//                 bnd: Box::new((*bnd).into()),
+//                 bdy: Box::new((*bdy).into()),
+//                 typ,
+//             },
+//             AExpr::If { cnd, thn, els, typ } => ExprValidated::If {
+//                 cnd: Box::new((*cnd).into()),
+//                 thn: Box::new((*thn).into()),
+//                 els: Box::new((*els).into()),
+//                 typ,
+//             },
+//             AExpr::Apply { fun, args, typ, .. } => ExprValidated::Apply {
+//                 fun: Box::new(fun.into()),
+//                 args: args.into_iter().map(|(a, _)| a.into()).collect(),
+//                 typ,
+//             },
+//             AExpr::FunRef { sym, typ } => ExprValidated::Var { sym, typ },
+//             AExpr::Loop { bdy, typ } => ExprValidated::Loop {
+//                 bdy: Box::new((*bdy).into()),
+//                 typ,
+//             },
+//             AExpr::Break { bdy, typ } => ExprValidated::Break {
+//                 bdy: Box::new((*bdy).into()),
+//                 typ,
+//             },
+//             AExpr::Seq { stmt, cnt, typ } => ExprValidated::Seq {
+//                 stmt: Box::new((*stmt).into()),
+//                 cnt: Box::new((*cnt).into()),
+//                 typ,
+//             },
+//             AExpr::Assign { sym, bnd, typ } => ExprValidated::Assign {
+//                 sym,
+//                 bnd: Box::new((*bnd).into()),
+//                 typ,
+//             },
+//             AExpr::Continue { typ } => ExprValidated::Continue { typ },
+//             AExpr::Return { bdy, typ } => ExprValidated::Return {
+//                 bdy: Box::new((*bdy).into()),
+//                 typ,
+//             },
+//             AExpr::Struct { sym, fields, typ } => ExprValidated::Struct {
+//                 sym,
+//                 fields: fields
+//                     .into_iter()
+//                     .map(|(sym, atm)| (sym, atm.into()))
+//                     .collect(),
+//                 typ,
+//             },
+//             AExpr::AccessField { strct, field, typ } => ExprValidated::AccessField {
+//                 strct: Box::new(strct.into()),
+//                 field,
+//                 typ,
+//             },
+//         }
+//     }
+// }
+//
+// // Note that casting to Never here is safe because this `From` is only used by the interpreter which doesn't care about the type information
+// impl<'p> From<Atom<'p>> for ExprValidated<'p> {
+//     fn from(value: Atom<'p>) -> Self {
+//         match value {
+//             Atom::Val { val } => ExprValidated::Lit {
+//                 val,
+//                 typ: Type::Never,
+//             },
+//             Atom::Var { sym } => ExprValidated::Var {
+//                 sym,
+//                 typ: Type::Never,
+//             },
+//         }
+//     }
+// }

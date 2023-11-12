@@ -1,10 +1,12 @@
-use crate::passes::validate::solve_constraints::Assignments;
 use crate::passes::validate::uniquify::PrgUniquified;
-use crate::passes::validate::PrgValidated;
+use crate::passes::validate::{PrgConstrained, PrgValidated};
 
-impl<'p> PrgUniquified<'p> {
+impl<'p> PrgConstrained<'p> {
     #[must_use]
-    pub fn resolve_types(self, _asgns: Assignments) -> PrgValidated<'p> {
-        todo!()
+    pub fn resolve(self) -> PrgValidated<'p> {
+        PrgValidated {
+            defs: Default::default(),
+            entry: self.entry,
+        }
     }
 }

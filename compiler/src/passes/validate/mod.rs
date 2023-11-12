@@ -2,7 +2,6 @@ mod check_sized;
 pub mod error;
 mod generate_constraints;
 mod resolve_types;
-mod solve_constraints;
 #[cfg(test)]
 mod tests;
 mod uncover_globals;
@@ -10,110 +9,40 @@ pub mod uniquify;
 pub mod validate;
 
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Def, Expr, Meta, Op, Span};
+use crate::passes::parse::{Def, Expr, Lit, Meta, Op, Span};
 use crate::utils::gen_sym::UniqueSym;
-use crate::utils::union_find::UnionIndex;
+use crate::utils::union_find::{UnionFind, UnionIndex};
 use derive_more::Display;
 use std::collections::HashMap;
 use std::str::FromStr;
+use crate::passes::validate::generate_constraints::PartialType;
 
 pub struct PrgValidated<'p> {
-    pub defs: HashMap<&'p str, Def<UniqueSym<'p>, &'p str, TExpr<'p>>>,
-    pub entry: &'p str,
+    pub defs: HashMap<UniqueSym<'p>, Def<UniqueSym<'p>, &'p str, ExprValidated<'p>>>,
+    pub entry: UniqueSym<'p>,
 }
 
 pub struct PrgConstrained<'p> {
     pub defs: HashMap<UniqueSym<'p>, DefConstrained<'p>>,
     pub entry: UniqueSym<'p>,
+    pub uf: UnionFind<PartialType<'p>>,
 }
+
+pub type DefValidated<'p> = Def<UniqueSym<'p>, &'p str, Meta<Type<UniqueSym<'p>>, ExprValidated<'p>>>;
+pub type ExprValidated<'p> = Expr<UniqueSym<'p>, &'p str, TLit, Type<UniqueSym<'p>>>;
 
 pub type DefConstrained<'p> =
     Def<Meta<Span, UniqueSym<'p>>, Meta<Span, &'p str>, Meta<CMeta, ExprConstrained<'p>>>;
-pub type ExprConstrained<'p> = Expr<'p, Meta<Span, UniqueSym<'p>>, Meta<Span, &'p str>, CMeta>;
+pub type ExprConstrained<'p> = Expr<Meta<Span, UniqueSym<'p>>, Meta<Span, &'p str>, Lit<'p>, CMeta>;
+
+pub type DefUniquified<'p> =
+Def<Meta<Span, UniqueSym<'p>>, Meta<Span, &'p str>, Meta<Span, ExprUniquified<'p>>>;
+pub type ExprUniquified<'p> = Expr<Meta<Span, UniqueSym<'p>>, Meta<Span, &'p str>,Lit<'p>, Span>;
+
 
 pub struct CMeta {
     pub span: Span,
     pub index: UnionIndex,
-}
-
-// todo: burn this with fire and make it regular expressions (not regex tho haha)
-pub enum TExpr<'p> {
-    Lit {
-        val: TLit,
-        typ: Type<UniqueSym<'p>>,
-    },
-    Var {
-        sym: UniqueSym<'p>,
-        typ: Type<UniqueSym<'p>>,
-    },
-    Prim {
-        op: Op,
-        args: Vec<TExpr<'p>>,
-        typ: Type<UniqueSym<'p>>,
-    },
-    Let {
-        sym: UniqueSym<'p>,
-        bnd: Box<TExpr<'p>>,
-        bdy: Box<TExpr<'p>>,
-        typ: Type<UniqueSym<'p>>,
-    },
-    If {
-        cnd: Box<TExpr<'p>>,
-        thn: Box<TExpr<'p>>,
-        els: Box<TExpr<'p>>,
-        typ: Type<UniqueSym<'p>>,
-    },
-    Apply {
-        fun: Box<TExpr<'p>>,
-        args: Vec<TExpr<'p>>,
-        typ: Type<UniqueSym<'p>>,
-    },
-    Loop {
-        bdy: Box<TExpr<'p>>,
-        typ: Type<UniqueSym<'p>>,
-    },
-    Break {
-        bdy: Box<TExpr<'p>>,
-        typ: Type<UniqueSym<'p>>,
-    },
-    Continue {
-        typ: Type<UniqueSym<'p>>,
-    },
-    Return {
-        bdy: Box<TExpr<'p>>,
-        typ: Type<UniqueSym<'p>>,
-    },
-    Seq {
-        stmt: Box<TExpr<'p>>,
-        cnt: Box<TExpr<'p>>,
-        typ: Type<UniqueSym<'p>>,
-    },
-    Assign {
-        sym: UniqueSym<'p>,
-        bnd: Box<TExpr<'p>>,
-        typ: Type<UniqueSym<'p>>,
-    },
-    Struct {
-        sym: UniqueSym<'p>,
-        fields: Vec<(&'p str, TExpr<'p>)>,
-        typ: Type<UniqueSym<'p>>,
-    },
-    Variant {
-        enum_sym: UniqueSym<'p>,
-        variant_sym: &'p str,
-        bdy: Box<TExpr<'p>>,
-        typ: Type<UniqueSym<'p>>,
-    },
-    AccessField {
-        strct: Box<TExpr<'p>>,
-        field: &'p str,
-        typ: Type<UniqueSym<'p>>,
-    },
-    Switch {
-        enm: Box<TExpr<'p>>,
-        arms: Vec<(UniqueSym<'p>, &'p str, Box<TExpr<'p>>)>,
-        typ: Type<UniqueSym<'p>>,
-    },
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Display)]
@@ -175,28 +104,5 @@ impl FromStr for TLit {
                 val: s.parse().map_err(|_| ())?,
             },
         })
-    }
-}
-
-impl<'p> TExpr<'p> {
-    pub fn typ(&self) -> &Type<UniqueSym<'p>> {
-        match self {
-            TExpr::Lit { typ, .. }
-            | TExpr::Var { typ, .. }
-            | TExpr::Prim { typ, .. }
-            | TExpr::Let { typ, .. }
-            | TExpr::If { typ, .. }
-            | TExpr::Apply { typ, .. }
-            | TExpr::Loop { typ, .. }
-            | TExpr::Break { typ, .. }
-            | TExpr::Continue { typ, .. }
-            | TExpr::Return { typ, .. }
-            | TExpr::Seq { typ, .. }
-            | TExpr::Assign { typ, .. }
-            | TExpr::Struct { typ, .. }
-            | TExpr::Variant { typ, .. }
-            | TExpr::AccessField { typ, .. }
-            | TExpr::Switch { typ, .. } => typ,
-        }
     }
 }

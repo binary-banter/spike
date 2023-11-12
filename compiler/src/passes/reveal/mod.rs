@@ -4,7 +4,7 @@ mod tests;
 
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, Op};
-use crate::passes::validate::{TExpr, TLit};
+use crate::passes::validate::{ExprValidated, TLit};
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
 
@@ -141,69 +141,69 @@ impl<'p> RExpr<'p> {
 //     }
 // }
 
-impl<'p> From<RExpr<'p>> for TExpr<'p> {
-    fn from(value: RExpr<'p>) -> Self {
-        match value {
-            RExpr::Lit { val, typ } => TExpr::Lit { val, typ },
-            RExpr::Prim { op, args, typ } => TExpr::Prim {
-                op,
-                args: args.into_iter().map(Into::into).collect(),
-                typ,
-            },
-            RExpr::Let { sym, bnd, bdy, typ } => TExpr::Let {
-                sym,
-                bnd: Box::new((*bnd).into()),
-                bdy: Box::new((*bdy).into()),
-                typ,
-            },
-            RExpr::If { cnd, thn, els, typ } => TExpr::If {
-                cnd: Box::new((*cnd).into()),
-                thn: Box::new((*thn).into()),
-                els: Box::new((*els).into()),
-                typ,
-            },
-            RExpr::Apply { fun, args, typ } => TExpr::Apply {
-                fun: Box::new((*fun).into()),
-                args: args.into_iter().map(Into::into).collect(),
-                typ,
-            },
-            RExpr::Var { sym, typ } | RExpr::FunRef { sym, typ } => TExpr::Var { sym, typ },
-            RExpr::Loop { bdy, typ } => TExpr::Loop {
-                bdy: Box::new((*bdy).into()),
-                typ,
-            },
-            RExpr::Break { bdy, typ } => TExpr::Break {
-                bdy: Box::new((*bdy).into()),
-                typ,
-            },
-            RExpr::Seq { stmt, cnt, typ } => TExpr::Seq {
-                stmt: Box::new((*stmt).into()),
-                cnt: Box::new((*cnt).into()),
-                typ,
-            },
-            RExpr::Assign { sym, bnd, typ } => TExpr::Assign {
-                sym,
-                bnd: Box::new((*bnd).into()),
-                typ,
-            },
-            RExpr::Continue { typ } => TExpr::Continue { typ },
-            RExpr::Return { bdy, typ } => TExpr::Return {
-                bdy: Box::new((*bdy).into()),
-                typ,
-            },
-            RExpr::Struct { sym, fields, typ } => TExpr::Struct {
-                sym,
-                fields: fields
-                    .into_iter()
-                    .map(|(sym, expr)| (sym, expr.into()))
-                    .collect(),
-                typ,
-            },
-            RExpr::AccessField { strct, field, typ } => TExpr::AccessField {
-                strct: Box::new((*strct).into()),
-                field,
-                typ,
-            },
-        }
-    }
-}
+// impl<'p> From<RExpr<'p>> for ExprValidated<'p> {
+//     fn from(value: RExpr<'p>) -> Self {
+//         match value {
+//             RExpr::Lit { val, typ } => ExprValidated::Lit { val, typ },
+//             RExpr::Prim { op, args, typ } => ExprValidated::Prim {
+//                 op,
+//                 args: args.into_iter().map(Into::into).collect(),
+//                 typ,
+//             },
+//             RExpr::Let { sym, bnd, bdy, typ } => ExprValidated::Let {
+//                 sym,
+//                 bnd: Box::new((*bnd).into()),
+//                 bdy: Box::new((*bdy).into()),
+//                 typ,
+//             },
+//             RExpr::If { cnd, thn, els, typ } => ExprValidated::If {
+//                 cnd: Box::new((*cnd).into()),
+//                 thn: Box::new((*thn).into()),
+//                 els: Box::new((*els).into()),
+//                 typ,
+//             },
+//             RExpr::Apply { fun, args, typ } => ExprValidated::Apply {
+//                 fun: Box::new((*fun).into()),
+//                 args: args.into_iter().map(Into::into).collect(),
+//                 typ,
+//             },
+//             RExpr::Var { sym, typ } | RExpr::FunRef { sym, typ } => ExprValidated::Var { sym, typ },
+//             RExpr::Loop { bdy, typ } => ExprValidated::Loop {
+//                 bdy: Box::new((*bdy).into()),
+//                 typ,
+//             },
+//             RExpr::Break { bdy, typ } => ExprValidated::Break {
+//                 bdy: Box::new((*bdy).into()),
+//                 typ,
+//             },
+//             RExpr::Seq { stmt, cnt, typ } => ExprValidated::Seq {
+//                 stmt: Box::new((*stmt).into()),
+//                 cnt: Box::new((*cnt).into()),
+//                 typ,
+//             },
+//             RExpr::Assign { sym, bnd, typ } => ExprValidated::Assign {
+//                 sym,
+//                 bnd: Box::new((*bnd).into()),
+//                 typ,
+//             },
+//             RExpr::Continue { typ } => ExprValidated::Continue { typ },
+//             RExpr::Return { bdy, typ } => ExprValidated::Return {
+//                 bdy: Box::new((*bdy).into()),
+//                 typ,
+//             },
+//             RExpr::Struct { sym, fields, typ } => ExprValidated::Struct {
+//                 sym,
+//                 fields: fields
+//                     .into_iter()
+//                     .map(|(sym, expr)| (sym, expr.into()))
+//                     .collect(),
+//                 typ,
+//             },
+//             RExpr::AccessField { strct, field, typ } => ExprValidated::AccessField {
+//                 strct: Box::new((*strct).into()),
+//                 field,
+//                 typ,
+//             },
+//         }
+//     }
+// }

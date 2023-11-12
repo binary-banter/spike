@@ -1,8 +1,8 @@
-use crate::passes::parse::{DefUniquified, ExprUniquified, Lit, Meta, Op, Span};
+use crate::passes::parse::{Lit, Meta, Span};
 use crate::passes::validate::error::TypeError;
-use crate::passes::validate::uncover_globals::{uncover_globals, Env, EnvEntry};
+use crate::passes::validate::uncover_globals::{Env, EnvEntry, uncover_globals};
 use crate::passes::validate::uniquify::PrgUniquified;
-use crate::passes::validate::{CMeta, DefConstrained, ExprConstrained, PrgConstrained};
+use crate::passes::validate::{CMeta, DefConstrained, DefUniquified, ExprConstrained, ExprUniquified, PrgConstrained};
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};
 use std::collections::HashMap;
@@ -46,6 +46,7 @@ impl<'p> PrgUniquified<'p> {
                 })
                 .collect::<Result<_, _>>()?,
             entry: self.entry,
+            uf,
         })
     }
 }

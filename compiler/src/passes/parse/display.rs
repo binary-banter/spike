@@ -39,7 +39,7 @@ impl<IdentVars: Display, IdentFields: Display, Expr: Display> Display
     }
 }
 
-impl<IdentVars: Display, IdentFields: Display, M> Display for Expr<'_, IdentVars, IdentFields, M> {
+impl<IdentVars: Display, IdentFields: Display, Lit: Display, M> Display for Expr<IdentVars, IdentFields, Lit, M> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             Expr::Lit { val } => {

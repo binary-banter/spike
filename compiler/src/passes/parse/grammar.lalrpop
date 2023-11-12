@@ -95,7 +95,7 @@ pub Program: PrgParsed<'input> = {
     }
 }
 
-Def: Def<Meta<Span, &'input str>, Meta<Span, &'input str>, Meta<Span, Expr<'input, Meta<Span, &'input str>, Meta<Span, &'input str>, Span>>> = {
+Def: Def<Meta<Span, &'input str>, Meta<Span, &'input str>, Meta<Span, Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>, Span>>> = {
     "struct" <sym:Ident> "{" <fields:Comma<(<Ident> ":" <Type>)>> "}" => Def::TypeDef {
         sym,
         def: TypeDef::Struct { fields },
@@ -145,7 +145,7 @@ Type: Type<Meta<Span, &'input str>> = {
 // Num/Bool/Ident
 Expr = ExprStmt;
 
-ExprStmt: Expr<'input, Meta<Span, &'input str>, Meta<Span, &'input str>, Span> = {
+ExprStmt: Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>, Span> = {
     "let" <mutable:"mut"?> <sym:Ident> "=" <bnd:Spanned<ExprLogicalOr<Struct>>> ";" <bdy:Spanned<ExprStmt?>> => Expr::Let {
         sym,
         mutable: mutable.is_some(),
@@ -159,7 +159,7 @@ ExprStmt: Expr<'input, Meta<Span, &'input str>, Meta<Span, &'input str>, Span> =
     ExprInStmt,
 }
 
-ExprInStmt: Expr<'input, Meta<Span, &'input str>, Meta<Span, &'input str>, Span> = {
+ExprInStmt: Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>, Span> = {
     <sym:Ident> "=" <bnd:Spanned<ExprLogicalOr<Struct>>> => Expr::Assign {
         sym,
         bnd: Box::new(bnd),
@@ -212,7 +212,7 @@ ExprInStmt: Expr<'input, Meta<Span, &'input str>, Meta<Span, &'input str>, Span>
     ExprLogicalOr<Struct>,
 }
 
-BinaryOps<Op,Next>: Expr<'input, Meta<Span, &'input str>, Meta<Span, &'input str>, Span> = {
+BinaryOps<Op,Next>: Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>, Span> = {
     <e1:Spanned<BinaryOps<Op,Next>>> <op:Op> <e2:Spanned<Next>> => Expr::Prim {
         op,
         args: vec![e1, e2],
@@ -252,7 +252,7 @@ UnaryOp: Op = {
     "!" => Op::Not,
 }
 
-ExprUnary<T>: Expr<'input, Meta<Span, &'input str>, Meta<Span, &'input str>, Span> = {
+ExprUnary<T>: Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>, Span> = {
     <op:UnaryOp> <e:Spanned<ExprUnary<T>>> => Expr::Prim {
         op,
         args: vec![e],
@@ -260,7 +260,7 @@ ExprUnary<T>: Expr<'input, Meta<Span, &'input str>, Meta<Span, &'input str>, Spa
     ExprAccess<T>,
 }
 
-ExprAccess<T>: Expr<'input, Meta<Span, &'input str>, Meta<Span, &'input str>, Span> = {
+ExprAccess<T>: Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>, Span> = {
     <strct:Spanned<ExprAccess<T>>> "." <field:Ident> => Expr::AccessField {
         strct: Box::new(strct),
         field,
@@ -268,7 +268,7 @@ ExprAccess<T>: Expr<'input, Meta<Span, &'input str>, Meta<Span, &'input str>, Sp
     ExprCall<T>,
 }
 
-ExprCall<T>: Expr<'input, Meta<Span, &'input str>, Meta<Span, &'input str>, Span> = {
+ExprCall<T>: Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>, Span> = {
     "read" "(" ")" => Expr::Prim {
         op: Op::Read,
         args: vec![],
@@ -284,7 +284,7 @@ ExprCall<T>: Expr<'input, Meta<Span, &'input str>, Meta<Span, &'input str>, Span
     ExprAtom<T>,
 }
 
-ExprAtom<T>: Expr<'input, Meta<Span, &'input str>, Meta<Span, &'input str>, Span> = {
+ExprAtom<T>: Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>, Span> = {
     <val:Num> => Expr::Lit { val: Lit::Int { val } },
     <val:Bool> => Expr::Lit { val: Lit::Bool { val } },
     "unit" => Expr::Lit { val: Lit::Unit },
@@ -298,19 +298,19 @@ ExprAtom<T>: Expr<'input, Meta<Span, &'input str>, Meta<Span, &'input str>, Span
     <T>,
 }
 
-Struct: Expr<'input, Meta<Span, &'input str>, Meta<Span, &'input str>, Span> = {
+Struct: Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>, Span> = {
     <sym:Ident> "{" <fields:Comma<StructArg>> "}" => Expr::Struct {
         sym,
         fields,
     },
 }
 
-StructArg : (Meta<Span, &'input str>, Meta<Span, Expr<'input, Meta<Span, &'input str>, Meta<Span, &'input str>, Span>>) = {
+StructArg : (Meta<Span, &'input str>, Meta<Span, Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>, Span>>) = {
     <Ident> ":" <Spanned<Expr>>,
     <l:@L> <sym:Ident> <r:@R> => (sym.clone(), Meta { meta: (l, r), inner: Expr::Var { sym } })
 }
 
-Never: Expr<'input, Meta<Span, &'input str>, Meta<Span, &'input str>, Span> = {};
+Never: Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>, Span> = {};
 
 Ident: Meta<Span, &'input str> = Spanned<identifier>;
 

@@ -11,7 +11,6 @@ pub mod parse;
 mod tests;
 pub mod types;
 
-use crate::utils::gen_sym::UniqueSym;
 use derive_more::Display;
 use functor_derive::Functor;
 use itertools::Itertools;
@@ -48,11 +47,7 @@ pub enum Def<IdentVars, IdentFields, Expr> {
 }
 
 pub type DefParsed<'p> = Def<Meta<Span, &'p str>, Meta<Span, &'p str>, Meta<Span, ExprParsed<'p>>>;
-pub type ExprParsed<'p> = Expr<'p, Meta<Span, &'p str>, Meta<Span, &'p str>, Span>;
-
-pub type DefUniquified<'p> =
-    Def<Meta<Span, UniqueSym<'p>>, Meta<Span, &'p str>, Meta<Span, ExprUniquified<'p>>>;
-pub type ExprUniquified<'p> = Expr<'p, Meta<Span, UniqueSym<'p>>, Meta<Span, &'p str>, Span>;
+pub type ExprParsed<'p> = Expr<Meta<Span, &'p str>, Meta<Span, &'p str>, Lit<'p>, Span>;
 
 #[derive(Clone)]
 pub enum TypeDef<IdentVars, IdentFields> {
@@ -98,11 +93,11 @@ pub struct Param<A> {
 ///
 /// Expressions are generic and can use symbols that are either `&str` or
 /// [`UniqueSym`](crate::utils::gen_sym::UniqueSym) for all passes after uniquify.
-pub enum Expr<'p, IdentVars, IdentFields, M> {
+pub enum Expr<IdentVars, IdentFields, Lit, M> {
     /// A literal value. See [`Lit`].
     Lit {
         /// Value of the literal. See [`Lit`].
-        val: Lit<'p>,
+        val: Lit,
     },
     /// A variable.
     Var {
@@ -114,7 +109,7 @@ pub enum Expr<'p, IdentVars, IdentFields, M> {
         /// Primitive operation (e.g. `Xor`). See [`Op`].
         op: Op,
         /// Arguments used by the primitive operation.
-        args: Vec<Meta<M, Expr<'p, IdentVars, IdentFields, M>>>,
+        args: Vec<Meta<M, Expr<IdentVars, IdentFields, Lit, M>>>,
     },
     /// A let binding.
     ///
@@ -127,9 +122,9 @@ pub enum Expr<'p, IdentVars, IdentFields, M> {
         /// Indicates whether the variable is mutable (true) or immutable (false).
         mutable: bool,
         /// The expression to which the variable is bound.
-        bnd: Box<Meta<M, Expr<'p, IdentVars, IdentFields, M>>>,
+        bnd: Box<Meta<M, Expr<IdentVars, IdentFields, Lit, M>>>,
         /// The expression that is evaluated using the new variable binding.
-        bdy: Box<Meta<M, Expr<'p, IdentVars, IdentFields, M>>>,
+        bdy: Box<Meta<M, Expr<IdentVars, IdentFields, Lit, M>>>,
     },
     /// An if statement.
     ///
@@ -137,11 +132,11 @@ pub enum Expr<'p, IdentVars, IdentFields, M> {
     /// the result is true, it executes the `thn` expression; otherwise, it executes the `els` expression.
     If {
         /// The conditional expression that determines the execution path.
-        cnd: Box<Meta<M, Expr<'p, IdentVars, IdentFields, M>>>,
+        cnd: Box<Meta<M, Expr<IdentVars, IdentFields, Lit, M>>>,
         /// The expression to execute if the condition is true.
-        thn: Box<Meta<M, Expr<'p, IdentVars, IdentFields, M>>>,
+        thn: Box<Meta<M, Expr<IdentVars, IdentFields, Lit, M>>>,
         /// The expression to execute if the condition is false.
-        els: Box<Meta<M, Expr<'p, IdentVars, IdentFields, M>>>,
+        els: Box<Meta<M, Expr<IdentVars, IdentFields, Lit, M>>>,
     },
     /// A function application.
     ///
@@ -149,9 +144,9 @@ pub enum Expr<'p, IdentVars, IdentFields, M> {
     /// evaluated to obtain a function symbol, which is invoked with the arguments in `args`.
     Apply {
         /// The expression that, when evaluated, represents the function symbol to be invoked.
-        fun: Box<Meta<M, Expr<'p, IdentVars, IdentFields, M>>>,
+        fun: Box<Meta<M, Expr<IdentVars, IdentFields, Lit, M>>>,
         /// The ordered arguments that are passed to the function.
-        args: Vec<Meta<M, Expr<'p, IdentVars, IdentFields, M>>>,
+        args: Vec<Meta<M, Expr<IdentVars, IdentFields, Lit, M>>>,
     },
     /// A loop construct.
     ///
@@ -159,7 +154,7 @@ pub enum Expr<'p, IdentVars, IdentFields, M> {
     /// expression is evaluated.
     Loop {
         /// The expression that defines the body of the loop.
-        bdy: Box<Meta<M, Expr<'p, IdentVars, IdentFields, M>>>,
+        bdy: Box<Meta<M, Expr<IdentVars, IdentFields, Lit, M>>>,
     },
     /// A break statement.
     ///
@@ -167,7 +162,7 @@ pub enum Expr<'p, IdentVars, IdentFields, M> {
     /// current loop and returns the value of the `bdy` expression from the loop upon termination.
     Break {
         /// The expression to be evaluated and returned from the loop.
-        bdy: Box<Meta<M, Expr<'p, IdentVars, IdentFields, M>>>,
+        bdy: Box<Meta<M, Expr<IdentVars, IdentFields, Lit, M>>>,
     },
     /// A continue statement.
     ///
@@ -179,7 +174,7 @@ pub enum Expr<'p, IdentVars, IdentFields, M> {
     /// The `Return` expression exits the current function and returns the value of the `bdy` expression.
     Return {
         /// The expression to be evaluated and returned from the function.
-        bdy: Box<Meta<M, Expr<'p, IdentVars, IdentFields, M>>>,
+        bdy: Box<Meta<M, Expr<IdentVars, IdentFields, Lit, M>>>,
     },
     /// A sequence of two expressions.
     ///
@@ -188,9 +183,9 @@ pub enum Expr<'p, IdentVars, IdentFields, M> {
     /// the `cnt` expression is evaluated.
     Seq {
         /// The first expression to be executed in the sequence.
-        stmt: Box<Meta<M, Expr<'p, IdentVars, IdentFields, M>>>,
+        stmt: Box<Meta<M, Expr<IdentVars, IdentFields, Lit, M>>>,
         /// The second expression to be executed in the sequence.
-        cnt: Box<Meta<M, Expr<'p, IdentVars, IdentFields, M>>>,
+        cnt: Box<Meta<M, Expr<IdentVars, IdentFields, Lit, M>>>,
     },
     /// A variable assignment.
     ///
@@ -201,14 +196,14 @@ pub enum Expr<'p, IdentVars, IdentFields, M> {
         /// Symbol representing the variable to which the assignment is made.
         sym: IdentVars,
         /// The expression whose result is assigned to the variable.
-        bnd: Box<Meta<M, Expr<'p, IdentVars, IdentFields, M>>>,
+        bnd: Box<Meta<M, Expr<IdentVars, IdentFields, Lit, M>>>,
     },
     /// An instance of a struct.
     ///
     /// todo: documentation
     Struct {
         sym: IdentVars,
-        fields: Vec<(IdentFields, Meta<M, Expr<'p, IdentVars, IdentFields, M>>)>,
+        fields: Vec<(IdentFields, Meta<M, Expr<IdentVars, IdentFields, Lit, M>>)>,
     },
     /// A variant of an enum.
     ///
@@ -216,28 +211,28 @@ pub enum Expr<'p, IdentVars, IdentFields, M> {
     Variant {
         enum_sym: IdentVars,
         variant_sym: IdentFields,
-        bdy: Box<Meta<M, Expr<'p, IdentVars, IdentFields, M>>>,
+        bdy: Box<Meta<M, Expr<IdentVars, IdentFields, Lit, M>>>,
     },
     /// A field access.
     ///
     /// todo: documentation
     AccessField {
-        strct: Box<Meta<M, Expr<'p, IdentVars, IdentFields, M>>>,
+        strct: Box<Meta<M, Expr<IdentVars, IdentFields, Lit, M>>>,
         field: IdentFields,
     },
     /// A switch statement.
     ///
     /// todo: documentation
     Switch {
-        enm: Box<Meta<M, Expr<'p, IdentVars, IdentFields, M>>>,
-        arms: Vec<SwitchArm<'p, IdentVars, IdentFields, M>>,
+        enm: Box<Meta<M, Expr<IdentVars, IdentFields, Lit, M>>>,
+        arms: Vec<SwitchArm<IdentVars, IdentFields, Lit, M>>,
     },
 }
 
-pub type SwitchArm<'p, IdentVars, IdentFields, M> = (
+pub type SwitchArm<IdentVars, IdentFields, Lit, M> = (
     IdentVars,
     IdentFields,
-    Box<Meta<M, Expr<'p, IdentVars, IdentFields, M>>>,
+    Box<Meta<M, Expr<IdentVars, IdentFields, Lit, M>>>,
 );
 
 #[derive(Clone, Display)]
