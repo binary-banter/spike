@@ -1,4 +1,4 @@
 //* ret: 22
-fn main() -> Int {
+fn main() -> I64 {
     (32 + (-10))
 }

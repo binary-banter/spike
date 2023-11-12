@@ -1,5 +1,5 @@
 //* ret: 5
-fn main() -> Int {
+fn main() -> I64 {
     if (loop { break true; }) {
         5
     } else {

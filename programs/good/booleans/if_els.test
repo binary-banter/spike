@@ -1,5 +1,5 @@
 //* ret: 13
-fn main() -> Int {
+fn main() -> I64 {
     if false {
         42
     } else {

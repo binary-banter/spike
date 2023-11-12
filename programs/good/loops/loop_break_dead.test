@@ -1,5 +1,5 @@
 //* ret: 5
-fn main() -> Int {
+fn main() -> I64 {
     loop {
         break 5;
         print(3);

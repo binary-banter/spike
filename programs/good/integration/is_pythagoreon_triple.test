@@ -1,9 +1,9 @@
 //* inp: 3 4 5  5 12 13  1 2 3  0
 //* out:     1        1      0
 struct Triple {
-    a: Int,
-    b: Int,
-    c: Int,
+    a: I64,
+    b: I64,
+    c: I64,
 }
 
 fn is_triple(triple: Triple) -> Bool {

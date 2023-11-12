@@ -1,5 +1,5 @@
 struct Foo {
-    x : Int,
+    x : I64,
 }
 
 struct Bar {

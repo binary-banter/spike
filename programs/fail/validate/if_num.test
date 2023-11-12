@@ -1,5 +1,5 @@
 //* err: todo!
-fn main() -> Int {
+fn main() -> I64 {
     if 1 {
         true
     } else {

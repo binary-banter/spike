@@ -1,4 +1,4 @@
 //* err: todo!
-fn main() -> Int {
+fn main() -> I64 {
     true
 }

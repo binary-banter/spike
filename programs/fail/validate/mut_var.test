@@ -1,9 +1,9 @@
 //* err: todo!
-fn test(x: Int) -> Int {
+fn test(x: I64) -> I64 {
     x = 42;
     x
 }
 
-fn main() -> Int {
+fn main() -> I64 {
     test(8)
 }

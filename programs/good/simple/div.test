@@ -1,4 +1,4 @@
 //* ret: 2
-fn main() -> Int {
+fn main() -> I64 {
     15 / 6
 }

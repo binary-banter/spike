@@ -1,4 +1,4 @@
 //* err: UnexpectedToken
-fn main() -> Int {
+fn main() -> I64 {
     -
 }

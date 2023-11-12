@@ -1,9 +1,9 @@
 //* err: todo!
-fn add(x: Int, y: Int) -> Int {
+fn add(x: I64, y: I64) -> I64 {
     return true;
     8
 }
 
-fn main() -> Int {
+fn main() -> I64 {
     add(40, 2)
 }
