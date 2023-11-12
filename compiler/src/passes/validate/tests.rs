@@ -20,51 +20,51 @@ fn validate([test]: [&str; 1]) {
             TypeError::UndeclaredVar { .. } => {
                 assert_eq!(expected_error, "UndeclaredVar")
             }
-            TypeError::MismatchedType { .. } => {
-                assert_eq!(expected_error, "MismatchedType")
-            }
-            TypeError::TypeMismatchExpectFn { .. } => {
-                assert_eq!(expected_error, "TypeMismatchExpectFn")
-            }
-            TypeError::MismatchedTypes { .. } => {
-                assert_eq!(expected_error, "MismatchedTypes")
-            }
-            TypeError::DuplicateFunction { .. } => {
-                assert_eq!(expected_error, "DuplicateFunction")
-            }
-            TypeError::DuplicateArg { .. } => {
-                assert_eq!(expected_error, "DuplicateArg")
-            }
-            TypeError::ArgCountMismatch { .. } => {
-                assert_eq!(expected_error, "ArgCountMismatch")
-            }
-            TypeError::BreakOutsideLoop => {
-                assert_eq!(expected_error, "BreakOutsideLoop")
-            }
-            TypeError::ModifyImmutable { .. } => {
-                assert_eq!(expected_error, "ModifyImmutable")
-            }
-            TypeError::VariableShouldBeExpr { .. } => {
-                assert_eq!(expected_error, "VariableShouldBeExpr")
-            }
-            TypeError::VariableShouldBeStruct { .. } => {
-                assert_eq!(expected_error, "VariableShouldBeStruct")
-            }
-            TypeError::UnknownStructField { .. } => {
-                assert_eq!(expected_error, "UnknownStructField")
-            }
-            TypeError::VariableConstructMissingField { .. } => {
-                assert_eq!(expected_error, "VariableConstructMissingField")
-            }
-            TypeError::VariableConstructDuplicateField { .. } => {
-                assert_eq!(expected_error, "VariableConstructDuplicateField")
-            }
-            TypeError::TypeShouldBeStruct { .. } => {
-                assert_eq!(expected_error, "TypeShouldBeStruct")
-            }
-            TypeError::UnsizedType { .. } => {
-                assert_eq!(expected_error, "UnsizedType")
-            }
+            // TypeError::MismatchedType { .. } => {
+            //     assert_eq!(expected_error, "MismatchedType")
+            // }
+            // TypeError::TypeMismatchExpectFn { .. } => {
+            //     assert_eq!(expected_error, "TypeMismatchExpectFn")
+            // }
+            // TypeError::MismatchedTypes { .. } => {
+            //     assert_eq!(expected_error, "MismatchedTypes")
+            // }
+            // TypeError::DuplicateFunction { .. } => {
+            //     assert_eq!(expected_error, "DuplicateFunction")
+            // }
+            // TypeError::DuplicateArg { .. } => {
+            //     assert_eq!(expected_error, "DuplicateArg")
+            // }
+            // TypeError::ArgCountMismatch { .. } => {
+            //     assert_eq!(expected_error, "ArgCountMismatch")
+            // }
+            // TypeError::BreakOutsideLoop => {
+            //     assert_eq!(expected_error, "BreakOutsideLoop")
+            // }
+            // TypeError::ModifyImmutable { .. } => {
+            //     assert_eq!(expected_error, "ModifyImmutable")
+            // }
+            // TypeError::VariableShouldBeExpr { .. } => {
+            //     assert_eq!(expected_error, "VariableShouldBeExpr")
+            // }
+            // TypeError::VariableShouldBeStruct { .. } => {
+            //     assert_eq!(expected_error, "VariableShouldBeStruct")
+            // }
+            // TypeError::UnknownStructField { .. } => {
+            //     assert_eq!(expected_error, "UnknownStructField")
+            // }
+            // TypeError::VariableConstructMissingField { .. } => {
+            //     assert_eq!(expected_error, "VariableConstructMissingField")
+            // }
+            // TypeError::VariableConstructDuplicateField { .. } => {
+            //     assert_eq!(expected_error, "VariableConstructDuplicateField")
+            // }
+            // TypeError::TypeShouldBeStruct { .. } => {
+            //     assert_eq!(expected_error, "TypeShouldBeStruct")
+            // }
+            // TypeError::UnsizedType { .. } => {
+            //     assert_eq!(expected_error, "UnsizedType")
+            // }
             TypeError::IntegerOutOfBounds { .. } => {
                 assert_eq!(expected_error, "IntegerOutOfBounds")
             }
