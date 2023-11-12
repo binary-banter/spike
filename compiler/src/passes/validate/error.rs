@@ -55,7 +55,13 @@ pub enum TypeError {
 
     #[error("Integer out of bounds.")]
     IntegerOutOfBounds {
-        #[label = "This number does not fit in an i32: `-2147483648..=2147483647`"]
+        #[label = "This number does not fit in type `{typ}`"]
+        span: (usize, usize),
+        typ: &'static str,
+    },
+    #[error("Integer ambiguous.")]
+    IntegerAmbiguous {
+        #[label = "Could not determine the exact type of this integer"]
         span: (usize, usize),
     },
     #[error("The program doesn't have a main function.")]

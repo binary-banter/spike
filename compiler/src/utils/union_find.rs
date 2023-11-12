@@ -92,21 +92,13 @@ impl<T> UnionFind<T> {
     pub fn len(&self) -> usize {
         self.data.len()
     }
-}
 
-impl<T> Index<UnionIndex> for UnionFind<T> {
-    type Output = T;
-
-    fn index(&self, index: UnionIndex) -> &Self::Output {
-        &self.data[index.0]
+    pub fn get(&mut self, index: UnionIndex) -> &T {
+        let index = self.find(index).0;
+        &self.data[index]
     }
 }
 
-impl<T> IndexMut<UnionIndex> for UnionFind<T> {
-    fn index_mut(&mut self, index: UnionIndex) -> &mut Self::Output {
-        &mut self.data[index.0]
-    }
-}
 
 #[cfg(test)]
 mod tests {

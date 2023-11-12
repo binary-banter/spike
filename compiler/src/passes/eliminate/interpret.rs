@@ -57,7 +57,8 @@ impl<'p> From<EVal<'p>> for Val<'p, UniqueSym<'p>> {
 impl<'p> From<TLit> for EVal<'p> {
     fn from(value: TLit) -> Self {
         match value {
-            TLit::Int { val } => Self::Int { val: val as i64 },
+            TLit::I64 { val } => Self::Int { val: val },
+            TLit::U64 { val } => Self::Int { val: val as i64 },
             TLit::Bool { val } => Self::Bool { val },
             TLit::Unit => Self::Unit,
         }
@@ -109,8 +110,8 @@ impl<'p> PrgEliminated<'p> {
                 (Op::Read, []) => io.read().into(),
                 (Op::Print, [v]) => {
                     let val = self.interpret_atom(v, scope);
-                    io.print(TLit::Int {
-                        val: val.int() as i32,
+                    io.print(TLit::I64 {
+                        val: val.int(),
                     });
                     val
                 }

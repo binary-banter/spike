@@ -384,7 +384,7 @@ fn explicate_pred<'p>(
         AExpr::FunRef { .. }
         | AExpr::Atom {
             atm: Atom::Val {
-                val: TLit::Int { .. } | TLit::Unit,
+                val: TLit::U64 { .. } | TLit::I64 {.. } | TLit::Unit,
             },
             ..
         }

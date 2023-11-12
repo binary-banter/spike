@@ -5,14 +5,14 @@ use crate::passes::validate::uniquify::PrgUniquified;
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};
 use std::collections::HashMap;
-use crate::passes::validate::DefUniquified;
+use crate::passes::validate::{DefUniquified, type_to_index};
 
 pub struct Env<'a, 'p> {
     pub uf: &'a mut UnionFind<PartialType<'p>>,
     pub scope: &'a mut HashMap<UniqueSym<'p>, EnvEntry<'p>>,
-    pub loop_type: &'a mut Option<Meta<Span, UniqueSym<'p>>>,
-    pub in_loop: bool,
-    pub return_type: &'a Type<Meta<Span, UniqueSym<'p>>>,
+    // pub loop_type: &'a mut Option<Meta<Span, UniqueSym<'p>>>,
+    // pub in_loop: bool,
+    pub return_type: UnionIndex,
 }
 
 pub enum EnvEntry<'p> {
@@ -61,27 +61,4 @@ fn uncover_def<'p>(def: &DefUniquified<'p>, uf: &mut UnionFind<PartialType<'p>>)
             def: (*def).clone(),
         },
     }
-}
-
-fn type_to_index<'p>(
-    t: Type<Meta<Span, UniqueSym<'p>>>,
-    uf: &mut UnionFind<PartialType<'p>>,
-) -> UnionIndex {
-    let pt = match t {
-        Type::I64 => PartialType::I64,
-        Type::U64 => PartialType::U64,
-        Type::Bool => PartialType::Bool,
-        Type::Unit => PartialType::Unit,
-        Type::Never => PartialType::Never,
-        Type::Fn { params, typ } => PartialType::Fn {
-            params: params
-                .into_iter()
-                .map(|param| type_to_index(param, uf))
-                .collect(),
-            typ: type_to_index(*typ, uf),
-        },
-        Type::Var { sym } => PartialType::Var { sym: sym.inner },
-    };
-
-    uf.add(pt)
 }

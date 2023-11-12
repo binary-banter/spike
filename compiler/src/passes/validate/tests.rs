@@ -71,6 +71,9 @@ fn validate([test]: [&str; 1]) {
             TypeError::NoMain => {
                 assert_eq!(expected_error, "NoMain")
             }
+            TypeError::IntegerAmbiguous { .. } => {
+                assert_eq!(expected_error, "IntegerAmbiguous")
+            }
         },
     }
 }

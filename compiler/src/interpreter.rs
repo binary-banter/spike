@@ -59,7 +59,8 @@ pub enum Val<'p, A: Copy + Hash + Eq + Display> {
 impl<'p, A: Copy + Hash + Eq + Display> From<TLit> for Val<'p, A> {
     fn from(value: TLit) -> Self {
         match value {
-            TLit::Int { val } => Val::Int { val: val as i64 },
+            TLit::I64 { val } => Val::Int { val: val },
+            TLit::U64 { val } => Val::Int { val: val as i64 },
             TLit::Bool { val } => Val::Bool { val },
             TLit::Unit => Val::Unit,
         }

@@ -167,7 +167,7 @@ ExprInStmt: Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>, 
     "if" <cnd:Spanned<ExprLogicalOr<Never>>> "{" <thn:Spanned<Expr>> "}" <l:@L> <els:("else" "{" <Spanned<Expr>> "}")?> <r:@R> => Expr::If {
         cnd: Box::new(cnd),
         thn: Box::new(thn),
-        els: Box::new(els.unwrap_or(Meta { meta: (l, r), inner: Expr::Lit { val: Lit::Unit }})),
+        els: Box::new(els.unwrap_or(Meta { meta: (l, r - l), inner: Expr::Lit { val: Lit::Unit }})),
     },
     "loop" "{" <bdy:Spanned<Expr>> "}" => Expr::Loop {
         bdy: Box::new(bdy),
@@ -175,22 +175,22 @@ ExprInStmt: Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>, 
     // todo: the spans in this desugaring do not make a lot sense.
     <l:@L> "while" <r:@R> <cnd:Spanned<ExprLogicalOr<Never>>> "{" <bdy:Spanned<Expr>> "}" => Expr::Loop {
         bdy: Box::new(Meta {
-            meta: (l, r),
+            meta: (l, r - l),
             inner: Expr::If {
                 cnd: Box::new(cnd),
                 thn: Box::new(bdy),
                 els: Box::new(Meta {
-                    meta: (l, r),
+                    meta: (l, r - l),
                     inner: Expr::Seq {
                         stmt: Box::new(Meta {
-                            meta: (l, r),
+                            meta: (l, r - l),
                             inner: Expr::Break { bdy: Box::new(Meta {
-                                meta: (l, r),
+                                meta: (l, r - l),
                                 inner: Expr::Lit { val: Lit::Unit },
                             })},
                         }),
                         cnt: Box::new(Meta {
-                            meta: (l, r),
+                            meta: (l, r - l),
                             inner: Expr::Lit { val: Lit::Unit },
                         }),
                     },
@@ -307,7 +307,7 @@ Struct: Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>, Span
 
 StructArg : (Meta<Span, &'input str>, Meta<Span, Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>, Span>>) = {
     <Ident> ":" <Spanned<Expr>>,
-    <l:@L> <sym:Ident> <r:@R> => (sym.clone(), Meta { meta: (l, r), inner: Expr::Var { sym } })
+    <l:@L> <sym:Ident> <r:@R> => (sym.clone(), Meta { meta: (l, r - l), inner: Expr::Var { sym } })
 }
 
 Never: Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>, Span> = {};
@@ -332,4 +332,4 @@ Comma<T>: Vec<T> = {
     }
 }
 
-Spanned<T>: Meta<Span, T> = <l:@L> <inner:T> <r:@R> => Meta { meta: (l, r), inner };
+Spanned<T>: Meta<Span, T> = <l:@L> <inner:T> <r:@R> => Meta { meta: (l, r - l), inner };

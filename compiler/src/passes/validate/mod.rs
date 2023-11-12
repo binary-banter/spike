@@ -18,7 +18,7 @@ use std::str::FromStr;
 use crate::passes::validate::generate_constraints::PartialType;
 
 pub struct PrgValidated<'p> {
-    pub defs: HashMap<UniqueSym<'p>, Def<UniqueSym<'p>, &'p str, ExprValidated<'p>>>,
+    pub defs: HashMap<UniqueSym<'p>, DefValidated<'p>>,
     pub entry: UniqueSym<'p>,
 }
 
@@ -48,7 +48,9 @@ pub struct CMeta {
 #[derive(Copy, Clone, Debug, PartialEq, Display)]
 pub enum TLit {
     #[display(fmt = "{val}")]
-    Int { val: i32 },
+    I64 { val: i64 },
+    #[display(fmt = "{val}")]
+    U64 { val: u64 },
     #[display(fmt = "{}", r#"if *val { "true" } else { "false" }"#)]
     Bool { val: bool },
     #[display(fmt = "unit")]
@@ -61,10 +63,10 @@ impl TLit {
     /// Panics if `TLit` is not `Int`.
     #[must_use]
     pub fn int(self) -> i64 {
-        if let TLit::Int { val } = self {
-            val as i64
-        } else {
-            panic!()
+        match self {
+            TLit::I64 { val, .. } => val,
+            TLit::U64 { val, .. } => val as i64,
+            _ => panic!(),
         }
     }
 
@@ -84,14 +86,14 @@ impl TLit {
 impl From<TLit> for i64 {
     fn from(value: TLit) -> Self {
         match value {
-            TLit::Int { val } => val as i64,
+            TLit::I64 { val } => val,
+            TLit::U64 { val } => val as i64,
             TLit::Bool { val } => val as i64,
             TLit::Unit => 0,
         }
     }
 }
 
-// This implementation is used by the parser.
 impl FromStr for TLit {
     type Err = ();
 
@@ -100,9 +102,32 @@ impl FromStr for TLit {
             "false" => TLit::Bool { val: false },
             "true" => TLit::Bool { val: true },
             "unit" => TLit::Unit,
-            s => TLit::Int {
+            s => TLit::I64 {
                 val: s.parse().map_err(|_| ())?,
             },
         })
     }
+}
+
+pub fn type_to_index<'p>(
+    t: Type<Meta<Span, UniqueSym<'p>>>,
+    uf: &mut UnionFind<PartialType<'p>>,
+) -> UnionIndex {
+    let pt = match t {
+        Type::I64 => PartialType::I64,
+        Type::U64 => PartialType::U64,
+        Type::Bool => PartialType::Bool,
+        Type::Unit => PartialType::Unit,
+        Type::Never => PartialType::Never,
+        Type::Fn { params, typ } => PartialType::Fn {
+            params: params
+                .into_iter()
+                .map(|param| type_to_index(param, uf))
+                .collect(),
+            typ: type_to_index(*typ, uf),
+        },
+        Type::Var { sym } => PartialType::Var { sym: sym.inner },
+    };
+
+    uf.add(pt)
 }

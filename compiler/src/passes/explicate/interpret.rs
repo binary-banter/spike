@@ -47,8 +47,8 @@ impl<'p> PrgExplicated<'p> {
                 (Op::Read, []) => io.read().into(),
                 (Op::Print, [v]) => {
                     let val = self.interpret_atom(v, scope);
-                    io.print(TLit::Int {
-                        val: val.int() as i32,
+                    io.print(TLit::I64 {
+                        val: val.int(),
                     });
                     val
                 }
