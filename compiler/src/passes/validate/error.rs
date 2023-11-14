@@ -66,16 +66,41 @@ pub enum TypeError {
     },
     #[error("The program doesn't have a main function.")]
     NoMain,
-
     #[error("Types did not match.")]
     MismatchedFnReturn {
         expect: String,
         got: String,
 
-        #[label = "Expected this function to be of type: `{expect}`"]
+        //TODO would like this span to be return type if present
+        #[label = "Expected this function to return: `{expect}`"]
         span_expected: (usize, usize),
-
-        #[label = "but got this type: `{got}`"]
+        #[label = "But got this type: `{got}`"]
         span_got: (usize, usize),
+    },
+    #[error("Types did not match.")]
+    OperandExpect {
+        expect: String,
+        got: String,
+        op: String,
+
+        //TODO would like this span to be operator
+        #[label = "Arguments of {op} are of type: `{expect}`"]
+        span_op: (usize, usize),
+        #[label = "But got this type: `{got}`"]
+        span_arg: (usize, usize),
+    },
+    #[error("Types did not match.")]
+    OperandEqual {
+        lhs: String,
+        rhs: String,
+        op: String,
+
+        //TODO would like this span to be operator
+        #[label = "Arguments of {op} should be of equal types."]
+        span_op: (usize, usize),
+        #[label = "Type: `{lhs}`"]
+        span_lhs: (usize, usize),
+        #[label = "Type: `{rhs}`"]
+        span_rhs: (usize, usize),
     },
 }

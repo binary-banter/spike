@@ -108,26 +108,3 @@ impl FromStr for TLit {
         })
     }
 }
-
-pub fn type_to_index<'p>(
-    t: Type<Meta<Span, UniqueSym<'p>>>,
-    uf: &mut UnionFind<PartialType<'p>>,
-) -> UnionIndex {
-    let pt = match t {
-        Type::I64 => PartialType::I64,
-        Type::U64 => PartialType::U64,
-        Type::Bool => PartialType::Bool,
-        Type::Unit => PartialType::Unit,
-        Type::Never => PartialType::Never,
-        Type::Fn { params, typ } => PartialType::Fn {
-            params: params
-                .into_iter()
-                .map(|param| type_to_index(param, uf))
-                .collect(),
-            typ: type_to_index(*typ, uf),
-        },
-        Type::Var { sym } => PartialType::Var { sym: sym.inner },
-    };
-
-    uf.add(pt)
-}

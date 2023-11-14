@@ -7,7 +7,7 @@ use crate::passes::validate::{
     PrgValidated, TLit,
 };
 use crate::utils::gen_sym::UniqueSym;
-use crate::utils::union_find::UnionFind;
+use crate::utils::union_find::{UnionFind, UnionIndex};
 use functor_derive::Functor;
 
 impl<'p> PrgConstrained<'p> {
@@ -79,40 +79,76 @@ fn resolve_type(typ: Type<Meta<Span, UniqueSym>>) -> Type<UniqueSym> {
     }
 }
 
+/// Panic if not possible
+fn partial_type_to_type<'p>(
+    value: UnionIndex,
+    uf: &mut UnionFind<PartialType<'p>>,
+) -> Option<Type<UniqueSym<'p>>> {
+    Some(match uf.get(value).clone() {
+        PartialType::I64 => Type::I64,
+        PartialType::U64 => Type::U64,
+        PartialType::Int => return None,
+        PartialType::Bool => Type::Bool,
+        PartialType::Unit => Type::Unit,
+        PartialType::Never => Type::Never,
+        PartialType::Var { sym } => Type::Var { sym },
+        PartialType::Fn { params, typ } => Type::Fn {
+            params: params
+                .into_iter()
+                .map(|param| partial_type_to_type(uf.find(param), uf))
+                .collect::<Option<_>>()?,
+            typ: Box::new(partial_type_to_type(typ, uf)?),
+        },
+    })
+}
+
 fn resolve_expr<'p>(
     expr: Meta<CMeta, ExprConstrained<'p>>,
     uf: &mut UnionFind<PartialType<'p>>,
 ) -> Result<Meta<Type<UniqueSym<'p>>, ExprValidated<'p>>, TypeError> {
-    let (typ, expr) = match expr.inner {
-        ExprConstrained::Lit { val } => {
-            let (typ, val) = match val {
-                Lit::Int { val } => {
-                    match &uf.get(expr.meta.index) {
-                        PartialType::I64 => {
-                            let val = val.parse().map_err(|_| TypeError::IntegerOutOfBounds {
-                                span: expr.meta.span,
-                                typ: "I64",
-                            })?;
-                            (Type::I64, TLit::I64 { val })
-                        },
-                        PartialType::U64 => todo!(),
-                        PartialType::Int => {
-                            return Err(dbg!(TypeError::IntegerAmbiguous {
-                                span: expr.meta.span
-                            }))
-                        },
-                        _ => unreachable!(),
-                    }
-                },
-                Lit::Bool { val } => (Type::Bool ,TLit::Bool { val }),
-                Lit::Unit => (Type::Unit, TLit::Unit),
-            };
+    // Type of the expression, if `None` then type is still ambiguous.
+    let typ = partial_type_to_type(expr.meta.index, uf);
 
-            (typ, Expr::Lit { val })
-        },
+    let expr: Expr<_, _, _, Type<UniqueSym>> = match expr.inner {
+        ExprConstrained::Lit { val } => {
+            let val = match val {
+                Lit::Int { val } => {
+                    match &typ {
+                        None => return Err(dbg!(TypeError::IntegerAmbiguous {
+                            span: expr.meta.span
+                        })),
+                        Some(typ) => match typ {
+                            Type::I64 => TLit::I64 {
+                                val: val.parse().map_err(|_| TypeError::IntegerOutOfBounds {
+                                    span: expr.meta.span,
+                                    typ: "I64",
+                                })?,
+                            },
+                            Type::U64 => todo!(),
+                            _ => unreachable!(),
+                        },
+                    }
+                }
+                Lit::Bool { val } => TLit::Bool { val },
+                Lit::Unit => TLit::Unit,
+            };
+            Expr::Lit { val }
+        }
         ExprConstrained::Var { .. } => todo!(),
-        ExprConstrained::UnaryOp { .. } => todo!(),
-        ExprConstrained::BinaryOp { .. } => todo!(),
+        ExprConstrained::UnaryOp {
+            op,
+            expr: expr_inner,
+        } => Expr::UnaryOp {
+            op,
+            expr: Box::new(resolve_expr(*expr_inner, uf)?),
+        },
+        ExprConstrained::BinaryOp { op, exprs: [e1, e2] } => Expr::BinaryOp {
+            op,
+            exprs: [
+                resolve_expr(*e1, uf)?,
+                resolve_expr(*e2, uf)?
+            ].map(Box::new)
+        },
         ExprConstrained::Let { .. } => todo!(),
         ExprConstrained::If { .. } => todo!(),
         ExprConstrained::Apply { .. } => todo!(),
@@ -129,7 +165,7 @@ fn resolve_expr<'p>(
     };
 
     Ok(Meta {
-        meta: typ,
+        meta: typ.unwrap(),
         inner: expr,
     })
 }

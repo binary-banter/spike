@@ -2,7 +2,7 @@ use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, Meta, Span, TypeDef};
 use crate::passes::validate::generate_constraints::PartialType;
 use crate::passes::validate::uniquify::PrgUniquified;
-use crate::passes::validate::{type_to_index, DefUniquified};
+use crate::passes::validate::DefUniquified;
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};
 use std::collections::HashMap;
@@ -49,13 +49,10 @@ fn uncover_def<'p>(def: &DefUniquified<'p>, uf: &mut UnionFind<PartialType<'p>>)
             params: args, typ, ..
         } => EnvEntry::Type {
             mutable: false,
-            typ: type_to_index(
-                Type::Fn {
-                    typ: Box::new(typ.clone()),
-                    params: args.iter().map(|param| param.typ.clone()).collect(),
-                },
-                uf,
-            ),
+            typ: uf.type_to_index(Type::Fn {
+                typ: Box::new(typ.clone()),
+                params: args.iter().map(|param| param.typ.clone()).collect(),
+            }),
         },
         Def::TypeDef { def, .. } => EnvEntry::Def {
             def: (*def).clone(),
