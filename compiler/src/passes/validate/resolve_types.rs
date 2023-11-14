@@ -109,8 +109,8 @@ fn resolve_expr<'p>(
     // Type of the expression, if `None` then type is still ambiguous.
     let typ = partial_type_to_type(expr.meta.index, uf);
 
-    let expr: Expr<_, _, _, Type<UniqueSym>> = match expr.inner {
-        ExprConstrained::Lit { val } => {
+    let expr = match expr.inner {
+        Expr::Lit { val } => {
             let val = match val {
                 Lit::Int { val } => {
                     match &typ {
@@ -134,34 +134,39 @@ fn resolve_expr<'p>(
             };
             Expr::Lit { val }
         }
-        ExprConstrained::Var { .. } => todo!(),
-        ExprConstrained::UnaryOp {
+        Expr::Var { sym } => Expr::Var { sym: sym.inner },
+        Expr::UnaryOp {
             op,
             expr: expr_inner,
         } => Expr::UnaryOp {
             op,
             expr: Box::new(resolve_expr(*expr_inner, uf)?),
         },
-        ExprConstrained::BinaryOp { op, exprs: [e1, e2] } => Expr::BinaryOp {
+        Expr::BinaryOp { op, exprs: [e1, e2] } => Expr::BinaryOp {
             op,
             exprs: [
                 resolve_expr(*e1, uf)?,
                 resolve_expr(*e2, uf)?
             ].map(Box::new)
         },
-        ExprConstrained::Let { .. } => todo!(),
-        ExprConstrained::If { .. } => todo!(),
-        ExprConstrained::Apply { .. } => todo!(),
-        ExprConstrained::Loop { .. } => todo!(),
-        ExprConstrained::Break { .. } => todo!(),
-        ExprConstrained::Continue => todo!(),
-        ExprConstrained::Return { .. } => todo!(),
-        ExprConstrained::Seq { .. } => todo!(),
-        ExprConstrained::Assign { .. } => todo!(),
-        ExprConstrained::Struct { .. } => todo!(),
-        ExprConstrained::Variant { .. } => todo!(),
-        ExprConstrained::AccessField { .. } => todo!(),
-        ExprConstrained::Switch { .. } => todo!(),
+        Expr::Let { sym, mutable, bnd, bdy } => Expr::Let {
+            sym: sym.inner,
+            mutable,
+            bnd: Box::new(resolve_expr(*bnd, uf)?),
+            bdy: Box::new(resolve_expr(*bdy, uf)?),
+        },
+        Expr::If { .. } => todo!(),
+        Expr::Apply { .. } => todo!(),
+        Expr::Loop { .. } => todo!(),
+        Expr::Break { .. } => todo!(),
+        Expr::Continue => todo!(),
+        Expr::Return { .. } => todo!(),
+        Expr::Seq { .. } => todo!(),
+        Expr::Assign { .. } => todo!(),
+        Expr::Struct { .. } => todo!(),
+        Expr::Variant { .. } => todo!(),
+        Expr::AccessField { .. } => todo!(),
+        Expr::Switch { .. } => todo!(),
     };
 
     Ok(Meta {

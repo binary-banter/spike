@@ -245,7 +245,23 @@ fn constrain_expr<'p>(
                 },
             }
         }
-        ExprUniquified::Let { .. } => todo!(),
+        ExprUniquified::Let { sym, mutable, bnd, bdy } => {
+            let bnd = constrain_expr(*bnd, env)?;
+            env.scope.insert(sym.inner, EnvEntry::Type { mutable, typ: bnd.meta.index });
+            let bdy = constrain_expr(*bdy, env)?;
+
+            Meta {
+                meta: CMeta {
+                    span, index: bdy.meta.index
+                },
+                inner: ExprConstrained::Let {
+                    sym,
+                    mutable,
+                    bnd: Box::new(bnd),
+                    bdy: Box::new(bdy),
+                }
+            }
+        },
         ExprUniquified::If { .. } => todo!(),
         ExprUniquified::Apply { .. } => todo!(),
         ExprUniquified::Loop { .. } => todo!(),
