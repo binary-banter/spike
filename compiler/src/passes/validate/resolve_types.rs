@@ -83,53 +83,53 @@ fn resolve_expr<'p>(
     expr: Meta<CMeta, ExprConstrained<'p>>,
     uf: &mut UnionFind<PartialType<'p>>,
 ) -> Result<Meta<Type<UniqueSym<'p>>, ExprValidated<'p>>, TypeError> {
-    todo!()
-    // let (typ, expr) = match expr.inner {
-    //     ExprConstrained::Lit { val } => {
-    //         let (typ, val) = match val {
-    //             Lit::Int { val } => {
-    //                 match &uf.get(expr.meta.index) {
-    //                     PartialType::I64 => {
-    //                         let val = val.parse().map_err(|_| TypeError::IntegerOutOfBounds {
-    //                             span: expr.meta.span,
-    //                             typ: "I64",
-    //                         })?;
-    //                         (Type::I64, TLit::I64 { val })
-    //                     },
-    //                     PartialType::U64 => todo!(),
-    //                     PartialType::Int => {
-    //                         return Err(dbg!(TypeError::IntegerAmbiguous {
-    //                             span: expr.meta.span
-    //                         }))
-    //                     },
-    //                     _ => unreachable!(),
-    //                 }
-    //             },
-    //             Lit::Bool { val } => (Type::Bool ,TLit::Bool { val }),
-    //             Lit::Unit => (Type::Unit, TLit::Unit),
-    //         };
-    //
-    //         (typ, Expr::Lit { val })
-    //     },
-    //     ExprConstrained::Var { .. } => todo!(),
-    //     ExprConstrained::Prim { .. } => todo!(),
-    //     ExprConstrained::Let { .. } => todo!(),
-    //     ExprConstrained::If { .. } => todo!(),
-    //     ExprConstrained::Apply { .. } => todo!(),
-    //     ExprConstrained::Loop { .. } => todo!(),
-    //     ExprConstrained::Break { .. } => todo!(),
-    //     ExprConstrained::Continue => todo!(),
-    //     ExprConstrained::Return { .. } => todo!(),
-    //     ExprConstrained::Seq { .. } => todo!(),
-    //     ExprConstrained::Assign { .. } => todo!(),
-    //     ExprConstrained::Struct { .. } => todo!(),
-    //     ExprConstrained::Variant { .. } => todo!(),
-    //     ExprConstrained::AccessField { .. } => todo!(),
-    //     ExprConstrained::Switch { .. } => todo!(),
-    // };
-    //
-    // Ok(Meta {
-    //     meta: typ,
-    //     inner: expr,
-    // })
+    let (typ, expr) = match expr.inner {
+        ExprConstrained::Lit { val } => {
+            let (typ, val) = match val {
+                Lit::Int { val } => {
+                    match &uf.get(expr.meta.index) {
+                        PartialType::I64 => {
+                            let val = val.parse().map_err(|_| TypeError::IntegerOutOfBounds {
+                                span: expr.meta.span,
+                                typ: "I64",
+                            })?;
+                            (Type::I64, TLit::I64 { val })
+                        },
+                        PartialType::U64 => todo!(),
+                        PartialType::Int => {
+                            return Err(dbg!(TypeError::IntegerAmbiguous {
+                                span: expr.meta.span
+                            }))
+                        },
+                        _ => unreachable!(),
+                    }
+                },
+                Lit::Bool { val } => (Type::Bool ,TLit::Bool { val }),
+                Lit::Unit => (Type::Unit, TLit::Unit),
+            };
+
+            (typ, Expr::Lit { val })
+        },
+        ExprConstrained::Var { .. } => todo!(),
+        ExprConstrained::UnaryOp { .. } => todo!(),
+        ExprConstrained::BinaryOp { .. } => todo!(),
+        ExprConstrained::Let { .. } => todo!(),
+        ExprConstrained::If { .. } => todo!(),
+        ExprConstrained::Apply { .. } => todo!(),
+        ExprConstrained::Loop { .. } => todo!(),
+        ExprConstrained::Break { .. } => todo!(),
+        ExprConstrained::Continue => todo!(),
+        ExprConstrained::Return { .. } => todo!(),
+        ExprConstrained::Seq { .. } => todo!(),
+        ExprConstrained::Assign { .. } => todo!(),
+        ExprConstrained::Struct { .. } => todo!(),
+        ExprConstrained::Variant { .. } => todo!(),
+        ExprConstrained::AccessField { .. } => todo!(),
+        ExprConstrained::Switch { .. } => todo!(),
+    };
+
+    Ok(Meta {
+        meta: typ,
+        inner: expr,
+    })
 }

@@ -107,7 +107,12 @@ fn constrain_def<'p>(
             let bdy = constrain_expr(bdy, &mut env)?;
 
             uf.try_union_by(return_index, bdy.meta.index, combine_partial_types)
-                .map_err(|_| todo!())?;
+                .map_err(|_| MismatchedFnReturn {
+                    expect: format!("{typ}"),
+                    got: format!("{}", "bananas"),
+                    span_expected: (0, 0),
+                    span_got: (0, 0),
+                })?;
 
             DefConstrained::Fn {
                 sym,
@@ -154,8 +159,8 @@ fn constrain_expr<'p>(
                 inner: ExprConstrained::Var { sym },
             }
         }
-        ExprUniquified::BinaryOp { op, exprs } => todo!(),
         ExprUniquified::UnaryOp { op, expr } => todo!(),
+        ExprUniquified::BinaryOp { op, exprs } => todo!(),
         // ExprUniquified::Prim { op, args } if args.len() == 2 => {
         //     let (pt, lhs, rhs) = match op {
         //         Op::Plus => (PartialType::Int, PartialType::Int, PartialType::Int),
@@ -202,21 +207,22 @@ fn constrain_expr<'p>(
 
 // uf: &mut UnionFind<PartialType<'p>>
 fn combine_partial_types<'p>(
-    a: &PartialType<'p>,
-    b: &PartialType<'p>,
+    a: PartialType<'p>,
+    b: PartialType<'p>,
+    uf: &mut UnionFind<PartialType<'p>>
 ) -> Result<PartialType<'p>, ()> {
-    match (a, b) {
-        (PartialType::I64, PartialType::I64 | PartialType::Int) => Ok(PartialType::I64),
-        (PartialType::Int, PartialType::I64) => Ok(PartialType::I64),
-        (PartialType::U64, PartialType::U64 | PartialType::Int) => Ok(PartialType::U64),
-        (PartialType::Int, PartialType::U64) => Ok(PartialType::U64),
-        (PartialType::Int, PartialType::Int) => Ok(PartialType::Int),
-        (PartialType::Bool, PartialType::Bool) => Ok(PartialType::Bool),
-        (PartialType::Unit, PartialType::Unit) => Ok(PartialType::Unit),
-        (PartialType::Never, t) => Ok(t.clone()),
-        (t, PartialType::Never) => Ok(t.clone()),
+    let typ = match (a, b) {
+        (PartialType::I64, PartialType::I64 | PartialType::Int) => PartialType::I64,
+        (PartialType::Int, PartialType::I64) => PartialType::I64,
+        (PartialType::U64, PartialType::U64 | PartialType::Int) => PartialType::U64,
+        (PartialType::Int, PartialType::U64) => PartialType::U64,
+        (PartialType::Int, PartialType::Int) => PartialType::Int,
+        (PartialType::Bool, PartialType::Bool) => PartialType::Bool,
+        (PartialType::Unit, PartialType::Unit) => PartialType::Unit,
+        (PartialType::Never, t) => t.clone(),
+        (t, PartialType::Never) => t.clone(),
         (PartialType::Var { sym: sym_a }, PartialType::Var { sym: sym_b }) if sym_a == sym_b => {
-            Ok(PartialType::Var { sym: *sym_a })
+            PartialType::Var { sym: sym_a }
         }
         (
             PartialType::Fn {
@@ -228,9 +234,23 @@ fn combine_partial_types<'p>(
                 typ: typ_b,
             },
         ) => {
-            //check if params and typ are eq
-            todo!()
+            if params_a.len() != params_b.len() {
+                return Err(())
+            }
+
+            let params = params_a.into_iter().zip(params_b).map(|(param_a, param_b)| {
+                uf.try_union_by(param_a, param_b, combine_partial_types)
+            }).collect::<Result<_,_>>()?;
+
+            let typ = uf.try_union_by(typ_a, typ_b, combine_partial_types)?;
+
+            PartialType::Fn {
+                params,
+                typ,
+            }
         }
-        _ => Err(()),
-    }
+        _ => return Err(()),
+    };
+
+    Ok(typ)
 }

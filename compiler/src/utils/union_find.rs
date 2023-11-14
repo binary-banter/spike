@@ -82,10 +82,10 @@ impl<T> UnionFind<T> {
         &mut self,
         a: UnionIndex,
         b: UnionIndex,
-        f: impl FnOnce(&T, &T) -> Result<T, E>,
-    ) -> Result<UnionIndex, E> {
+        f: impl FnOnce(T, T, &mut Self) -> Result<T, E>,
+    ) -> Result<UnionIndex, E> where T: Clone {
         let root = self.union(a, b);
-        self.data[root.0] = f(&self.data[a.0], &self.data[b.0])?;
+        self.data[root.0] = f(self.data[a.0].clone(), self.data[b.0].clone(), self)?;
         Ok(root)
     }
 
