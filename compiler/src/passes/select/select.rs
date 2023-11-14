@@ -1,6 +1,6 @@
 use crate::passes::atomize::Atom;
 use crate::passes::eliminate::{EExpr, ETail, PrgEliminated};
-use crate::passes::parse::{Op, Param};
+use crate::passes::parse::{BinaryOp, Param};
 use crate::passes::select::io::Std;
 use crate::passes::select::{
     Block, Cnd, Instr, VarArg, X86Selected, CALLEE_SAVED_NO_STACK, CALLER_SAVED,
@@ -108,100 +108,101 @@ fn select_assign<'p>(
     expr: EExpr<'p>,
     std: &Std<'p>,
 ) -> Vec<Instr<'p, VarArg<'p>>> {
-    let dst = var!(dsts[0]);
-    match expr {
-        EExpr::Atom {
-            atm: Atom::Val { val },
-            ..
-        } => vec![movq!(imm!(val), dst)],
-        EExpr::Atom {
-            atm: Atom::Var { sym },
-            ..
-        } => vec![movq!(var!(sym), dst)],
-        EExpr::Prim { op, args, .. } => match (op, args.as_slice()) {
-            (Op::Plus, [a0, a1]) => vec![
-                movq!(select_atom(a0), dst.clone()),
-                addq!(select_atom(a1), dst),
-            ],
-            (Op::Minus, [a0, a1]) => vec![
-                movq!(select_atom(a0), dst.clone()),
-                subq!(select_atom(a1), dst),
-            ],
-            (Op::Minus, [a0]) => vec![movq!(select_atom(a0), dst.clone()), negq!(dst)],
-            (Op::Mul, [a0, a1]) => vec![
-                movq!(select_atom(a1), reg!(RAX)),
-                movq!(select_atom(a0), reg!(RBX)),
-                mulq!(reg!(RBX)),
-                movq!(reg!(RAX), dst),
-            ],
-            (Op::Div, [a0, a1]) => vec![
-                movq!(imm!(0), reg!(RDX)),
-                movq!(select_atom(a0), reg!(RAX)),
-                movq!(select_atom(a1), reg!(RBX)),
-                divq!(reg!(RBX)),
-                movq!(reg!(RAX), dst),
-            ],
-            (Op::Mod, [a0, a1]) => vec![
-                movq!(imm!(0), reg!(RDX)),
-                movq!(select_atom(a0), reg!(RAX)),
-                movq!(select_atom(a1), reg!(RBX)),
-                divq!(reg!(RBX)),
-                movq!(reg!(RDX), dst),
-            ],
-            (Op::Read, []) => {
-                vec![callq_direct!(std.read_int, 0), movq!(reg!(RAX), dst)]
-            }
-            (Op::Print, [a0]) => vec![
-                movq!(select_atom(a0), reg!(RDI)),
-                callq_direct!(std.print_int, 1),
-                movq!(select_atom(a0), dst),
-            ],
-            (Op::LAnd, [a0, a1]) => vec![
-                movq!(select_atom(a0), dst.clone()),
-                andq!(select_atom(a1), dst),
-            ],
-            (Op::LOr, [a0, a1]) => vec![
-                movq!(select_atom(a0), dst.clone()),
-                orq!(select_atom(a1), dst),
-            ],
-            (Op::Not, [a0]) => vec![movq!(select_atom(a0), dst.clone()), xorq!(imm!(1), dst)],
-            (Op::Xor, [a0, a1]) => vec![
-                movq!(select_atom(a0), dst.clone()),
-                xorq!(select_atom(a1), dst),
-            ],
-            (op @ (Op::GT | Op::GE | Op::EQ | Op::LE | Op::LT | Op::NE), [a0, a1]) => {
-                let tmp = gen_sym("tmp");
-                vec![
-                    movq!(select_atom(a0), var!(tmp)),
-                    cmpq!(select_atom(a1), var!(tmp)),
-                    movq!(imm!(0), reg!(RAX)),
-                    setcc!(select_cmp(op)),
-                    movq!(reg!(RAX), dst),
-                ]
-            }
-            _ => panic!("Encountered Prim with incorrect arity during select instructions pass."),
-        },
-        EExpr::FunRef { sym, .. } => vec![load_lbl!(sym, dst)],
-        EExpr::Apply { fun, args, .. } => {
-            let mut instrs = vec![];
-
-            for ((arg, _), reg) in args.iter().zip(CALLER_SAVED.into_iter()) {
-                instrs.push(movq!(select_atom(arg), VarArg::Reg { reg }));
-            }
-            assert!(
-                args.len() <= 9,
-                "Argument passing to stack is not yet implemented."
-            );
-
-            instrs.push(callq_indirect!(select_atom(&fun), args.len()));
-
-            for (reg, dst) in CALLER_SAVED.into_iter().zip(dsts) {
-                instrs.push(movq!(VarArg::Reg { reg }, var!(*dst)));
-            }
-
-            instrs
-        }
-    }
+    todo!()
+    // let dst = var!(dsts[0]);
+    // match expr {
+    //     EExpr::Atom {
+    //         atm: Atom::Val { val },
+    //         ..
+    //     } => vec![movq!(imm!(val), dst)],
+    //     EExpr::Atom {
+    //         atm: Atom::Var { sym },
+    //         ..
+    //     } => vec![movq!(var!(sym), dst)],
+    //     EExpr::Prim { op, args, .. } => match (op, args.as_slice()) {
+    //         (BinaryOp::Add, [a0, a1]) => vec![
+    //             movq!(select_atom(a0), dst.clone()),
+    //             addq!(select_atom(a1), dst),
+    //         ],
+    //         (BinaryOp::Sub, [a0, a1]) => vec![
+    //             movq!(select_atom(a0), dst.clone()),
+    //             subq!(select_atom(a1), dst),
+    //         ],
+    //         (BinaryOp::Minus, [a0]) => vec![movq!(select_atom(a0), dst.clone()), negq!(dst)],
+    //         (BinaryOp::Mul, [a0, a1]) => vec![
+    //             movq!(select_atom(a1), reg!(RAX)),
+    //             movq!(select_atom(a0), reg!(RBX)),
+    //             mulq!(reg!(RBX)),
+    //             movq!(reg!(RAX), dst),
+    //         ],
+    //         (BinaryOp::Div, [a0, a1]) => vec![
+    //             movq!(imm!(0), reg!(RDX)),
+    //             movq!(select_atom(a0), reg!(RAX)),
+    //             movq!(select_atom(a1), reg!(RBX)),
+    //             divq!(reg!(RBX)),
+    //             movq!(reg!(RAX), dst),
+    //         ],
+    //         (BinaryOp::Mod, [a0, a1]) => vec![
+    //             movq!(imm!(0), reg!(RDX)),
+    //             movq!(select_atom(a0), reg!(RAX)),
+    //             movq!(select_atom(a1), reg!(RBX)),
+    //             divq!(reg!(RBX)),
+    //             movq!(reg!(RDX), dst),
+    //         ],
+    //         (BinaryOp::Read, []) => {
+    //             vec![callq_direct!(std.read_int, 0), movq!(reg!(RAX), dst)]
+    //         }
+    //         (BinaryOp::Print, [a0]) => vec![
+    //             movq!(select_atom(a0), reg!(RDI)),
+    //             callq_direct!(std.print_int, 1),
+    //             movq!(select_atom(a0), dst),
+    //         ],
+    //         (BinaryOp::LAnd, [a0, a1]) => vec![
+    //             movq!(select_atom(a0), dst.clone()),
+    //             andq!(select_atom(a1), dst),
+    //         ],
+    //         (BinaryOp::LOr, [a0, a1]) => vec![
+    //             movq!(select_atom(a0), dst.clone()),
+    //             orq!(select_atom(a1), dst),
+    //         ],
+    //         (BinaryOp::Not, [a0]) => vec![movq!(select_atom(a0), dst.clone()), xorq!(imm!(1), dst)],
+    //         (BinaryOp::Xor, [a0, a1]) => vec![
+    //             movq!(select_atom(a0), dst.clone()),
+    //             xorq!(select_atom(a1), dst),
+    //         ],
+    //         (op @ (BinaryOp::GT | BinaryOp::GE | BinaryOp::EQ | BinaryOp::LE | BinaryOp::LT | BinaryOp::NE), [a0, a1]) => {
+    //             let tmp = gen_sym("tmp");
+    //             vec![
+    //                 movq!(select_atom(a0), var!(tmp)),
+    //                 cmpq!(select_atom(a1), var!(tmp)),
+    //                 movq!(imm!(0), reg!(RAX)),
+    //                 setcc!(select_cmp(op)),
+    //                 movq!(reg!(RAX), dst),
+    //             ]
+    //         }
+    //         _ => panic!("Encountered Prim with incorrect arity during select instructions pass."),
+    //     },
+    //     EExpr::FunRef { sym, .. } => vec![load_lbl!(sym, dst)],
+    //     EExpr::Apply { fun, args, .. } => {
+    //         let mut instrs = vec![];
+    //
+    //         for ((arg, _), reg) in args.iter().zip(CALLER_SAVED.into_iter()) {
+    //             instrs.push(movq!(select_atom(arg), VarArg::Reg { reg }));
+    //         }
+    //         assert!(
+    //             args.len() <= 9,
+    //             "Argument passing to stack is not yet implemented."
+    //         );
+    //
+    //         instrs.push(callq_indirect!(select_atom(&fun), args.len()));
+    //
+    //         for (reg, dst) in CALLER_SAVED.into_iter().zip(dsts) {
+    //             instrs.push(movq!(VarArg::Reg { reg }, var!(*dst)));
+    //         }
+    //
+    //         instrs
+    //     }
+    // }
 }
 
 fn select_atom<'p>(expr: &Atom<'p>) -> VarArg<'p> {
@@ -211,14 +212,14 @@ fn select_atom<'p>(expr: &Atom<'p>) -> VarArg<'p> {
     }
 }
 
-fn select_cmp(op: Op) -> Cnd {
+fn select_cmp(op: BinaryOp) -> Cnd {
     match op {
-        Op::GT => Cnd::GT,
-        Op::GE => Cnd::GE,
-        Op::EQ => Cnd::EQ,
-        Op::LE => Cnd::LE,
-        Op::LT => Cnd::LT,
-        Op::NE => Cnd::NE,
+        BinaryOp::GT => Cnd::GT,
+        BinaryOp::GE => Cnd::GE,
+        BinaryOp::EQ => Cnd::EQ,
+        BinaryOp::LE => Cnd::LE,
+        BinaryOp::LT => Cnd::LT,
+        BinaryOp::NE => Cnd::NE,
         _ => unreachable!(),
     }
 }

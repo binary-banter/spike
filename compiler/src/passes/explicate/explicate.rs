@@ -1,7 +1,7 @@
 use crate::passes::atomize::{AExpr, Atom, PrgAtomized};
 use crate::passes::explicate::{CExpr, CTail, PrgExplicated};
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Def, Op, TypeDef};
+use crate::passes::parse::{BinaryOp, Def, TypeDef};
 use crate::passes::validate::TLit;
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use std::collections::HashMap;
@@ -214,184 +214,185 @@ fn explicate_pred<'p>(
     els: CTail<'p>,
     env: &mut Env<'_, 'p>,
 ) -> CTail<'p> {
-    let mut create_block = |goto: CTail<'p>| {
-        let sym = gen_sym("tmp");
-        env.blocks.insert(sym, goto);
-        sym
-    };
-
-    match cnd {
-        AExpr::Atom {
-            atm: Atom::Var { sym },
-            ..
-        } => CTail::IfStmt {
-            cnd: CExpr::Prim {
-                op: Op::EQ,
-                args: vec![
-                    Atom::Var { sym },
-                    Atom::Val {
-                        val: TLit::Bool { val: true },
-                    },
-                ],
-                typ: Type::Bool,
-            },
-            thn: create_block(thn),
-            els: create_block(els),
-        },
-        AExpr::Atom {
-            atm: Atom::Val {
-                val: TLit::Bool { val },
-            },
-            ..
-        } => {
-            if val {
-                thn
-            } else {
-                els
-            }
-        }
-        AExpr::Prim { op, args, .. } => match op {
-            Op::Not => explicate_pred(
-                AExpr::Atom {
-                    atm: args[0],
-                    typ: Type::Bool,
-                },
-                els,
-                thn,
-                env,
-            ),
-            Op::EQ | Op::NE | Op::GT | Op::GE | Op::LT | Op::LE => CTail::IfStmt {
-                cnd: CExpr::Prim {
-                    op,
-                    args,
-                    typ: Type::Bool,
-                },
-                thn: create_block(thn),
-                els: create_block(els),
-            },
-            Op::LAnd | Op::LOr | Op::Xor => {
-                let tmp = gen_sym("tmp");
-                explicate_assign(
-                    tmp,
-                    AExpr::Prim {
-                        op,
-                        args,
-                        typ: Type::Bool,
-                    },
-                    explicate_pred(
-                        AExpr::Atom {
-                            atm: Atom::Var { sym: tmp },
-                            typ: Type::Bool,
-                        },
-                        thn,
-                        els,
-                        env,
-                    ),
-                    env,
-                )
-            }
-            Op::Read | Op::Print | Op::Plus | Op::Minus | Op::Mul | Op::Mod | Op::Div => {
-                unreachable!()
-            }
-        },
-        AExpr::Let { sym, bnd, bdy, .. } => {
-            explicate_assign(sym, *bnd, explicate_pred(*bdy, thn, els, env), env)
-        }
-        AExpr::If {
-            cnd: cnd_sub,
-            thn: thn_sub,
-            els: els_sub,
-            ..
-        } => {
-            let thn = create_block(thn);
-            let els = create_block(els);
-
-            explicate_pred(
-                *cnd_sub,
-                explicate_pred(
-                    *thn_sub,
-                    CTail::Goto { lbl: thn },
-                    CTail::Goto { lbl: els },
-                    env,
-                ),
-                explicate_pred(
-                    *els_sub,
-                    CTail::Goto { lbl: thn },
-                    CTail::Goto { lbl: els },
-                    env,
-                ),
-                env,
-            )
-        }
-        AExpr::Apply { fun, args, .. } => {
-            let tmp = gen_sym("tmp");
-            explicate_assign(
-                tmp,
-                AExpr::Apply {
-                    fun,
-                    args,
-                    typ: Type::Bool,
-                },
-                explicate_pred(
-                    AExpr::Atom {
-                        atm: Atom::Var { sym: tmp },
-                        typ: Type::Bool,
-                    },
-                    thn,
-                    els,
-                    env,
-                ),
-                env,
-            )
-        }
-        AExpr::Loop { .. } => {
-            let tmp = gen_sym("tmp");
-            let cnd_ = AExpr::Atom {
-                atm: Atom::Var { sym: tmp },
-                typ: Type::Bool,
-            };
-            explicate_assign(tmp, cnd, explicate_pred(cnd_, thn, els, env), env)
-        }
-        AExpr::Seq { stmt, cnt, .. } => explicate_assign(
-            gen_sym("ignore"),
-            *stmt,
-            explicate_pred(*cnt, thn, els, env),
-            env,
-        ),
-        AExpr::AccessField { strct, field, .. } => {
-            let tmp = gen_sym("tmp");
-            explicate_assign(
-                tmp,
-                AExpr::AccessField {
-                    strct,
-                    field,
-                    typ: Type::Bool,
-                },
-                explicate_pred(
-                    AExpr::Atom {
-                        atm: Atom::Var { sym: tmp },
-                        typ: Type::Bool,
-                    },
-                    thn,
-                    els,
-                    env,
-                ),
-                env,
-            )
-        }
-
-        // cargo format should get some help
-        AExpr::FunRef { .. }
-        | AExpr::Atom {
-            atm: Atom::Val {
-                val: TLit::U64 { .. } | TLit::I64 {.. } | TLit::Unit,
-            },
-            ..
-        }
-        | AExpr::Assign { .. }
-        | AExpr::Break { .. }
-        | AExpr::Continue { .. }
-        | AExpr::Return { .. }
-        | AExpr::Struct { .. } => unreachable!(),
-    }
+    todo!()
+    // let mut create_block = |goto: CTail<'p>| {
+    //     let sym = gen_sym("tmp");
+    //     env.blocks.insert(sym, goto);
+    //     sym
+    // };
+    //
+    // match cnd {
+    //     AExpr::Atom {
+    //         atm: Atom::Var { sym },
+    //         ..
+    //     } => CTail::IfStmt {
+    //         cnd: CExpr::Prim {
+    //             op: BinaryOp::EQ,
+    //             args: vec![
+    //                 Atom::Var { sym },
+    //                 Atom::Val {
+    //                     val: TLit::Bool { val: true },
+    //                 },
+    //             ],
+    //             typ: Type::Bool,
+    //         },
+    //         thn: create_block(thn),
+    //         els: create_block(els),
+    //     },
+    //     AExpr::Atom {
+    //         atm: Atom::Val {
+    //             val: TLit::Bool { val },
+    //         },
+    //         ..
+    //     } => {
+    //         if val {
+    //             thn
+    //         } else {
+    //             els
+    //         }
+    //     }
+    //     AExpr::Prim { op, args, .. } => match op {
+    //         BinaryOp::Not => explicate_pred(
+    //             AExpr::Atom {
+    //                 atm: args[0],
+    //                 typ: Type::Bool,
+    //             },
+    //             els,
+    //             thn,
+    //             env,
+    //         ),
+    //         BinaryOp::EQ | BinaryOp::NE | BinaryOp::GT | BinaryOp::GE | BinaryOp::LT | BinaryOp::LE => CTail::IfStmt {
+    //             cnd: CExpr::Prim {
+    //                 op,
+    //                 args,
+    //                 typ: Type::Bool,
+    //             },
+    //             thn: create_block(thn),
+    //             els: create_block(els),
+    //         },
+    //         BinaryOp::LAnd | BinaryOp::LOr | BinaryOp::Xor => {
+    //             let tmp = gen_sym("tmp");
+    //             explicate_assign(
+    //                 tmp,
+    //                 AExpr::Prim {
+    //                     op,
+    //                     args,
+    //                     typ: Type::Bool,
+    //                 },
+    //                 explicate_pred(
+    //                     AExpr::Atom {
+    //                         atm: Atom::Var { sym: tmp },
+    //                         typ: Type::Bool,
+    //                     },
+    //                     thn,
+    //                     els,
+    //                     env,
+    //                 ),
+    //                 env,
+    //             )
+    //         }
+    //         BinaryOp::Read | BinaryOp::Print | BinaryOp::Plus | BinaryOp::Minus | BinaryOp::Mul | BinaryOp::Mod | BinaryOp::Div => {
+    //             unreachable!()
+    //         }
+    //     },
+    //     AExpr::Let { sym, bnd, bdy, .. } => {
+    //         explicate_assign(sym, *bnd, explicate_pred(*bdy, thn, els, env), env)
+    //     }
+    //     AExpr::If {
+    //         cnd: cnd_sub,
+    //         thn: thn_sub,
+    //         els: els_sub,
+    //         ..
+    //     } => {
+    //         let thn = create_block(thn);
+    //         let els = create_block(els);
+    //
+    //         explicate_pred(
+    //             *cnd_sub,
+    //             explicate_pred(
+    //                 *thn_sub,
+    //                 CTail::Goto { lbl: thn },
+    //                 CTail::Goto { lbl: els },
+    //                 env,
+    //             ),
+    //             explicate_pred(
+    //                 *els_sub,
+    //                 CTail::Goto { lbl: thn },
+    //                 CTail::Goto { lbl: els },
+    //                 env,
+    //             ),
+    //             env,
+    //         )
+    //     }
+    //     AExpr::Apply { fun, args, .. } => {
+    //         let tmp = gen_sym("tmp");
+    //         explicate_assign(
+    //             tmp,
+    //             AExpr::Apply {
+    //                 fun,
+    //                 args,
+    //                 typ: Type::Bool,
+    //             },
+    //             explicate_pred(
+    //                 AExpr::Atom {
+    //                     atm: Atom::Var { sym: tmp },
+    //                     typ: Type::Bool,
+    //                 },
+    //                 thn,
+    //                 els,
+    //                 env,
+    //             ),
+    //             env,
+    //         )
+    //     }
+    //     AExpr::Loop { .. } => {
+    //         let tmp = gen_sym("tmp");
+    //         let cnd_ = AExpr::Atom {
+    //             atm: Atom::Var { sym: tmp },
+    //             typ: Type::Bool,
+    //         };
+    //         explicate_assign(tmp, cnd, explicate_pred(cnd_, thn, els, env), env)
+    //     }
+    //     AExpr::Seq { stmt, cnt, .. } => explicate_assign(
+    //         gen_sym("ignore"),
+    //         *stmt,
+    //         explicate_pred(*cnt, thn, els, env),
+    //         env,
+    //     ),
+    //     AExpr::AccessField { strct, field, .. } => {
+    //         let tmp = gen_sym("tmp");
+    //         explicate_assign(
+    //             tmp,
+    //             AExpr::AccessField {
+    //                 strct,
+    //                 field,
+    //                 typ: Type::Bool,
+    //             },
+    //             explicate_pred(
+    //                 AExpr::Atom {
+    //                     atm: Atom::Var { sym: tmp },
+    //                     typ: Type::Bool,
+    //                 },
+    //                 thn,
+    //                 els,
+    //                 env,
+    //             ),
+    //             env,
+    //         )
+    //     }
+    //
+    //     // cargo format should get some help
+    //     AExpr::FunRef { .. }
+    //     | AExpr::Atom {
+    //         atm: Atom::Val {
+    //             val: TLit::U64 { .. } | TLit::I64 {.. } | TLit::Unit,
+    //         },
+    //         ..
+    //     }
+    //     | AExpr::Assign { .. }
+    //     | AExpr::Break { .. }
+    //     | AExpr::Continue { .. }
+    //     | AExpr::Return { .. }
+    //     | AExpr::Struct { .. } => unreachable!(),
+    // }
 }

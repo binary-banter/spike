@@ -9,13 +9,13 @@ pub mod uniquify;
 pub mod validate;
 
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Def, Expr, Lit, Meta, Op, Span};
+use crate::passes::parse::{BinaryOp, Def, Expr, Lit, Meta, Span};
+use crate::passes::validate::generate_constraints::PartialType;
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};
 use derive_more::Display;
 use std::collections::HashMap;
 use std::str::FromStr;
-use crate::passes::validate::generate_constraints::PartialType;
 
 pub struct PrgValidated<'p> {
     pub defs: HashMap<UniqueSym<'p>, DefValidated<'p>>,
@@ -28,7 +28,8 @@ pub struct PrgConstrained<'p> {
     pub uf: UnionFind<PartialType<'p>>,
 }
 
-pub type DefValidated<'p> = Def<UniqueSym<'p>, &'p str, Meta<Type<UniqueSym<'p>>, ExprValidated<'p>>>;
+pub type DefValidated<'p> =
+    Def<UniqueSym<'p>, &'p str, Meta<Type<UniqueSym<'p>>, ExprValidated<'p>>>;
 pub type ExprValidated<'p> = Expr<UniqueSym<'p>, &'p str, TLit, Type<UniqueSym<'p>>>;
 
 pub type DefConstrained<'p> =
@@ -36,9 +37,8 @@ pub type DefConstrained<'p> =
 pub type ExprConstrained<'p> = Expr<Meta<Span, UniqueSym<'p>>, Meta<Span, &'p str>, Lit<'p>, CMeta>;
 
 pub type DefUniquified<'p> =
-Def<Meta<Span, UniqueSym<'p>>, Meta<Span, &'p str>, Meta<Span, ExprUniquified<'p>>>;
-pub type ExprUniquified<'p> = Expr<Meta<Span, UniqueSym<'p>>, Meta<Span, &'p str>,Lit<'p>, Span>;
-
+    Def<Meta<Span, UniqueSym<'p>>, Meta<Span, &'p str>, Meta<Span, ExprUniquified<'p>>>;
+pub type ExprUniquified<'p> = Expr<Meta<Span, UniqueSym<'p>>, Meta<Span, &'p str>, Lit<'p>, Span>;
 
 pub struct CMeta {
     pub span: Span,

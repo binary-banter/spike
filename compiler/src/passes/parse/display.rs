@@ -1,4 +1,4 @@
-use crate::passes::parse::{Def, Expr, Op, TypeDef};
+use crate::passes::parse::{BinaryOp, Def, Expr, TypeDef};
 use indenter::indented;
 use itertools::Itertools;
 use std::fmt::Write;
@@ -39,7 +39,9 @@ impl<IdentVars: Display, IdentFields: Display, Expr: Display> Display
     }
 }
 
-impl<IdentVars: Display, IdentFields: Display, Lit: Display, M> Display for Expr<IdentVars, IdentFields, Lit, M> {
+impl<IdentVars: Display, IdentFields: Display, Lit: Display, M> Display
+    for Expr<IdentVars, IdentFields, Lit, M>
+{
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             Expr::Lit { val } => {
@@ -48,23 +50,14 @@ impl<IdentVars: Display, IdentFields: Display, Lit: Display, M> Display for Expr
             Expr::Var { sym } => {
                 write!(f, "{sym}")
             }
-            Expr::Prim { op: Op::Read, .. } => {
-                write!(f, "read()")
+            Expr::UnaryOp { op, expr } => {
+                write!(f, "({op}{expr})")
             }
-            Expr::Prim {
-                op: Op::Print,
-                args,
+            Expr::BinaryOp {
+                op,
+                exprs: [e1, e2],
             } => {
-                write!(f, "print({})", args[0].inner)
-            }
-            Expr::Prim { op, args } if args.len() == 1 => {
-                write!(f, "({op} {})", args[0].inner)
-            }
-            Expr::Prim { op, args } if args.len() == 2 => {
-                write!(f, "({} {op} {})", args[0].inner, args[1].inner)
-            }
-            Expr::Prim { .. } => {
-                unreachable!()
+                write!(f, "({e1} {op} {e2})")
             }
             Expr::Let {
                 sym,

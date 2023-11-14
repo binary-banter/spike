@@ -6,7 +6,7 @@ mod tests;
 
 use crate::passes::atomize::Atom;
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Op, Param, TypeDef};
+use crate::passes::parse::{BinaryOp, Param, TypeDef};
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
 
@@ -42,7 +42,7 @@ pub enum EExpr<'p> {
         typ: Type<UniqueSym<'p>>,
     },
     Prim {
-        op: Op,
+        op: BinaryOp,
         args: Vec<Atom<'p>>,
         typ: Type<UniqueSym<'p>>,
     },

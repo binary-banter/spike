@@ -1,4 +1,4 @@
-use crate::passes::parse::{Def, TypeDef, Expr, Lit, Op, Param};
+use crate::passes::parse::{Def, TypeDef, Expr, Lit, BinaryOp, UnaryOp, Param};
 use crate::passes::parse::PrgParsed;
 use crate::passes::parse::Type;
 use functor_derive::Functor;
@@ -46,10 +46,6 @@ match {
     "*",
     "/",
     "%",
-
-    // Cursed build-in functions
-    "read",
-    "print",
 
     // Types
     "I64",
@@ -213,9 +209,9 @@ ExprInStmt: Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>, 
 }
 
 BinaryOps<Op,Next>: Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>, Span> = {
-    <e1:Spanned<BinaryOps<Op,Next>>> <op:Op> <e2:Spanned<Next>> => Expr::Prim {
+    <e1:Spanned<BinaryOps<Op,Next>>> <op:Op> <e2:Spanned<Next>> => Expr::BinaryOp {
         op,
-        args: vec![e1, e2],
+        exprs: [Box::new(e1), Box::new(e2)],
     },
     Next,
 }
@@ -227,35 +223,35 @@ ExprXor<T> = BinaryOps<XorOp, ExprAdditive<T>>;
 ExprAdditive<T> = BinaryOps<AdditiveOp, ExprMultiplicative<T>>;
 ExprMultiplicative<T> = BinaryOps<MultiplicativeOp, ExprUnary<T>>;
 
-LogicalOrOp: Op = "||" => Op::LOr;
-LogicalAndOp: Op = "&&" => Op::LAnd;
-ComparativeOp: Op = {
-    "==" => Op::EQ,
-    "!=" => Op::NE,
-    ">" => Op::GT,
-    ">=" => Op::GE,
-    "<" => Op::LT,
-    "<=" => Op::LE,
+LogicalOrOp: BinaryOp = "||" => BinaryOp::LOr;
+LogicalAndOp: BinaryOp = "&&" => BinaryOp::LAnd;
+ComparativeOp: BinaryOp = {
+    "==" => BinaryOp::EQ,
+    "!=" => BinaryOp::NE,
+    ">" => BinaryOp::GT,
+    ">=" => BinaryOp::GE,
+    "<" => BinaryOp::LT,
+    "<=" => BinaryOp::LE,
 }
-XorOp: Op = "^" => Op::Xor;
-AdditiveOp: Op = {
-    "+" => Op::Plus,
-    "-" => Op::Minus,
+XorOp: BinaryOp = "^" => BinaryOp::Xor;
+AdditiveOp: BinaryOp = {
+    "+" => BinaryOp::Add,
+    "-" => BinaryOp::Sub,
 }
-MultiplicativeOp: Op = {
-   "*" => Op::Mul,
-   "/" => Op::Div,
-   "%" => Op::Mod,
+MultiplicativeOp: BinaryOp = {
+   "*" => BinaryOp::Mul,
+   "/" => BinaryOp::Div,
+   "%" => BinaryOp::Mod,
 }
-UnaryOp: Op = {
-    "-" => Op::Minus,
-    "!" => Op::Not,
+UnaryOp: UnaryOp = {
+    "-" => UnaryOp::Neg,
+    "!" => UnaryOp::Not,
 }
 
 ExprUnary<T>: Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>, Span> = {
-    <op:UnaryOp> <e:Spanned<ExprUnary<T>>> => Expr::Prim {
+    <op:UnaryOp> <e:Spanned<ExprUnary<T>>> => Expr::UnaryOp {
         op,
-        args: vec![e],
+        expr: Box::new(e),
     },
     ExprAccess<T>,
 }
@@ -269,14 +265,6 @@ ExprAccess<T>: Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input
 }
 
 ExprCall<T>: Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>, Span> = {
-    "read" "(" ")" => Expr::Prim {
-        op: Op::Read,
-        args: vec![],
-    },
-    "print" "(" <e:Spanned<Expr>> ")" => Expr::Prim {
-        op: Op::Print,
-        args: vec![e],
-    },
     <fun:Spanned<ExprAtom<T>>> "(" <args:Comma<Spanned<Expr>>> ")" => Expr::Apply {
         fun: Box::new(fun),
         args,

@@ -1,13 +1,16 @@
 use crate::passes::parse::{Lit, Meta, Span};
 use crate::passes::validate::error::TypeError;
-use crate::passes::validate::uncover_globals::{Env, EnvEntry, uncover_globals};
+use crate::passes::validate::error::TypeError::MismatchedFnReturn;
+use crate::passes::validate::uncover_globals::{uncover_globals, Env, EnvEntry};
 use crate::passes::validate::uniquify::PrgUniquified;
-use crate::passes::validate::{CMeta, DefConstrained, DefUniquified, ExprConstrained, ExprUniquified, PrgConstrained, type_to_index};
+use crate::passes::validate::{
+    type_to_index, CMeta, DefConstrained, DefUniquified, ExprConstrained, ExprUniquified,
+    PrgConstrained,
+};
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};
-use std::collections::HashMap;
 use itertools::Itertools;
-use crate::passes::validate::error::TypeError::MismatchedFnReturn;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 pub enum PartialType<'p> {
@@ -37,10 +40,14 @@ impl<'p> PartialType<'p> {
             PartialType::Never => "Never".to_string(),
             PartialType::Var { sym } => format!("{}", sym.sym),
             PartialType::Fn { params, typ } => {
-                let params_string = params.iter().map(|index| {
-                    let pt = uf.get(*index).clone();
-                    pt.to_string(uf)
-                }).format(", ").to_string();
+                let params_string = params
+                    .iter()
+                    .map(|index| {
+                        let pt = uf.get(*index).clone();
+                        pt.to_string(uf)
+                    })
+                    .format(", ")
+                    .to_string();
                 let pt = uf.get(*typ).clone();
                 let typ_string = pt.to_string(uf);
                 format!("fn({params_string}) -> {typ_string}")
@@ -80,11 +87,15 @@ fn constrain_def<'p>(
             typ,
             bdy,
         } => {
-            scope.extend(params.iter().map(|p| (p.sym.inner,                     EnvEntry::Type {
-                mutable: p.mutable,
-                typ: type_to_index(p.typ.clone(), uf),
-            })));
-
+            scope.extend(params.iter().map(|p| {
+                (
+                    p.sym.inner,
+                    EnvEntry::Type {
+                        mutable: p.mutable,
+                        typ: type_to_index(p.typ.clone(), uf),
+                    },
+                )
+            }));
 
             let return_index = type_to_index(typ.clone(), uf);
             let mut env = Env {
@@ -95,12 +106,8 @@ fn constrain_def<'p>(
 
             let bdy = constrain_expr(bdy, &mut env)?;
 
-            uf.try_union_by(return_index, bdy.meta.index, combine_partial_types).map_err(|_| MismatchedFnReturn {
-                expect: format!("{}", typ.clone()),
-                got: uf.get(bdy.meta.index).to_string(uf),
-                span_expected: (0, 0),
-                span_got: (0, 0),
-            })?;
+            uf.try_union_by(return_index, bdy.meta.index, combine_partial_types)
+                .map_err(|_| todo!())?;
 
             DefConstrained::Fn {
                 sym,
@@ -147,7 +154,8 @@ fn constrain_expr<'p>(
                 inner: ExprConstrained::Var { sym },
             }
         }
-        ExprUniquified::Prim { op, args } => todo!(),
+        ExprUniquified::BinaryOp { op, exprs } => todo!(),
+        ExprUniquified::UnaryOp { op, expr } => todo!(),
         // ExprUniquified::Prim { op, args } if args.len() == 2 => {
         //     let (pt, lhs, rhs) = match op {
         //         Op::Plus => (PartialType::Int, PartialType::Int, PartialType::Int),
@@ -193,7 +201,10 @@ fn constrain_expr<'p>(
 }
 
 // uf: &mut UnionFind<PartialType<'p>>
-fn combine_partial_types<'p>(a: &PartialType<'p>, b: &PartialType<'p>) -> Result<PartialType<'p>, ()> {
+fn combine_partial_types<'p>(
+    a: &PartialType<'p>,
+    b: &PartialType<'p>,
+) -> Result<PartialType<'p>, ()> {
     match (a, b) {
         (PartialType::I64, PartialType::I64 | PartialType::Int) => Ok(PartialType::I64),
         (PartialType::Int, PartialType::I64) => Ok(PartialType::I64),
@@ -204,11 +215,22 @@ fn combine_partial_types<'p>(a: &PartialType<'p>, b: &PartialType<'p>) -> Result
         (PartialType::Unit, PartialType::Unit) => Ok(PartialType::Unit),
         (PartialType::Never, t) => Ok(t.clone()),
         (t, PartialType::Never) => Ok(t.clone()),
-        (PartialType::Var { sym: sym_a }, PartialType::Var { sym: sym_b }) if sym_a == sym_b => Ok(PartialType::Var { sym: *sym_a }),
-        (PartialType::Fn { params: params_a, typ: typ_a}, PartialType::Fn {params: params_b, typ: typ_b}) => {
+        (PartialType::Var { sym: sym_a }, PartialType::Var { sym: sym_b }) if sym_a == sym_b => {
+            Ok(PartialType::Var { sym: *sym_a })
+        }
+        (
+            PartialType::Fn {
+                params: params_a,
+                typ: typ_a,
+            },
+            PartialType::Fn {
+                params: params_b,
+                typ: typ_b,
+            },
+        ) => {
             //check if params and typ are eq
             todo!()
         }
-        _ => Err(())
+        _ => Err(()),
     }
 }

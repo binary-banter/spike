@@ -2,10 +2,10 @@ use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, Meta, Span, TypeDef};
 use crate::passes::validate::generate_constraints::PartialType;
 use crate::passes::validate::uniquify::PrgUniquified;
+use crate::passes::validate::{type_to_index, DefUniquified};
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};
 use std::collections::HashMap;
-use crate::passes::validate::{DefUniquified, type_to_index};
 
 pub struct Env<'a, 'p> {
     pub uf: &'a mut UnionFind<PartialType<'p>>,

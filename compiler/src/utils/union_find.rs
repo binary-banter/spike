@@ -97,13 +97,7 @@ impl<T> UnionFind<T> {
         let index = self.find(index).0;
         &self.data[index]
     }
-
-    pub fn get_and<T2>(&mut self, index: UnionIndex, f: impl FnOnce(&T) -> T2) -> T2 {
-        let index = self.find(index).0;
-        &self.data[index]
-    }
 }
-
 
 #[cfg(test)]
 mod tests {

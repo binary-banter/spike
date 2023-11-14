@@ -1,7 +1,7 @@
 use crate::passes::parse::types::Type;
+use crate::passes::validate::generate_constraints::PartialType;
 use miette::Diagnostic;
 use thiserror::Error;
-use crate::passes::validate::generate_constraints::PartialType;
 
 #[derive(Debug, Error, Diagnostic)]
 pub enum TypeError {
@@ -53,7 +53,6 @@ pub enum TypeError {
     // TypeShouldBeStruct { typ: Type<String> },
     // #[error("The type definition `{sym}` is not sized.'")]
     // UnsizedType { sym: String },
-
     #[error("Integer out of bounds.")]
     IntegerOutOfBounds {
         #[label = "This number does not fit in type `{typ}`"]

@@ -3,7 +3,7 @@ pub mod reveal;
 mod tests;
 
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Def, Op};
+use crate::passes::parse::{BinaryOp, Def};
 use crate::passes::validate::{ExprValidated, TLit};
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
@@ -27,7 +27,7 @@ pub enum RExpr<'p> {
         typ: Type<UniqueSym<'p>>,
     },
     Prim {
-        op: Op,
+        op: BinaryOp,
         args: Vec<RExpr<'p>>,
         typ: Type<UniqueSym<'p>>,
     },

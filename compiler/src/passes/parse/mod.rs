@@ -104,12 +104,13 @@ pub enum Expr<IdentVars, IdentFields, Lit, M> {
         /// Symbol representing the variable.
         sym: IdentVars,
     },
-    /// A primitive operation with an arbitrary number of arguments.
-    Prim {
-        /// Primitive operation (e.g. `Xor`). See [`Op`].
-        op: Op,
-        /// Arguments used by the primitive operation.
-        args: Vec<Meta<M, Expr<IdentVars, IdentFields, Lit, M>>>,
+    BinaryOp {
+        op: BinaryOp,
+        exprs: [Box<Meta<M, Expr<IdentVars, IdentFields, Lit, M>>>; 2],
+    },
+    UnaryOp {
+        op: UnaryOp,
+        expr: Box<Meta<M, Expr<IdentVars, IdentFields, Lit, M>>>,
     },
     /// A let binding.
     ///
@@ -256,21 +257,26 @@ impl<M, B> Functor<B> for Meta<M, B> {
 
 pub type Span = (usize, usize);
 
+/// A unary operation.
+#[derive(Display)]
+pub enum UnaryOp {
+    /// Integer negation.
+    #[display(fmt = "-")]
+    Neg,
+    /// Logical NOT.
+    #[display(fmt = "!")]
+    Not,
+}
+
 /// A primitive operation.
 #[derive(Display)]
-pub enum Op {
-    /// Read signed integer from stdin.
-    #[display(fmt = "")]
-    Read,
-    /// Print signed integer to stdout.
-    #[display(fmt = "")]
-    Print,
+pub enum BinaryOp {
     /// Integer addition.
     #[display(fmt = "+")]
-    Plus,
-    /// Integer subtraction or negation.
+    Add,
+    /// Integer negation.
     #[display(fmt = "-")]
-    Minus,
+    Sub,
     /// Integer multiplication.
     #[display(fmt = "*")]
     Mul,
@@ -286,9 +292,6 @@ pub enum Op {
     /// Logical OR,
     #[display(fmt = "||")]
     LOr,
-    /// Logical NOT.
-    #[display(fmt = "!")]
-    Not,
     /// XOR operation.
     #[display(fmt = "^")]
     Xor,

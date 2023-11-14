@@ -1,8 +1,10 @@
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Def, DefParsed, Expr, ExprParsed, Lit, Meta, Param, PrgParsed, Span, TypeDef};
-use crate::passes::validate::{DefUniquified, ExprUniquified};
+use crate::passes::parse::{
+    Def, DefParsed, Expr, ExprParsed, Lit, Meta, Param, PrgParsed, Span, TypeDef,
+};
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::error::TypeError::{NoMain, UndeclaredVar};
+use crate::passes::validate::{DefUniquified, ExprUniquified};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use crate::utils::push_map::PushMap;
 
@@ -53,7 +55,7 @@ fn uniquify_def<'p>(
                     .iter()
                     .map(|param| uniquify_param(param, scope))
                     .collect::<Result<_, _>>()?;
-                let bdy = uniquify_expression(bdy, scope)?;
+                let bdy = uniquify_expr(bdy, scope)?;
 
                 //TODO check if function names and param names are unique
 
@@ -120,7 +122,7 @@ fn uniquify_type<'p>(
     Ok(typ)
 }
 
-fn uniquify_expression<'p>(
+fn uniquify_expr<'p>(
     expr: Meta<Span, ExprParsed<'p>>,
     scope: &mut PushMap<&'p str, UniqueSym<'p>>,
 ) -> Result<Meta<Span, ExprUniquified<'p>>, TypeError> {
@@ -131,10 +133,10 @@ fn uniquify_expression<'p>(
             bdy,
             mutable,
         } => {
-            let unique_bnd = uniquify_expression(*bnd, scope)?;
+            let unique_bnd = uniquify_expr(*bnd, scope)?;
             let unique_sym = gen_spanned_sym(sym.clone());
             let unique_bdy = scope.push(sym.inner, unique_sym.inner, |scope| {
-                uniquify_expression(*bdy, scope)
+                uniquify_expr(*bdy, scope)
             })?;
 
             Expr::Let {
@@ -149,52 +151,56 @@ fn uniquify_expression<'p>(
         },
         Expr::Assign { sym, bnd } => Expr::Assign {
             sym: try_get(sym, scope)?,
-            bnd: Box::new(uniquify_expression(*bnd, scope)?),
+            bnd: Box::new(uniquify_expr(*bnd, scope)?),
         },
         Expr::Struct { sym, fields } => Expr::Struct {
             sym: try_get(sym, scope)?,
             fields: fields
                 .into_iter()
-                .map(|(sym, expr)| uniquify_expression(expr, scope).map(|expr| (sym, expr)))
+                .map(|(sym, expr)| uniquify_expr(expr, scope).map(|expr| (sym, expr)))
                 .collect::<Result<_, _>>()?,
         },
 
         Expr::Lit { val } => Expr::Lit { val },
-        Expr::Prim { op, args } => Expr::Prim {
+        Expr::UnaryOp { op, expr } => Expr::UnaryOp {
             op,
-            args: args
-                .into_iter()
-                .map(|arg| uniquify_expression(arg, scope))
-                .collect::<Result<_, _>>()?,
+            expr: Box::new(uniquify_expr(*expr, scope)?),
+        },
+        Expr::BinaryOp {
+            op,
+            exprs: [e1, e2],
+        } => Expr::BinaryOp {
+            op,
+            exprs: [uniquify_expr(*e1, scope)?, uniquify_expr(*e2, scope)?].map(Box::new),
         },
         Expr::If { cnd, thn, els } => Expr::If {
-            cnd: Box::new(uniquify_expression(*cnd, scope)?),
-            thn: Box::new(uniquify_expression(*thn, scope)?),
-            els: Box::new(uniquify_expression(*els, scope)?),
+            cnd: Box::new(uniquify_expr(*cnd, scope)?),
+            thn: Box::new(uniquify_expr(*thn, scope)?),
+            els: Box::new(uniquify_expr(*els, scope)?),
         },
         Expr::Apply { fun, args } => Expr::Apply {
-            fun: Box::new(uniquify_expression(*fun, scope)?),
+            fun: Box::new(uniquify_expr(*fun, scope)?),
             args: args
                 .into_iter()
-                .map(|arg| uniquify_expression(arg, scope))
+                .map(|arg| uniquify_expr(arg, scope))
                 .collect::<Result<_, _>>()?,
         },
         Expr::Loop { bdy } => Expr::Loop {
-            bdy: Box::new(uniquify_expression(*bdy, scope)?),
+            bdy: Box::new(uniquify_expr(*bdy, scope)?),
         },
         Expr::Break { bdy } => Expr::Break {
-            bdy: Box::new(uniquify_expression(*bdy, scope)?),
+            bdy: Box::new(uniquify_expr(*bdy, scope)?),
         },
         Expr::Seq { stmt, cnt } => Expr::Seq {
-            stmt: Box::new(uniquify_expression(*stmt, scope)?),
-            cnt: Box::new(uniquify_expression(*cnt, scope)?),
+            stmt: Box::new(uniquify_expr(*stmt, scope)?),
+            cnt: Box::new(uniquify_expr(*cnt, scope)?),
         },
         Expr::Continue => Expr::Continue,
         Expr::Return { bdy } => Expr::Return {
-            bdy: Box::new(uniquify_expression(*bdy, scope)?),
+            bdy: Box::new(uniquify_expr(*bdy, scope)?),
         },
         Expr::AccessField { strct, field } => Expr::AccessField {
-            strct: Box::new(uniquify_expression(*strct, scope)?),
+            strct: Box::new(uniquify_expr(*strct, scope)?),
             field,
         },
         Expr::Variant { .. } => todo!(),
