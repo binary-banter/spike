@@ -3,7 +3,7 @@ mod tests;
 
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{BinaryOp, Def};
-use crate::passes::validate::{ExprValidated, TLit};
+use crate::passes::validate::TLit;
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
 

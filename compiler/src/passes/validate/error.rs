@@ -1,5 +1,3 @@
-use crate::passes::parse::types::Type;
-use crate::passes::validate::generate_constraints::PartialType;
 use miette::Diagnostic;
 use thiserror::Error;
 

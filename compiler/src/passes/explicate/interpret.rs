@@ -2,11 +2,8 @@ use crate::interpreter::Val;
 use crate::interpreter::IO;
 use crate::passes::atomize::Atom;
 use crate::passes::explicate::{CExpr, CTail, PrgExplicated};
-use crate::passes::parse::BinaryOp;
-use crate::passes::validate::TLit;
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::push_map::PushMap;
-use std::collections::HashMap;
 
 impl<'p> PrgExplicated<'p> {
     pub fn interpret(&self, io: &mut impl IO) -> Val<'p, UniqueSym<'p>> {
@@ -38,9 +35,9 @@ impl<'p> PrgExplicated<'p> {
 
     pub fn interpret_expr(
         &self,
-        expr: &CExpr<'p>,
-        scope: &mut PushMap<UniqueSym<'p>, Val<'p, UniqueSym<'p>>>,
-        io: &mut impl IO,
+        _expr: &CExpr<'p>,
+        _scope: &mut PushMap<UniqueSym<'p>, Val<'p, UniqueSym<'p>>>,
+        _io: &mut impl IO,
     ) -> Val<'p, UniqueSym<'p>> {
         todo!()
         // match expr {

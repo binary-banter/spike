@@ -142,9 +142,10 @@ Type: Type<Meta<Span, &'input str>> = {
 Expr = ExprStmt;
 
 ExprStmt: Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>, Span> = {
-    "let" <mutable:"mut"?> <sym:Ident> "=" <bnd:Spanned<ExprLogicalOr<Struct>>> ";" <bdy:Spanned<ExprStmt?>> => Expr::Let {
+    "let" <mutable:"mut"?> <sym:Ident> <typ:(":" <Type>)?> "=" <bnd:Spanned<ExprLogicalOr<Struct>>> ";" <bdy:Spanned<ExprStmt?>> => Expr::Let {
         sym,
         mutable: mutable.is_some(),
+        typ,
         bnd: Box::new(bnd),
         bdy: Box::new(bdy.fmap(|bdy| bdy.unwrap_or(Expr::Lit { val: Lit::Unit }))),
     },

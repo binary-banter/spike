@@ -1,7 +1,7 @@
 use crate::passes::atomize::{AExpr, Atom, PrgAtomized};
 use crate::passes::explicate::{CExpr, CTail, PrgExplicated};
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{BinaryOp, Def, TypeDef};
+use crate::passes::parse::{Def, TypeDef};
 use crate::passes::validate::TLit;
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use std::collections::HashMap;
@@ -209,10 +209,10 @@ fn explicate_assign<'p>(
 }
 
 fn explicate_pred<'p>(
-    cnd: AExpr<'p>,
-    thn: CTail<'p>,
-    els: CTail<'p>,
-    env: &mut Env<'_, 'p>,
+    _cnd: AExpr<'p>,
+    _thn: CTail<'p>,
+    _els: CTail<'p>,
+    _env: &mut Env<'_, 'p>,
 ) -> CTail<'p> {
     todo!()
     // let mut create_block = |goto: CTail<'p>| {

@@ -9,7 +9,7 @@ pub mod uniquify;
 pub mod validate;
 
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{BinaryOp, Def, Expr, Lit, Meta, Span};
+use crate::passes::parse::{Def, Expr, Lit, Meta, Span};
 use crate::passes::validate::generate_constraints::PartialType;
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};

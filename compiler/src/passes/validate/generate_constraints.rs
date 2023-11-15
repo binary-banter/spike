@@ -187,13 +187,20 @@ fn constrain_expr<'p>(
                 },
             }
         }
-        ExprUniquified::BinaryOp { op, exprs: [lhs, rhs] } => {
+        ExprUniquified::BinaryOp {
+            op,
+            exprs: [lhs, rhs],
+        } => {
             // input: None = Any but equal, Some = expect this
             // output: None = Same as input, Some = this
             let (input, output) = match op {
-                BinaryOp::Add | BinaryOp::Sub | BinaryOp::Mul | BinaryOp::Div | BinaryOp::Mod => (Some(PartialType::Int), None),
+                BinaryOp::Add | BinaryOp::Sub | BinaryOp::Mul | BinaryOp::Div | BinaryOp::Mod => {
+                    (Some(PartialType::Int), None)
+                }
                 BinaryOp::LAnd | BinaryOp::LOr | BinaryOp::Xor => (Some(PartialType::Bool), None),
-                BinaryOp::GT | BinaryOp::GE | BinaryOp::LE | BinaryOp::LT => (Some(PartialType::Int), Some(PartialType::Bool)),
+                BinaryOp::GT | BinaryOp::GE | BinaryOp::LE | BinaryOp::LT => {
+                    (Some(PartialType::Int), Some(PartialType::Bool))
+                }
                 BinaryOp::EQ | BinaryOp::NE => (None, Some(PartialType::Bool)),
             };
 
@@ -203,13 +210,16 @@ fn constrain_expr<'p>(
             // Check inputs satisfy constraints
             if let Some(input) = input {
                 let mut check = |expr: &Meta<CMeta, ExprConstrained<'p>>| {
-                    env.uf.expect_partial_type(expr.meta.index, input.clone(), |got, expect| TypeError::OperandExpect {
-                        expect,
-                        got,
-                        op: op.to_string(),
-                        span_op: span,
-                        span_arg: expr.meta.span,
-                    })
+                    env.uf
+                        .expect_partial_type(expr.meta.index, input.clone(), |got, expect| {
+                            TypeError::OperandExpect {
+                                expect,
+                                got,
+                                op: op.to_string(),
+                                span_op: span,
+                                span_arg: expr.meta.span,
+                            }
+                        })
                 };
 
                 check(&e1)?;
@@ -217,21 +227,23 @@ fn constrain_expr<'p>(
             }
 
             // Check inputs equal
-            let input_index = env.uf.expect_equal(e1.meta.index, e2.meta.index, |lhs, rhs| TypeError::OperandEqual {
-                lhs,
-                rhs,
-                op: op.to_string(),
-                span_op: span,
-                span_lhs: e1.meta.span,
-                span_rhs: e2.meta.span,
-            })?;
+            let input_index = env
+                .uf
+                .expect_equal(e1.meta.index, e2.meta.index, |lhs, rhs| {
+                    TypeError::OperandEqual {
+                        lhs,
+                        rhs,
+                        op: op.to_string(),
+                        span_op: span,
+                        span_lhs: e1.meta.span,
+                        span_rhs: e2.meta.span,
+                    }
+                })?;
 
             // Generate output index
             let output_index = match output {
                 None => input_index,
-                Some(e) => {
-                    env.uf.add(e)
-                }
+                Some(e) => env.uf.add(e),
             };
 
             Meta {
@@ -245,23 +257,43 @@ fn constrain_expr<'p>(
                 },
             }
         }
-        ExprUniquified::Let { sym, mutable, bnd, bdy } => {
+        ExprUniquified::Let {
+            sym,
+            mutable,
+            typ,
+            bnd,
+            bdy,
+        } => {
             let bnd = constrain_expr(*bnd, env)?;
-            env.scope.insert(sym.inner, EnvEntry::Type { mutable, typ: bnd.meta.index });
+
+            if let Some(typ) = &typ {
+                env.uf
+                    .expect_type(bnd.meta.index, typ.clone(), |_, _| todo!())?;
+            }
+
+            env.scope.insert(
+                sym.inner,
+                EnvEntry::Type {
+                    mutable,
+                    typ: bnd.meta.index,
+                },
+            );
             let bdy = constrain_expr(*bdy, env)?;
 
             Meta {
                 meta: CMeta {
-                    span, index: bdy.meta.index
+                    span,
+                    index: bdy.meta.index,
                 },
                 inner: ExprConstrained::Let {
                     sym,
                     mutable,
+                    typ,
                     bnd: Box::new(bnd),
                     bdy: Box::new(bdy),
-                }
+                },
             }
-        },
+        }
         ExprUniquified::If { .. } => todo!(),
         ExprUniquified::Apply { .. } => todo!(),
         ExprUniquified::Loop { .. } => todo!(),

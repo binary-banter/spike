@@ -122,6 +122,7 @@ pub enum Expr<IdentVars, IdentFields, Lit, M> {
         sym: IdentVars,
         /// Indicates whether the variable is mutable (true) or immutable (false).
         mutable: bool,
+        typ: Option<Type<IdentVars>>,
         /// The expression to which the variable is bound.
         bnd: Box<Meta<M, Expr<IdentVars, IdentFields, Lit, M>>>,
         /// The expression that is evaluated using the new variable binding.

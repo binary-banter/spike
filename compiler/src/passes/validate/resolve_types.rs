@@ -112,23 +112,23 @@ fn resolve_expr<'p>(
     let expr = match expr.inner {
         Expr::Lit { val } => {
             let val = match val {
-                Lit::Int { val } => {
-                    match &typ {
-                        None => return Err(dbg!(TypeError::IntegerAmbiguous {
+                Lit::Int { val } => match &typ {
+                    None => {
+                        return Err(dbg!(TypeError::IntegerAmbiguous {
                             span: expr.meta.span
-                        })),
-                        Some(typ) => match typ {
-                            Type::I64 => TLit::I64 {
-                                val: val.parse().map_err(|_| TypeError::IntegerOutOfBounds {
-                                    span: expr.meta.span,
-                                    typ: "I64",
-                                })?,
-                            },
-                            Type::U64 => todo!(),
-                            _ => unreachable!(),
-                        },
+                        }))
                     }
-                }
+                    Some(typ) => match typ {
+                        Type::I64 => TLit::I64 {
+                            val: val.parse().map_err(|_| TypeError::IntegerOutOfBounds {
+                                span: expr.meta.span,
+                                typ: "I64",
+                            })?,
+                        },
+                        Type::U64 => todo!(),
+                        _ => unreachable!(),
+                    },
+                },
                 Lit::Bool { val } => TLit::Bool { val },
                 Lit::Unit => TLit::Unit,
             };
@@ -142,16 +142,23 @@ fn resolve_expr<'p>(
             op,
             expr: Box::new(resolve_expr(*expr_inner, uf)?),
         },
-        Expr::BinaryOp { op, exprs: [e1, e2] } => Expr::BinaryOp {
+        Expr::BinaryOp {
             op,
-            exprs: [
-                resolve_expr(*e1, uf)?,
-                resolve_expr(*e2, uf)?
-            ].map(Box::new)
+            exprs: [e1, e2],
+        } => Expr::BinaryOp {
+            op,
+            exprs: [resolve_expr(*e1, uf)?, resolve_expr(*e2, uf)?].map(Box::new),
         },
-        Expr::Let { sym, mutable, bnd, bdy } => Expr::Let {
+        Expr::Let {
+            sym,
+            mutable,
+            typ,
+            bnd,
+            bdy,
+        } => Expr::Let {
             sym: sym.inner,
             mutable,
+            typ: typ.map(resolve_type),
             bnd: Box::new(resolve_expr(*bnd, uf)?),
             bdy: Box::new(resolve_expr(*bdy, uf)?),
         },

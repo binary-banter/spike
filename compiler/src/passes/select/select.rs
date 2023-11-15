@@ -104,9 +104,9 @@ fn select_tail<'p>(tail: ETail<'p>, instrs: &mut Vec<Instr<'p, VarArg<'p>>>, std
 }
 
 fn select_assign<'p>(
-    dsts: &[UniqueSym<'p>],
-    expr: EExpr<'p>,
-    std: &Std<'p>,
+    _dsts: &[UniqueSym<'p>],
+    _expr: EExpr<'p>,
+    _std: &Std<'p>,
 ) -> Vec<Instr<'p, VarArg<'p>>> {
     todo!()
     // let dst = var!(dsts[0]);

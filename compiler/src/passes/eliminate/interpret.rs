@@ -2,7 +2,6 @@ use crate::interpreter::Val;
 use crate::interpreter::IO;
 use crate::passes::atomize::Atom;
 use crate::passes::eliminate::{EExpr, ETail, PrgEliminated};
-use crate::passes::parse::BinaryOp;
 use crate::passes::validate::TLit;
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::push_map::PushMap;
@@ -101,9 +100,9 @@ impl<'p> PrgEliminated<'p> {
 
     pub fn interpret_expr(
         &self,
-        expr: &EExpr<'p>,
-        scope: &mut PushMap<UniqueSym<'p>, EVal<'p>>,
-        io: &mut impl IO,
+        _expr: &EExpr<'p>,
+        _scope: &mut PushMap<UniqueSym<'p>, EVal<'p>>,
+        _io: &mut impl IO,
     ) -> Vec<EVal<'p>> {
         todo!()
         // let val = match expr {

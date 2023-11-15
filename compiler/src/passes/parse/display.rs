@@ -1,4 +1,4 @@
-use crate::passes::parse::{BinaryOp, Def, Expr, TypeDef};
+use crate::passes::parse::{Def, Expr, TypeDef};
 use indenter::indented;
 use itertools::Itertools;
 use std::fmt::Write;
@@ -62,13 +62,17 @@ impl<IdentVars: Display, IdentFields: Display, Lit: Display, M> Display
             Expr::Let {
                 sym,
                 mutable,
+                typ,
                 bnd,
                 bdy,
             } => {
                 writeln!(
                     f,
-                    "let {}{sym} = {bnd};",
-                    if *mutable { "mut " } else { "" }
+                    "let {}{sym}{} = {bnd};",
+                    if *mutable { "mut " } else { "" },
+                    typ.as_ref()
+                        .map(|typ| format!(": {typ}"))
+                        .unwrap_or("".to_string())
                 )?;
                 write!(f, "{bdy}")
             }

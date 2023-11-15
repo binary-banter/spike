@@ -1,6 +1,6 @@
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{
-    Def, DefParsed, Expr, ExprParsed, Lit, Meta, Param, PrgParsed, Span, TypeDef,
+    Def, DefParsed, Expr, ExprParsed, Meta, Param, PrgParsed, Span, TypeDef,
 };
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::error::TypeError::{NoMain, UndeclaredVar};
@@ -129,6 +129,7 @@ fn uniquify_expr<'p>(
     let inner = match expr.inner {
         Expr::Let {
             sym,
+            typ,
             bnd,
             bdy,
             mutable,
@@ -142,6 +143,7 @@ fn uniquify_expr<'p>(
             Expr::Let {
                 sym: unique_sym,
                 mutable,
+                typ: typ.map(|typ| uniquify_type(typ, scope)).transpose()?,
                 bnd: Box::new(unique_bnd),
                 bdy: Box::new(unique_bdy),
             }

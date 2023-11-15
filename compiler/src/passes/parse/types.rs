@@ -1,5 +1,4 @@
 use derive_more::Display;
-use functor_derive::Functor;
 use itertools::Itertools;
 use std::fmt::Display;
 
