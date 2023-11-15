@@ -1,17 +1,17 @@
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{BinaryOp, Lit, Meta, Span, UnaryOp};
+use crate::passes::parse::{BinaryOp, Def, Expr, Lit, Meta, Span, UnaryOp};
 use crate::passes::validate::error::TypeError;
+use crate::passes::validate::error::TypeError::MismatchedAssignBinding;
 use crate::passes::validate::uncover_globals::{uncover_globals, Env, EnvEntry};
 use crate::passes::validate::uniquify::PrgUniquified;
 use crate::passes::validate::{
     CMeta, DefConstrained, DefUniquified, ExprConstrained, ExprUniquified, PrgConstrained,
 };
+use crate::utils::expect::expect;
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};
 use itertools::Itertools;
 use std::collections::HashMap;
-use crate::passes::validate::error::TypeError::MismatchedAssignBinding;
-use crate::utils::expect::expect;
 
 #[derive(Debug, Clone)]
 pub enum PartialType<'p> {
@@ -82,7 +82,7 @@ fn constrain_def<'p>(
     uf: &mut UnionFind<PartialType<'p>>,
 ) -> Result<DefConstrained<'p>, TypeError> {
     let def = match def {
-        DefUniquified::Fn {
+        Def::Fn {
             sym,
             params,
             typ,
@@ -104,7 +104,11 @@ fn constrain_def<'p>(
             let mut env = Env {
                 uf,
                 scope,
-                return_type: Meta { inner: return_index, meta: sym.meta }, // TODO replace sym.meta with return type index
+                loop_type: None,
+                return_type: &Meta {
+                    inner: return_index,
+                    meta: sym.meta,
+                }, // TODO replace sym.meta with return type index
             };
 
             // Constrain body of function.
@@ -120,14 +124,14 @@ fn constrain_def<'p>(
                 }
             })?;
 
-            DefConstrained::Fn {
+            Def::Fn {
                 sym,
                 params,
                 bdy,
                 typ,
             }
         }
-        DefUniquified::TypeDef { sym, def } => DefConstrained::TypeDef { sym, def },
+        Def::TypeDef { sym, def } => Def::TypeDef { sym, def },
     };
 
     Ok(def)
@@ -140,7 +144,7 @@ fn constrain_expr<'p>(
     let span = expr.meta;
 
     let meta = match expr.inner {
-        ExprUniquified::Lit { val } => {
+        Expr::Lit { val } => {
             let typ = match &val {
                 Lit::Int { typ, .. } => typ.clone().unwrap_or(PartialType::Int),
                 Lit::Bool { .. } => PartialType::Bool,
@@ -152,16 +156,18 @@ fn constrain_expr<'p>(
                 inner: ExprConstrained::Lit { val },
             }
         }
-        ExprUniquified::Var { sym } => {
+        Expr::Var { sym } => {
             let EnvEntry::Type { typ, .. } = env.scope[&sym.inner] else {
-                panic!();
+                return Err(TypeError::SymbolShouldBeVariable {
+                    span,
+                });
             };
             Meta {
                 meta: CMeta { span, index: typ },
                 inner: ExprConstrained::Var { sym },
             }
         }
-        ExprUniquified::UnaryOp { op, expr } => {
+        Expr::UnaryOp { op, expr } => {
             let typ = match op {
                 UnaryOp::Neg => Type::I64,
                 UnaryOp::Not => Type::Bool,
@@ -189,7 +195,7 @@ fn constrain_expr<'p>(
                 },
             }
         }
-        ExprUniquified::BinaryOp {
+        Expr::BinaryOp {
             op,
             exprs: [lhs, rhs],
         } => {
@@ -259,7 +265,7 @@ fn constrain_expr<'p>(
                 },
             }
         }
-        ExprUniquified::Let {
+        Expr::Let {
             sym,
             mutable,
             typ,
@@ -269,12 +275,13 @@ fn constrain_expr<'p>(
             let bnd = constrain_expr(*bnd, env)?;
 
             if let Some(typ) = &typ {
-                env.uf
-                    .expect_type(bnd.meta.index, typ.clone(), |got, _| TypeError::MismatchedLetBinding {
+                env.uf.expect_type(bnd.meta.index, typ.clone(), |got, _| {
+                    TypeError::MismatchedLetBinding {
                         got,
                         span_expected: (0, 0), //TODO span of typ
                         span_got: bnd.meta.span,
-                    })?;
+                    }
+                })?;
             }
 
             env.scope.insert(
@@ -300,23 +307,29 @@ fn constrain_expr<'p>(
                 },
             }
         }
-        ExprUniquified::If { cnd, thn, els } => {
+        Expr::If { cnd, thn, els } => {
             let cnd = constrain_expr(*cnd, env)?;
 
-            env.uf.expect_type(cnd.meta.index, Type::Bool, |got, _| TypeError::IfExpectBool {
-                got,
-                span_got: cnd.meta.span,
+            env.uf.expect_type(cnd.meta.index, Type::Bool, |got, _| {
+                TypeError::IfExpectBool {
+                    got,
+                    span_got: cnd.meta.span,
+                }
             })?;
 
             let thn = constrain_expr(*thn, env)?;
             let els = constrain_expr(*els, env)?;
 
-            let out_index = env.uf.expect_equal(thn.meta.index, els.meta.index, |thn_type, els_type| TypeError::IfExpectEqual {
-                thn: thn_type,
-                els: els_type,
-                span_thn: thn.meta.span,
-                span_els: els.meta.span,
-            })?;
+            let out_index =
+                env.uf
+                    .expect_equal(thn.meta.index, els.meta.index, |thn_type, els_type| {
+                        TypeError::IfExpectEqual {
+                            thn: thn_type,
+                            els: els_type,
+                            span_thn: thn.meta.span,
+                            span_els: els.meta.span,
+                        }
+                    })?;
 
             Meta {
                 meta: CMeta {
@@ -329,17 +342,20 @@ fn constrain_expr<'p>(
                     els: Box::new(els),
                 },
             }
-        },
-        ExprUniquified::Apply { fun, args } => {
+        }
+        Expr::Apply { fun, args } => {
             let fun = constrain_expr(*fun, env)?;
-            let args: Vec<_> = args.into_iter().map(|arg| constrain_expr(arg, env)).collect::<Result<_, _>>()?;
+            let args: Vec<_> = args
+                .into_iter()
+                .map(|arg| constrain_expr(arg, env))
+                .collect::<Result<_, _>>()?;
 
             let p_typ = env.uf.get(fun.meta.index).clone();
             let PartialType::Fn { params, typ } = p_typ else {
                 return Err(TypeError::TypeMismatchExpectFn {
                     got: p_typ.to_string(&mut env.uf),
                     span_got: fun.meta.span,
-                })
+                });
             };
 
             expect(
@@ -352,50 +368,103 @@ fn constrain_expr<'p>(
             )?;
 
             for (arg, param_type) in args.iter().zip(params.iter()) {
-                env.uf.expect_equal(arg.meta.index, *param_type, |arg_type, param_type| TypeError::FnArgExpect {
-                    arg: arg_type,
-                    param: param_type,
-                    span_arg: arg.meta.span,
-                })?;
+                env.uf
+                    .expect_equal(arg.meta.index, *param_type, |arg_type, param_type| {
+                        TypeError::FnArgExpect {
+                            arg: arg_type,
+                            param: param_type,
+                            span_arg: arg.meta.span,
+                        }
+                    })?;
             }
 
             Meta {
-                meta: CMeta {
-                    span,
-                    index: typ,
-                },
+                meta: CMeta { span, index: typ },
                 inner: ExprConstrained::Apply {
                     fun: Box::new(fun),
                     args,
                 },
             }
-        },
-        ExprUniquified::Loop { .. } => todo!(),
-        ExprUniquified::Break { .. } => todo!(),
-        ExprUniquified::Continue => todo!(),
-        ExprUniquified::Return { bdy } => {
-            let bdy = constrain_expr(*bdy, env)?;
+        }
+        Expr::Loop { bdy } => {
+            let loop_type = env.uf.add(PartialType::Never);
 
-            env.uf.expect_equal(bdy.meta.index, env.return_type.inner, |bdy_typ, rtrn| TypeError::MismatchedFnReturn{
-                got: bdy_typ,
-                expect: rtrn,
-                span_got: bdy.meta.span,
-                span_expected: env.return_type.meta, //TODO span of return type, should be passed via env
-            })?;
+            let mut env = Env {
+                uf: env.uf,
+                scope: env.scope,
+                loop_type: Some(loop_type),
+                return_type: env.return_type,
+            };
 
-            let typ = env.uf.add(PartialType::Never);
+            let bdy = constrain_expr(*bdy, &mut env)?;
 
             Meta {
                 meta: CMeta {
                     span,
-                    index: typ,
+                    index: loop_type,
                 },
-                inner: ExprConstrained::Return {
-                    bdy: Box::new(bdy),
-                },
+                inner: ExprConstrained::Loop { bdy: Box::new(bdy) },
             }
-        },
-        ExprUniquified::Seq { stmt, cnt } => {
+        }
+        Expr::Break { bdy } => {
+            let Some(loop_type) = env.loop_type else {
+                return Err(TypeError::BreakOutsideLoop { span });
+            };
+
+            let bdy = constrain_expr(*bdy, env)?;
+            env.uf
+                .expect_equal(bdy.meta.index, loop_type, |got, expect| {
+                    TypeError::TypeMismatchLoop {
+                        expect,
+                        got,
+                        span_break: bdy.meta.span,
+                    }
+                })?;
+
+            Meta {
+                meta: CMeta {
+                    span,
+                    index: env.uf.add(PartialType::Never),
+                },
+                inner: ExprConstrained::Break { bdy: Box::new(bdy) },
+            }
+        }
+        Expr::Continue => {
+            expect(
+                env.loop_type.is_some(),
+                TypeError::ContinueOutsideLoop { span },
+            )?;
+
+            Meta {
+                meta: CMeta {
+                    span,
+                    index: env.uf.add(PartialType::Never),
+                },
+                inner: ExprConstrained::Continue,
+            }
+        }
+        Expr::Return { bdy } => {
+            let bdy = constrain_expr(*bdy, env)?;
+
+            env.uf
+                .expect_equal(bdy.meta.index, env.return_type.inner, |bdy_typ, rtrn| {
+                    TypeError::MismatchedFnReturn {
+                        got: bdy_typ,
+                        expect: rtrn,
+                        span_got: bdy.meta.span,
+                        span_expected: env.return_type.meta, //TODO span of return type, should be passed via env
+                    }
+                })?;
+
+            Meta {
+                meta: CMeta {
+                    span,
+                    index: env.uf.add(PartialType::Never),
+                },
+                inner: ExprConstrained::Return { bdy: Box::new(bdy) },
+            }
+        }
+        Expr::Seq { stmt, cnt } => {
             let stmt = constrain_expr(*stmt, env)?;
             let cnt = constrain_expr(*cnt, env)?;
 
@@ -409,37 +478,44 @@ fn constrain_expr<'p>(
                     cnt: Box::new(cnt),
                 },
             }
-        },
-        ExprUniquified::Assign { sym, bnd } => {
+        }
+        Expr::Assign { sym, bnd } => {
             let bnd = constrain_expr(*bnd, env)?;
 
-            let EnvEntry::Type { typ, .. } = env.scope[&sym.inner] else {
-                panic!();
+            let EnvEntry::Type { mutable, typ } = env.scope[&sym.inner] else {
+                return Err(TypeError::SymbolShouldBeVariable {
+                    span: sym.meta,
+                });
             };
-            env.uf.expect_equal(typ, bnd.meta.index, |sym_typ, bnd_type| MismatchedAssignBinding {
-                expect: sym_typ,
-                got: bnd_type,
-                span_expected: sym.meta,
-                span_got: bnd.meta.span,
+
+            expect(mutable, TypeError::ModifyImmutable {
+                span: sym.meta,
             })?;
+
+            env.uf
+                .expect_equal(typ, bnd.meta.index, |sym_typ, bnd_type| {
+                    MismatchedAssignBinding {
+                        expect: sym_typ,
+                        got: bnd_type,
+                        span_expected: sym.meta,
+                        span_got: bnd.meta.span,
+                    }
+                })?;
 
             let typ = env.uf.add(PartialType::Unit);
 
             Meta {
-                meta: CMeta {
-                    span,
-                    index: typ,
-                },
+                meta: CMeta { span, index: typ },
                 inner: ExprConstrained::Assign {
                     sym,
                     bnd: Box::new(bnd),
                 },
             }
-        },
-        ExprUniquified::Struct { .. } => todo!(),
-        ExprUniquified::Variant { .. } => todo!(),
-        ExprUniquified::AccessField { .. } => todo!(),
-        ExprUniquified::Switch { .. } => todo!(),
+        }
+        Expr::Struct { .. } => todo!(),
+        Expr::Variant { .. } => todo!(),
+        Expr::AccessField { .. } => todo!(),
+        Expr::Switch { .. } => todo!(),
     };
 
     Ok(meta)

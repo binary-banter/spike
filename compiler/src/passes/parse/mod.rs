@@ -29,6 +29,7 @@ pub struct PrgParsed<'p> {
 }
 
 /// A definition.
+#[derive(Debug)]
 pub enum Def<IdentVars, IdentFields, Expr> {
     /// A function definition.
     Fn {
@@ -50,7 +51,7 @@ pub enum Def<IdentVars, IdentFields, Expr> {
 pub type DefParsed<'p> = Def<Meta<Span, &'p str>, Meta<Span, &'p str>, Meta<Span, ExprParsed<'p>>>;
 pub type ExprParsed<'p> = Expr<Meta<Span, &'p str>, Meta<Span, &'p str>, Lit<'p>, Span>;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum TypeDef<IdentVars, IdentFields> {
     /// A struct definition.
     Struct {
@@ -78,7 +79,7 @@ impl<IdentVars, IdentFields, Expr> Def<IdentVars, IdentFields, Expr> {
 ///
 /// Parameters are generic and can use symbols that are either `&str` or
 /// [`UniqueSym`](crate::utils::gen_sym::UniqueSym) for all passes after uniquify.
-#[derive(Clone, Display)]
+#[derive(Clone, Display, Debug)]
 #[display(bound = "A: Display")]
 #[display(fmt = "{}{sym}: {typ}", r#"if *mutable { "mut " } else { "" }"#)]
 pub struct Param<A> {
@@ -94,6 +95,7 @@ pub struct Param<A> {
 ///
 /// Expressions are generic and can use symbols that are either `&str` or
 /// [`UniqueSym`](crate::utils::gen_sym::UniqueSym) for all passes after uniquify.
+#[derive(Debug)]
 pub enum Expr<IdentVars, IdentFields, Lit, M> {
     /// A literal value. See [`Lit`].
     Lit {
@@ -238,7 +240,7 @@ pub type SwitchArm<IdentVars, IdentFields, Lit, M> = (
     Box<Meta<M, Expr<IdentVars, IdentFields, Lit, M>>>,
 );
 
-#[derive(Clone, Display)]
+#[derive(Clone, Display, Debug)]
 #[display(bound = "B: Display")]
 #[display(fmt = "{inner}")]
 pub struct Meta<M, B> {
@@ -260,7 +262,7 @@ impl<M, B> Functor<B> for Meta<M, B> {
 pub type Span = (usize, usize);
 
 /// A unary operation.
-#[derive(Display)]
+#[derive(Display, Debug)]
 pub enum UnaryOp {
     /// Integer negation.
     #[display(fmt = "-")]
@@ -271,7 +273,7 @@ pub enum UnaryOp {
 }
 
 /// A primitive operation.
-#[derive(Display)]
+#[derive(Display, Debug)]
 pub enum BinaryOp {
     /// Integer addition.
     #[display(fmt = "+")]
@@ -337,5 +339,5 @@ pub enum Lit<'p> {
 #[derive(Copy, Clone)]
 pub enum IntSuffix {
     I64,
-    U64
+    U64,
 }

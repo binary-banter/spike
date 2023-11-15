@@ -1,7 +1,7 @@
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, Meta, Span, TypeDef};
 use crate::passes::validate::generate_constraints::PartialType;
-use crate::passes::validate::uniquify::{BUILT_INS, PrgUniquified};
+use crate::passes::validate::uniquify::{PrgUniquified, BUILT_INS};
 use crate::passes::validate::DefUniquified;
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};
@@ -10,9 +10,8 @@ use std::collections::HashMap;
 pub struct Env<'a, 'p> {
     pub uf: &'a mut UnionFind<PartialType<'p>>,
     pub scope: &'a mut HashMap<UniqueSym<'p>, EnvEntry<'p>>,
-    // pub loop_type: &'a mut Option<Meta<Span, UniqueSym<'p>>>,
-    // pub in_loop: bool,
-    pub return_type: Meta<Span, UnionIndex>,
+    pub loop_type: Option<UnionIndex>,
+    pub return_type: &'a Meta<Span, UnionIndex>,
 }
 
 pub enum EnvEntry<'p> {
@@ -36,10 +35,20 @@ pub fn uncover_globals<'p>(
     program: &PrgUniquified<'p>,
     uf: &mut UnionFind<PartialType<'p>>,
 ) -> HashMap<UniqueSym<'p>, EnvEntry<'p>> {
-    let builtins  = program.std.iter().map(|(k, v)| {
-        let typ = uf.type_to_index(BUILT_INS[k].clone());
-        (*v, EnvEntry::Type { mutable: false, typ })
-    }).collect::<Vec<_>>();
+    let builtins = program
+        .std
+        .iter()
+        .map(|(k, v)| {
+            let typ = uf.type_to_index(BUILT_INS[k].clone());
+            (
+                *v,
+                EnvEntry::Type {
+                    mutable: false,
+                    typ,
+                },
+            )
+        })
+        .collect::<Vec<_>>();
 
     program
         .defs

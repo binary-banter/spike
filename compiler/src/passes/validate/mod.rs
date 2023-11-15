@@ -17,6 +17,7 @@ use derive_more::Display;
 use std::collections::HashMap;
 use std::str::FromStr;
 
+#[derive(Debug)]
 pub struct PrgValidated<'p> {
     pub defs: HashMap<UniqueSym<'p>, DefValidated<'p>>,
     pub entry: UniqueSym<'p>,

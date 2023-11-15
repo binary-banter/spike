@@ -1,3 +1,4 @@
+use crate::passes::parse::types::Type;
 use crate::passes::select::Cnd;
 use crate::passes::select::{Block, VarArg};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
@@ -6,7 +7,6 @@ use crate::{
     syscall,
 };
 use std::collections::HashMap;
-use crate::passes::parse::types::Type;
 
 pub type Std<'p> = HashMap<&'p str, UniqueSym<'p>>;
 

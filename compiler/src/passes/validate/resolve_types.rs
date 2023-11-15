@@ -114,9 +114,9 @@ fn resolve_expr<'p>(
             let val = match val {
                 Lit::Int { val, .. } => match &typ {
                     None => {
-                        return Err(dbg!(TypeError::IntegerAmbiguous {
+                        return Err(TypeError::IntegerAmbiguous {
                             span: expr.meta.span
-                        }))
+                        })
                     }
                     Some(typ) => match typ {
                         Type::I64 => TLit::I64 {
@@ -174,7 +174,10 @@ fn resolve_expr<'p>(
         },
         Expr::Apply { fun, args } => Expr::Apply {
             fun: Box::new(resolve_expr(*fun, uf)?),
-            args: args.into_iter().map(|arg| resolve_expr(arg, uf)).collect::<Result<_,_>>()?
+            args: args
+                .into_iter()
+                .map(|arg| resolve_expr(arg, uf))
+                .collect::<Result<_, _>>()?,
         },
         Expr::Loop { bdy } => Expr::Loop {
             bdy: Box::new(resolve_expr(*bdy, uf)?),

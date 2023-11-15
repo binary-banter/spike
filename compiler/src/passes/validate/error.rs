@@ -30,12 +30,26 @@ pub enum TypeError {
     // DuplicateFunction { sym: String },
     // #[error("Function `{sym}` has duplicate argument names.")]
     // DuplicateArg { sym: String },
-    // #[error("Found a break outside of a loop.")]
-    // BreakOutsideLoop,
-    // #[error("Tried to modify immutable variable '{sym}'")]
-    // ModifyImmutable { sym: String },
-    // #[error("The name {sym} should refer to a variable binding.'")]
-    // VariableShouldBeExpr { sym: String },
+    #[error("Break outside loop.")]
+    BreakOutsideLoop {
+        #[label = "Found a break outside of a loop"]
+        span: (usize, usize),
+    },
+    #[error("Continue outside loop.")]
+    ContinueOutsideLoop {
+        #[label = "Found a continue outside of a loop"]
+        span: (usize, usize),
+    },
+    #[error("Tried to modify immutable variable.")]
+    ModifyImmutable {
+        #[label = "This variable was declared as immutable."]
+        span: (usize, usize),
+    },
+    #[error("Tried to put type in variable.'")]
+    SymbolShouldBeVariable {
+        #[label = "Cannot store a Type in a variable."]
+        span: (usize, usize),
+    },
     // #[error("The name `{sym}` should refer to a struct type.'")]
     // VariableShouldBeStruct { sym: String },
     // #[error("The field `{sym}` is not present in the struct definition.'")]
@@ -143,6 +157,15 @@ pub enum TypeError {
 
         #[label = "Expected function, but found '{got}'"]
         span_got: (usize, usize),
+    },
+
+    #[error("Types did not match.")]
+    TypeMismatchLoop {
+        expect: String,
+        got: String,
+
+        #[label = "Expected loop to return `{expect}`, but got: `{got}``"]
+        span_break: (usize, usize),
     },
 
     #[error("Types did not match.")]

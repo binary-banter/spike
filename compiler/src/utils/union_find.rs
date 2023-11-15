@@ -1,3 +1,4 @@
+use std::fmt::Debug;
 use std::ops::{Index, IndexMut};
 
 pub struct UnionFind<T> {
@@ -78,16 +79,18 @@ impl<T> UnionFind<T> {
         a_root
     }
 
-    pub fn try_union_by<E>(
+    pub fn try_union_by<E: Debug>(
         &mut self,
         a: UnionIndex,
         b: UnionIndex,
         f: impl FnOnce(T, T, &mut Self) -> Result<T, E>,
     ) -> Result<UnionIndex, E>
     where
-        T: Clone,
+        T: Clone + Debug,
     {
-        let v = f(self.data[a.0].clone(), self.data[b.0].clone(), self)?;
+        let at = self.get(a).clone();
+        let bt = self.get(b).clone();
+        let v = f(at, bt, self)?;
         let root = self.union(a, b);
         self.data[root.0] = v;
         Ok(root)

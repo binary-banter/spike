@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-use once_cell::sync::Lazy;
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{
     Def, DefParsed, Expr, ExprParsed, Meta, Param, PrgParsed, Span, TypeDef,
@@ -10,6 +8,8 @@ use crate::passes::validate::error::TypeError::{NoMain, UndeclaredVar};
 use crate::passes::validate::{DefUniquified, ExprUniquified};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use crate::utils::push_map::PushMap;
+use once_cell::sync::Lazy;
+use std::collections::HashMap;
 
 pub struct PrgUniquified<'p> {
     /// The global program definitions.
@@ -20,23 +20,45 @@ pub struct PrgUniquified<'p> {
     pub std: Std<'p>,
 }
 
-pub static BUILT_INS: Lazy<HashMap<&'static str, Type<Meta<Span, UniqueSym<'static>>>>> = Lazy::new(|| {
-    HashMap::from([
-        ("exit", Type::Fn { params: vec![Type::I64], typ: Box::new(Type::Never) }),
-        ("print", Type::Fn { params: vec![Type::I64], typ: Box::new(Type::I64) }),
-        ("read", Type::Fn { params: vec![], typ: Box::new(Type::I64) })
-    ])
-});
+pub static BUILT_INS: Lazy<HashMap<&'static str, Type<Meta<Span, UniqueSym<'static>>>>> =
+    Lazy::new(|| {
+        HashMap::from([
+            (
+                "exit",
+                Type::Fn {
+                    params: vec![Type::I64],
+                    typ: Box::new(Type::Never),
+                },
+            ),
+            (
+                "print",
+                Type::Fn {
+                    params: vec![Type::I64],
+                    typ: Box::new(Type::I64),
+                },
+            ),
+            (
+                "read",
+                Type::Fn {
+                    params: vec![],
+                    typ: Box::new(Type::I64),
+                },
+            ),
+        ])
+    });
 
 impl<'p> PrgParsed<'p> {
     pub fn uniquify(self) -> Result<PrgUniquified<'p>, TypeError> {
-        let std: Std<'p> = BUILT_INS.iter().map(|(sym, _)| (*sym, gen_sym(sym))).collect();
+        let std: Std<'p> = BUILT_INS
+            .iter()
+            .map(|(sym, _)| (*sym, gen_sym(sym)))
+            .collect();
 
         let mut scope = PushMap::from_iter(
             self.defs
                 .iter()
                 .map(|def| (def.sym().inner, gen_sym(def.sym().inner)))
-                .chain(std.iter().map(|(&k, &v)| (k, v)))
+                .chain(std.iter().map(|(&k, &v)| (k, v))),
         );
 
         let entry = *scope.get(&"main").ok_or(NoMain)?;
@@ -48,11 +70,10 @@ impl<'p> PrgParsed<'p> {
                 .map(|def| uniquify_def(def, &mut scope))
                 .collect::<Result<_, _>>()?,
             entry,
-            std
+            std,
         })
     }
 }
-
 
 fn uniquify_def<'p>(
     def: DefParsed<'p>,

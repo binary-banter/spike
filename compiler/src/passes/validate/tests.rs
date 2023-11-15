@@ -1,6 +1,6 @@
-use miette::{NamedSource, Report};
 use crate::passes::parse::parse::parse_program;
 use crate::utils::split_test::split_test;
+use miette::{NamedSource, Report};
 use test_each_file::test_each_file;
 
 fn validate([test]: [&str; 1]) {
@@ -10,15 +10,17 @@ fn validate([test]: [&str; 1]) {
 
     match (result, expected_error) {
         (Ok(_), None) => {}
-        (Ok(_), Some(expected_error)) => {
+        (Ok(p), Some(expected_error)) => {
             panic!("Expected validation to fail with: {expected_error}.")
         }
         (Err(error), None) => {
-            dbg!(&error);
-            let report = Report::with_source_code(error.into(), NamedSource::new("<test file>", test.to_string()));
+            let report = Report::with_source_code(
+                error.into(),
+                NamedSource::new("<test file>", test.to_string()),
+            );
             println!("{report}");
             panic!("Expected validation to succeed.")
-        },
+        }
         (Err(_), Some(_)) => {}
     }
 }
