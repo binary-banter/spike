@@ -10,6 +10,7 @@ use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};
 use itertools::Itertools;
 use std::collections::HashMap;
+use crate::passes::validate::error::TypeError::MismatchedAssignBinding;
 use crate::utils::expect::expect;
 
 #[derive(Debug, Clone)]
@@ -103,7 +104,7 @@ fn constrain_def<'p>(
             let mut env = Env {
                 uf,
                 scope,
-                return_type: return_index,
+                return_type: Meta { inner: return_index, meta: sym.meta }, // TODO replace sym.meta with return type index
             };
 
             // Constrain body of function.
@@ -372,9 +373,69 @@ fn constrain_expr<'p>(
         ExprUniquified::Loop { .. } => todo!(),
         ExprUniquified::Break { .. } => todo!(),
         ExprUniquified::Continue => todo!(),
-        ExprUniquified::Return { .. } => todo!(),
-        ExprUniquified::Seq { .. } => todo!(),
-        ExprUniquified::Assign { .. } => todo!(),
+        ExprUniquified::Return { bdy } => {
+            let bdy = constrain_expr(*bdy, env)?;
+
+            env.uf.expect_equal(bdy.meta.index, env.return_type.inner, |bdy_typ, rtrn| TypeError::MismatchedFnReturn{
+                got: bdy_typ,
+                expect: rtrn,
+                span_got: bdy.meta.span,
+                span_expected: env.return_type.meta, //TODO span of return type, should be passed via env
+            })?;
+
+            let typ = env.uf.add(PartialType::Never);
+
+            Meta {
+                meta: CMeta {
+                    span,
+                    index: typ,
+                },
+                inner: ExprConstrained::Return {
+                    bdy: Box::new(bdy),
+                },
+            }
+        },
+        ExprUniquified::Seq { stmt, cnt } => {
+            let stmt = constrain_expr(*stmt, env)?;
+            let cnt = constrain_expr(*cnt, env)?;
+
+            Meta {
+                meta: CMeta {
+                    span,
+                    index: cnt.meta.index,
+                },
+                inner: ExprConstrained::Seq {
+                    stmt: Box::new(stmt),
+                    cnt: Box::new(cnt),
+                },
+            }
+        },
+        ExprUniquified::Assign { sym, bnd } => {
+            let bnd = constrain_expr(*bnd, env)?;
+
+            let EnvEntry::Type { typ, .. } = env.scope[&sym.inner] else {
+                panic!();
+            };
+            env.uf.expect_equal(typ, bnd.meta.index, |sym_typ, bnd_type| MismatchedAssignBinding {
+                expect: sym_typ,
+                got: bnd_type,
+                span_expected: sym.meta,
+                span_got: bnd.meta.span,
+            })?;
+
+            let typ = env.uf.add(PartialType::Unit);
+
+            Meta {
+                meta: CMeta {
+                    span,
+                    index: typ,
+                },
+                inner: ExprConstrained::Assign {
+                    sym,
+                    bnd: Box::new(bnd),
+                },
+            }
+        },
         ExprUniquified::Struct { .. } => todo!(),
         ExprUniquified::Variant { .. } => todo!(),
         ExprUniquified::AccessField { .. } => todo!(),

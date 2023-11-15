@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use once_cell::sync::{Lazy, OnceCell};
+use once_cell::sync::Lazy;
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{
     Def, DefParsed, Expr, ExprParsed, Meta, Param, PrgParsed, Span, TypeDef,

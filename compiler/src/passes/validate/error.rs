@@ -109,6 +109,16 @@ pub enum TypeError {
         span_got: (usize, usize),
     },
     #[error("Types did not match.")]
+    MismatchedAssignBinding {
+        expect: String,
+        got: String,
+
+        #[label = "Expected binding of assign to have type: `{expect}`"]
+        span_expected: (usize, usize),
+        #[label = "But got this type: `{got}`"]
+        span_got: (usize, usize),
+    },
+    #[error("Types did not match.")]
     IfExpectBool {
         got: String,
 

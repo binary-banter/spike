@@ -12,7 +12,7 @@ pub struct Env<'a, 'p> {
     pub scope: &'a mut HashMap<UniqueSym<'p>, EnvEntry<'p>>,
     // pub loop_type: &'a mut Option<Meta<Span, UniqueSym<'p>>>,
     // pub in_loop: bool,
-    pub return_type: UnionIndex,
+    pub return_type: Meta<Span, UnionIndex>,
 }
 
 pub enum EnvEntry<'p> {

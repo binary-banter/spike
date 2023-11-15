@@ -125,7 +125,12 @@ fn resolve_expr<'p>(
                                 typ: "I64",
                             })?,
                         },
-                        Type::U64 => todo!(),
+                        Type::U64 => TLit::U64 {
+                            val: val.parse().map_err(|_| TypeError::IntegerOutOfBounds {
+                                span: expr.meta.span,
+                                typ: "U64",
+                            })?,
+                        },
                         _ => unreachable!(),
                     },
                 },
@@ -171,12 +176,24 @@ fn resolve_expr<'p>(
             fun: Box::new(resolve_expr(*fun, uf)?),
             args: args.into_iter().map(|arg| resolve_expr(arg, uf)).collect::<Result<_,_>>()?
         },
-        Expr::Loop { .. } => todo!(),
-        Expr::Break { .. } => todo!(),
-        Expr::Continue => todo!(),
-        Expr::Return { .. } => todo!(),
-        Expr::Seq { .. } => todo!(),
-        Expr::Assign { .. } => todo!(),
+        Expr::Loop { bdy } => Expr::Loop {
+            bdy: Box::new(resolve_expr(*bdy, uf)?),
+        },
+        Expr::Break { bdy } => Expr::Break {
+            bdy: Box::new(resolve_expr(*bdy, uf)?),
+        },
+        Expr::Continue => Expr::Continue,
+        Expr::Return { bdy } => Expr::Return {
+            bdy: Box::new(resolve_expr(*bdy, uf)?),
+        },
+        Expr::Seq { stmt, cnt } => Expr::Seq {
+            stmt: Box::new(resolve_expr(*stmt, uf)?),
+            cnt: Box::new(resolve_expr(*cnt, uf)?),
+        },
+        Expr::Assign { sym, bnd } => Expr::Assign {
+            sym: sym.inner,
+            bnd: Box::new(resolve_expr(*bnd, uf)?),
+        },
         Expr::Struct { .. } => todo!(),
         Expr::Variant { .. } => todo!(),
         Expr::AccessField { .. } => todo!(),
