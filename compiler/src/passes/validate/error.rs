@@ -16,8 +16,7 @@ pub enum TypeError {
     //     #[label = "Expected this to be of type `{expect}`, but got `{got}`"]
     //     span: (usize, usize),
     // },
-    // #[error("Types were mismatched. Expected function, but found '{got}'.")]
-    // TypeMismatchExpectFn { got: Type<String> },
+
     // #[error("Types were mismatched. Expected '{t1}' and '{t2}' to be equal.")]
     // MismatchedTypes {
     //     t1: Type<String>,
@@ -31,8 +30,6 @@ pub enum TypeError {
     // DuplicateFunction { sym: String },
     // #[error("Function `{sym}` has duplicate argument names.")]
     // DuplicateArg { sym: String },
-    // #[error("Function `{expected}` has {expected} arguments, but found {got} arguments.")]
-    // ArgCountMismatch { expected: usize, got: usize },
     // #[error("Found a break outside of a loop.")]
     // BreakOutsideLoop,
     // #[error("Tried to modify immutable variable '{sym}'")]
@@ -128,5 +125,32 @@ pub enum TypeError {
         span_thn: (usize, usize),
         #[label = "Type: `{els}`"]
         span_els: (usize, usize),
+    },
+
+    #[error("Types did not match.")]
+    TypeMismatchExpectFn {
+        got: String,
+
+        #[label = "Expected function, but found '{got}'"]
+        span_got: (usize, usize),
+    },
+
+    #[error("Types did not match.")]
+    ArgCountMismatch {
+        expected: usize,
+        got: usize,
+
+        //TODO span of args
+        #[label = "Function {expected} arguments, but found {got} arguments"]
+        span: (usize, usize),
+    },
+
+    #[error("Types did not match.")]
+    FnArgExpect {
+        param: String,
+        arg: String,
+
+        #[label = "Expected this function argument to be of type `{param}`, but got `{arg}`"]
+        span_arg: (usize, usize),
     },
 }

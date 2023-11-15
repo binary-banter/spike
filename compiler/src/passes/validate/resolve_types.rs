@@ -167,7 +167,10 @@ fn resolve_expr<'p>(
             thn: Box::new(resolve_expr(*thn, uf)?),
             els: Box::new(resolve_expr(*els, uf)?),
         },
-        Expr::Apply { .. } => todo!(),
+        Expr::Apply { fun, args } => Expr::Apply {
+            fun: Box::new(resolve_expr(*fun, uf)?),
+            args: args.into_iter().map(|arg| resolve_expr(arg, uf)).collect::<Result<_,_>>()?
+        },
         Expr::Loop { .. } => todo!(),
         Expr::Break { .. } => todo!(),
         Expr::Continue => todo!(),

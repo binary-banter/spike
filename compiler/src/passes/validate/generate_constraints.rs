@@ -10,6 +10,7 @@ use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};
 use itertools::Itertools;
 use std::collections::HashMap;
+use crate::utils::expect::expect;
 
 #[derive(Debug, Clone)]
 pub enum PartialType<'p> {
@@ -37,7 +38,7 @@ impl<'p> PartialType<'p> {
             PartialType::Bool => "Bool".to_string(),
             PartialType::Unit => "Unit".to_string(),
             PartialType::Never => "Never".to_string(),
-            PartialType::Var { sym } => format!("{}", sym.sym),
+            PartialType::Var { sym } => sym.sym.to_string(),
             PartialType::Fn { params, typ } => {
                 let params_string = params
                     .iter()
@@ -137,7 +138,7 @@ fn constrain_expr<'p>(
 ) -> Result<Meta<CMeta, ExprConstrained<'p>>, TypeError> {
     let span = expr.meta;
 
-    Ok(match expr.inner {
+    let meta = match expr.inner {
         ExprUniquified::Lit { val } => {
             let typ = match &val {
                 Lit::Int { typ, .. } => typ.clone().unwrap_or(PartialType::Int),
@@ -328,7 +329,46 @@ fn constrain_expr<'p>(
                 },
             }
         },
-        ExprUniquified::Apply { .. } => todo!(),
+        ExprUniquified::Apply { fun, args } => {
+            let fun = constrain_expr(*fun, env)?;
+            let args: Vec<_> = args.into_iter().map(|arg| constrain_expr(arg, env)).collect::<Result<_, _>>()?;
+
+            let p_typ = env.uf.get(fun.meta.index).clone();
+            let PartialType::Fn { params, typ } = p_typ else {
+                return Err(TypeError::TypeMismatchExpectFn {
+                    got: p_typ.to_string(&mut env.uf),
+                    span_got: fun.meta.span,
+                })
+            };
+
+            expect(
+                params.len() == args.len(),
+                TypeError::ArgCountMismatch {
+                    got: args.len(),
+                    expected: params.len(),
+                    span, // todo: maybe highlight only the args and params?
+                },
+            )?;
+
+            for (arg, param_type) in args.iter().zip(params.iter()) {
+                env.uf.expect_equal(arg.meta.index, *param_type, |arg_type, param_type| TypeError::FnArgExpect {
+                    arg: arg_type,
+                    param: param_type,
+                    span_arg: arg.meta.span,
+                })?;
+            }
+
+            Meta {
+                meta: CMeta {
+                    span,
+                    index: typ,
+                },
+                inner: ExprConstrained::Apply {
+                    fun: Box::new(fun),
+                    args,
+                },
+            }
+        },
         ExprUniquified::Loop { .. } => todo!(),
         ExprUniquified::Break { .. } => todo!(),
         ExprUniquified::Continue => todo!(),
@@ -339,7 +379,9 @@ fn constrain_expr<'p>(
         ExprUniquified::Variant { .. } => todo!(),
         ExprUniquified::AccessField { .. } => todo!(),
         ExprUniquified::Switch { .. } => todo!(),
-    })
+    };
+
+    Ok(meta)
 }
 
 fn combine_partial_types<'p>(
