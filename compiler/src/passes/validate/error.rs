@@ -94,11 +94,39 @@ pub enum TypeError {
         op: String,
 
         //TODO would like this span to be operator
-        #[label = "Arguments of {op} should be of equal types."]
+        #[label = "Arguments of {op} should be of equal types"]
         span_op: (usize, usize),
         #[label = "Type: `{lhs}`"]
         span_lhs: (usize, usize),
         #[label = "Type: `{rhs}`"]
         span_rhs: (usize, usize),
+    },
+    #[error("Types did not match.")]
+    MismatchedLetBinding {
+        got: String,
+
+        //TODO would like this span of type of let binding
+        #[label = "Expected binding of let to have this type`"]
+        span_expected: (usize, usize),
+        #[label = "But got this type: `{got}`"]
+        span_got: (usize, usize),
+    },
+    #[error("Types did not match.")]
+    IfExpectBool {
+        got: String,
+
+        #[label = "Expected this condition to be `Bool`, but got: `{got}`"]
+        span_got: (usize, usize),
+    },
+
+    #[error("Types did not match.")]
+    IfExpectEqual {
+        thn: String,
+        els: String,
+
+        #[label = "Type: `{thn}`"]
+        span_thn: (usize, usize),
+        #[label = "Type: `{els}`"]
+        span_els: (usize, usize),
     },
 }

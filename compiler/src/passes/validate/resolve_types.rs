@@ -162,7 +162,11 @@ fn resolve_expr<'p>(
             bnd: Box::new(resolve_expr(*bnd, uf)?),
             bdy: Box::new(resolve_expr(*bdy, uf)?),
         },
-        Expr::If { .. } => todo!(),
+        Expr::If { cnd, thn, els } => Expr::If {
+            cnd: Box::new(resolve_expr(*cnd, uf)?),
+            thn: Box::new(resolve_expr(*thn, uf)?),
+            els: Box::new(resolve_expr(*els, uf)?),
+        },
         Expr::Apply { .. } => todo!(),
         Expr::Loop { .. } => todo!(),
         Expr::Break { .. } => todo!(),

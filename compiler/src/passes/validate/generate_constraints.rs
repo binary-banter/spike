@@ -268,7 +268,11 @@ fn constrain_expr<'p>(
 
             if let Some(typ) = &typ {
                 env.uf
-                    .expect_type(bnd.meta.index, typ.clone(), |_, _| todo!())?;
+                    .expect_type(bnd.meta.index, typ.clone(), |got, _| TypeError::MismatchedLetBinding {
+                        got,
+                        span_expected: (0, 0), //TODO span of typ
+                        span_got: bnd.meta.span,
+                    })?;
             }
 
             env.scope.insert(
@@ -294,7 +298,36 @@ fn constrain_expr<'p>(
                 },
             }
         }
-        ExprUniquified::If { .. } => todo!(),
+        ExprUniquified::If { cnd, thn, els } => {
+            let cnd = constrain_expr(*cnd, env)?;
+
+            env.uf.expect_type(cnd.meta.index, Type::Bool, |got, _| TypeError::IfExpectBool {
+                got,
+                span_got: cnd.meta.span,
+            })?;
+
+            let thn = constrain_expr(*thn, env)?;
+            let els = constrain_expr(*els, env)?;
+
+            let out_index = env.uf.expect_equal(thn.meta.index, els.meta.index, |thn_type, els_type| TypeError::IfExpectEqual {
+                thn: thn_type,
+                els: els_type,
+                span_thn: thn.meta.span,
+                span_els: els.meta.span,
+            })?;
+
+            Meta {
+                meta: CMeta {
+                    span,
+                    index: out_index,
+                },
+                inner: ExprConstrained::If {
+                    cnd: Box::new(cnd),
+                    thn: Box::new(thn),
+                    els: Box::new(els),
+                },
+            }
+        },
         ExprUniquified::Apply { .. } => todo!(),
         ExprUniquified::Loop { .. } => todo!(),
         ExprUniquified::Break { .. } => todo!(),
