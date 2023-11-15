@@ -333,3 +333,9 @@ pub enum Lit<'p> {
     #[display(fmt = "unit")]
     Unit,
 }
+
+#[derive(Copy, Clone)]
+pub enum IntSuffix {
+    I64,
+    U64
+}
