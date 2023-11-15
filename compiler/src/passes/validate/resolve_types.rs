@@ -112,7 +112,7 @@ fn resolve_expr<'p>(
     let expr = match expr.inner {
         Expr::Lit { val } => {
             let val = match val {
-                Lit::Int { val } => match &typ {
+                Lit::Int { val, .. } => match &typ {
                     None => {
                         return Err(dbg!(TypeError::IntegerAmbiguous {
                             span: expr.meta.span

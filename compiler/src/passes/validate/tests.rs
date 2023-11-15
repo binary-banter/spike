@@ -1,6 +1,4 @@
 use crate::passes::parse::parse::parse_program;
-use crate::passes::validate::error::TypeError;
-use crate::passes::validate::PrgValidated;
 use crate::utils::split_test::split_test;
 use test_each_file::test_each_file;
 

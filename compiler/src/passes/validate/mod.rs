@@ -1,6 +1,6 @@
 mod check_sized;
 pub mod error;
-mod generate_constraints;
+pub mod generate_constraints;
 mod resolve_types;
 #[cfg(test)]
 mod tests;

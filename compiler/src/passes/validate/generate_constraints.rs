@@ -139,8 +139,8 @@ fn constrain_expr<'p>(
 
     Ok(match expr.inner {
         ExprUniquified::Lit { val } => {
-            let typ = match val {
-                Lit::Int { .. } => PartialType::Int,
+            let typ = match &val {
+                Lit::Int { typ, .. } => typ.clone().unwrap_or(PartialType::Int),
                 Lit::Bool { .. } => PartialType::Bool,
                 Lit::Unit => PartialType::Unit,
             };

@@ -11,6 +11,7 @@ pub mod parse;
 mod tests;
 pub mod types;
 
+use crate::passes::validate::generate_constraints::PartialType;
 use derive_more::Display;
 use functor_derive::Functor;
 use itertools::Itertools;
@@ -321,7 +322,10 @@ pub enum BinaryOp {
 pub enum Lit<'p> {
     /// Integer literal, representing a signed 64-bit number.
     #[display(fmt = "{val}")]
-    Int { val: &'p str },
+    Int {
+        val: &'p str,
+        typ: Option<PartialType<'p>>,
+    },
     /// Boolean literal, representing a value of *true* or *false*.
     #[display(fmt = "{}", r#"if *val { "true" } else { "false" }"#)]
     Bool { val: bool },
