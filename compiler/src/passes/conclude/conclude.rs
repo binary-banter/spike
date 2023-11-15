@@ -17,7 +17,7 @@ impl<'p> X86Patched<'p> {
                 movq!(reg!(RAX), reg!(RDI)),
                 addq!(imm!(self.stack_space as i64), reg!(RSP)),
                 popq!(reg!(RBP)),
-                callq_direct!(self.std.exit, 1)
+                callq_direct!(self.std["exit"], 1)
             ),
         );
 

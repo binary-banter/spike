@@ -13,7 +13,7 @@ impl<'p> PrgEliminated<'p> {
     #[must_use]
     pub fn select(self) -> X86Selected<'p> {
         let mut blocks = HashMap::new();
-        let std = Std::new(&mut blocks);
+        let std = todo!();
 
         blocks.extend(
             self.blocks

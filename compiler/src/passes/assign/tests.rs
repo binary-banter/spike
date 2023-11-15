@@ -28,7 +28,7 @@ fn assign([test]: [&str; 1]) {
         block!(
             callq_direct!(program.entry, 0),
             movq!(reg!(RAX), reg!(RDI)),
-            callq_direct!(program.std.exit, 1)
+            callq_direct!(program.std["exit"], 1)
         ),
     );
     program.entry = new_entry;

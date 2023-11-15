@@ -569,6 +569,7 @@ dependencies = [
  "lalrpop",
  "lalrpop-util",
  "miette",
+ "once_cell",
  "petgraph",
  "serde",
  "tempfile",

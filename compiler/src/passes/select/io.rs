@@ -6,25 +6,21 @@ use crate::{
     syscall,
 };
 use std::collections::HashMap;
+use crate::passes::parse::types::Type;
 
-#[derive(Debug, PartialEq, Eq)]
-pub struct Std<'p> {
-    pub exit: UniqueSym<'p>,
-    pub print_int: UniqueSym<'p>,
-    pub read_int: UniqueSym<'p>,
-}
+pub type Std<'p> = HashMap<&'p str, UniqueSym<'p>>;
 
-impl<'p> Std<'p> {
-    pub fn new(blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg>>) -> Self {
-        let exit = add_exit_block(blocks);
-
-        Std {
-            exit,
-            print_int: add_print_block(blocks),
-            read_int: add_read_block(blocks, exit),
-        }
-    }
-}
+// impl<'p> Std<'p> {
+//     pub fn new(blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg>>) -> Self {
+//         let exit = add_exit_block(blocks);
+//
+//         Std {
+//             exit,
+//             print_int: add_print_block(blocks),
+//             read_int: add_read_block(blocks, exit),
+//         }
+//     }
+// }
 
 fn add_exit_block<'p>(blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg>>) -> UniqueSym<'p> {
     let entry = gen_sym("exit");
