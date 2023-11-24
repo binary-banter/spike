@@ -580,7 +580,39 @@ fn constrain_expr<'p>(
                 inner: ExprConstrained::Struct { sym, fields },
             }
         }
-        Expr::AccessField { .. } => todo!(),
+        Expr::AccessField { strct, field } => {
+            let strct = constrain_expr(*strct, env)?;
+
+            let PartialType::Var { sym } = env.uf.get(strct.meta.index) else {
+                return Err(TypeError::SymbolShouldBeStruct {
+                    span: strct.meta.span,
+                });
+            };
+
+            let EnvEntry::Def {
+                def: TypeDef::Struct {
+                    fields: def_fields, ..
+                },
+            } = &env.scope[sym]
+            else {
+                return Err(TypeError::SymbolShouldBeStruct {
+                    span: strct.meta.span,
+                });
+            };
+
+            let Some((_, typ)) = def_fields.iter().find(|(sym, _)| sym.inner == field.inner) else {
+                return Err(TypeError::UnknownStructField {
+                    sym: field.inner.to_string(),
+                    span: field.meta,
+                });
+            };
+
+            let index = env.uf.type_to_index(typ.clone());
+            Meta {
+                meta: CMeta { span, index },
+                inner: ExprConstrained::AccessField { strct: Box::new(strct), field },
+            }
+        },
         Expr::Variant { .. } => todo!(),
         Expr::Switch { .. } => todo!(),
     };

@@ -79,8 +79,12 @@ pub enum TypeError {
     },
     // #[error("The type `{typ}` should be a struct type.'")]
     // TypeShouldBeStruct { typ: Type<String> },
-    // #[error("The type definition `{sym}` is not sized.'")]
-    // UnsizedType { sym: String },
+    #[error("Unsized type.")]
+    UnsizedType {
+        sym: String,
+        #[label = "The type definition `{sym}` is not sized."]
+        span: (usize, usize),
+    },
     #[error("Integer out of bounds.")]
     IntegerOutOfBounds {
         #[label = "This number does not fit in type `{typ}`"]

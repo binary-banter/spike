@@ -206,8 +206,11 @@ fn resolve_expr<'p>(
                 })
                 .collect::<Result<_, _>>()?,
         },
+        Expr::AccessField { strct, field } => Expr::AccessField{
+            strct: Box::new(resolve_expr(*strct, uf)?),
+            field: field.inner,
+        },
         Expr::Variant { .. } => todo!(),
-        Expr::AccessField { .. } => todo!(),
         Expr::Switch { .. } => todo!(),
     };
 
