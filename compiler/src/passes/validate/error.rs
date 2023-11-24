@@ -47,17 +47,36 @@ pub enum TypeError {
     },
     #[error("Tried to put type in variable.'")]
     SymbolShouldBeVariable {
-        #[label = "Cannot store a Type in a variable."]
+        #[label = "This should be a variable."]
+        span: (usize, usize),
+    },
+    #[error("Tried to use variable as type.'")]
+    SymbolShouldBeStruct {
+        #[label = "This should be a struct."]
         span: (usize, usize),
     },
     // #[error("The name `{sym}` should refer to a struct type.'")]
     // VariableShouldBeStruct { sym: String },
-    // #[error("The field `{sym}` is not present in the struct definition.'")]
-    // UnknownStructField { sym: String },
-    // #[error("The field `{sym}` is missing in the struct.'")]
-    // VariableConstructMissingField { sym: String },
-    // #[error("The field `{sym}` was already provided earlier.'")]
-    // VariableConstructDuplicateField { sym: String },
+    #[error("Unknown struct field.")]
+    UnknownStructField {
+        sym: String,
+        #[label = "The field `{sym}` is not present in the struct definition."]
+        span: (usize, usize),
+    },
+    #[error("Missing struct field.")]
+    VariableConstructMissingField {
+        sym: String,
+        #[label = "The field `{sym}` is missing in the struct."]
+        struct_span: (usize, usize),
+        #[label = "It was defined here."]
+        def_span: (usize, usize),
+    },
+    #[error("Duplicate struct field.")]
+    VariableConstructDuplicateField {
+        sym: String,
+        #[label = "The field `{sym}` was already provided earlier."]
+        span: (usize, usize),
+    },
     // #[error("The type `{typ}` should be a struct type.'")]
     // TypeShouldBeStruct { typ: Type<String> },
     // #[error("The type definition `{sym}` is not sized.'")]
@@ -117,7 +136,7 @@ pub enum TypeError {
         got: String,
 
         //TODO would like this span of type of let binding
-        #[label = "Expected binding of let to have this type`"]
+        #[label = "Expected binding of let to have this type"]
         span_expected: (usize, usize),
         #[label = "But got this type: `{got}`"]
         span_got: (usize, usize),
@@ -128,6 +147,16 @@ pub enum TypeError {
         got: String,
 
         #[label = "Expected binding of assign to have type: `{expect}`"]
+        span_expected: (usize, usize),
+        #[label = "But got this type: `{got}`"]
+        span_got: (usize, usize),
+    },
+    #[error("Types did not match.")]
+    MismatchedStructField {
+        expect: String,
+        got: String,
+
+        #[label = "Expected struct field to have type: `{expect}`"]
         span_expected: (usize, usize),
         #[label = "But got this type: `{got}`"]
         span_got: (usize, usize),

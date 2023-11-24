@@ -115,7 +115,7 @@ fn resolve_expr<'p>(
                 Lit::Int { val, .. } => match &typ {
                     None => {
                         return Err(TypeError::IntegerAmbiguous {
-                            span: expr.meta.span
+                            span: expr.meta.span,
                         })
                     }
                     Some(typ) => match typ {
@@ -197,7 +197,15 @@ fn resolve_expr<'p>(
             sym: sym.inner,
             bnd: Box::new(resolve_expr(*bnd, uf)?),
         },
-        Expr::Struct { .. } => todo!(),
+        Expr::Struct { sym, fields } => Expr::Struct {
+            sym: sym.inner,
+            fields: fields
+                .into_iter()
+                .map(|(field_sym, field_bnd)| {
+                    resolve_expr(field_bnd, uf).map(|bnd| (field_sym.inner, bnd))
+                })
+                .collect::<Result<_, _>>()?,
+        },
         Expr::Variant { .. } => todo!(),
         Expr::AccessField { .. } => todo!(),
         Expr::Switch { .. } => todo!(),
