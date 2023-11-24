@@ -13,7 +13,7 @@ pub fn constrain_break<'p>(env: &mut Env<'_, 'p>, span: Span, bdy: Box<Meta<Span
     let bdy = expr::constrain_expr(*bdy, env)?;
     env.uf
         .expect_equal(bdy.meta.index, loop_type, |got, expect| {
-            TypeError::TypeMismatchLoop {
+            TypeError::MismatchedLoop {
                 expect,
                 got,
                 span_break: bdy.meta.span,

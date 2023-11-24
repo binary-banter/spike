@@ -1,4 +1,4 @@
-//* err: todo!
-fn main() -> Unit {
-    break
+//* err: BreakOutsideLoop
+fn main() {
+    break;
 }

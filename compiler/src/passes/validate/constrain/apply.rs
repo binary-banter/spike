@@ -15,7 +15,7 @@ pub fn constrain_apply<'p>(env: &mut Env<'_, 'p>, span: Span, fun: Box<Meta<Span
 
     let p_typ = env.uf.get(fun.meta.index).clone();
     let PartialType::Fn { params, typ } = p_typ else {
-        return Err(TypeError::TypeMismatchExpectFn {
+        return Err(TypeError::MismatchedExpectFn {
             got: p_typ.to_string(&mut env.uf),
             span_got: fun.meta.span,
         });

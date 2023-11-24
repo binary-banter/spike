@@ -1,6 +1,9 @@
 use miette::Diagnostic;
 use thiserror::Error;
+#[cfg(test)]
+use derive_name::VariantName;
 
+#[cfg_attr(test, derive(VariantName))]
 #[derive(Debug, Error, Diagnostic)]
 pub enum TypeError {
     #[error("Encountered an undeclared variable.")]
@@ -9,23 +12,6 @@ pub enum TypeError {
         #[label = "This variable `{sym}` was not declared yet"]
         span: (usize, usize),
     },
-    // #[error("Type was mismatched.")]
-    // MismatchedType {
-    //     expect: Type<String>,
-    //     got: Type<String>,
-    //     #[label = "Expected this to be of type `{expect}`, but got `{got}`"]
-    //     span: (usize, usize),
-    // },
-
-    // #[error("Types were mismatched. Expected '{t1}' and '{t2}' to be equal.")]
-    // MismatchedTypes {
-    //     t1: Type<String>,
-    //     t2: Type<String>,
-    //     #[label = "This has type `{t1}`"]
-    //     span_t1: (usize, usize),
-    //     #[label = "but this has type `{t2}`"]
-    //     span_t2: (usize, usize),
-    // },
     // #[error("There are multiple functions named `{sym}`.")]
     // DuplicateFunction { sym: String },
     // #[error("Function `{sym}` has duplicate argument names.")]
@@ -55,8 +41,6 @@ pub enum TypeError {
         #[label = "This should be a struct."]
         span: (usize, usize),
     },
-    // #[error("The name `{sym}` should refer to a struct type.'")]
-    // VariableShouldBeStruct { sym: String },
     #[error("Unknown struct field.")]
     UnknownStructField {
         sym: String,
@@ -64,7 +48,7 @@ pub enum TypeError {
         span: (usize, usize),
     },
     #[error("Missing struct field.")]
-    VariableConstructMissingField {
+    ConstructMissingField {
         sym: String,
         #[label = "The field `{sym}` is missing in the struct."]
         struct_span: (usize, usize),
@@ -72,13 +56,11 @@ pub enum TypeError {
         def_span: (usize, usize),
     },
     #[error("Duplicate struct field.")]
-    VariableConstructDuplicateField {
+    ConstructDuplicateField {
         sym: String,
         #[label = "The field `{sym}` was already provided earlier."]
         span: (usize, usize),
     },
-    // #[error("The type `{typ}` should be a struct type.'")]
-    // TypeShouldBeStruct { typ: Type<String> },
     #[error("Unsized type.")]
     UnsizedType {
         sym: String,
@@ -185,7 +167,7 @@ pub enum TypeError {
     },
 
     #[error("Types did not match.")]
-    TypeMismatchExpectFn {
+    MismatchedExpectFn {
         got: String,
 
         #[label = "Expected function, but found '{got}'"]
@@ -193,7 +175,7 @@ pub enum TypeError {
     },
 
     #[error("Types did not match.")]
-    TypeMismatchLoop {
+    MismatchedLoop {
         expect: String,
         got: String,
 

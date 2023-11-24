@@ -1,4 +1,1 @@
-//* err: todo!
-fn unmain() -> I64 {
-    1
-}
+//* err: NoMain

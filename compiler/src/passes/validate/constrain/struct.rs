@@ -35,7 +35,7 @@ pub fn constrain_struct<'p>(env: &mut Env<'_, 'p>, span: Span, sym: Meta<Span, U
 
             expect(
                 seen_fields.insert(field_sym.inner),
-                TypeError::VariableConstructDuplicateField {
+                TypeError::ConstructDuplicateField {
                     sym: field_sym.to_string(),
                     span: field_sym.meta,
                 },
@@ -67,7 +67,7 @@ pub fn constrain_struct<'p>(env: &mut Env<'_, 'p>, span: Span, sym: Meta<Span, U
     for (def_sym, (def_span, _)) in def_fields {
         expect(
             seen_fields.contains(def_sym),
-            TypeError::VariableConstructMissingField {
+            TypeError::ConstructMissingField {
                 sym: def_sym.to_string(),
                 struct_span: sym.meta,
                 def_span,

@@ -1,4 +1,0 @@
-//* err: todo!
-fn main() -> Bool {
-    1 < true
-}

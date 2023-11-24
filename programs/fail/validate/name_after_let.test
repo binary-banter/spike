@@ -1,4 +1,0 @@
-//* err: todo!
-fn main() -> I64 {
-    (let x = 3; x) + x
-}

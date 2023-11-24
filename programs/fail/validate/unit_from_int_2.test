@@ -1,6 +1,0 @@
-//* err: todo!
-fn main() -> I64 {
-    loop {
-        break
-    }
-}

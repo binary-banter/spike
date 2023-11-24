@@ -1,4 +1,4 @@
-//* err: todo!
+//* err: UndeclaredVar
 fn main() {
-    x
+    x;
 }

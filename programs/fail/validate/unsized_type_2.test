@@ -1,14 +1,10 @@
-//* err: todo!
+//* err: UnsizedType
 struct TestStruct1 {
     field_1: TestStruct2,
-    field_2: Bool,
 }
 
 struct TestStruct2 {
     field_1: TestStruct1,
-    field_2: Bool,
 }
 
-fn main() {
-    unit
-}
+fn main() {}
