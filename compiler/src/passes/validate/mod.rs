@@ -1,10 +1,8 @@
 mod check_sized;
 pub mod error;
-pub mod generate_constraints;
-mod resolve_types;
+mod resolve;
 #[cfg(test)]
 mod tests;
-mod uncover_globals;
 pub mod uniquify;
 pub mod validate;
 mod constrain;
