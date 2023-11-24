@@ -1,7 +1,7 @@
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Expr, Lit, Meta, Param, Span, TypeDef};
 use crate::passes::validate::error::TypeError;
-use crate::passes::validate::generate_constraints::PartialType;
+use crate::passes::validate::partial_type::PartialType;
 use crate::passes::validate::{
     CMeta, DefConstrained, DefValidated, ExprConstrained, ExprValidated, PrgConstrained,
     PrgValidated, TLit,

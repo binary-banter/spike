@@ -7,10 +7,12 @@ mod tests;
 mod uncover_globals;
 pub mod uniquify;
 pub mod validate;
+mod constrain;
+pub mod partial_type;
 
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, Expr, Lit, Meta, Span};
-use crate::passes::validate::generate_constraints::PartialType;
+use partial_type::PartialType;
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};
 use derive_more::Display;

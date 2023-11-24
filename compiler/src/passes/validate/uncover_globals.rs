@@ -1,6 +1,6 @@
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, Meta, Span, TypeDef};
-use crate::passes::validate::generate_constraints::PartialType;
+use crate::passes::validate::partial_type::PartialType;
 use crate::passes::validate::uniquify::{PrgUniquified, BUILT_INS};
 use crate::passes::validate::DefUniquified;
 use crate::utils::gen_sym::UniqueSym;
