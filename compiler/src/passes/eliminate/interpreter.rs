@@ -6,6 +6,7 @@ use crate::passes::validate::TLit;
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::push_map::PushMap;
 use derive_more::Display;
+use crate::passes::parse::{BinaryOp, UnaryOp};
 
 #[derive(Eq, PartialEq, Copy, Clone, Debug, Display)]
 pub enum EVal<'p> {
@@ -17,6 +18,8 @@ pub enum EVal<'p> {
     Unit,
     #[display(fmt = "fn pointer `{sym}`")]
     Function { sym: UniqueSym<'p> },
+    #[display(fmt = "stdlib function `{sym}`")]
+    StdlibFunction { sym: &'p str },
 }
 
 impl<'p> EVal<'p> {
@@ -49,6 +52,7 @@ impl<'p> From<EVal<'p>> for Val<'p> {
             EVal::Bool { val } => Val::Bool { val },
             EVal::Unit => Val::Unit,
             EVal::Function { sym } => Val::Function { sym },
+            EVal::StdlibFunction { sym } => Val::StdlibFunction {sym},
         }
     }
 }
@@ -66,7 +70,12 @@ impl<'p> From<TLit> for EVal<'p> {
 
 impl<'p> PrgEliminated<'p> {
     pub fn interpret(&self, io: &mut impl IO) -> Vec<EVal<'p>> {
-        self.interpret_tail(&self.blocks[&self.entry], &mut PushMap::default(), io)
+        let std_iter = self
+            .std
+            .iter()
+            .map(|(_, &def)| (def, EVal::StdlibFunction { sym: def.sym }));
+
+        self.interpret_tail(&self.blocks[&self.entry], &mut PushMap::from_iter(std_iter), io)
     }
 
     fn interpret_tail(
@@ -78,13 +87,13 @@ impl<'p> PrgEliminated<'p> {
         match tail {
             ETail::Return { exprs: expr } => expr
                 .iter()
-                .map(|(atm, _)| self.interpret_atom(atm, scope))
+                .map(|atm| self.interpret_atom(atm, scope))
                 .collect(),
             ETail::Seq { syms, bnd, tail } => {
                 let bnds = syms
                     .iter()
                     .cloned()
-                    .zip(self.interpret_expr(bnd, scope, io));
+                    .zip(self.interpret_expr(& bnd.inner, scope, io));
                 scope.push_iter(bnds, |scope| self.interpret_tail(tail, scope, io))
             }
             ETail::IfStmt { cnd, thn, els } => {
@@ -100,123 +109,110 @@ impl<'p> PrgEliminated<'p> {
 
     pub fn interpret_expr(
         &self,
-        _expr: &EExpr<'p>,
-        _scope: &mut PushMap<UniqueSym<'p>, EVal<'p>>,
-        _io: &mut impl IO,
+        expr: &EExpr<'p>,
+        scope: &mut PushMap<UniqueSym<'p>, EVal<'p>>,
+        io: &mut impl IO,
     ) -> Vec<EVal<'p>> {
-        todo!()
-        // let val = match expr {
-        //     EExpr::Prim { op, args, .. } => match (op, args.as_slice()) {
-        //         (BinaryOp::Read, []) => io.read().into(),
-        //         (BinaryOp::Print, [v]) => {
-        //             let val = self.interpret_atom(v, scope);
-        //             io.print(TLit::I64 {
-        //                 val: val.int(),
-        //             });
-        //             val
-        //         }
-        //         (BinaryOp::Plus, [e1, e2]) => {
-        //             let e1 = self.interpret_atom(e1, scope).int();
-        //             let e2 = self.interpret_atom(e2, scope).int();
-        //             EVal::Int { val: e1 + e2 }
-        //         }
-        //         (BinaryOp::Minus, [e1]) => {
-        //             let e1 = self.interpret_atom(e1, scope).int();
-        //             EVal::Int { val: -e1 }
-        //         }
-        //         (BinaryOp::Minus, [e1, e2]) => {
-        //             let e1 = self.interpret_atom(e1, scope).int();
-        //             let e2 = self.interpret_atom(e2, scope).int();
-        //             EVal::Int { val: e1 - e2 }
-        //         }
-        //         (BinaryOp::Mul, [e1, e2]) => {
-        //             let e1 = self.interpret_atom(e1, scope).int();
-        //             let e2 = self.interpret_atom(e2, scope).int();
-        //             EVal::Int { val: e1 * e2 }
-        //         }
-        //         (BinaryOp::Div, [e1, e2]) => {
-        //             let e1 = self.interpret_atom(e1, scope).int();
-        //             let e2 = self.interpret_atom(e2, scope).int();
-        //             EVal::Int { val: e1 / e2 }
-        //         }
-        //         (BinaryOp::Mod, [e1, e2]) => {
-        //             let e1 = self.interpret_atom(e1, scope).int();
-        //             let e2 = self.interpret_atom(e2, scope).int();
-        //             EVal::Int { val: e1 % e2 }
-        //         }
-        //         (BinaryOp::GT, [e1, e2]) => {
-        //             let e1 = self.interpret_atom(e1, scope).int();
-        //             let e2 = self.interpret_atom(e2, scope).int();
-        //             EVal::Bool { val: e1 > e2 }
-        //         }
-        //         (BinaryOp::GE, [e1, e2]) => {
-        //             let e1 = self.interpret_atom(e1, scope).int();
-        //             let e2 = self.interpret_atom(e2, scope).int();
-        //             EVal::Bool { val: e1 >= e2 }
-        //         }
-        //         (BinaryOp::LT, [e1, e2]) => {
-        //             let e1 = self.interpret_atom(e1, scope).int();
-        //             let e2 = self.interpret_atom(e2, scope).int();
-        //             EVal::Bool { val: e1 < e2 }
-        //         }
-        //         (BinaryOp::LE, [e1, e2]) => {
-        //             let e1 = self.interpret_atom(e1, scope).int();
-        //             let e2 = self.interpret_atom(e2, scope).int();
-        //             EVal::Bool { val: e1 <= e2 }
-        //         }
-        //         (BinaryOp::EQ, [e1, e2]) => {
-        //             let e1 = self.interpret_atom(e1, scope);
-        //             let e2 = self.interpret_atom(e2, scope);
-        //             EVal::Bool { val: e1 == e2 }
-        //         }
-        //         (BinaryOp::NE, [e1, e2]) => {
-        //             let e1 = self.interpret_atom(e1, scope);
-        //             let e2 = self.interpret_atom(e2, scope);
-        //             EVal::Bool { val: e1 != e2 }
-        //         }
-        //         (BinaryOp::Not, [e1]) => {
-        //             let e1 = self.interpret_atom(e1, scope).bool();
-        //             EVal::Bool { val: !e1 }
-        //         }
-        //         (BinaryOp::LAnd, [e1, e2]) => {
-        //             let e1 = self.interpret_atom(e1, scope).bool();
-        //             if !e1 {
-        //                 EVal::Bool { val: false }
-        //             } else {
-        //                 self.interpret_atom(e2, scope)
-        //             }
-        //         }
-        //         (BinaryOp::LOr, [e1, e2]) => {
-        //             let e1 = self.interpret_atom(e1, scope).bool();
-        //             if e1 {
-        //                 EVal::Bool { val: true }
-        //             } else {
-        //                 self.interpret_atom(e2, scope)
-        //             }
-        //         }
-        //         (BinaryOp::Xor, [e1, e2]) => {
-        //             let e1 = self.interpret_atom(e1, scope).bool();
-        //             let e2 = self.interpret_atom(e2, scope).bool();
-        //             EVal::Bool { val: e1 ^ e2 }
-        //         }
-        //         _ => unreachable!(),
-        //     },
-        //     EExpr::Atom { atm, .. } => self.interpret_atom(atm, scope),
-        //     EExpr::FunRef { sym, .. } => EVal::Function { sym: *sym },
-        //     EExpr::Apply { fun, args, .. } => {
-        //         let fn_sym = self.interpret_atom(fun, scope).fun();
-        //         let args = self.fn_params[&fn_sym]
-        //             .iter()
-        //             .zip(args.iter())
-        //             .map(|(param, (atm, _))| (param.sym, self.interpret_atom(atm, scope)))
-        //             .collect::<Vec<_>>();
-        //
-        //         return scope.push_iter(args.into_iter(), |scope| {
-        //             self.interpret_tail(&self.blocks[&fn_sym], scope, io)
-        //         });
-        //     }
-        // };
-        // vec![val]
+        let val = match expr {
+            EExpr::BinaryOp {
+                op,
+                exprs: [lhs, rhs],
+            } => {
+                let lhs = self.interpret_atom(&lhs, scope);
+                let rhs = self.interpret_atom(&rhs, scope);
+                match op {
+                    BinaryOp::Add => EVal::Int {
+                        val: lhs.int() + rhs.int(),
+                    },
+                    BinaryOp::Sub => EVal::Int {
+                        val: lhs.int() - rhs.int(),
+                    },
+                    BinaryOp::Mul => EVal::Int {
+                        val: lhs.int() * rhs.int(),
+                    },
+                    BinaryOp::Div => EVal::Int {
+                        val: lhs.int() / rhs.int(),
+                    },
+                    BinaryOp::Mod => EVal::Int {
+                        val: lhs.int() % rhs.int(),
+                    },
+                    BinaryOp::Xor => EVal::Bool {
+                        val: lhs.bool() ^ rhs.bool(),
+                    },
+                    BinaryOp::GT => EVal::Bool {
+                        val: lhs.int() > rhs.int(),
+                    },
+                    BinaryOp::GE => EVal::Bool {
+                        val: lhs.int() >= rhs.int(),
+                    },
+                    BinaryOp::EQ => EVal::Bool {
+                        val: lhs == rhs,
+                    },
+                    BinaryOp::LE => EVal::Bool {
+                        val: lhs.int() <= rhs.int(),
+                    },
+                    BinaryOp::LT => EVal::Bool {
+                        val: lhs.int() < rhs.int(),
+                    },
+                    BinaryOp::NE => EVal::Bool {
+                        val: lhs != rhs,
+                    },
+                    BinaryOp::LAnd => EVal::Bool {
+                        val: lhs.bool() && rhs.bool(),
+                    },
+                    BinaryOp::LOr => EVal::Bool {
+                        val: lhs.bool() || rhs.bool(),
+                    },
+                }
+            }
+            EExpr::UnaryOp { op, expr } => {
+                let expr = self.interpret_atom(&expr, scope);
+                match op {
+                    UnaryOp::Neg => EVal::Int { val: -expr.int() },
+                    UnaryOp::Not => EVal::Bool { val: !expr.bool() },
+                }
+            }
+            EExpr::Atom { atm, .. } => self.interpret_atom(atm, scope),
+            EExpr::FunRef { sym, .. } => EVal::Function { sym: *sym },
+            EExpr::Apply { fun, args, .. } => {
+                let fun = self.interpret_atom(fun, scope);
+
+                let mut fn_args = Vec::new();
+                for atm in args {
+                    fn_args.push(self.interpret_atom(atm, scope));
+                }
+
+                match fun {
+                    EVal::StdlibFunction { sym } => {
+                        match sym {
+                            "exit" => {
+                                unreachable!("Validated programs should not have an explicit call to exit yet.")
+                            }
+                            "print" => {
+                                let val = fn_args[0].clone();
+                                io.print(TLit::I64 { val: val.int() });
+                                val
+                            }
+                            "read" => io.read().into(),
+                            unknown => unreachable!(
+                                "Encountered an undefined standard library function '{unknown}'"
+                            ),
+                        }
+                    }
+                    EVal::Function { sym } => {
+                        let args = self.fn_params[&sym]
+                            .iter()
+                            .zip(fn_args.into_iter())
+                            .map(|(param, val)| (param.sym, val));
+                        return scope.push_iter(args, |scope| {
+                            self.interpret_tail(&self.blocks[&sym], scope, io)
+                        })
+                    },
+                    _ => unreachable!("The symbol did not refer to a function."),
+                }
+            }
+        };
+        vec![val]
     }
 
     #[must_use]

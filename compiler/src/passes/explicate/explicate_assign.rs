@@ -53,7 +53,7 @@ pub fn explicate_assign<'p>(
         AExpr::If { cnd, thn, els, .. } => {
             let tb = create_block(tail);
             explicate_pred::explicate_pred(
-                *cnd,
+                cnd.inner,
                 explicate_assign(sym, *thn, CTail::Goto { lbl: tb }, env),
                 explicate_assign(sym, *els, CTail::Goto { lbl: tb }, env),
                 env,
@@ -115,7 +115,7 @@ pub fn explicate_assign<'p>(
         AExpr::Return { bdy, .. } => {
             let tmp = gen_sym("return");
             let tail = CTail::Return {
-                expr: Atom::Var { sym: tmp },
+                expr: Meta{ meta: bnd.meta, inner: Atom::Var { sym: tmp } },
             };
             explicate_assign(tmp, *bdy, tail, env)
         }

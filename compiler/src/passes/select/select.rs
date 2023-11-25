@@ -59,48 +59,49 @@ fn select_block<'p>(
 }
 
 fn select_tail<'p>(tail: ETail<'p>, instrs: &mut Vec<Instr<'p, VarArg<'p>>>, std: &Std<'p>) {
-    match tail {
-        ETail::Return { exprs } => {
-            assert!(
-                exprs.len() <= 9,
-                "Argument passing to stack is not yet implemented."
-            );
-
-            for (reg, (arg, _)) in CALLER_SAVED.into_iter().zip(exprs) {
-                instrs.push(movq!(select_atom(&arg), VarArg::Reg { reg }));
-            }
-
-            for reg in CALLEE_SAVED_NO_STACK.into_iter().rev() {
-                instrs.push(popq!(VarArg::Reg { reg }));
-            }
-            instrs.push(popq!(reg!(RBP)));
-
-            instrs.push(retq!());
-        }
-        ETail::Seq {
-            syms: sym,
-            bnd,
-            tail,
-        } => {
-            instrs.extend(select_assign(&sym, bnd, std));
-            select_tail(*tail, instrs, std);
-        }
-        ETail::IfStmt { cnd, thn, els } => match cnd {
-            EExpr::Prim { op, args, .. } => {
-                let tmp = gen_sym("tmp");
-                instrs.extend(vec![
-                    movq!(select_atom(&args[0]), var!(tmp)),
-                    cmpq!(select_atom(&args[1]), var!(tmp)),
-                    jcc!(thn, select_cmp(op)),
-                    jmp!(els),
-                ]);
-            }
-            _ => unreachable!(),
-        },
-        ETail::Goto { lbl } => {
-            instrs.push(jmp!(lbl));
-        }
-    }
+    todo!()
+    // match tail {
+    //     ETail::Return { exprs } => {
+    //         assert!(
+    //             exprs.len() <= 9,
+    //             "Argument passing to stack is not yet implemented."
+    //         );
+    //
+    //         for (reg, (arg, _)) in CALLER_SAVED.into_iter().zip(exprs) {
+    //             instrs.push(movq!(select_atom(&arg), VarArg::Reg { reg }));
+    //         }
+    //
+    //         for reg in CALLEE_SAVED_NO_STACK.into_iter().rev() {
+    //             instrs.push(popq!(VarArg::Reg { reg }));
+    //         }
+    //         instrs.push(popq!(reg!(RBP)));
+    //
+    //         instrs.push(retq!());
+    //     }
+    //     ETail::Seq {
+    //         syms: sym,
+    //         bnd,
+    //         tail,
+    //     } => {
+    //         instrs.extend(select_assign(&sym, bnd, std));
+    //         select_tail(*tail, instrs, std);
+    //     }
+    //     ETail::IfStmt { cnd, thn, els } => match cnd {
+    //         EExpr::Prim { op, args, .. } => {
+    //             let tmp = gen_sym("tmp");
+    //             instrs.extend(vec![
+    //                 movq!(select_atom(&args[0]), var!(tmp)),
+    //                 cmpq!(select_atom(&args[1]), var!(tmp)),
+    //                 jcc!(thn, select_cmp(op)),
+    //                 jmp!(els),
+    //             ]);
+    //         }
+    //         _ => unreachable!(),
+    //     },
+    //     ETail::Goto { lbl } => {
+    //         instrs.push(jmp!(lbl));
+    //     }
+    // }
 }
 
 fn select_assign<'p>(

@@ -24,7 +24,7 @@ pub struct PrgExplicated<'p> {
 
 pub enum CTail<'p> {
     Return {
-        expr: Atom<'p>,
+        expr: Meta<Type<UniqueSym<'p>>, Atom<'p>>,
     },
     Seq {
         sym: UniqueSym<'p>,
@@ -32,7 +32,7 @@ pub enum CTail<'p> {
         tail: Box<CTail<'p>>,
     },
     IfStmt {
-        cnd: Meta<Type<UniqueSym<'p>>, CExpr<'p>>,
+        cnd: CExpr<'p>,
         thn: UniqueSym<'p>,
         els: UniqueSym<'p>,
     },

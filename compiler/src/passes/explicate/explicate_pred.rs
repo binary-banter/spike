@@ -5,10 +5,10 @@ use crate::passes::explicate::explicate_assign::explicate_assign;
 use crate::passes::parse::{BinaryOp, Meta, UnaryOp};
 use crate::passes::parse::types::Type;
 use crate::passes::validate::TLit;
-use crate::utils::gen_sym::{gen_sym, UniqueSym};
+use crate::utils::gen_sym::gen_sym;
 
 pub fn explicate_pred<'p>(
-    cnd: Meta<Type<UniqueSym<'p>>, AExpr<'p>>,
+    cnd: AExpr<'p>,
     thn: CTail<'p>,
     els: CTail<'p>,
     env: &mut Env<'_, 'p>,
@@ -19,15 +19,15 @@ pub fn explicate_pred<'p>(
         sym
     };
     
-    match cnd.inner {
+    match cnd {
         AExpr::Atom {
             atm: Atom::Var { sym },
             ..
         } => CTail::IfStmt {
-            cnd: Meta{ meta: Type::Bool, inner: CExpr::BinaryOp {
+            cnd: CExpr::BinaryOp {
                 op: BinaryOp::EQ,
                 exprs: [Atom::Var { sym }, Atom::Val { val: TLit::Bool { val: true } }]
-            }},
+            },
             thn: create_block(thn),
             els: create_block(els),
         },
@@ -54,9 +54,9 @@ pub fn explicate_pred<'p>(
                             exprs,
                         }},
                         explicate_pred(
-                            Meta{ meta: Type::Bool, inner: AExpr::Atom {
+                            AExpr::Atom {
                                 atm: Atom::Var { sym: tmp },
-                            }},
+                            },
                             thn,
                             els,
                             env,
@@ -65,10 +65,10 @@ pub fn explicate_pred<'p>(
                     )
                 },
                 BinaryOp::GT | BinaryOp::GE | BinaryOp::EQ |BinaryOp::LE | BinaryOp::LT | BinaryOp::NE => CTail::IfStmt {
-                            cnd: Meta{ meta: Type::Bool, inner: CExpr::BinaryOp {
+                            cnd: CExpr::BinaryOp {
                                 op,
                                 exprs,
-                            }},
+                            },
                             thn: create_block(thn),
                             els: create_block(els),
                         },
@@ -78,9 +78,9 @@ pub fn explicate_pred<'p>(
         AExpr::UnaryOp { op, expr } => {
             match op {
                 UnaryOp::Not => explicate_pred(
-                    Meta{ meta: Type::Bool, inner: AExpr::Atom {
+                    AExpr::Atom {
                         atm: expr,
-                    }},
+                    },
                     els,
                     thn,
                     env,
@@ -89,7 +89,7 @@ pub fn explicate_pred<'p>(
             }
         },
         AExpr::Let { sym, bnd, bdy, .. } => {
-            explicate_assign(sym, *bnd, explicate_pred(*bdy, thn, els, env), env)
+            explicate_assign(sym, *bnd, explicate_pred(bdy.inner, thn, els, env), env)
         }
         AExpr::If {
             cnd: cnd_sub,
@@ -101,15 +101,15 @@ pub fn explicate_pred<'p>(
             let els = create_block(els);
     
             explicate_pred(
-                *cnd_sub,
+                cnd_sub.inner,
                 explicate_pred(
-                    *thn_sub,
+                    thn_sub.inner,
                     CTail::Goto { lbl: thn },
                     CTail::Goto { lbl: els },
                     env,
                 ),
                 explicate_pred(
-                    *els_sub,
+                    els_sub.inner,
                     CTail::Goto { lbl: thn },
                     CTail::Goto { lbl: els },
                     env,
@@ -126,9 +126,9 @@ pub fn explicate_pred<'p>(
                     args,
                 }},
                 explicate_pred(
-                    Meta{ meta: Type::Bool, inner: AExpr::Atom {
+                    AExpr::Atom {
                         atm: Atom::Var { sym: tmp },
-                    }},
+                    },
                     thn,
                     els,
                     env,
@@ -138,15 +138,15 @@ pub fn explicate_pred<'p>(
         }
         AExpr::Loop { .. } => {
             let tmp = gen_sym("tmp");
-            let cnd_ = Meta{ meta: Type::Bool, inner: AExpr::Atom {
+            let cnd_ = AExpr::Atom {
                 atm: Atom::Var { sym: tmp },
-            }};
-            explicate_assign(tmp, cnd, explicate_pred(cnd_, thn, els, env), env)
+            };
+            explicate_assign(tmp, Meta{ meta: Type::Bool, inner: cnd }, explicate_pred(cnd_, thn, els, env), env)
         }
         AExpr::Seq { stmt, cnt, .. } => explicate_assign(
             gen_sym("ignore"),
             *stmt,
-            explicate_pred(*cnt, thn, els, env),
+            explicate_pred(cnt.inner, thn, els, env),
             env,
         ),
         AExpr::AccessField { strct, field, .. } => {
@@ -158,9 +158,9 @@ pub fn explicate_pred<'p>(
                     field,
                 }},
                 explicate_pred(
-                    Meta{ meta: Type::Bool, inner: AExpr::Atom {
+                    AExpr::Atom {
                         atm: Atom::Var { sym: tmp },
-                    }},
+                    },
                     thn,
                     els,
                     env,

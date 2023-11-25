@@ -26,9 +26,9 @@ impl<'p> PrgExplicated<'p> {
         io: &mut impl IO,
     ) -> Val<'p> {
         match tail {
-            CTail::Return { expr, .. } => self.interpret_atom(expr, scope),
+            CTail::Return { expr, .. } => self.interpret_atom(&expr.inner, scope),
             CTail::Seq { sym, bnd, tail } => {
-                let bnd = self.interpret_expr(bnd, scope, io);
+                let bnd = self.interpret_expr(&bnd.inner, scope, io);
                 scope.push(*sym, bnd, |scope| self.interpret_tail(tail, scope, io))
             }
             CTail::IfStmt { cnd, thn, els } => {
@@ -44,11 +44,11 @@ impl<'p> PrgExplicated<'p> {
     
     pub fn interpret_expr(
         &self,
-        expr: &Meta<Type<UniqueSym<'p>>, CExpr<'p>>,
+        expr: &CExpr<'p>,
         scope: &mut PushMap<UniqueSym<'p>, Val<'p>>,
         io: &mut impl IO,
     ) -> Val<'p> {
-        match &expr.inner {
+        match &expr {
             CExpr::BinaryOp {
                 op,
                 exprs: [lhs, rhs],
@@ -92,20 +92,12 @@ impl<'p> PrgExplicated<'p> {
                     BinaryOp::NE => Val::Bool {
                         val: lhs != rhs,
                     },
-                    BinaryOp::LAnd => {
-                        // Short-circuit logical AND.
-                        if !lhs.bool() {
-                            return lhs
-                        }
-                        rhs
-                    }
-                    BinaryOp::LOr => {
-                        // Short-circuit logical OR.
-                        if lhs.bool() {
-                            return lhs
-                        }
-                        rhs
-                    }
+                    BinaryOp::LAnd => Val::Bool {
+                        val: lhs.bool() && rhs.bool(),
+                    },
+                    BinaryOp::LOr => Val::Bool {
+                        val: lhs.bool() || rhs.bool(),
+                    },
                 }
             }
             CExpr::UnaryOp { op, expr } => {
