@@ -5,7 +5,7 @@ use crate::passes::eliminate::eliminate_params::flatten_type;
 use crate::passes::eliminate::{EExpr, ETail};
 use crate::passes::explicate::CExpr;
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Meta, Typed, TypeDef};
+use crate::passes::parse::{Meta, TypeDef, Typed};
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
 

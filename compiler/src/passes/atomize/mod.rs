@@ -123,9 +123,7 @@ impl<'p> From<DefAtomized<'p>> for DefValidated<'p> {
     }
 }
 
-impl<'p> From<Typed<'p, AExpr<'p>>>
-    for Typed<'p, ExprValidated<'p>>
-{
+impl<'p> From<Typed<'p, AExpr<'p>>> for Typed<'p, ExprValidated<'p>> {
     fn from(value: Typed<'p, AExpr<'p>>) -> Self {
         let inner = match value.inner {
             AExpr::Atom { atm, .. } => return atm.into(),

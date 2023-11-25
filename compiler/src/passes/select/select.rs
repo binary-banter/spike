@@ -2,7 +2,7 @@ use crate::passes::atomize::Atom;
 use crate::passes::eliminate::{EExpr, ETail, PrgEliminated};
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{BinaryOp, Meta, Param, UnaryOp};
-use crate::passes::select::std_lib::{add_std_library};
+use crate::passes::select::std_lib::add_std_library;
 use crate::passes::select::{
     Block, Cnd, Instr, VarArg, X86Selected, CALLEE_SAVED_NO_STACK, CALLER_SAVED,
 };

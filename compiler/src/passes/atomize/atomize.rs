@@ -36,9 +36,7 @@ fn atomize_def(def: DefRevealed) -> DefAtomized {
     }
 }
 
-fn atomize_expr<'p>(
-    expr: Typed<'p, RExpr<'p>>,
-) -> Typed<'p, AExpr<'p>> {
+fn atomize_expr<'p>(expr: Typed<'p, RExpr<'p>>) -> Typed<'p, AExpr<'p>> {
     // Keep track of all the priors. These are bindings that should come before evaluating the expression.
     let mut priors = Vec::new();
 

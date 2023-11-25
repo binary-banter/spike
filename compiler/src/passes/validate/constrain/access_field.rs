@@ -1,9 +1,9 @@
 use crate::passes::parse::{Meta, Span, Spanned, TypeDef};
+use crate::passes::validate::constrain::expr::constrain_expr;
 use crate::passes::validate::constrain::uncover_globals::{Env, EnvEntry};
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::partial_type::PartialType;
 use crate::passes::validate::{CMeta, ExprConstrained, ExprUniquified};
-use crate::passes::validate::constrain::expr::constrain_expr;
 
 pub fn constrain_access_field<'p>(
     env: &mut Env<'_, 'p>,

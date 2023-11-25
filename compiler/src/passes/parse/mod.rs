@@ -11,12 +11,12 @@ mod tests;
 pub mod types;
 
 use crate::passes::validate::partial_type::PartialType;
+use crate::utils::gen_sym::UniqueSym;
 use derive_more::Display;
 use functor_derive::Functor;
 use itertools::Itertools;
 use std::fmt::Display;
 use types::Type;
-use crate::utils::gen_sym::UniqueSym;
 
 /// A parsed program with global definitions and an entry point.
 #[derive(Display)]

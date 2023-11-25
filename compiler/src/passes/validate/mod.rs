@@ -33,8 +33,7 @@ pub struct PrgConstrained<'p> {
     pub std: Std<'p>,
 }
 
-pub type DefValidated<'p> =
-    Def<UniqueSym<'p>, &'p str, Typed<'p, ExprValidated<'p>>>;
+pub type DefValidated<'p> = Def<UniqueSym<'p>, &'p str, Typed<'p, ExprValidated<'p>>>;
 pub type ExprValidated<'p> = Expr<UniqueSym<'p>, &'p str, TLit, Type<UniqueSym<'p>>>;
 
 pub type DefConstrained<'p> =

@@ -1,5 +1,5 @@
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Spanned};
+use crate::passes::parse::Spanned;
 use crate::passes::validate::constrain::def::constrain_def;
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::partial_type::PartialType;

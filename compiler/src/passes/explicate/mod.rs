@@ -9,7 +9,7 @@ mod tests;
 
 use crate::passes::atomize::Atom;
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{BinaryOp, Param, Typed, TypeDef, UnaryOp};
+use crate::passes::parse::{BinaryOp, Param, TypeDef, Typed, UnaryOp};
 use crate::passes::select::std_lib::Std;
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;

@@ -1,5 +1,5 @@
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Expr, Lit, Meta, Param, Spanned, Typed, TypeDef};
+use crate::passes::parse::{Expr, Lit, Meta, Param, Spanned, TypeDef, Typed};
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::partial_type::PartialType;
 use crate::passes::validate::{

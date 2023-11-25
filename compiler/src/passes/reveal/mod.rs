@@ -2,7 +2,6 @@ pub mod reveal;
 #[cfg(test)]
 mod tests;
 
-
 use crate::passes::parse::{BinaryOp, Def, Meta, Typed, UnaryOp};
 use crate::passes::select::std_lib::Std;
 use crate::passes::validate::{DefValidated, ExprValidated, PrgValidated, TLit};
@@ -111,9 +110,7 @@ impl<'p> From<DefRevealed<'p>> for DefValidated<'p> {
     }
 }
 
-impl<'p> From<Typed<'p, RExpr<'p>>>
-    for Typed<'p, ExprValidated<'p>>
-{
+impl<'p> From<Typed<'p, RExpr<'p>>> for Typed<'p, ExprValidated<'p>> {
     fn from(value: Typed<'p, RExpr<'p>>) -> Self {
         let inner = match value.inner {
             RExpr::Lit { val } => ExprValidated::Lit { val },
