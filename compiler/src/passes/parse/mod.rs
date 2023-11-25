@@ -11,12 +11,12 @@ pub mod parse;
 mod tests;
 pub mod types;
 
+use crate::passes::validate::partial_type::PartialType;
 use derive_more::Display;
 use functor_derive::Functor;
 use itertools::Itertools;
 use std::fmt::Display;
 use types::Type;
-use crate::passes::validate::partial_type::PartialType;
 
 /// A parsed program with global definitions and an entry point.
 #[derive(Display)]
@@ -78,7 +78,7 @@ impl<IdentVars, IdentFields, Expr> Def<IdentVars, IdentFields, Expr> {
 /// A parameter used in functions.
 ///
 /// Parameters are generic and can use symbols that are either `&str` or
-/// [`UniqueSym`](crate::utils::gen_sym::UniqueSym) for all passes after uniquify.
+/// [`UniqueSym`](crate::utils::gen_sym::UniqueSym) for all passes after yeet.
 #[derive(Clone, Display, Debug)]
 #[display(bound = "A: Display")]
 #[display(fmt = "{}{sym}: {typ}", r#"if *mutable { "mut " } else { "" }"#)]
@@ -94,7 +94,7 @@ pub struct Param<A> {
 /// An expression.
 ///
 /// Expressions are generic and can use symbols that are either `&str` or
-/// [`UniqueSym`](crate::utils::gen_sym::UniqueSym) for all passes after uniquify.
+/// [`UniqueSym`](crate::utils::gen_sym::UniqueSym) for all passes after yeet.
 #[derive(Debug)]
 pub enum Expr<IdentVars, IdentFields, Lit, M> {
     /// A literal value. See [`Lit`].

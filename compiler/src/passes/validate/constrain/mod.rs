@@ -1,37 +1,37 @@
-use crate::passes::parse::{Meta, Span};
 use crate::passes::parse::types::Type;
-use crate::passes::validate::error::TypeError;
-use crate::passes::validate::{partial_type, PrgConstrained};
+use crate::passes::parse::{Meta, Span};
 use crate::passes::validate::constrain::def::constrain_def;
+use crate::passes::validate::error::TypeError;
 use crate::passes::validate::partial_type::PartialType;
-use uncover_globals::uncover_globals;
 use crate::passes::validate::uniquify::PrgUniquified;
+use crate::passes::validate::{partial_type, PrgConstrained};
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};
+use uncover_globals::uncover_globals;
 
+mod access_field;
+mod apply;
+mod assign;
+mod binary_op;
+mod r#break;
+mod r#continue;
 pub mod def;
 pub mod expr;
-mod lit;
-mod access_field;
-mod r#struct;
-mod assign;
-mod seq;
-mod r#return;
-mod r#continue;
-mod r#break;
-mod r#loop;
-mod apply;
 mod r#if;
 mod r#let;
-mod binary_op;
+mod lit;
+mod r#loop;
+mod r#return;
+mod seq;
+mod r#struct;
 mod unary_op;
-mod var;
 mod uncover_globals;
+mod var;
 
 impl<'p> PrgUniquified<'p> {
     pub fn constrain(self) -> Result<PrgConstrained<'p>, TypeError> {
         let mut uf = UnionFind::new();
-        let mut scope = uncover_globals(&self, &mut uf);
+        let mut scope = uncover_globals(&self, &mut uf)?;
 
         Ok(PrgConstrained {
             defs: self
@@ -54,13 +54,14 @@ impl<'p> UnionFind<PartialType<'p>> {
         b: UnionIndex,
         map_err: impl FnOnce(String, String) -> TypeError,
     ) -> Result<UnionIndex, TypeError> {
-        self.try_union_by(a, b, partial_type::combine_partial_types).map_err(|_| {
-            let typ_a = self.get(a).clone();
-            let str_a = typ_a.to_string(self);
-            let typ_b = self.get(b).clone();
-            let str_b = typ_b.to_string(self);
-            map_err(str_a, str_b)
-        })
+        self.try_union_by(a, b, partial_type::combine_partial_types)
+            .map_err(|_| {
+                let typ_a = self.get(a).clone();
+                let str_a = typ_a.to_string(self);
+                let typ_b = self.get(b).clone();
+                let str_b = typ_b.to_string(self);
+                map_err(str_a, str_b)
+            })
     }
 
     pub fn expect_type(

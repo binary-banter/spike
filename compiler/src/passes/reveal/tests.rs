@@ -7,7 +7,7 @@
 //     let (input, expected_output, expected_return, _) = split_test(test);
 //
 //     let program: PrgUniquified = parse_program(test).unwrap()
-//         .validate().unwrap().uniquify().reveal().into();
+//         .validate().unwrap().yeet().reveal().into();
 //
 //     let mut io = TestIO::new(input);
 //     let result = program.interpret(&mut io);

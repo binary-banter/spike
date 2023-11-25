@@ -1,7 +1,7 @@
-use miette::Diagnostic;
-use thiserror::Error;
 #[cfg(test)]
 use derive_name::VariantName;
+use miette::Diagnostic;
+use thiserror::Error;
 
 #[cfg_attr(test, derive(VariantName))]
 #[derive(Debug, Error, Diagnostic)]
@@ -12,10 +12,28 @@ pub enum TypeError {
         #[label = "This variable `{sym}` was not declared yet"]
         span: (usize, usize),
     },
-    // #[error("There are multiple functions named `{sym}`.")]
-    // DuplicateFunction { sym: String },
-    // #[error("Function `{sym}` has duplicate argument names.")]
-    // DuplicateArg { sym: String },
+    #[error("Duplicate global definition.")]
+    DuplicateGlobal {
+        #[label = "Global `{sym}` was first declared here"]
+        span1: (usize, usize),
+        #[label = "And was redeclared here"]
+        span2: (usize, usize),
+        sym: String,
+    },
+    #[error("Duplicate global definition.")]
+    DuplicateGlobalBuiltin {
+        #[label = "Global `{sym}` conflicts with a builtin definition."]
+        span: (usize, usize),
+        sym: String,
+    },
+    #[error("Duplicate argument name.")]
+    DuplicateArg {
+        #[label = "Argument `{sym}` was first declared here"]
+        span1: (usize, usize),
+        #[label = "And was redeclared here"]
+        span2: (usize, usize),
+        sym: String,
+    },
     #[error("Break outside loop.")]
     BreakOutsideLoop {
         #[label = "Found a break outside of a loop"]

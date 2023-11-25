@@ -1,12 +1,17 @@
 use crate::passes::parse::{Meta, Span};
-use crate::passes::validate::{CMeta, ExprConstrained, ExprUniquified};
 use crate::passes::validate::constrain::expr;
+use crate::passes::validate::constrain::uncover_globals::Env;
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::partial_type::PartialType;
-use crate::passes::validate::constrain::uncover_globals::Env;
+use crate::passes::validate::{CMeta, ExprConstrained, ExprUniquified};
 use crate::utils::expect::expect;
 
-pub fn constrain_apply<'p>(env: &mut Env<'_, 'p>, span: Span, fun: Box<Meta<Span, ExprUniquified<'p>>>, args: Vec<Meta<Span, ExprUniquified<'p>>>) -> Result<Meta<CMeta, ExprConstrained<'p>>, TypeError> {
+pub fn constrain_apply<'p>(
+    env: &mut Env<'_, 'p>,
+    span: Span,
+    fun: Box<Meta<Span, ExprUniquified<'p>>>,
+    args: Vec<Meta<Span, ExprUniquified<'p>>>,
+) -> Result<Meta<CMeta, ExprConstrained<'p>>, TypeError> {
     let fun = expr::constrain_expr(*fun, env)?;
     let args: Vec<_> = args
         .into_iter()

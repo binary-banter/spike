@@ -1,6 +1,6 @@
-use itertools::Itertools;
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};
+use itertools::Itertools;
 
 #[derive(Debug, Clone)]
 pub enum PartialType<'p> {

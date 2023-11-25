@@ -1,6 +1,6 @@
-use derive_name::VariantName;
 use crate::passes::parse::parse::parse_program;
 use crate::utils::split_test::split_test;
+use derive_name::VariantName;
 use miette::{NamedSource, Report};
 use test_each_file::test_each_file;
 

@@ -9,7 +9,7 @@
 //     let program: PrgUniquified = parse_program(test).unwrap()
 //         .validate()
 //         .unwrap()
-//         .uniquify()
+//         .yeet()
 //         .reveal()
 //         .atomize()
 //         .into();

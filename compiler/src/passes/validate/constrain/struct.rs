@@ -1,28 +1,31 @@
-use std::collections::{HashMap, HashSet};
 use crate::passes::parse::{Meta, Span, TypeDef};
-use crate::passes::validate::{CMeta, ExprConstrained, ExprUniquified};
 use crate::passes::validate::constrain::expr;
+use crate::passes::validate::constrain::uncover_globals::{Env, EnvEntry};
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::partial_type::PartialType;
-use crate::passes::validate::constrain::uncover_globals::{Env, EnvEntry};
+use crate::passes::validate::{CMeta, ExprConstrained, ExprUniquified};
 use crate::utils::expect::expect;
 use crate::utils::gen_sym::UniqueSym;
+use std::collections::{HashMap, HashSet};
 
-pub fn constrain_struct<'p>(env: &mut Env<'_, 'p>, span: Span, sym: Meta<Span, UniqueSym<'p>>, fields: Vec<(Meta<Span, &'p str>, Meta<Span, ExprUniquified<'p>>)>) -> Result<Meta<CMeta, ExprConstrained<'p>>, TypeError> {
+pub fn constrain_struct<'p>(
+    env: &mut Env<'_, 'p>,
+    span: Span,
+    sym: Meta<Span, UniqueSym<'p>>,
+    fields: Vec<(Meta<Span, &'p str>, Meta<Span, ExprUniquified<'p>>)>,
+) -> Result<Meta<CMeta, ExprConstrained<'p>>, TypeError> {
     // Get the `EnvEntry` from the scope.
-    // This should exist after uniquify, but could potentially not be a struct definition.
+    // This should exist after yeet, but could potentially not be a struct definition.
     let EnvEntry::Def {
         def: TypeDef::Struct { fields: def_fields },
     } = &env.scope[&sym.inner]
-        else {
-            return Err(TypeError::SymbolShouldBeStruct { span });
-        };
+    else {
+        return Err(TypeError::SymbolShouldBeStruct { span });
+    };
 
     let def_fields = def_fields
         .iter()
-        .map(|(field_sym, field_typ)| {
-            (field_sym.inner, (field_sym.meta, field_typ.clone()))
-        })
+        .map(|(field_sym, field_typ)| (field_sym.inner, (field_sym.meta, field_typ.clone())))
         .collect::<HashMap<_, _>>();
 
     // Set to keep track of fields in the struct constructor. Used to make sure no duplicates occur.

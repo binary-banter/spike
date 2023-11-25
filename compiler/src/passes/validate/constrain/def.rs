@@ -1,12 +1,12 @@
-use std::collections::HashMap;
 use crate::passes::parse::{Def, Meta};
-use crate::passes::validate::{DefConstrained, DefUniquified};
 use crate::passes::validate::constrain::expr::constrain_expr;
+use crate::passes::validate::constrain::uncover_globals::{Env, EnvEntry};
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::partial_type::PartialType;
-use crate::passes::validate::constrain::uncover_globals::{Env, EnvEntry};
+use crate::passes::validate::{DefConstrained, DefUniquified};
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::UnionFind;
+use std::collections::HashMap;
 
 pub fn constrain_def<'p>(
     def: DefUniquified<'p>,

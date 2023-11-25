@@ -1,11 +1,13 @@
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, Meta, Span, TypeDef};
 use crate::passes::validate::partial_type::PartialType;
-use crate::passes::validate::uniquify::{PrgUniquified, BUILT_INS};
 use crate::passes::validate::DefUniquified;
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
+use itertools::Itertools;
+use crate::passes::validate::error::TypeError;
+use crate::passes::validate::uniquify::{BUILT_INS, PrgUniquified};
 
 pub struct Env<'a, 'p> {
     pub uf: &'a mut UnionFind<PartialType<'p>>,
@@ -30,11 +32,11 @@ impl<'a, 'p> Env<'a, 'p> {
     }
 }
 
-/// Returns a `PushMap` with all the functions in scope.
+/// Returns a `PushMap` with all the definitions (functions, structs, etc.) in scope.
 pub fn uncover_globals<'p>(
     program: &PrgUniquified<'p>,
     uf: &mut UnionFind<PartialType<'p>>,
-) -> HashMap<UniqueSym<'p>, EnvEntry<'p>> {
+) -> Result<HashMap<UniqueSym<'p>, EnvEntry<'p>>, TypeError> {
     let builtins = program
         .std
         .iter()
@@ -50,12 +52,36 @@ pub fn uncover_globals<'p>(
         })
         .collect::<Vec<_>>();
 
-    program
+    // Check for duplicate global names. Names from the standard library are inserted with `None` for its span.
+    // todo: Later on this should be replaced by a module system, so that we can span the `use` statement.
+    let mut seen = builtins.iter().map(|(sym, _)| (sym.sym, None)).collect::<HashMap<_, _>>();
+
+    for def in &program.defs {
+        let sym = def.sym();
+
+        if let Some(prev_span) = seen.insert(sym.inner.sym, Some(sym.meta)) {
+            let error = match prev_span {
+                Some(prev_span) => TypeError::DuplicateGlobal {
+                    span1: prev_span,
+                    span2: sym.meta,
+                    sym: sym.inner.sym.to_string(),
+                },
+                None => TypeError::DuplicateGlobalBuiltin {
+                    span: sym.meta,
+                    sym: sym.inner.sym.to_string(),
+                }
+            };
+
+            return Err(error);
+        }
+    }
+
+    Ok(program
         .defs
         .iter()
         .map(|def| (def.sym().inner, uncover_def(def, uf)))
         .chain(builtins)
-        .collect()
+        .collect())
 }
 
 fn uncover_def<'p>(def: &DefUniquified<'p>, uf: &mut UnionFind<PartialType<'p>>) -> EnvEntry<'p> {
