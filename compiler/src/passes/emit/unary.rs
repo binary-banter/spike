@@ -1,5 +1,5 @@
+use crate::passes::assign::Arg;
 use crate::passes::emit;
-use crate::passes::interference::Arg;
 use crate::passes::select::Reg;
 
 pub struct UnaryOpInfo {

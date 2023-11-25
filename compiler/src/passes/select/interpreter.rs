@@ -358,7 +358,7 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                     .unwrap()
                     .parse()
                     .unwrap();
-                self.io.print(TLit::Int { val });
+                self.io.print(TLit::I64 { val });
                 self.write_buffer.clear();
             }
             val => {

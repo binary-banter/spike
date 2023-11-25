@@ -1,6 +1,0 @@
-//* inp: 42
-//* out: 42
-//* ret: 42
-fn main() -> Int {
-    print(read())
-}

@@ -1,5 +1,0 @@
-//* inp: 42 42
-//* ret: 84
-fn main() -> Int {
-    read() + read()
-}

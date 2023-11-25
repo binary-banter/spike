@@ -1,5 +1,5 @@
 //* ret: 42
-fn main() -> Int {
+fn main() -> I64 {
     if (let x = true; x) {
         42
     } else {

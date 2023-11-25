@@ -1,4 +1,11 @@
-use crate::passes::select::io::Std;
+pub mod interpreter;
+pub mod macros;
+pub mod select;
+pub mod std_lib;
+#[cfg(test)]
+mod tests;
+
+use crate::passes::select::std_lib::Std;
 use crate::utils::gen_sym::UniqueSym;
 use derive_more::Display;
 use functor_derive::Functor;
@@ -6,12 +13,7 @@ use itertools::Itertools;
 use std::collections::HashMap;
 use std::fmt::Display;
 
-pub mod interpreter;
-pub mod io;
-pub mod macros;
-pub mod select;
-
-#[derive(Debug, PartialEq, Display)]
+#[derive(Display)]
 #[display(
     fmt = "{}",
     r#"blocks.iter().map(|(sym, block)| format!("{sym}:\n{block}")).format("\n")"#
@@ -22,13 +24,13 @@ pub struct X86Selected<'p> {
     pub std: Std<'p>,
 }
 
-#[derive(Debug, PartialEq, Clone, Display, Functor)]
+#[derive(Clone, Display, Functor)]
 #[display(fmt = "\t{}", r#"instrs.iter().format("\n\t")"#)]
 pub struct Block<'p, A: Display> {
     pub instrs: Vec<Instr<'p, A>>,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Display)]
+#[derive(Copy, Clone, PartialEq, Display)]
 pub enum Cnd {
     Above,
     AboveOrEqual,
@@ -50,7 +52,7 @@ pub enum Cnd {
     Sign,
 }
 
-#[derive(Clone, Debug, PartialEq, Display, Functor)]
+#[derive(Clone, PartialEq, Display, Functor)]
 pub enum Instr<'p, A: Display> {
     #[display(fmt = "addq\t{src}\t{dst}")]
     Addq { src: A, dst: A },
@@ -96,7 +98,7 @@ pub enum Instr<'p, A: Display> {
     CallqIndirect { src: A, arity: usize },
 }
 
-#[derive(Debug, PartialEq, Clone, Copy, Hash, Eq, Display)]
+#[derive(PartialEq, Clone, Display)]
 pub enum VarArg<'p> {
     #[display(fmt = "${val}")]
     Imm { val: i64 },
@@ -140,7 +142,7 @@ pub const SYSCALL_REGS: [Reg; 7] = [
     Reg::R9,
 ];
 
-#[derive(Debug, PartialEq, Clone, Copy, Eq, Hash, Ord, PartialOrd, Display)]
+#[derive(Hash, Clone, Copy, Eq, Ord, PartialEq, PartialOrd, Display)]
 #[allow(clippy::upper_case_acronyms)]
 pub enum Reg {
     RSP,
@@ -159,48 +161,4 @@ pub enum Reg {
     R13,
     R14,
     R15,
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::interpreter::TestIO;
-    use crate::utils::gen_sym::gen_sym;
-    use crate::utils::split_test::split_test;
-    use crate::{block, callq_direct, movq, reg};
-    use test_each_file::test_each_file;
-
-    fn select([test]: [&str; 1]) {
-        let (input, expected_output, expected_return, program) = split_test(test);
-        let expected_return = expected_return.into();
-
-        let mut program = program
-            .validate()
-            .unwrap()
-            .uniquify()
-            .reveal()
-            .atomize()
-            .explicate()
-            .eliminate()
-            .select();
-
-        // Redirect program to exit
-        let new_entry = gen_sym("tmp");
-        program.blocks.insert(
-            new_entry,
-            block!(
-                callq_direct!(program.entry, 0),
-                movq!(reg!(RAX), reg!(RDI)),
-                callq_direct!(program.std.exit, 1)
-            ),
-        );
-        program.entry = new_entry;
-
-        let mut io = TestIO::new(input);
-        let result = program.interpret(&mut io);
-
-        assert_eq!(result, expected_return, "Incorrect program result.");
-        assert_eq!(io.outputs(), &expected_output, "Incorrect program output.");
-    }
-
-    test_each_file! { for ["test"] in "./programs/good" as select_instructions => select }
 }

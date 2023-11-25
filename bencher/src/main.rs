@@ -1,5 +1,6 @@
 use clap::Parser;
 use compiler::interpreter::TestIO;
+use compiler::passes::parse::parse::parse_program;
 use compiler::passes::select::interpreter::IStats;
 use compiler::utils::split_test::split_test;
 use git2::{Commit, Repository};
@@ -263,25 +264,22 @@ fn write_commit(benches: &Collection<Document>, commit: &Commit<'_>, test_data: 
 
 impl Stats {
     fn from_program(program: &str) -> Self {
-        let (input, _, _, program) = split_test(program);
+        let (input, _, _, _) = split_test(program);
         let mut io = TestIO::new(input);
 
         let tempdir = TempDir::new("cc-bench").unwrap();
         let output = tempdir.path().join("output");
 
-        let prg_concluded = program
+        let prg_concluded = parse_program(program)
+            .unwrap()
             .validate()
             .unwrap()
-            .uniquify()
             .reveal()
             .atomize()
             .explicate()
             .eliminate()
             .select()
-            .add_liveness()
-            .compute_interference()
-            .color_interference()
-            .assign_homes()
+            .assign()
             .patch()
             .conclude();
 

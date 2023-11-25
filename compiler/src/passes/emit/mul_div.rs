@@ -1,5 +1,5 @@
+use crate::passes::assign::Arg;
 use crate::passes::emit::encode_reg;
-use crate::passes::interference::Arg;
 
 pub struct MulDivOpInfo {
     pub op: u8,

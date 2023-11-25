@@ -1,4 +1,4 @@
 //* ret: false
 fn main() -> Bool {
-    42 <= 13
+    42i64 <= 13
 }

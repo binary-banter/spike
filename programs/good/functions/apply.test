@@ -1,8 +1,8 @@
 //* ret: 42
-fn add(x: Int, y: Int) -> Int {
+fn add(x: I64, y: I64) -> I64 {
     x + y
 }
 
-fn main() -> Int {
+fn main() -> I64 {
     add(40, 2)
 }

@@ -1,7 +1,7 @@
 use clap::Parser;
 use compiler::compile;
 use compiler::passes::parse::parse::PrettyParseError;
-use compiler::passes::validate::ValidateError;
+use compiler::passes::validate::error::TypeError;
 use miette::{Diagnostic, IntoDiagnostic};
 use std::fs;
 use std::io::Read;
@@ -15,7 +15,7 @@ enum MainError {
     ParseError(#[from] PrettyParseError),
     #[error(transparent)]
     #[diagnostic(transparent)]
-    ValidateError(#[from] ValidateError),
+    ValidateError(#[from] TypeError),
 }
 
 #[derive(Parser, Debug)]

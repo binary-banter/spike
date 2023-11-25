@@ -1,4 +1,4 @@
 //* ret: 1
-fn main() -> Int {
+fn main() -> I64 {
     if !false {1} else {2}
 }

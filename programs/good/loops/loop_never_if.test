@@ -4,7 +4,7 @@ fn main() -> Unit {
             let x = (break);
             unit
         } else {
-            let x = (loop { 5 });
+            let x = (loop { 5i64 });
             unit
         }
     }

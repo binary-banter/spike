@@ -1,8 +1,8 @@
 use crate::passes::validate::TLit;
+use crate::utils::gen_sym::UniqueSym;
 use derive_more::Display;
 use std::collections::HashMap;
-use std::fmt::Display;
-use std::hash::Hash;
+
 use std::vec::IntoIter;
 
 pub trait IO {
@@ -41,7 +41,7 @@ impl IO for TestIO {
 }
 
 #[derive(Eq, PartialEq, Clone, Debug, Display)]
-pub enum Val<'p, A: Copy + Hash + Eq + Display> {
+pub enum Val<'p> {
     #[display(fmt = "{val}")]
     Int { val: i64 },
     #[display(fmt = "{}", r#"if *val { "true" } else { "false" }"#)]
@@ -49,24 +49,25 @@ pub enum Val<'p, A: Copy + Hash + Eq + Display> {
     #[display(fmt = "unit")]
     Unit,
     #[display(fmt = "fn pointer `{sym}`")]
-    Function { sym: A },
+    Function { sym: UniqueSym<'p> },
+    #[display(fmt = "stdlib function `{sym}`")]
+    StdlibFunction { sym: &'p str },
     #[display(fmt = "struct instance")]
-    StructInstance {
-        fields: HashMap<&'p str, Val<'p, A>>,
-    },
+    StructInstance { fields: HashMap<&'p str, Val<'p>> },
 }
 
-impl<'p, A: Copy + Hash + Eq + Display> From<TLit> for Val<'p, A> {
+impl<'p> From<TLit> for Val<'p> {
     fn from(value: TLit) -> Self {
         match value {
-            TLit::Int { val } => Val::Int { val: val as i64 },
+            TLit::I64 { val } => Val::Int { val },
+            TLit::U64 { val } => Val::Int { val: val as i64 },
             TLit::Bool { val } => Val::Bool { val },
             TLit::Unit => Val::Unit,
         }
     }
 }
 
-impl<'p, A: Copy + Hash + Eq + Display> Val<'p, A> {
+impl<'p> Val<'p> {
     pub fn int(&self) -> i64 {
         match self {
             Val::Int { val } => *val,
@@ -81,14 +82,14 @@ impl<'p, A: Copy + Hash + Eq + Display> Val<'p, A> {
         }
     }
 
-    pub fn fun(&self) -> A {
+    pub fn fun(&self) -> UniqueSym<'p> {
         match self {
             Val::Function { sym } => *sym,
             _ => panic!(),
         }
     }
 
-    pub fn strct(&self) -> &HashMap<&'p str, Val<'p, A>> {
+    pub fn strct(&self) -> &HashMap<&'p str, Val<'p>> {
         match self {
             Val::StructInstance { fields } => fields,
             _ => panic!(),

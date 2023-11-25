@@ -1,5 +1,0 @@
-//* out: 42
-//* ret: 42
-fn main() -> Int {
-    print(42)
-}

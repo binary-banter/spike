@@ -1,108 +1,60 @@
 mod check_sized;
-mod type_check;
+mod constrain;
+pub mod error;
+pub mod interpreter;
+pub mod partial_type;
+mod resolve;
+#[cfg(test)]
+mod tests;
+mod uniquify;
 pub mod validate;
 
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Def, Op};
-use crate::passes::validate::type_check::error::TypeError;
+use crate::passes::parse::{Def, Expr, Lit, Meta, Span, Spanned, Typed};
+use crate::passes::select::std_lib::Std;
+use crate::utils::gen_sym::UniqueSym;
+use crate::utils::union_find::{UnionFind, UnionIndex};
 use derive_more::Display;
-use miette::Diagnostic;
+use partial_type::PartialType;
 use std::collections::HashMap;
-use std::fmt::Display;
-use std::hash::Hash;
 use std::str::FromStr;
-use thiserror::Error;
 
-#[derive(Debug, PartialEq)]
-pub struct PrgTypeChecked<'p> {
-    pub defs: HashMap<&'p str, Def<'p, &'p str, TExpr<'p, &'p str>>>,
-    pub entry: &'p str,
+#[derive(Debug)]
+pub struct PrgValidated<'p> {
+    pub defs: HashMap<UniqueSym<'p>, DefValidated<'p>>,
+    pub entry: UniqueSym<'p>,
+    pub std: Std<'p>,
 }
 
-#[derive(Debug, PartialEq)]
-pub enum TExpr<'p, A: Copy + Hash + Eq + Display> {
-    Lit {
-        val: TLit,
-        typ: Type<A>,
-    },
-    Var {
-        sym: A,
-        typ: Type<A>,
-    },
-    Prim {
-        op: Op,
-        args: Vec<TExpr<'p, A>>,
-        typ: Type<A>,
-    },
-    Let {
-        sym: A,
-        bnd: Box<TExpr<'p, A>>,
-        bdy: Box<TExpr<'p, A>>,
-        typ: Type<A>,
-    },
-    If {
-        cnd: Box<TExpr<'p, A>>,
-        thn: Box<TExpr<'p, A>>,
-        els: Box<TExpr<'p, A>>,
-        typ: Type<A>,
-    },
-    Apply {
-        fun: Box<TExpr<'p, A>>,
-        args: Vec<TExpr<'p, A>>,
-        typ: Type<A>,
-    },
-    Loop {
-        bdy: Box<TExpr<'p, A>>,
-        typ: Type<A>,
-    },
-    Break {
-        bdy: Box<TExpr<'p, A>>,
-        typ: Type<A>,
-    },
-    Continue {
-        typ: Type<A>,
-    },
-    Return {
-        bdy: Box<TExpr<'p, A>>,
-        typ: Type<A>,
-    },
-    Seq {
-        stmt: Box<TExpr<'p, A>>,
-        cnt: Box<TExpr<'p, A>>,
-        typ: Type<A>,
-    },
-    Assign {
-        sym: A,
-        bnd: Box<TExpr<'p, A>>,
-        typ: Type<A>,
-    },
-    Struct {
-        sym: A,
-        fields: Vec<(&'p str, TExpr<'p, A>)>,
-        typ: Type<A>,
-    },
-    Variant {
-        enum_sym: A,
-        variant_sym: A,
-        bdy: Box<TExpr<'p, A>>,
-        typ: Type<A>,
-    },
-    AccessField {
-        strct: Box<TExpr<'p, A>>,
-        field: &'p str,
-        typ: Type<A>,
-    },
-    Switch {
-        enm: Box<TExpr<'p, A>>,
-        arms: Vec<(A, A, Box<TExpr<'p, A>>)>,
-        typ: Type<A>,
-    },
+pub struct PrgConstrained<'p> {
+    pub defs: HashMap<UniqueSym<'p>, DefConstrained<'p>>,
+    pub entry: UniqueSym<'p>,
+    pub uf: UnionFind<PartialType<'p>>,
+    pub std: Std<'p>,
+}
+
+pub type DefValidated<'p> = Def<UniqueSym<'p>, &'p str, Typed<'p, ExprValidated<'p>>>;
+pub type ExprValidated<'p> = Expr<UniqueSym<'p>, &'p str, TLit, Type<UniqueSym<'p>>>;
+
+pub type DefConstrained<'p> =
+    Def<Spanned<UniqueSym<'p>>, Spanned<&'p str>, Meta<CMeta, ExprConstrained<'p>>>;
+pub type ExprConstrained<'p> = Expr<Spanned<UniqueSym<'p>>, Spanned<&'p str>, Lit<'p>, CMeta>;
+
+pub type DefUniquified<'p> =
+    Def<Spanned<UniqueSym<'p>>, Spanned<&'p str>, Spanned<ExprUniquified<'p>>>;
+pub type ExprUniquified<'p> = Expr<Spanned<UniqueSym<'p>>, Spanned<&'p str>, Lit<'p>, Span>;
+
+pub struct CMeta {
+    pub span: Span,
+    pub index: UnionIndex,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Display)]
 pub enum TLit {
     #[display(fmt = "{val}")]
-    Int { val: i32 },
+    I64 { val: i64 },
+    #[display(fmt = "{val}")]
+    U64 { val: u64 },
     #[display(fmt = "{}", r#"if *val { "true" } else { "false" }"#)]
     Bool { val: bool },
     #[display(fmt = "unit")]
@@ -115,10 +67,10 @@ impl TLit {
     /// Panics if `TLit` is not `Int`.
     #[must_use]
     pub fn int(self) -> i64 {
-        if let TLit::Int { val } = self {
-            val as i64
-        } else {
-            panic!()
+        match self {
+            TLit::I64 { val, .. } => val,
+            TLit::U64 { val, .. } => val as i64,
+            _ => panic!(),
         }
     }
 
@@ -138,14 +90,14 @@ impl TLit {
 impl From<TLit> for i64 {
     fn from(value: TLit) -> Self {
         match value {
-            TLit::Int { val } => val as i64,
+            TLit::I64 { val } => val,
+            TLit::U64 { val } => val as i64,
             TLit::Bool { val } => val as i64,
             TLit::Unit => 0,
         }
     }
 }
 
-// This implementation is used by the parser.
 impl FromStr for TLit {
     type Err = ();
 
@@ -154,43 +106,9 @@ impl FromStr for TLit {
             "false" => TLit::Bool { val: false },
             "true" => TLit::Bool { val: true },
             "unit" => TLit::Unit,
-            s => TLit::Int {
+            s => TLit::I64 {
                 val: s.parse().map_err(|_| ())?,
             },
         })
     }
-}
-
-impl<'p, A: Copy + Hash + Eq + Display> TExpr<'p, A> {
-    pub fn typ(&self) -> &Type<A> {
-        match self {
-            TExpr::Lit { typ, .. }
-            | TExpr::Var { typ, .. }
-            | TExpr::Prim { typ, .. }
-            | TExpr::Let { typ, .. }
-            | TExpr::If { typ, .. }
-            | TExpr::Apply { typ, .. }
-            | TExpr::Loop { typ, .. }
-            | TExpr::Break { typ, .. }
-            | TExpr::Continue { typ, .. }
-            | TExpr::Return { typ, .. }
-            | TExpr::Seq { typ, .. }
-            | TExpr::Assign { typ, .. }
-            | TExpr::Struct { typ, .. }
-            | TExpr::Variant { typ, .. }
-            | TExpr::AccessField { typ, .. }
-            | TExpr::Switch { typ, .. } => typ,
-        }
-    }
-}
-
-#[derive(Debug, Error, Diagnostic)]
-pub enum ValidateError {
-    #[error(transparent)]
-    #[diagnostic(transparent)]
-    TypeError(#[from] TypeError),
-    #[error("The program doesn't have a main function.")]
-    NoMain,
-    #[error("The type '{sym}' is not sized.")]
-    UnsizedType { sym: String },
 }

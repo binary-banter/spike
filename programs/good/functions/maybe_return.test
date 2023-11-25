@@ -1,5 +1,5 @@
 //* out: 42 13
-fn add(x: Int, y: Int) -> Int {
+fn add(x: I64, y: I64) -> I64 {
     if x + y != 13 {
         return 42;
     };

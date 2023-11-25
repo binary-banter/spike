@@ -1,8 +1,9 @@
-use crate::passes::parse::{Def, TypeDef, Expr, Lit, Op, Param};
-use crate::passes::parse::PrgParsed;
-use crate::passes::parse::Type;
-use crate::passes::parse::Spanned;
+use crate::passes::parse::{
+    BinaryOp, Def, Expr, Lit, Meta, Param, PrgParsed, Span, Type, TypeDef, UnaryOp,
+};
+use crate::passes::validate::partial_type::PartialType;
 use functor_derive::Functor;
+use crate::passes::parse::Spanned;
 
 grammar;
 
@@ -46,12 +47,9 @@ match {
     "/",
     "%",
 
-    // Cursed build-in functions
-    "read",
-    "print",
-
     // Types
-    "Int",
+    "I64",
+    "U64",
     "Bool",
     "Unit",
     "Never",
@@ -61,6 +59,8 @@ match {
     "false",
     "unit",
     r"[0-9]+" => integer,
+    r"[0-9]+i64" => i64,
+    r"[0-9]+u64" => u64,
 
     // Logical operators
     "^",
@@ -89,11 +89,11 @@ match {
 pub Program: PrgParsed<'input> = {
     <defs: Def*> => PrgParsed {
         defs,
-        entry: "main"
+        entry: "main",
     }
 }
 
-Def: Def<'input, &'input str, Spanned<Expr<'input>>> = {
+Def: Def<Spanned<&'input str>, Spanned<&'input str>, Spanned<Expr<Spanned<&'input str>, Spanned<&'input str>, Lit<'input>, Span>>> = {
     "struct" <sym:Ident> "{" <fields:Comma<(<Ident> ":" <Type>)>> "}" => Def::TypeDef {
         sym,
         def: TypeDef::Struct { fields },
@@ -110,7 +110,7 @@ Def: Def<'input, &'input str, Spanned<Expr<'input>>> = {
     },
 }
 
-Param: Param<&'input str> = {
+Param: Param<Spanned<&'input str>> = {
     <mutable:"mut"?> <sym:Ident> ":" <typ:Type> => Param {
         mutable: mutable.is_some(),
         sym,
@@ -118,8 +118,9 @@ Param: Param<&'input str> = {
     }
 }
 
-Type: Type<&'input str> = {
-    "Int" => Type::Int,
+Type: Type<Spanned<&'input str>> = {
+    "I64" => Type::I64,
+    "U64" => Type::U64,
     "Bool" => Type::Bool,
     "Unit" => Type::Unit,
     "Never" => Type::Never,
@@ -142,10 +143,11 @@ Type: Type<&'input str> = {
 // Num/Bool/Ident
 Expr = ExprStmt;
 
-ExprStmt: Expr<'input> = {
-    "let" <mutable:"mut"?> <sym:Ident> "=" <bnd:Spanned<ExprLogicalOr<Struct>>> ";" <bdy:Spanned<ExprStmt?>> => Expr::Let {
+ExprStmt: Expr<Spanned<&'input str>, Spanned<&'input str>, Lit<'input>, Span> = {
+    "let" <mutable:"mut"?> <sym:Ident> <typ:(":" <Type>)?> "=" <bnd:Spanned<ExprLogicalOr<Struct>>> ";" <bdy:Spanned<ExprStmt?>> => Expr::Let {
         sym,
         mutable: mutable.is_some(),
+        typ,
         bnd: Box::new(bnd),
         bdy: Box::new(bdy.fmap(|bdy| bdy.unwrap_or(Expr::Lit { val: Lit::Unit }))),
     },
@@ -156,38 +158,38 @@ ExprStmt: Expr<'input> = {
     ExprInStmt,
 }
 
-ExprInStmt: Expr<'input> = {
-    <sym:Spanned<Ident>> "=" <bnd:Spanned<ExprLogicalOr<Struct>>> => Expr::Assign {
+ExprInStmt: Expr<Spanned<&'input str>, Spanned<&'input str>, Lit<'input>, Span> = {
+    <sym:Ident> "=" <bnd:Spanned<ExprLogicalOr<Struct>>> => Expr::Assign {
         sym,
         bnd: Box::new(bnd),
     },
     "if" <cnd:Spanned<ExprLogicalOr<Never>>> "{" <thn:Spanned<Expr>> "}" <l:@L> <els:("else" "{" <Spanned<Expr>> "}")?> <r:@R> => Expr::If {
         cnd: Box::new(cnd),
         thn: Box::new(thn),
-        els: Box::new(els.unwrap_or(Spanned { span: (l, r), inner: Expr::Lit { val: Lit::Unit }})),
+        els: Box::new(els.unwrap_or(Meta { meta: (l, r - l), inner: Expr::Lit { val: Lit::Unit }})),
     },
     "loop" "{" <bdy:Spanned<Expr>> "}" => Expr::Loop {
         bdy: Box::new(bdy),
     },
     // todo: the spans in this desugaring do not make a lot sense.
     <l:@L> "while" <r:@R> <cnd:Spanned<ExprLogicalOr<Never>>> "{" <bdy:Spanned<Expr>> "}" => Expr::Loop {
-        bdy: Box::new(Spanned {
-            span: (l, r),
+        bdy: Box::new(Meta {
+            meta: (l, r - l),
             inner: Expr::If {
                 cnd: Box::new(cnd),
                 thn: Box::new(bdy),
-                els: Box::new(Spanned {
-                    span: (l, r),
+                els: Box::new(Meta {
+                    meta: (l, r - l),
                     inner: Expr::Seq {
-                        stmt: Box::new(Spanned {
-                            span: (l, r),
-                            inner: Expr::Break { bdy: Box::new(Spanned {
-                                span: (l, r),
+                        stmt: Box::new(Meta {
+                            meta: (l, r - l),
+                            inner: Expr::Break { bdy: Box::new(Meta {
+                                meta: (l, r - l),
                                 inner: Expr::Lit { val: Lit::Unit },
                             })},
                         }),
-                        cnt: Box::new(Spanned {
-                            span: (l, r),
+                        cnt: Box::new(Meta {
+                            meta: (l, r - l),
                             inner: Expr::Lit { val: Lit::Unit },
                         }),
                     },
@@ -209,10 +211,10 @@ ExprInStmt: Expr<'input> = {
     ExprLogicalOr<Struct>,
 }
 
-BinaryOps<Op,Next>: Expr<'input> = {
-    <e1:Spanned<BinaryOps<Op,Next>>> <op:Op> <e2:Spanned<Next>> => Expr::Prim {
+BinaryOps<Op,Next>: Expr<Spanned<&'input str>, Spanned<&'input str>, Lit<'input>, Span> = {
+    <e1:Spanned<BinaryOps<Op,Next>>> <op:Op> <e2:Spanned<Next>> => Expr::BinaryOp {
         op,
-        args: vec![e1, e2],
+        exprs: [Box::new(e1), Box::new(e2)],
     },
     Next,
 }
@@ -224,40 +226,40 @@ ExprXor<T> = BinaryOps<XorOp, ExprAdditive<T>>;
 ExprAdditive<T> = BinaryOps<AdditiveOp, ExprMultiplicative<T>>;
 ExprMultiplicative<T> = BinaryOps<MultiplicativeOp, ExprUnary<T>>;
 
-LogicalOrOp: Op = "||" => Op::LOr;
-LogicalAndOp: Op = "&&" => Op::LAnd;
-ComparativeOp: Op = {
-    "==" => Op::EQ,
-    "!=" => Op::NE,
-    ">" => Op::GT,
-    ">=" => Op::GE,
-    "<" => Op::LT,
-    "<=" => Op::LE,
+LogicalOrOp: BinaryOp = "||" => BinaryOp::LOr;
+LogicalAndOp: BinaryOp = "&&" => BinaryOp::LAnd;
+ComparativeOp: BinaryOp = {
+    "==" => BinaryOp::EQ,
+    "!=" => BinaryOp::NE,
+    ">" => BinaryOp::GT,
+    ">=" => BinaryOp::GE,
+    "<" => BinaryOp::LT,
+    "<=" => BinaryOp::LE,
 }
-XorOp: Op = "^" => Op::Xor;
-AdditiveOp: Op = {
-    "+" => Op::Plus,
-    "-" => Op::Minus,
+XorOp: BinaryOp = "^" => BinaryOp::Xor;
+AdditiveOp: BinaryOp = {
+    "+" => BinaryOp::Add,
+    "-" => BinaryOp::Sub,
 }
-MultiplicativeOp: Op = {
-   "*" => Op::Mul,
-   "/" => Op::Div,
-   "%" => Op::Mod,
+MultiplicativeOp: BinaryOp = {
+   "*" => BinaryOp::Mul,
+   "/" => BinaryOp::Div,
+   "%" => BinaryOp::Mod,
 }
-UnaryOp: Op = {
-    "-" => Op::Minus,
-    "!" => Op::Not,
+UnaryOp: UnaryOp = {
+    "-" => UnaryOp::Neg,
+    "!" => UnaryOp::Not,
 }
 
-ExprUnary<T>: Expr<'input> = {
-    <op:UnaryOp> <e:Spanned<ExprUnary<T>>> => Expr::Prim {
+ExprUnary<T>: Expr<Spanned<&'input str>, Spanned<&'input str>, Lit<'input>, Span> = {
+    <op:UnaryOp> <e:Spanned<ExprUnary<T>>> => Expr::UnaryOp {
         op,
-        args: vec![e],
+        expr: Box::new(e),
     },
     ExprAccess<T>,
 }
 
-ExprAccess<T>: Expr<'input> = {
+ExprAccess<T>: Expr<Spanned<&'input str>, Spanned<&'input str>, Lit<'input>, Span> = {
     <strct:Spanned<ExprAccess<T>>> "." <field:Ident> => Expr::AccessField {
         strct: Box::new(strct),
         field,
@@ -265,15 +267,7 @@ ExprAccess<T>: Expr<'input> = {
     ExprCall<T>,
 }
 
-ExprCall<T>: Expr<'input> = {
-    "read" "(" ")" => Expr::Prim {
-        op: Op::Read,
-        args: vec![],
-    },
-    "print" "(" <e:Spanned<Expr>> ")" => Expr::Prim {
-        op: Op::Print,
-        args: vec![e],
-    },
+ExprCall<T>: Expr<Spanned<&'input str>, Spanned<&'input str>, Lit<'input>, Span> = {
     <fun:Spanned<ExprAtom<T>>> "(" <args:Comma<Spanned<Expr>>> ")" => Expr::Apply {
         fun: Box::new(fun),
         args,
@@ -281,8 +275,25 @@ ExprCall<T>: Expr<'input> = {
     ExprAtom<T>,
 }
 
-ExprAtom<T>: Expr<'input> = {
-    <val:Num> => Expr::Lit { val: Lit::Int { val } },
+ExprAtom<T>: Expr<Spanned<&'input str>, Spanned<&'input str>, Lit<'input>, Span> = {
+    <val:integer> => Expr::Lit {
+        val: Lit::Int {
+            val,
+            typ: None,
+        },
+    },
+    <val:i64> => Expr::Lit {
+        val: Lit::Int {
+            val: val.trim_end_matches("i64"),
+            typ: Some(PartialType::I64),
+        },
+    },
+    <val:u64> => Expr::Lit {
+        val: Lit::Int {
+            val: val.trim_end_matches("u64"),
+            typ: Some(PartialType::U64),
+        },
+    },
     <val:Bool> => Expr::Lit { val: Lit::Bool { val } },
     "unit" => Expr::Lit { val: Lit::Unit },
     <sym:Ident> => Expr::Var { sym },
@@ -295,23 +306,21 @@ ExprAtom<T>: Expr<'input> = {
     <T>,
 }
 
-Struct: Expr<'input> = {
+Struct: Expr<Spanned<&'input str>, Spanned<&'input str>, Lit<'input>, Span> = {
     <sym:Ident> "{" <fields:Comma<StructArg>> "}" => Expr::Struct {
         sym,
         fields,
     },
 }
 
-StructArg : (&'input str, Spanned<Expr<'input>>) = {
+StructArg : (Spanned<&'input str>, Spanned<Expr<Spanned<&'input str>, Spanned<&'input str>, Lit<'input>, Span>>) = {
     <Ident> ":" <Spanned<Expr>>,
-    <l:@L> <sym:Ident> <r:@R> => (sym, Spanned { span: (l, r), inner: Expr::Var { sym } })
+    <l:@L> <sym:Ident> <r:@R> => (sym.clone(), Meta { meta: (l, r - l), inner: Expr::Var { sym } })
 }
 
-Never: Expr<'input> = {};
+Never: Expr<Spanned<&'input str>, Spanned<&'input str>, Lit<'input>, Span> = {};
 
-Ident: &'input str = identifier;
-
-Num: &'input str = <integer>;
+Ident: Spanned<&'input str> = Spanned<identifier>;
 
 Bool: bool = {
     "true" => true,
@@ -329,5 +338,4 @@ Comma<T>: Vec<T> = {
     }
 }
 
-Spanned<T>: Spanned<T> = <l:@L> <inner:T> <r:@R> => Spanned { span: (l, r), inner };
-
+Spanned<T>: Spanned<T> = <l:@L> <inner:T> <r:@R> => Meta { meta: (l, r - l), inner };

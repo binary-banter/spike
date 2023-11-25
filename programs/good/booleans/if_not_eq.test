@@ -1,4 +1,4 @@
 //* ret: 2
-fn main() -> Int {
-    if !(5 >= 3) {1} else {2}
+fn main() -> I64 {
+    if !(5i64 >= 3) {1} else {2}
 }

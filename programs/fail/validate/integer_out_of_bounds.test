@@ -1,0 +1,5 @@
+//* err: IntegerOutOfBounds
+fn main() {
+    // 9_223_372_036_854_775_807 is the max for an I64.
+    9223372036854775808i64;
+}

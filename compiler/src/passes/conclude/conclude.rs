@@ -1,5 +1,5 @@
 use crate::passes::conclude::X86Concluded;
-use crate::passes::patch_instructions::X86Patched;
+use crate::passes::patch::X86Patched;
 use crate::utils::gen_sym::gen_sym;
 use crate::*;
 
@@ -17,7 +17,7 @@ impl<'p> X86Patched<'p> {
                 movq!(reg!(RAX), reg!(RDI)),
                 addq!(imm!(self.stack_space as i64), reg!(RSP)),
                 popq!(reg!(RBP)),
-                callq_direct!(self.std.exit, 1)
+                callq_direct!(self.std["exit"], 1)
             ),
         );
 
@@ -27,41 +27,4 @@ impl<'p> X86Patched<'p> {
             std: self.std,
         }
     }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::interpreter::TestIO;
-    use crate::passes::select::X86Selected;
-    use crate::utils::split_test::split_test;
-    use test_each_file::test_each_file;
-
-    fn conclude([test]: [&str; 1]) {
-        let (input, expected_output, expected_return, program) = split_test(test);
-        let expected_return = expected_return.into();
-
-        let program: X86Selected = program
-            .validate()
-            .unwrap()
-            .uniquify()
-            .reveal()
-            .atomize()
-            .explicate()
-            .eliminate()
-            .select()
-            .add_liveness()
-            .compute_interference()
-            .color_interference()
-            .assign_homes()
-            .patch()
-            .conclude()
-            .into();
-        let mut io = TestIO::new(input);
-        let result = program.interpret(&mut io);
-
-        assert_eq!(result, expected_return, "Incorrect program result.");
-        assert_eq!(io.outputs(), &expected_output, "Incorrect program output.");
-    }
-
-    test_each_file! { for ["test"] in "./programs/good" as conclude => conclude }
 }

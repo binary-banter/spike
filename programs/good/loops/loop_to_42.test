@@ -1,5 +1,5 @@
 //* ret: 42
-fn main() -> Int {
+fn main() -> I64 {
     let mut x = 1;
     loop {
         if x < 42 {

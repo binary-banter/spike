@@ -187,14 +187,14 @@ macro_rules! syscall {
 #[macro_export]
 macro_rules! imm {
     ($val:expr) => {
-        $crate::passes::interference::Arg::Imm { val: $val.into() }.into()
+        $crate::passes::assign::Arg::Imm { val: $val.into() }.into()
     };
 }
 
 #[macro_export]
 macro_rules! reg {
     ($reg:ident) => {
-        $crate::passes::interference::Arg::Reg {
+        $crate::passes::assign::Arg::Reg {
             reg: $crate::passes::select::Reg::$reg,
         }
         .into()
@@ -211,7 +211,7 @@ macro_rules! var {
 #[macro_export]
 macro_rules! deref {
     ($reg:ident, $off:expr) => {
-        $crate::passes::interference::Arg::Deref {
+        $crate::passes::assign::Arg::Deref {
             reg: $crate::passes::select::Reg::$reg,
             off: $off,
         }

@@ -1,4 +1,4 @@
 //* ret: false
 fn main() -> Bool {
-    41 > 42
+    41i64 > 42
 }

@@ -1,1 +1,2 @@
-fn main() -> Int {
+//* err: UnexpectedEOF
+fn main() -> I64 {

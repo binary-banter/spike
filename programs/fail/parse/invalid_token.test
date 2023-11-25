@@ -1,3 +1,4 @@
-fn main() -> Int {
+//* err: InvalidToken
+fn main() -> I64 {
     @
 }

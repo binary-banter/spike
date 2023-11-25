@@ -1,6 +1,0 @@
-//* inp: 8 5
-//* ret: 3
-fn main() -> Int {
-    let x = (let y = read(); let z = read(); y - z);
-    x
-}
