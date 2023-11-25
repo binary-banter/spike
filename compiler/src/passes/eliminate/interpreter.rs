@@ -5,75 +5,14 @@ use crate::passes::eliminate::{EExpr, ETail, PrgEliminated};
 use crate::passes::validate::TLit;
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::push_map::PushMap;
-use derive_more::Display;
 use crate::passes::parse::{BinaryOp, UnaryOp};
 
-#[derive(Eq, PartialEq, Copy, Clone, Debug, Display)]
-pub enum EVal<'p> {
-    #[display(fmt = "{val}")]
-    Int { val: i64 },
-    #[display(fmt = "{}", r#"if *val { "true" } else { "false" }"#)]
-    Bool { val: bool },
-    #[display(fmt = "unit")]
-    Unit,
-    #[display(fmt = "fn pointer `{sym}`")]
-    Function { sym: UniqueSym<'p> },
-    #[display(fmt = "stdlib function `{sym}`")]
-    StdlibFunction { sym: &'p str },
-}
-
-impl<'p> EVal<'p> {
-    pub fn int(&self) -> i64 {
-        match self {
-            Self::Int { val } => *val,
-            _ => panic!(),
-        }
-    }
-
-    pub fn bool(&self) -> bool {
-        match self {
-            Self::Bool { val } => *val,
-            _ => panic!(),
-        }
-    }
-
-    pub fn fun(&self) -> UniqueSym<'p> {
-        match self {
-            Self::Function { sym } => *sym,
-            _ => panic!(),
-        }
-    }
-}
-
-impl<'p> From<EVal<'p>> for Val<'p> {
-    fn from(value: EVal<'p>) -> Self {
-        match value {
-            EVal::Int { val } => Val::Int { val },
-            EVal::Bool { val } => Val::Bool { val },
-            EVal::Unit => Val::Unit,
-            EVal::Function { sym } => Val::Function { sym },
-            EVal::StdlibFunction { sym } => Val::StdlibFunction {sym},
-        }
-    }
-}
-
-impl<'p> From<TLit> for EVal<'p> {
-    fn from(value: TLit) -> Self {
-        match value {
-            TLit::I64 { val } => Self::Int { val: val },
-            TLit::U64 { val } => Self::Int { val: val as i64 },
-            TLit::Bool { val } => Self::Bool { val },
-            TLit::Unit => Self::Unit,
-        }
-    }
-}
-
 impl<'p> PrgEliminated<'p> {
-    pub fn interpret(&self, io: &mut impl IO) -> Vec<EVal<'p>> {
+    pub fn interpret(&self, io: &mut impl IO) -> Vec<Val<'p>> {
         let std_iter = self
             .std
             .iter()
-            .map(|(_, &def)| (def, EVal::StdlibFunction { sym: def.sym }));
+            .map(|(_, &def)| (def, Val::StdlibFunction { sym: def.sym }));
 
         self.interpret_tail(&self.blocks[&self.entry], &mut PushMap::from_iter(std_iter), io)
     }
@@ -81,9 +20,9 @@ impl<'p> PrgEliminated<'p> {
     fn interpret_tail(
         &self,
         tail: &ETail<'p>,
-        scope: &mut PushMap<UniqueSym<'p>, EVal<'p>>,
+        scope: &mut PushMap<UniqueSym<'p>, Val<'p>>,
         io: &mut impl IO,
-    ) -> Vec<EVal<'p>> {
+    ) -> Vec<Val<'p>> {
         match tail {
             ETail::Return { exprs: expr } => expr
                 .iter()
@@ -110,9 +49,9 @@ impl<'p> PrgEliminated<'p> {
     pub fn interpret_expr(
         &self,
         expr: &EExpr<'p>,
-        scope: &mut PushMap<UniqueSym<'p>, EVal<'p>>,
+        scope: &mut PushMap<UniqueSym<'p>, Val<'p>>,
         io: &mut impl IO,
-    ) -> Vec<EVal<'p>> {
+    ) -> Vec<Val<'p>> {
         let val = match expr {
             EExpr::BinaryOp {
                 op,
@@ -121,46 +60,46 @@ impl<'p> PrgEliminated<'p> {
                 let lhs = self.interpret_atom(&lhs, scope);
                 let rhs = self.interpret_atom(&rhs, scope);
                 match op {
-                    BinaryOp::Add => EVal::Int {
+                    BinaryOp::Add => Val::Int {
                         val: lhs.int() + rhs.int(),
                     },
-                    BinaryOp::Sub => EVal::Int {
+                    BinaryOp::Sub => Val::Int {
                         val: lhs.int() - rhs.int(),
                     },
-                    BinaryOp::Mul => EVal::Int {
+                    BinaryOp::Mul => Val::Int {
                         val: lhs.int() * rhs.int(),
                     },
-                    BinaryOp::Div => EVal::Int {
+                    BinaryOp::Div => Val::Int {
                         val: lhs.int() / rhs.int(),
                     },
-                    BinaryOp::Mod => EVal::Int {
+                    BinaryOp::Mod => Val::Int {
                         val: lhs.int() % rhs.int(),
                     },
-                    BinaryOp::Xor => EVal::Bool {
+                    BinaryOp::Xor => Val::Bool {
                         val: lhs.bool() ^ rhs.bool(),
                     },
-                    BinaryOp::GT => EVal::Bool {
+                    BinaryOp::GT => Val::Bool {
                         val: lhs.int() > rhs.int(),
                     },
-                    BinaryOp::GE => EVal::Bool {
+                    BinaryOp::GE => Val::Bool {
                         val: lhs.int() >= rhs.int(),
                     },
-                    BinaryOp::EQ => EVal::Bool {
+                    BinaryOp::EQ => Val::Bool {
                         val: lhs == rhs,
                     },
-                    BinaryOp::LE => EVal::Bool {
+                    BinaryOp::LE => Val::Bool {
                         val: lhs.int() <= rhs.int(),
                     },
-                    BinaryOp::LT => EVal::Bool {
+                    BinaryOp::LT => Val::Bool {
                         val: lhs.int() < rhs.int(),
                     },
-                    BinaryOp::NE => EVal::Bool {
+                    BinaryOp::NE => Val::Bool {
                         val: lhs != rhs,
                     },
-                    BinaryOp::LAnd => EVal::Bool {
+                    BinaryOp::LAnd => Val::Bool {
                         val: lhs.bool() && rhs.bool(),
                     },
-                    BinaryOp::LOr => EVal::Bool {
+                    BinaryOp::LOr => Val::Bool {
                         val: lhs.bool() || rhs.bool(),
                     },
                 }
@@ -168,12 +107,12 @@ impl<'p> PrgEliminated<'p> {
             EExpr::UnaryOp { op, expr } => {
                 let expr = self.interpret_atom(&expr, scope);
                 match op {
-                    UnaryOp::Neg => EVal::Int { val: -expr.int() },
-                    UnaryOp::Not => EVal::Bool { val: !expr.bool() },
+                    UnaryOp::Neg => Val::Int { val: -expr.int() },
+                    UnaryOp::Not => Val::Bool { val: !expr.bool() },
                 }
             }
             EExpr::Atom { atm, .. } => self.interpret_atom(atm, scope),
-            EExpr::FunRef { sym, .. } => EVal::Function { sym: *sym },
+            EExpr::FunRef { sym, .. } => Val::Function { sym: *sym },
             EExpr::Apply { fun, args, .. } => {
                 let fun = self.interpret_atom(fun, scope);
 
@@ -183,7 +122,7 @@ impl<'p> PrgEliminated<'p> {
                 }
 
                 match fun {
-                    EVal::StdlibFunction { sym } => {
+                    Val::StdlibFunction { sym } => {
                         match sym {
                             "exit" => {
                                 unreachable!("Validated programs should not have an explicit call to exit yet.")
@@ -199,7 +138,7 @@ impl<'p> PrgEliminated<'p> {
                             ),
                         }
                     }
-                    EVal::Function { sym } => {
+                    Val::Function { sym } => {
                         let args = self.fn_params[&sym]
                             .iter()
                             .zip(fn_args.into_iter())
@@ -219,11 +158,11 @@ impl<'p> PrgEliminated<'p> {
     pub fn interpret_atom(
         &self,
         atom: &Atom<'p>,
-        scope: &PushMap<UniqueSym<'p>, EVal<'p>>,
-    ) -> EVal<'p> {
+        scope: &PushMap<UniqueSym<'p>, Val<'p>>,
+    ) -> Val<'p> {
         match atom {
             Atom::Val { val } => (*val).into(),
-            Atom::Var { sym } => scope[sym],
+            Atom::Var { sym } => scope[sym].clone(),
         }
     }
 }

@@ -16,7 +16,7 @@ fn eliminate([test]: [&str; 1]) {
         .eliminate();
 
     let mut io = TestIO::new(input);
-    let result = program.interpret(&mut io)[0];
+    let result = program.interpret(&mut io)[0].clone();
 
     assert_eq!(result, expected_return.into(), "Incorrect program result.");
     assert_eq!(io.outputs(), &expected_output, "Incorrect program output.");
