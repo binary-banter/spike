@@ -16,7 +16,7 @@ pub fn add_std_library<'p>(std: &Std<'p>, blocks: &mut HashMap<UniqueSym<'p>, Bl
 }
 
 fn add_exit_block<'p>(entry: UniqueSym<'p>, blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg>>) {
-    blocks.insert(entry, block!(movq!(imm!(0x3C), reg!(RAX)), syscall!(2)));
+    blocks.insert(entry, block!(movq!(reg!(RAX), reg!(RDI)), movq!(imm!(0x3C), reg!(RAX)), syscall!(2)));
 }
 
 fn add_print_block<'p>(entry: UniqueSym<'p>,blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg>>){
@@ -28,9 +28,9 @@ fn add_print_block<'p>(entry: UniqueSym<'p>,blocks: &mut HashMap<UniqueSym<'p>, 
     blocks.insert(
         entry,
         block!(
+            pushq!(reg!(RAX)),
             movq!(imm!(10), reg!(RCX)),
             pushq!(imm!(i64::from(b'\n'))),
-            movq!(reg!(RDI), reg!(RAX)),
             movq!(imm!(0), reg!(RSI)),
             cmpq!(imm!(0), reg!(RAX)),
             jcc!(print_neg, Cnd::Sign),
@@ -76,7 +76,10 @@ fn add_print_block<'p>(entry: UniqueSym<'p>,blocks: &mut HashMap<UniqueSym<'p>, 
             jmp!(print_exit)
         ),
     );
-    blocks.insert(print_exit, block!(retq!()));
+    blocks.insert(print_exit, block!(
+        popq!(reg!(RAX)),
+        retq!()
+    ));
 }
 
 fn add_read_block<'p>(

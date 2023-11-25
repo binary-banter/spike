@@ -14,7 +14,7 @@ impl<'p> PrgExplicated<'p> {
         let std_iter = self
             .std
             .iter()
-            .map(|(_, &def)| (def, Val::StdlibFunction { sym: def.sym }));
+            .map(|(_, &def)| dbg!((def, Val::StdlibFunction { sym: def.sym })));
 
         self.interpret_tail(&self.blocks[&self.entry], &mut PushMap::from_iter(std_iter), io)
     }
@@ -108,7 +108,13 @@ impl<'p> PrgExplicated<'p> {
                 }
             }
             CExpr::Atom { atm, .. } => self.interpret_atom(atm, scope),
-            CExpr::FunRef { sym, .. } => Val::Function { sym: *sym },
+            CExpr::FunRef { sym, .. } => {
+                if self.std.contains_key(sym.sym) {
+                    Val::StdlibFunction { sym: sym.sym }
+                } else {
+                    Val::Function { sym: *sym }
+                }
+            },
             CExpr::Apply { fun, args, .. } => {
                 let fun = self.interpret_atom(fun, scope);
 
@@ -135,7 +141,7 @@ impl<'p> PrgExplicated<'p> {
                         }
                     }
                     Val::Function { sym } => {
-                        let args = self.fn_params[&sym]
+                        let args = self.fn_params[&dbg!(sym)]
                             .iter()
                             .zip(fn_args.into_iter())
                             .map(|(param, val)| (param.sym, val));

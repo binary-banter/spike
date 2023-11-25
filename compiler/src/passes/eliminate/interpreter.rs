@@ -112,7 +112,13 @@ impl<'p> PrgEliminated<'p> {
                 }
             }
             EExpr::Atom { atm, .. } => self.interpret_atom(atm, scope),
-            EExpr::FunRef { sym, .. } => Val::Function { sym: *sym },
+            EExpr::FunRef { sym, .. } => {
+                if self.std.contains_key(sym.sym) {
+                    Val::StdlibFunction { sym: sym.sym }
+                } else {
+                    Val::Function { sym: *sym }
+                }
+            },
             EExpr::Apply { fun, args, .. } => {
                 let fun = self.interpret_atom(fun, scope);
 
