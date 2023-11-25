@@ -1,4 +1,4 @@
-use crate::passes::parse::{Meta, Span, TypeDef};
+use crate::passes::parse::{Meta, Span, Spanned, TypeDef};
 use crate::passes::validate::constrain::expr;
 use crate::passes::validate::constrain::uncover_globals::{Env, EnvEntry};
 use crate::passes::validate::error::TypeError;
@@ -11,8 +11,8 @@ use std::collections::{HashMap, HashSet};
 pub fn constrain_struct<'p>(
     env: &mut Env<'_, 'p>,
     span: Span,
-    sym: Meta<Span, UniqueSym<'p>>,
-    fields: Vec<(Meta<Span, &'p str>, Meta<Span, ExprUniquified<'p>>)>,
+    sym: Spanned<UniqueSym<'p>>,
+    fields: Vec<(Spanned<&'p str>, Spanned<ExprUniquified<'p>>)>,
 ) -> Result<Meta<CMeta, ExprConstrained<'p>>, TypeError> {
     // Get the `EnvEntry` from the scope.
     // This should exist after yeet, but could potentially not be a struct definition.

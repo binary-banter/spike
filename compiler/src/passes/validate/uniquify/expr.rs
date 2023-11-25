@@ -1,4 +1,4 @@
-use crate::passes::parse::{Expr, ExprParsed, Meta, Span};
+use crate::passes::parse::{Expr, ExprParsed, Meta, Spanned};
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::uniquify::gen_spanned_sym;
 use crate::passes::validate::uniquify::r#type::uniquify_type;
@@ -7,9 +7,9 @@ use crate::utils::gen_sym::UniqueSym;
 use crate::utils::push_map::PushMap;
 
 pub fn uniquify_expr<'p>(
-    expr: Meta<Span, ExprParsed<'p>>,
+    expr: Spanned<ExprParsed<'p>>,
     scope: &mut PushMap<&'p str, UniqueSym<'p>>,
-) -> Result<Meta<Span, ExprUniquified<'p>>, TypeError> {
+) -> Result<Spanned<ExprUniquified<'p>>, TypeError> {
     let inner = match expr.inner {
         Expr::Let {
             sym,

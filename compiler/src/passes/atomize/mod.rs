@@ -3,7 +3,7 @@ pub mod atomize;
 mod tests;
 
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{BinaryOp, Def, Meta, UnaryOp};
+use crate::passes::parse::{BinaryOp, Def, Meta, Typed, UnaryOp};
 use crate::passes::select::std_lib::Std;
 use crate::passes::validate::{DefValidated, ExprValidated, PrgValidated, TLit};
 use crate::utils::gen_sym::UniqueSym;
@@ -15,7 +15,7 @@ pub struct PrgAtomized<'p> {
     pub std: Std<'p>,
 }
 
-pub type DefAtomized<'p> = Def<UniqueSym<'p>, &'p str, Meta<Type<UniqueSym<'p>>, AExpr<'p>>>;
+pub type DefAtomized<'p> = Def<UniqueSym<'p>, &'p str, Typed<'p, AExpr<'p>>>;
 
 pub enum AExpr<'p> {
     Atom {
@@ -31,13 +31,13 @@ pub enum AExpr<'p> {
     },
     Let {
         sym: UniqueSym<'p>,
-        bnd: Box<Meta<Type<UniqueSym<'p>>, AExpr<'p>>>,
-        bdy: Box<Meta<Type<UniqueSym<'p>>, AExpr<'p>>>,
+        bnd: Box<Typed<'p, AExpr<'p>>>,
+        bdy: Box<Typed<'p, AExpr<'p>>>,
     },
     If {
-        cnd: Box<Meta<Type<UniqueSym<'p>>, AExpr<'p>>>,
-        thn: Box<Meta<Type<UniqueSym<'p>>, AExpr<'p>>>,
-        els: Box<Meta<Type<UniqueSym<'p>>, AExpr<'p>>>,
+        cnd: Box<Typed<'p, AExpr<'p>>>,
+        thn: Box<Typed<'p, AExpr<'p>>>,
+        els: Box<Typed<'p, AExpr<'p>>>,
     },
     Apply {
         fun: Atom<'p>,
@@ -47,22 +47,22 @@ pub enum AExpr<'p> {
         sym: UniqueSym<'p>,
     },
     Loop {
-        bdy: Box<Meta<Type<UniqueSym<'p>>, AExpr<'p>>>,
+        bdy: Box<Typed<'p, AExpr<'p>>>,
     },
     Break {
-        bdy: Box<Meta<Type<UniqueSym<'p>>, AExpr<'p>>>,
+        bdy: Box<Typed<'p, AExpr<'p>>>,
     },
     Continue,
     Seq {
-        stmt: Box<Meta<Type<UniqueSym<'p>>, AExpr<'p>>>,
-        cnt: Box<Meta<Type<UniqueSym<'p>>, AExpr<'p>>>,
+        stmt: Box<Typed<'p, AExpr<'p>>>,
+        cnt: Box<Typed<'p, AExpr<'p>>>,
     },
     Assign {
         sym: UniqueSym<'p>,
-        bnd: Box<Meta<Type<UniqueSym<'p>>, AExpr<'p>>>,
+        bnd: Box<Typed<'p, AExpr<'p>>>,
     },
     Return {
-        bdy: Box<Meta<Type<UniqueSym<'p>>, AExpr<'p>>>,
+        bdy: Box<Typed<'p, AExpr<'p>>>,
     },
     Struct {
         sym: UniqueSym<'p>,
@@ -123,10 +123,10 @@ impl<'p> From<DefAtomized<'p>> for DefValidated<'p> {
     }
 }
 
-impl<'p> From<Meta<Type<UniqueSym<'p>>, AExpr<'p>>>
-    for Meta<Type<UniqueSym<'p>>, ExprValidated<'p>>
+impl<'p> From<Typed<'p, AExpr<'p>>>
+    for Typed<'p, ExprValidated<'p>>
 {
-    fn from(value: Meta<Type<UniqueSym<'p>>, AExpr<'p>>) -> Self {
+    fn from(value: Typed<'p, AExpr<'p>>) -> Self {
         let inner = match value.inner {
             AExpr::Atom { atm, .. } => return atm.into(),
             AExpr::BinaryOp { op, exprs } => ExprValidated::BinaryOp {
@@ -193,7 +193,7 @@ impl<'p> From<Meta<Type<UniqueSym<'p>>, AExpr<'p>>>
 }
 
 // Note that casting to Never here is safe because this `From` is only used by the interpreter which doesn't care about the type information.
-impl<'p> From<Atom<'p>> for Meta<Type<UniqueSym<'p>>, ExprValidated<'p>> {
+impl<'p> From<Atom<'p>> for Typed<'p, ExprValidated<'p>> {
     fn from(value: Atom<'p>) -> Self {
         Meta {
             meta: Type::Never,

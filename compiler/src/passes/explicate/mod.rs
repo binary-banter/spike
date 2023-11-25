@@ -9,7 +9,7 @@ mod tests;
 
 use crate::passes::atomize::Atom;
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{BinaryOp, Meta, Param, TypeDef, UnaryOp};
+use crate::passes::parse::{BinaryOp, Param, Typed, TypeDef, UnaryOp};
 use crate::passes::select::std_lib::Std;
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
@@ -24,11 +24,11 @@ pub struct PrgExplicated<'p> {
 
 pub enum CTail<'p> {
     Return {
-        expr: Meta<Type<UniqueSym<'p>>, Atom<'p>>,
+        expr: Typed<'p, Atom<'p>>,
     },
     Seq {
         sym: UniqueSym<'p>,
-        bnd: Meta<Type<UniqueSym<'p>>, CExpr<'p>>,
+        bnd: Typed<'p, CExpr<'p>>,
         tail: Box<CTail<'p>>,
     },
     IfStmt {

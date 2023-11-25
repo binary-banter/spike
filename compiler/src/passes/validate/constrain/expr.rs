@@ -1,4 +1,4 @@
-use crate::passes::parse::{Expr, Meta, Span};
+use crate::passes::parse::{Expr, Meta, Spanned};
 use crate::passes::validate::constrain::lit::constrain_lit;
 use crate::passes::validate::constrain::uncover_globals::Env;
 use crate::passes::validate::error::TypeError;
@@ -19,51 +19,59 @@ use crate::passes::validate::constrain::unary_op::constrain_unary_op;
 use crate::passes::validate::constrain::var::constrain_var;
 
 pub fn constrain_expr<'p>(
-    expr: Meta<Span, ExprUniquified<'p>>,
+    expr: Spanned<ExprUniquified<'p>>,
     env: &mut Env<'_, 'p>,
 ) -> Result<Meta<CMeta, ExprConstrained<'p>>, TypeError> {
     let span = expr.meta;
 
     match expr.inner {
-        Expr::Lit { val } => constrain_lit(env, span, val),
-        Expr::Var { sym } => constrain_var(env, span, sym),
-        Expr::UnaryOp { op, expr } => constrain_unary_op(env, span, op, expr),
+        Expr::Lit { val } => {
+            constrain_lit(env, span, val)
+        },
+        Expr::Var { sym } => {
+            constrain_var(env, span, sym)
+        },
+        Expr::UnaryOp { op, expr } => {
+            constrain_unary_op(env, span, op, *expr)
+        },
         Expr::BinaryOp {
             op,
             exprs: [lhs, rhs],
-        } => constrain_binary_op(env, span, op, lhs, rhs),
+        } => {
+            constrain_binary_op(env, span, op, *lhs, *rhs)
+        },
         Expr::Let {
             sym,
             mutable,
             typ,
             bnd,
             bdy,
-        } => constrain_let(
-            env, span, sym, mutable, typ, bnd, bdy,
-        ),
+        } => {
+            constrain_let(env, span, sym, mutable, typ, *bnd, *bdy)
+        },
         Expr::If { cnd, thn, els } => {
-            constrain_if(env, span, cnd, thn, els)
+            constrain_if(env, span, *cnd, *thn, *els)
         }
         Expr::Apply { fun, args } => {
-            constrain_apply(env, span, fun, args)
+            constrain_apply(env, span, *fun, args)
         },
         Expr::Loop { bdy } => {
-            constrain_loop(env, span, bdy)
+            constrain_loop(env, span, *bdy)
         },
         Expr::Break { bdy } => {
-            constrain_break(env, span, bdy)
+            constrain_break(env, span, *bdy)
         }
         Expr::Continue => {
             constrain_continue(env, span)
         }
         Expr::Return { bdy } => {
-            constrain_return(env, span, bdy)
+            constrain_return(env, span, *bdy)
         }
         Expr::Seq { stmt, cnt } => {
-            constrain_seq(env, span, stmt, cnt)
+            constrain_seq(env, span, *stmt, *cnt)
         },
         Expr::Assign { sym, bnd } => {
-            constrain_assign(env, span, sym, bnd)
+            constrain_assign(env, span, sym, *bnd)
         },
         Expr::Struct { sym, fields } => {
             constrain_struct(env, span, sym, fields)

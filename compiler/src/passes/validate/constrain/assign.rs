@@ -1,4 +1,4 @@
-use crate::passes::parse::{Meta, Span};
+use crate::passes::parse::{Meta, Span, Spanned};
 use crate::passes::validate::constrain::expr;
 use crate::passes::validate::constrain::uncover_globals::{Env, EnvEntry};
 use crate::passes::validate::error::TypeError;
@@ -11,10 +11,10 @@ use crate::utils::gen_sym::UniqueSym;
 pub fn constrain_assign<'p>(
     env: &mut Env<'_, 'p>,
     span: Span,
-    sym: Meta<Span, UniqueSym<'p>>,
-    bnd: Box<Meta<Span, ExprUniquified<'p>>>,
+    sym: Spanned<UniqueSym<'p>>,
+    bnd: Spanned<ExprUniquified<'p>>,
 ) -> Result<Meta<CMeta, ExprConstrained<'p>>, TypeError> {
-    let bnd = expr::constrain_expr(*bnd, env)?;
+    let bnd = expr::constrain_expr(bnd, env)?;
 
     let EnvEntry::Type { mutable, typ } = env.scope[&sym.inner] else {
         return Err(TypeError::SymbolShouldBeVariable { span: sym.meta });

@@ -1,6 +1,6 @@
 use crate::passes::atomize::{AExpr, Atom, DefAtomized, PrgAtomized};
 use crate::passes::parse::types::Type;
-use crate::passes::parse::Meta;
+use crate::passes::parse::{Meta, Typed};
 use crate::passes::reveal::{DefRevealed, PrgRevealed, RExpr};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 
@@ -37,8 +37,8 @@ fn atomize_def(def: DefRevealed) -> DefAtomized {
 }
 
 fn atomize_expr<'p>(
-    expr: Meta<Type<UniqueSym<'p>>, RExpr<'p>>,
-) -> Meta<Type<UniqueSym<'p>>, AExpr<'p>> {
+    expr: Typed<'p, RExpr<'p>>,
+) -> Typed<'p, AExpr<'p>> {
     // Keep track of all the priors. These are bindings that should come before evaluating the expression.
     let mut priors = Vec::new();
 
@@ -142,8 +142,8 @@ fn atomize_expr<'p>(
 }
 
 fn atomize_atom<'p>(
-    expr: Meta<Type<UniqueSym<'p>>, RExpr<'p>>,
-    priors: &mut Vec<(UniqueSym<'p>, Meta<Type<UniqueSym<'p>>, AExpr<'p>>)>,
+    expr: Typed<'p, RExpr<'p>>,
+    priors: &mut Vec<(UniqueSym<'p>, Typed<'p, AExpr<'p>>)>,
 ) -> Atom<'p> {
     if let RExpr::Lit { val } = expr.inner {
         Atom::Val { val }

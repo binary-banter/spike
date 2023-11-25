@@ -1,14 +1,14 @@
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Meta, Span};
+use crate::passes::parse::{Spanned};
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::uniquify::try_get;
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::push_map::PushMap;
 
 pub fn uniquify_type<'p>(
-    typ: Type<Meta<Span, &'p str>>,
+    typ: Type<Spanned<&'p str>>,
     scope: &mut PushMap<&'p str, UniqueSym<'p>>,
-) -> Result<Type<Meta<Span, UniqueSym<'p>>>, TypeError> {
+) -> Result<Type<Spanned<UniqueSym<'p>>>, TypeError> {
     let typ = match typ {
         Type::I64 => Type::I64,
         Type::U64 => Type::U64,

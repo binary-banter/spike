@@ -1,5 +1,5 @@
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Meta, Span};
+use crate::passes::parse::{Meta, Span, Spanned};
 use crate::passes::validate::constrain::expr;
 use crate::passes::validate::constrain::uncover_globals::{Env, EnvEntry};
 use crate::passes::validate::error::TypeError;
@@ -9,13 +9,13 @@ use crate::utils::gen_sym::UniqueSym;
 pub fn constrain_let<'p>(
     env: &mut Env<'_, 'p>,
     span: Span,
-    sym: Meta<Span, UniqueSym<'p>>,
+    sym: Spanned<UniqueSym<'p>>,
     mutable: bool,
-    typ: Option<Type<Meta<Span, UniqueSym<'p>>>>,
-    bnd: Box<Meta<Span, ExprUniquified<'p>>>,
-    bdy: Box<Meta<Span, ExprUniquified<'p>>>,
+    typ: Option<Type<Spanned<UniqueSym<'p>>>>,
+    bnd: Spanned<ExprUniquified<'p>>,
+    bdy: Spanned<ExprUniquified<'p>>,
 ) -> Result<Meta<CMeta, ExprConstrained<'p>>, TypeError> {
-    let bnd = expr::constrain_expr(*bnd, env)?;
+    let bnd = expr::constrain_expr(bnd, env)?;
 
     if let Some(typ) = &typ {
         env.uf.expect_type(bnd.meta.index, typ.clone(), |got, _| {
@@ -34,7 +34,7 @@ pub fn constrain_let<'p>(
             typ: bnd.meta.index,
         },
     );
-    let bdy = expr::constrain_expr(*bdy, env)?;
+    let bdy = expr::constrain_expr(bdy, env)?;
 
     Ok(Meta {
         meta: CMeta {

@@ -5,14 +5,14 @@ use crate::passes::eliminate::eliminate_params::flatten_type;
 use crate::passes::eliminate::{EExpr, ETail};
 use crate::passes::explicate::CExpr;
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Meta, TypeDef};
+use crate::passes::parse::{Meta, Typed, TypeDef};
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
 
 pub fn eliminate_seq<'p>(
     sym: UniqueSym<'p>,
     ctx: &mut Ctx<'p>,
-    bnd: Meta<Type<UniqueSym<'p>>, CExpr<'p>>,
+    bnd: Typed<'p, CExpr<'p>>,
     tail: ETail<'p>,
     defs: &HashMap<UniqueSym<'p>, TypeDef<UniqueSym<'p>, &'p str>>,
 ) -> ETail<'p> {

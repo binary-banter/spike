@@ -1,5 +1,5 @@
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Expr, Lit, Meta, Param, Span, TypeDef};
+use crate::passes::parse::{Expr, Lit, Meta, Param, Spanned, Typed, TypeDef};
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::partial_type::PartialType;
 use crate::passes::validate::{
@@ -54,7 +54,7 @@ fn resolve_def<'p>(
 }
 
 fn resolve_typedef<'p>(
-    typedef: TypeDef<Meta<Span, UniqueSym<'p>>, Meta<Span, &'p str>>,
+    typedef: TypeDef<Spanned<UniqueSym<'p>>, Spanned<&'p str>>,
 ) -> TypeDef<UniqueSym<'p>, &'p str> {
     match typedef {
         TypeDef::Struct { fields } => TypeDef::Struct {
@@ -65,7 +65,7 @@ fn resolve_typedef<'p>(
     }
 }
 
-fn resolve_type(typ: Type<Meta<Span, UniqueSym>>) -> Type<UniqueSym> {
+fn resolve_type(typ: Type<Spanned<UniqueSym>>) -> Type<UniqueSym> {
     match typ {
         Type::I64 => Type::I64,
         Type::U64 => Type::U64,
@@ -106,7 +106,7 @@ fn partial_type_to_type<'p>(
 fn resolve_expr<'p>(
     expr: Meta<CMeta, ExprConstrained<'p>>,
     uf: &mut UnionFind<PartialType<'p>>,
-) -> Result<Meta<Type<UniqueSym<'p>>, ExprValidated<'p>>, TypeError> {
+) -> Result<Typed<'p, ExprValidated<'p>>, TypeError> {
     // Type of the expression, if `None` then type is still ambiguous.
     let typ = partial_type_to_type(expr.meta.index, uf);
 

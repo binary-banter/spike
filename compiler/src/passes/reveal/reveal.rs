@@ -1,5 +1,5 @@
-use crate::passes::parse::types::Type;
-use crate::passes::parse::Meta;
+
+use crate::passes::parse::{Meta, Typed};
 use crate::passes::reveal::{DefRevealed, PrgRevealed, RExpr};
 use crate::passes::validate::{DefValidated, ExprValidated, PrgValidated};
 use crate::utils::gen_sym::UniqueSym;
@@ -44,9 +44,9 @@ fn reveal_def<'p>(
 }
 
 fn reveal_expr<'p>(
-    expr: Meta<Type<UniqueSym<'p>>, ExprValidated<'p>>,
+    expr: Typed<'p, ExprValidated<'p>>,
     scope: &mut PushMap<UniqueSym<'p>, ()>,
-) -> Meta<Type<UniqueSym<'p>>, RExpr<'p>> {
+) -> Typed<'p, RExpr<'p>> {
     let inner = match expr.inner {
         ExprValidated::Lit { val } => RExpr::Lit { val },
         ExprValidated::Var { sym } => {

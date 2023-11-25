@@ -1,5 +1,5 @@
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Def, ExprParsed, Meta, Param, Span};
+use crate::passes::parse::{Def, ExprParsed, Param, Spanned};
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::uniquify::expr::uniquify_expr;
 use crate::passes::validate::uniquify::r#type::uniquify_type;
@@ -11,10 +11,10 @@ use std::collections::HashMap;
 
 pub fn uniquify_fn<'p>(
     scope: &mut PushMap<&'p str, UniqueSym<'p>>,
-    sym: Meta<Span, &'p str>,
-    params: Vec<Param<Meta<Span, &'p str>>>,
-    typ: Type<Meta<Span, &'p str>>,
-    bdy: Meta<Span, ExprParsed<'p>>,
+    sym: Spanned<&'p str>,
+    params: Vec<Param<Spanned<&'p str>>>,
+    typ: Type<Spanned<&'p str>>,
+    bdy: Spanned<ExprParsed<'p>>,
 ) -> Result<DefUniquified<'p>, TypeError> {
     // Generate unique names for the parameters.
     let iterator = params
@@ -55,9 +55,9 @@ pub fn uniquify_fn<'p>(
 }
 
 fn uniquify_param<'p>(
-    param: &Param<Meta<Span, &'p str>>,
+    param: &Param<Spanned<&'p str>>,
     scope: &mut PushMap<&'p str, UniqueSym<'p>>,
-) -> Result<Param<Meta<Span, UniqueSym<'p>>>, TypeError> {
+) -> Result<Param<Spanned<UniqueSym<'p>>>, TypeError> {
     Ok(Param {
         sym: uniquify::try_get(param.sym.clone(), scope)?,
         mutable: param.mutable,

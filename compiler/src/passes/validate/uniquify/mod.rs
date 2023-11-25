@@ -1,5 +1,5 @@
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Meta, PrgParsed, Span};
+use crate::passes::parse::{Meta, PrgParsed, Spanned};
 use crate::passes::select::std_lib::Std;
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::error::TypeError::{NoMain, UndeclaredVar};
@@ -24,7 +24,7 @@ pub struct PrgUniquified<'p> {
     pub std: Std<'p>,
 }
 
-pub static BUILT_INS: Lazy<HashMap<&'static str, Type<Meta<Span, UniqueSym<'static>>>>> =
+pub static BUILT_INS: Lazy<HashMap<&'static str, Type<Spanned<UniqueSym<'static>>>>> =
     Lazy::new(|| {
         HashMap::from([
             (
@@ -80,9 +80,9 @@ impl<'p> PrgParsed<'p> {
 }
 
 fn try_get<'p>(
-    sym: Meta<Span, &'p str>,
+    sym: Spanned<&'p str>,
     scope: &PushMap<&'p str, UniqueSym<'p>>,
-) -> Result<Meta<Span, UniqueSym<'p>>, TypeError> {
+) -> Result<Spanned<UniqueSym<'p>>, TypeError> {
     scope
         .get(&sym.inner)
         .ok_or(UndeclaredVar {
@@ -95,7 +95,7 @@ fn try_get<'p>(
         })
 }
 
-fn gen_spanned_sym(sym: Meta<Span, &str>) -> Meta<Span, UniqueSym> {
+fn gen_spanned_sym(sym: Spanned<&str>) -> Spanned<UniqueSym> {
     Meta {
         inner: gen_sym(sym.inner),
         meta: sym.meta,

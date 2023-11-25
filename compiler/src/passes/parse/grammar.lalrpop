@@ -1,8 +1,9 @@
 use crate::passes::parse::{
     BinaryOp, Def, Expr, Lit, Meta, Param, PrgParsed, Span, Type, TypeDef, UnaryOp,
 };
-use crate::passes::validate::generate_constraints::PartialType;
+use crate::passes::validate::partial_type::PartialType;
 use functor_derive::Functor;
+use crate::passes::parse::Spanned;
 
 grammar;
 
@@ -92,7 +93,7 @@ pub Program: PrgParsed<'input> = {
     }
 }
 
-Def: Def<Meta<Span, &'input str>, Meta<Span, &'input str>, Meta<Span, Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>, Span>>> = {
+Def: Def<Spanned<&'input str>, Spanned<&'input str>, Spanned<Expr<Spanned<&'input str>, Spanned<&'input str>, Lit<'input>, Span>>> = {
     "struct" <sym:Ident> "{" <fields:Comma<(<Ident> ":" <Type>)>> "}" => Def::TypeDef {
         sym,
         def: TypeDef::Struct { fields },
@@ -109,7 +110,7 @@ Def: Def<Meta<Span, &'input str>, Meta<Span, &'input str>, Meta<Span, Expr<Meta<
     },
 }
 
-Param: Param<Meta<Span, &'input str>> = {
+Param: Param<Spanned<&'input str>> = {
     <mutable:"mut"?> <sym:Ident> ":" <typ:Type> => Param {
         mutable: mutable.is_some(),
         sym,
@@ -117,7 +118,7 @@ Param: Param<Meta<Span, &'input str>> = {
     }
 }
 
-Type: Type<Meta<Span, &'input str>> = {
+Type: Type<Spanned<&'input str>> = {
     "I64" => Type::I64,
     "U64" => Type::U64,
     "Bool" => Type::Bool,
@@ -142,7 +143,7 @@ Type: Type<Meta<Span, &'input str>> = {
 // Num/Bool/Ident
 Expr = ExprStmt;
 
-ExprStmt: Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>, Span> = {
+ExprStmt: Expr<Spanned<&'input str>, Spanned<&'input str>, Lit<'input>, Span> = {
     "let" <mutable:"mut"?> <sym:Ident> <typ:(":" <Type>)?> "=" <bnd:Spanned<ExprLogicalOr<Struct>>> ";" <bdy:Spanned<ExprStmt?>> => Expr::Let {
         sym,
         mutable: mutable.is_some(),
@@ -157,7 +158,7 @@ ExprStmt: Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>, Sp
     ExprInStmt,
 }
 
-ExprInStmt: Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>, Span> = {
+ExprInStmt: Expr<Spanned<&'input str>, Spanned<&'input str>, Lit<'input>, Span> = {
     <sym:Ident> "=" <bnd:Spanned<ExprLogicalOr<Struct>>> => Expr::Assign {
         sym,
         bnd: Box::new(bnd),
@@ -210,7 +211,7 @@ ExprInStmt: Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>, 
     ExprLogicalOr<Struct>,
 }
 
-BinaryOps<Op,Next>: Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>, Span> = {
+BinaryOps<Op,Next>: Expr<Spanned<&'input str>, Spanned<&'input str>, Lit<'input>, Span> = {
     <e1:Spanned<BinaryOps<Op,Next>>> <op:Op> <e2:Spanned<Next>> => Expr::BinaryOp {
         op,
         exprs: [Box::new(e1), Box::new(e2)],
@@ -250,7 +251,7 @@ UnaryOp: UnaryOp = {
     "!" => UnaryOp::Not,
 }
 
-ExprUnary<T>: Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>, Span> = {
+ExprUnary<T>: Expr<Spanned<&'input str>, Spanned<&'input str>, Lit<'input>, Span> = {
     <op:UnaryOp> <e:Spanned<ExprUnary<T>>> => Expr::UnaryOp {
         op,
         expr: Box::new(e),
@@ -258,7 +259,7 @@ ExprUnary<T>: Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>
     ExprAccess<T>,
 }
 
-ExprAccess<T>: Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>, Span> = {
+ExprAccess<T>: Expr<Spanned<&'input str>, Spanned<&'input str>, Lit<'input>, Span> = {
     <strct:Spanned<ExprAccess<T>>> "." <field:Ident> => Expr::AccessField {
         strct: Box::new(strct),
         field,
@@ -266,7 +267,7 @@ ExprAccess<T>: Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input
     ExprCall<T>,
 }
 
-ExprCall<T>: Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>, Span> = {
+ExprCall<T>: Expr<Spanned<&'input str>, Spanned<&'input str>, Lit<'input>, Span> = {
     <fun:Spanned<ExprAtom<T>>> "(" <args:Comma<Spanned<Expr>>> ")" => Expr::Apply {
         fun: Box::new(fun),
         args,
@@ -274,7 +275,7 @@ ExprCall<T>: Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>,
     ExprAtom<T>,
 }
 
-ExprAtom<T>: Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>, Span> = {
+ExprAtom<T>: Expr<Spanned<&'input str>, Spanned<&'input str>, Lit<'input>, Span> = {
     <val:integer> => Expr::Lit {
         val: Lit::Int {
             val,
@@ -305,21 +306,21 @@ ExprAtom<T>: Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>,
     <T>,
 }
 
-Struct: Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>, Span> = {
+Struct: Expr<Spanned<&'input str>, Spanned<&'input str>, Lit<'input>, Span> = {
     <sym:Ident> "{" <fields:Comma<StructArg>> "}" => Expr::Struct {
         sym,
         fields,
     },
 }
 
-StructArg : (Meta<Span, &'input str>, Meta<Span, Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>, Span>>) = {
+StructArg : (Spanned<&'input str>, Spanned<Expr<Spanned<&'input str>, Spanned<&'input str>, Lit<'input>, Span>>) = {
     <Ident> ":" <Spanned<Expr>>,
     <l:@L> <sym:Ident> <r:@R> => (sym.clone(), Meta { meta: (l, r - l), inner: Expr::Var { sym } })
 }
 
-Never: Expr<Meta<Span, &'input str>, Meta<Span, &'input str>, Lit<'input>, Span> = {};
+Never: Expr<Spanned<&'input str>, Spanned<&'input str>, Lit<'input>, Span> = {};
 
-Ident: Meta<Span, &'input str> = Spanned<identifier>;
+Ident: Spanned<&'input str> = Spanned<identifier>;
 
 Bool: bool = {
     "true" => true,
@@ -337,4 +338,4 @@ Comma<T>: Vec<T> = {
     }
 }
 
-Spanned<T>: Meta<Span, T> = <l:@L> <inner:T> <r:@R> => Meta { meta: (l, r - l), inner };
+Spanned<T>: Spanned<T> = <l:@L> <inner:T> <r:@R> => Meta { meta: (l, r - l), inner };

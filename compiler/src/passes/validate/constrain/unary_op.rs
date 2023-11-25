@@ -1,5 +1,5 @@
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Meta, Span, UnaryOp};
+use crate::passes::parse::{Meta, Span, Spanned, UnaryOp};
 use crate::passes::validate::constrain::expr;
 use crate::passes::validate::constrain::uncover_globals::Env;
 use crate::passes::validate::error::TypeError;
@@ -9,13 +9,13 @@ pub fn constrain_unary_op<'p>(
     env: &mut Env<'_, 'p>,
     span: Span,
     op: UnaryOp,
-    expr: Box<Meta<Span, ExprUniquified<'p>>>,
+    expr: Spanned<ExprUniquified<'p>>,
 ) -> Result<Meta<CMeta, ExprConstrained<'p>>, TypeError> {
     let typ = match op {
         UnaryOp::Neg => Type::I64,
         UnaryOp::Not => Type::Bool,
     };
-    let expr = expr::constrain_expr(*expr, env)?;
+    let expr = expr::constrain_expr(expr, env)?;
 
     env.uf.expect_type(expr.meta.index, typ, |got, expect| {
         TypeError::OperandExpect {

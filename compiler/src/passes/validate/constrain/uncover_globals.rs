@@ -1,5 +1,5 @@
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Def, Meta, Span, TypeDef};
+use crate::passes::parse::{Def, Spanned, TypeDef};
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::partial_type::PartialType;
 use crate::passes::validate::uniquify::{PrgUniquified, BUILT_INS};
@@ -13,7 +13,7 @@ pub struct Env<'a, 'p> {
     pub uf: &'a mut UnionFind<PartialType<'p>>,
     pub scope: &'a mut HashMap<UniqueSym<'p>, EnvEntry<'p>>,
     pub loop_type: Option<UnionIndex>,
-    pub return_type: &'a Meta<Span, UnionIndex>,
+    pub return_type: &'a Spanned<UnionIndex>,
 }
 
 pub enum EnvEntry<'p> {
@@ -22,7 +22,7 @@ pub enum EnvEntry<'p> {
         typ: UnionIndex,
     },
     Def {
-        def: TypeDef<Meta<Span, UniqueSym<'p>>, Meta<Span, &'p str>>,
+        def: TypeDef<Spanned<UniqueSym<'p>>, Spanned<&'p str>>,
     },
 }
 

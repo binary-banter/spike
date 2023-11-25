@@ -1,5 +1,5 @@
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Meta, Span};
+use crate::passes::parse::{Spanned};
 use crate::passes::validate::constrain::def::constrain_def;
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::partial_type::PartialType;
@@ -68,7 +68,7 @@ impl<'p> UnionFind<PartialType<'p>> {
     pub fn expect_type(
         &mut self,
         a: UnionIndex,
-        t: Type<Meta<Span, UniqueSym<'p>>>,
+        t: Type<Spanned<UniqueSym<'p>>>,
         map_err: impl FnOnce(String, String) -> TypeError,
     ) -> Result<UnionIndex, TypeError> {
         let t_index = self.type_to_index(t);
@@ -85,7 +85,7 @@ impl<'p> UnionFind<PartialType<'p>> {
         self.expect_equal(a, t_index, map_err)
     }
 
-    pub fn type_to_index(&mut self, t: Type<Meta<Span, UniqueSym<'p>>>) -> UnionIndex {
+    pub fn type_to_index(&mut self, t: Type<Spanned<UniqueSym<'p>>>) -> UnionIndex {
         let pt = match t {
             Type::I64 => PartialType::I64,
             Type::U64 => PartialType::U64,

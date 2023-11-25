@@ -1,14 +1,14 @@
 use crate::passes::atomize::{AExpr, Atom};
 use crate::passes::explicate::explicate::Env;
 use crate::passes::explicate::{explicate_pred, CExpr, CTail};
-use crate::passes::parse::types::Type;
-use crate::passes::parse::Meta;
+
+use crate::passes::parse::{Meta, Typed};
 use crate::passes::validate::TLit;
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 
 pub fn explicate_assign<'p>(
     sym: UniqueSym<'p>,
-    bnd: Meta<Type<UniqueSym<'p>>, AExpr<'p>>,
+    bnd: Typed<'p, AExpr<'p>>,
     tail: CTail<'p>,
     env: &mut Env<'_, 'p>,
 ) -> CTail<'p> {

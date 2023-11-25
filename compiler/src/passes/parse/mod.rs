@@ -16,6 +16,7 @@ use functor_derive::Functor;
 use itertools::Itertools;
 use std::fmt::Display;
 use types::Type;
+use crate::utils::gen_sym::UniqueSym;
 
 /// A parsed program with global definitions and an entry point.
 #[derive(Display)]
@@ -47,8 +48,8 @@ pub enum Def<IdentVars, IdentFields, Expr> {
     },
 }
 
-pub type DefParsed<'p> = Def<Meta<Span, &'p str>, Meta<Span, &'p str>, Meta<Span, ExprParsed<'p>>>;
-pub type ExprParsed<'p> = Expr<Meta<Span, &'p str>, Meta<Span, &'p str>, Lit<'p>, Span>;
+pub type DefParsed<'p> = Def<Spanned<&'p str>, Spanned<&'p str>, Spanned<ExprParsed<'p>>>;
+pub type ExprParsed<'p> = Expr<Spanned<&'p str>, Spanned<&'p str>, Lit<'p>, Span>;
 
 #[derive(Clone, Debug)]
 pub enum TypeDef<IdentVars, IdentFields> {
@@ -248,6 +249,9 @@ pub struct Meta<M, B> {
     pub meta: M,
     pub inner: B,
 }
+
+pub type Spanned<T> = Meta<Span, T>;
+pub type Typed<'p, T> = Meta<Type<UniqueSym<'p>>, T>;
 
 impl<M, B> Functor<B> for Meta<M, B> {
     type Target<T> = Meta<M, T>;

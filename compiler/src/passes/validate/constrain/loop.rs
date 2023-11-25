@@ -1,4 +1,4 @@
-use crate::passes::parse::{Meta, Span};
+use crate::passes::parse::{Meta, Span, Spanned};
 use crate::passes::validate::constrain::expr;
 use crate::passes::validate::constrain::uncover_globals::Env;
 use crate::passes::validate::error::TypeError;
@@ -8,7 +8,7 @@ use crate::passes::validate::{CMeta, ExprConstrained, ExprUniquified};
 pub fn constrain_loop<'p>(
     env: &mut Env<'_, 'p>,
     span: Span,
-    bdy: Box<Meta<Span, ExprUniquified<'p>>>,
+    bdy: Spanned<ExprUniquified<'p>>,
 ) -> Result<Meta<CMeta, ExprConstrained<'p>>, TypeError> {
     let loop_type = env.uf.add(PartialType::Never);
 
@@ -19,7 +19,7 @@ pub fn constrain_loop<'p>(
         return_type: env.return_type,
     };
 
-    let bdy = expr::constrain_expr(*bdy, &mut env)?;
+    let bdy = expr::constrain_expr(bdy, &mut env)?;
 
     Ok(Meta {
         meta: CMeta {

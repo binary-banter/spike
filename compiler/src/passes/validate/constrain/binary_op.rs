@@ -1,4 +1,4 @@
-use crate::passes::parse::{BinaryOp, Meta, Span};
+use crate::passes::parse::{BinaryOp, Meta, Span, Spanned};
 use crate::passes::validate::constrain::expr;
 use crate::passes::validate::constrain::uncover_globals::Env;
 use crate::passes::validate::error::TypeError;
@@ -9,8 +9,8 @@ pub fn constrain_binary_op<'p>(
     env: &mut Env<'_, 'p>,
     span: Span,
     op: BinaryOp,
-    lhs: Box<Meta<Span, ExprUniquified<'p>>>,
-    rhs: Box<Meta<Span, ExprUniquified<'p>>>,
+    lhs: Spanned<ExprUniquified<'p>>,
+    rhs: Spanned<ExprUniquified<'p>>,
 ) -> Result<Meta<CMeta, ExprConstrained<'p>>, TypeError> {
     // input: None = Any but equal, Some = expect this
     // output: None = Same as input, Some = this
@@ -25,8 +25,8 @@ pub fn constrain_binary_op<'p>(
         BinaryOp::EQ | BinaryOp::NE => (None, Some(PartialType::Bool)),
     };
 
-    let e1 = expr::constrain_expr(*lhs, env)?;
-    let e2 = expr::constrain_expr(*rhs, env)?;
+    let e1 = expr::constrain_expr(lhs, env)?;
+    let e2 = expr::constrain_expr(rhs, env)?;
 
     // Check inputs satisfy constraints
     if let Some(input) = input {

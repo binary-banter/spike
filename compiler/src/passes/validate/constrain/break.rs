@@ -1,4 +1,4 @@
-use crate::passes::parse::{Meta, Span};
+use crate::passes::parse::{Meta, Span, Spanned};
 use crate::passes::validate::constrain::expr;
 use crate::passes::validate::constrain::uncover_globals::Env;
 use crate::passes::validate::error::TypeError;
@@ -8,13 +8,13 @@ use crate::passes::validate::{CMeta, ExprConstrained, ExprUniquified};
 pub fn constrain_break<'p>(
     env: &mut Env<'_, 'p>,
     span: Span,
-    bdy: Box<Meta<Span, ExprUniquified<'p>>>,
+    bdy: Spanned<ExprUniquified<'p>>,
 ) -> Result<Meta<CMeta, ExprConstrained<'p>>, TypeError> {
     let Some(loop_type) = env.loop_type else {
         return Err(TypeError::BreakOutsideLoop { span });
     };
 
-    let bdy = expr::constrain_expr(*bdy, env)?;
+    let bdy = expr::constrain_expr(bdy, env)?;
     env.uf
         .expect_equal(bdy.meta.index, loop_type, |got, expect| {
             TypeError::MismatchedLoop {

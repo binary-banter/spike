@@ -2,8 +2,8 @@ pub mod reveal;
 #[cfg(test)]
 mod tests;
 
-use crate::passes::parse::types::Type;
-use crate::passes::parse::{BinaryOp, Def, Meta, UnaryOp};
+
+use crate::passes::parse::{BinaryOp, Def, Meta, Typed, UnaryOp};
 use crate::passes::select::std_lib::Std;
 use crate::passes::validate::{DefValidated, ExprValidated, PrgValidated, TLit};
 use crate::utils::gen_sym::UniqueSym;
@@ -16,7 +16,7 @@ pub struct PrgRevealed<'p> {
     pub std: Std<'p>,
 }
 
-pub type DefRevealed<'p> = Def<UniqueSym<'p>, &'p str, Meta<Type<UniqueSym<'p>>, RExpr<'p>>>;
+pub type DefRevealed<'p> = Def<UniqueSym<'p>, &'p str, Typed<'p, RExpr<'p>>>;
 
 pub enum RExpr<'p> {
     Lit {
@@ -30,50 +30,50 @@ pub enum RExpr<'p> {
     },
     BinaryOp {
         op: BinaryOp,
-        exprs: [Box<Meta<Type<UniqueSym<'p>>, RExpr<'p>>>; 2],
+        exprs: [Box<Typed<'p, RExpr<'p>>>; 2],
     },
     UnaryOp {
         op: UnaryOp,
-        expr: Box<Meta<Type<UniqueSym<'p>>, RExpr<'p>>>,
+        expr: Box<Typed<'p, RExpr<'p>>>,
     },
     Let {
         sym: UniqueSym<'p>,
-        bnd: Box<Meta<Type<UniqueSym<'p>>, RExpr<'p>>>,
-        bdy: Box<Meta<Type<UniqueSym<'p>>, RExpr<'p>>>,
+        bnd: Box<Typed<'p, RExpr<'p>>>,
+        bdy: Box<Typed<'p, RExpr<'p>>>,
     },
     If {
-        cnd: Box<Meta<Type<UniqueSym<'p>>, RExpr<'p>>>,
-        thn: Box<Meta<Type<UniqueSym<'p>>, RExpr<'p>>>,
-        els: Box<Meta<Type<UniqueSym<'p>>, RExpr<'p>>>,
+        cnd: Box<Typed<'p, RExpr<'p>>>,
+        thn: Box<Typed<'p, RExpr<'p>>>,
+        els: Box<Typed<'p, RExpr<'p>>>,
     },
     Apply {
-        fun: Box<Meta<Type<UniqueSym<'p>>, RExpr<'p>>>,
-        args: Vec<Meta<Type<UniqueSym<'p>>, RExpr<'p>>>,
+        fun: Box<Typed<'p, RExpr<'p>>>,
+        args: Vec<Typed<'p, RExpr<'p>>>,
     },
     Loop {
-        bdy: Box<Meta<Type<UniqueSym<'p>>, RExpr<'p>>>,
+        bdy: Box<Typed<'p, RExpr<'p>>>,
     },
     Break {
-        bdy: Box<Meta<Type<UniqueSym<'p>>, RExpr<'p>>>,
+        bdy: Box<Typed<'p, RExpr<'p>>>,
     },
     Return {
-        bdy: Box<Meta<Type<UniqueSym<'p>>, RExpr<'p>>>,
+        bdy: Box<Typed<'p, RExpr<'p>>>,
     },
     Continue,
     Seq {
-        stmt: Box<Meta<Type<UniqueSym<'p>>, RExpr<'p>>>,
-        cnt: Box<Meta<Type<UniqueSym<'p>>, RExpr<'p>>>,
+        stmt: Box<Typed<'p, RExpr<'p>>>,
+        cnt: Box<Typed<'p, RExpr<'p>>>,
     },
     Assign {
         sym: UniqueSym<'p>,
-        bnd: Box<Meta<Type<UniqueSym<'p>>, RExpr<'p>>>,
+        bnd: Box<Typed<'p, RExpr<'p>>>,
     },
     Struct {
         sym: UniqueSym<'p>,
-        fields: Vec<(&'p str, Meta<Type<UniqueSym<'p>>, RExpr<'p>>)>,
+        fields: Vec<(&'p str, Typed<'p, RExpr<'p>>)>,
     },
     AccessField {
-        strct: Box<Meta<Type<UniqueSym<'p>>, RExpr<'p>>>,
+        strct: Box<Typed<'p, RExpr<'p>>>,
         field: &'p str,
     },
 }
@@ -111,10 +111,10 @@ impl<'p> From<DefRevealed<'p>> for DefValidated<'p> {
     }
 }
 
-impl<'p> From<Meta<Type<UniqueSym<'p>>, RExpr<'p>>>
-    for Meta<Type<UniqueSym<'p>>, ExprValidated<'p>>
+impl<'p> From<Typed<'p, RExpr<'p>>>
+    for Typed<'p, ExprValidated<'p>>
 {
-    fn from(value: Meta<Type<UniqueSym<'p>>, RExpr<'p>>) -> Self {
+    fn from(value: Typed<'p, RExpr<'p>>) -> Self {
         let inner = match value.inner {
             RExpr::Lit { val } => ExprValidated::Lit { val },
             RExpr::BinaryOp { op, exprs } => ExprValidated::BinaryOp {
