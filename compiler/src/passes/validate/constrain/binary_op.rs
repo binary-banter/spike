@@ -1,9 +1,9 @@
-use crate::passes::parse::{BinaryOp, Meta, Span, Spanned};
+use crate::passes::parse::{BinaryOp, Constrained, Meta, Span, Spanned};
 use crate::passes::validate::constrain::expr;
 use crate::passes::validate::constrain::uncover_globals::Env;
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::partial_type::PartialType;
-use crate::passes::validate::{CMeta, ExprConstrained, ExprUniquified};
+use crate::passes::validate::{ExprConstrained, ExprUniquified, MetaConstrained};
 
 pub fn constrain_binary_op<'p>(
     env: &mut Env<'_, 'p>,
@@ -11,7 +11,7 @@ pub fn constrain_binary_op<'p>(
     op: BinaryOp,
     lhs: Spanned<ExprUniquified<'p>>,
     rhs: Spanned<ExprUniquified<'p>>,
-) -> Result<Meta<CMeta, ExprConstrained<'p>>, TypeError> {
+) -> Result<Constrained<ExprConstrained<'p>>, TypeError> {
     // input: None = Any but equal, Some = expect this
     // output: None = Same as input, Some = this
     let (input, output) = match op {
@@ -30,7 +30,7 @@ pub fn constrain_binary_op<'p>(
 
     // Check inputs satisfy constraints
     if let Some(input) = input {
-        let mut check = |expr: &Meta<CMeta, ExprConstrained<'p>>| {
+        let mut check = |expr: &Constrained<ExprConstrained<'p>>| {
             env.uf
                 .expect_partial_type(expr.meta.index, input.clone(), |got, expect| {
                     TypeError::OperandExpect {
@@ -68,7 +68,7 @@ pub fn constrain_binary_op<'p>(
     };
 
     Ok(Meta {
-        meta: CMeta {
+        meta: MetaConstrained {
             span,
             index: output_index,
         },

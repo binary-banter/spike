@@ -11,6 +11,7 @@ mod tests;
 pub mod types;
 
 use crate::passes::validate::partial_type::PartialType;
+use crate::passes::validate::MetaConstrained;
 use crate::utils::gen_sym::UniqueSym;
 use derive_more::Display;
 use functor_derive::Functor;
@@ -251,6 +252,7 @@ pub struct Meta<M, B> {
 }
 
 pub type Spanned<T> = Meta<Span, T>;
+pub type Constrained<T> = Meta<MetaConstrained, T>;
 pub type Typed<'p, T> = Meta<Type<UniqueSym<'p>>, T>;
 
 impl<M, B> Functor<B> for Meta<M, B> {

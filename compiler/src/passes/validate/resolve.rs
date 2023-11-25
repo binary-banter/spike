@@ -1,10 +1,10 @@
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Expr, Lit, Meta, Param, Spanned, TypeDef, Typed};
+use crate::passes::parse::{Constrained, Expr, Lit, Meta, Param, Spanned, TypeDef, Typed};
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::partial_type::PartialType;
 use crate::passes::validate::{
-    CMeta, DefConstrained, DefValidated, ExprConstrained, ExprValidated, PrgConstrained,
-    PrgValidated, TLit,
+    DefConstrained, DefValidated, ExprConstrained, ExprValidated, PrgConstrained, PrgValidated,
+    TLit,
 };
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};
@@ -104,7 +104,7 @@ fn partial_type_to_type<'p>(
 }
 
 fn resolve_expr<'p>(
-    expr: Meta<CMeta, ExprConstrained<'p>>,
+    expr: Constrained<ExprConstrained<'p>>,
     uf: &mut UnionFind<PartialType<'p>>,
 ) -> Result<Typed<'p, ExprValidated<'p>>, TypeError> {
     // Type of the expression, if `None` then type is still ambiguous.

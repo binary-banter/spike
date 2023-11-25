@@ -1,10 +1,10 @@
-use crate::passes::parse::{Meta, Span, Spanned};
+use crate::passes::parse::{Constrained, Meta, Span, Spanned};
 use crate::passes::validate::constrain::expr;
 use crate::passes::validate::constrain::uncover_globals::{Env, EnvEntry};
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::error::TypeError::MismatchedAssignBinding;
 use crate::passes::validate::partial_type::PartialType;
-use crate::passes::validate::{CMeta, ExprConstrained, ExprUniquified};
+use crate::passes::validate::{ExprConstrained, ExprUniquified, MetaConstrained};
 use crate::utils::expect::expect;
 use crate::utils::gen_sym::UniqueSym;
 
@@ -13,7 +13,7 @@ pub fn constrain_assign<'p>(
     span: Span,
     sym: Spanned<UniqueSym<'p>>,
     bnd: Spanned<ExprUniquified<'p>>,
-) -> Result<Meta<CMeta, ExprConstrained<'p>>, TypeError> {
+) -> Result<Constrained<ExprConstrained<'p>>, TypeError> {
     let bnd = expr::constrain_expr(bnd, env)?;
 
     let EnvEntry::Type { mutable, typ } = env.scope[&sym.inner] else {
@@ -35,7 +35,7 @@ pub fn constrain_assign<'p>(
     let typ = env.uf.add(PartialType::Unit);
 
     Ok(Meta {
-        meta: CMeta { span, index: typ },
+        meta: MetaConstrained { span, index: typ },
         inner: ExprConstrained::Assign {
             sym,
             bnd: Box::new(bnd),

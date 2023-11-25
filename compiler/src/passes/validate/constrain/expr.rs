@@ -1,4 +1,4 @@
-use crate::passes::parse::{Expr, Meta, Spanned};
+use crate::passes::parse::{Constrained, Expr, Spanned};
 use crate::passes::validate::constrain::access_field::constrain_access_field;
 use crate::passes::validate::constrain::apply::constrain_apply;
 use crate::passes::validate::constrain::assign::constrain_assign;
@@ -16,12 +16,12 @@ use crate::passes::validate::constrain::unary_op::constrain_unary_op;
 use crate::passes::validate::constrain::uncover_globals::Env;
 use crate::passes::validate::constrain::var::constrain_var;
 use crate::passes::validate::error::TypeError;
-use crate::passes::validate::{CMeta, ExprConstrained, ExprUniquified};
+use crate::passes::validate::{ExprConstrained, ExprUniquified};
 
 pub fn constrain_expr<'p>(
     expr: Spanned<ExprUniquified<'p>>,
     env: &mut Env<'_, 'p>,
-) -> Result<Meta<CMeta, ExprConstrained<'p>>, TypeError> {
+) -> Result<Constrained<ExprConstrained<'p>>, TypeError> {
     let span = expr.meta;
 
     match expr.inner {

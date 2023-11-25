@@ -1,16 +1,16 @@
-use crate::passes::parse::{Meta, Span, Spanned, TypeDef};
+use crate::passes::parse::{Constrained, Meta, Span, Spanned, TypeDef};
 use crate::passes::validate::constrain::expr::constrain_expr;
 use crate::passes::validate::constrain::uncover_globals::{Env, EnvEntry};
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::partial_type::PartialType;
-use crate::passes::validate::{CMeta, ExprConstrained, ExprUniquified};
+use crate::passes::validate::{ExprConstrained, ExprUniquified, MetaConstrained};
 
 pub fn constrain_access_field<'p>(
     env: &mut Env<'_, 'p>,
     span: Span,
     strct: Spanned<ExprUniquified<'p>>,
     field: Spanned<&'p str>,
-) -> Result<Meta<CMeta, ExprConstrained<'p>>, TypeError> {
+) -> Result<Constrained<ExprConstrained<'p>>, TypeError> {
     let strct = constrain_expr(strct, env)?;
 
     let PartialType::Var { sym } = env.uf.get(strct.meta.index) else {
@@ -39,7 +39,7 @@ pub fn constrain_access_field<'p>(
 
     let index = env.uf.type_to_index(typ.clone());
     Ok(Meta {
-        meta: CMeta { span, index },
+        meta: MetaConstrained { span, index },
         inner: ExprConstrained::AccessField {
             strct: Box::new(strct),
             field,

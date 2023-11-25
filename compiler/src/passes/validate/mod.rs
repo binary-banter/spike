@@ -10,7 +10,7 @@ mod uniquify;
 pub mod validate;
 
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Def, Expr, Lit, Meta, Span, Spanned, Typed};
+use crate::passes::parse::{Constrained, Def, Expr, Lit, Span, Spanned, Typed};
 use crate::passes::select::std_lib::Std;
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};
@@ -37,14 +37,15 @@ pub type DefValidated<'p> = Def<UniqueSym<'p>, &'p str, Typed<'p, ExprValidated<
 pub type ExprValidated<'p> = Expr<UniqueSym<'p>, &'p str, TLit, Type<UniqueSym<'p>>>;
 
 pub type DefConstrained<'p> =
-    Def<Spanned<UniqueSym<'p>>, Spanned<&'p str>, Meta<CMeta, ExprConstrained<'p>>>;
-pub type ExprConstrained<'p> = Expr<Spanned<UniqueSym<'p>>, Spanned<&'p str>, Lit<'p>, CMeta>;
+    Def<Spanned<UniqueSym<'p>>, Spanned<&'p str>, Constrained<ExprConstrained<'p>>>;
+pub type ExprConstrained<'p> =
+    Expr<Spanned<UniqueSym<'p>>, Spanned<&'p str>, Lit<'p>, MetaConstrained>;
 
 pub type DefUniquified<'p> =
     Def<Spanned<UniqueSym<'p>>, Spanned<&'p str>, Spanned<ExprUniquified<'p>>>;
 pub type ExprUniquified<'p> = Expr<Spanned<UniqueSym<'p>>, Spanned<&'p str>, Lit<'p>, Span>;
 
-pub struct CMeta {
+pub struct MetaConstrained {
     pub span: Span,
     pub index: UnionIndex,
 }

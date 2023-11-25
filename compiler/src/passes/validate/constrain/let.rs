@@ -1,9 +1,9 @@
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Meta, Span, Spanned};
+use crate::passes::parse::{Constrained, Meta, Span, Spanned};
 use crate::passes::validate::constrain::expr;
 use crate::passes::validate::constrain::uncover_globals::{Env, EnvEntry};
 use crate::passes::validate::error::TypeError;
-use crate::passes::validate::{CMeta, ExprConstrained, ExprUniquified};
+use crate::passes::validate::{ExprConstrained, ExprUniquified, MetaConstrained};
 use crate::utils::gen_sym::UniqueSym;
 
 pub fn constrain_let<'p>(
@@ -14,7 +14,7 @@ pub fn constrain_let<'p>(
     typ: Option<Type<Spanned<UniqueSym<'p>>>>,
     bnd: Spanned<ExprUniquified<'p>>,
     bdy: Spanned<ExprUniquified<'p>>,
-) -> Result<Meta<CMeta, ExprConstrained<'p>>, TypeError> {
+) -> Result<Constrained<ExprConstrained<'p>>, TypeError> {
     let bnd = expr::constrain_expr(bnd, env)?;
 
     if let Some(typ) = &typ {
@@ -37,7 +37,7 @@ pub fn constrain_let<'p>(
     let bdy = expr::constrain_expr(bdy, env)?;
 
     Ok(Meta {
-        meta: CMeta {
+        meta: MetaConstrained {
             span,
             index: bdy.meta.index,
         },

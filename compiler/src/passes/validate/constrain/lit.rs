@@ -1,14 +1,14 @@
-use crate::passes::parse::{Lit, Meta, Span};
+use crate::passes::parse::{Constrained, Lit, Meta, Span};
 use crate::passes::validate::constrain::uncover_globals::Env;
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::partial_type::PartialType;
-use crate::passes::validate::{CMeta, ExprConstrained};
+use crate::passes::validate::{ExprConstrained, MetaConstrained};
 
 pub fn constrain_lit<'p>(
     env: &mut Env<'_, 'p>,
     span: Span,
     val: Lit<'p>,
-) -> Result<Meta<CMeta, ExprConstrained<'p>>, TypeError> {
+) -> Result<Constrained<ExprConstrained<'p>>, TypeError> {
     // Get the type of the literal.
     let typ = match &val {
         Lit::Int { typ, .. } => {
@@ -23,7 +23,7 @@ pub fn constrain_lit<'p>(
     let index = env.uf.add(typ);
 
     Ok(Meta {
-        meta: CMeta { span, index },
+        meta: MetaConstrained { span, index },
         inner: ExprConstrained::Lit { val },
     })
 }
