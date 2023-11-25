@@ -42,7 +42,7 @@ impl<'p> EVal<'p> {
     }
 }
 
-impl<'p> From<EVal<'p>> for Val<'p, UniqueSym<'p>> {
+impl<'p> From<EVal<'p>> for Val<'p> {
     fn from(value: EVal<'p>) -> Self {
         match value {
             EVal::Int { val } => Val::Int { val },

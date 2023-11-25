@@ -43,6 +43,7 @@ impl<'p> PrgUniquified<'p> {
                 .collect::<Result<_, _>>()?,
             entry: self.entry,
             uf,
+            std: self.std,
         })
     }
 }

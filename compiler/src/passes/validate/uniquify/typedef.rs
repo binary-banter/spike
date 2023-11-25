@@ -1,8 +1,8 @@
 use crate::passes::parse::{Def, Meta, Span, TypeDef};
-use crate::passes::validate::DefUniquified;
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::uniquify::r#type::uniquify_type;
 use crate::passes::validate::uniquify::try_get;
+use crate::passes::validate::DefUniquified;
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::push_map::PushMap;
 

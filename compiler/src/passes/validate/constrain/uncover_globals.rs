@@ -1,13 +1,13 @@
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, Meta, Span, TypeDef};
+use crate::passes::validate::error::TypeError;
 use crate::passes::validate::partial_type::PartialType;
+use crate::passes::validate::uniquify::{PrgUniquified, BUILT_INS};
 use crate::passes::validate::DefUniquified;
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};
-use std::collections::{HashMap, HashSet};
 use itertools::Itertools;
-use crate::passes::validate::error::TypeError;
-use crate::passes::validate::uniquify::{BUILT_INS, PrgUniquified};
+use std::collections::{HashMap, HashSet};
 
 pub struct Env<'a, 'p> {
     pub uf: &'a mut UnionFind<PartialType<'p>>,
@@ -54,7 +54,10 @@ pub fn uncover_globals<'p>(
 
     // Check for duplicate global names. Names from the standard library are inserted with `None` for its span.
     // todo: Later on this should be replaced by a module system, so that we can span the `use` statement.
-    let mut seen = builtins.iter().map(|(sym, _)| (sym.sym, None)).collect::<HashMap<_, _>>();
+    let mut seen = builtins
+        .iter()
+        .map(|(sym, _)| (sym.sym, None))
+        .collect::<HashMap<_, _>>();
 
     for def in &program.defs {
         let sym = def.sym();
@@ -69,7 +72,7 @@ pub fn uncover_globals<'p>(
                 None => TypeError::DuplicateGlobalBuiltin {
                     span: sym.meta,
                     sym: sym.inner.sym.to_string(),
-                }
+                },
             };
 
             return Err(error);

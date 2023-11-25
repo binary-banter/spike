@@ -1,12 +1,13 @@
 mod check_sized;
 mod constrain;
 pub mod error;
+pub mod interpreter;
 pub mod partial_type;
 mod resolve;
 #[cfg(test)]
 mod tests;
-pub mod validate;
 mod uniquify;
+pub mod validate;
 
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, Expr, Lit, Meta, Span};
@@ -16,17 +17,20 @@ use derive_more::Display;
 use partial_type::PartialType;
 use std::collections::HashMap;
 use std::str::FromStr;
+use crate::passes::select::io::Std;
 
 #[derive(Debug)]
 pub struct PrgValidated<'p> {
     pub defs: HashMap<UniqueSym<'p>, DefValidated<'p>>,
     pub entry: UniqueSym<'p>,
+    pub std: Std<'p>,
 }
 
 pub struct PrgConstrained<'p> {
     pub defs: HashMap<UniqueSym<'p>, DefConstrained<'p>>,
     pub entry: UniqueSym<'p>,
     pub uf: UnionFind<PartialType<'p>>,
+    pub std: Std<'p>,
 }
 
 pub type DefValidated<'p> =

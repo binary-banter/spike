@@ -6,16 +6,16 @@ use crate::utils::gen_sym::UniqueSym;
 use crate::utils::push_map::PushMap;
 
 impl<'p> PrgExplicated<'p> {
-    pub fn interpret(&self, io: &mut impl IO) -> Val<'p, UniqueSym<'p>> {
+    pub fn interpret(&self, io: &mut impl IO) -> Val<'p> {
         self.interpret_tail(&self.blocks[&self.entry], &mut PushMap::default(), io)
     }
 
     fn interpret_tail(
         &self,
         tail: &CTail<'p>,
-        scope: &mut PushMap<UniqueSym<'p>, Val<'p, UniqueSym<'p>>>,
+        scope: &mut PushMap<UniqueSym<'p>, Val<'p>>,
         io: &mut impl IO,
-    ) -> Val<'p, UniqueSym<'p>> {
+    ) -> Val<'p> {
         match tail {
             CTail::Return { expr, .. } => self.interpret_atom(expr, scope),
             CTail::Seq { sym, bnd, tail } => {
@@ -36,9 +36,9 @@ impl<'p> PrgExplicated<'p> {
     pub fn interpret_expr(
         &self,
         _expr: &CExpr<'p>,
-        _scope: &mut PushMap<UniqueSym<'p>, Val<'p, UniqueSym<'p>>>,
+        _scope: &mut PushMap<UniqueSym<'p>, Val<'p>>,
         _io: &mut impl IO,
-    ) -> Val<'p, UniqueSym<'p>> {
+    ) -> Val<'p> {
         todo!()
         // match expr {
         //     CExpr::Prim { op, args, .. } => match (op, args.as_slice()) {
@@ -168,8 +168,8 @@ impl<'p> PrgExplicated<'p> {
     pub fn interpret_atom(
         &self,
         atom: &Atom<'p>,
-        scope: &PushMap<UniqueSym<'p>, Val<'p, UniqueSym<'p>>>,
-    ) -> Val<'p, UniqueSym<'p>> {
+        scope: &PushMap<UniqueSym<'p>, Val<'p>>,
+    ) -> Val<'p> {
         match atom {
             Atom::Val { val } => (*val).into(),
             Atom::Var { sym } => scope[sym].clone(),

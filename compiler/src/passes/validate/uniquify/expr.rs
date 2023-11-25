@@ -1,8 +1,8 @@
 use crate::passes::parse::{Expr, ExprParsed, Meta, Span};
 use crate::passes::validate::error::TypeError;
-use crate::passes::validate::{ExprUniquified, uniquify};
 use crate::passes::validate::uniquify::gen_spanned_sym;
 use crate::passes::validate::uniquify::r#type::uniquify_type;
+use crate::passes::validate::{uniquify, ExprUniquified};
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::push_map::PushMap;
 

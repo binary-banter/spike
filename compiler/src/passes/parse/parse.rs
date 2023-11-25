@@ -1,11 +1,14 @@
 use crate::passes::parse::grammar::ProgramParser;
 use crate::passes::parse::PrgParsed;
+#[cfg(test)]
+use derive_name::VariantName;
 use itertools::Itertools;
 use lalrpop_util::lexer::Token;
 use lalrpop_util::ParseError;
 use miette::Diagnostic;
 use thiserror::Error;
 
+#[cfg_attr(test, derive(VariantName))]
 #[derive(Error, Debug, Diagnostic)]
 pub enum PrettyParseError {
     #[error("Parse error: Invalid token.")]

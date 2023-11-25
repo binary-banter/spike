@@ -1,5 +1,5 @@
-use crate::passes::parse::{Meta, Span};
 use crate::passes::parse::types::Type;
+use crate::passes::parse::{Meta, Span};
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::uniquify::try_get;
 use crate::utils::gen_sym::UniqueSym;

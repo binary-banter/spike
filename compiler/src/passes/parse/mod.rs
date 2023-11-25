@@ -5,7 +5,6 @@
 #[allow(clippy::all, clippy::pedantic)]
 mod grammar;
 mod display;
-pub mod interpreter;
 pub mod parse;
 #[cfg(test)]
 mod tests;

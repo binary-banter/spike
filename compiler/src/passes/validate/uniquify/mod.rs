@@ -1,19 +1,19 @@
-use std::collections::HashMap;
-use once_cell::sync::Lazy;
-use crate::passes::parse::{Meta, PrgParsed, Span};
 use crate::passes::parse::types::Type;
+use crate::passes::parse::{Meta, PrgParsed, Span};
 use crate::passes::select::io::Std;
 use crate::passes::validate::error::TypeError;
-use crate::passes::validate::DefUniquified;
 use crate::passes::validate::error::TypeError::{NoMain, UndeclaredVar};
+use crate::passes::validate::DefUniquified;
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use crate::utils::push_map::PushMap;
+use once_cell::sync::Lazy;
+use std::collections::HashMap;
 
-mod typedef;
+mod def;
+mod expr;
 mod r#fn;
 mod r#type;
-mod expr;
-mod def;
+mod typedef;
 
 pub struct PrgUniquified<'p> {
     /// The global program definitions.
