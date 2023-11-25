@@ -1,17 +1,17 @@
 use crate::passes::parse::{Meta, Span, TypeDef};
-use crate::passes::validate::constrain::expr;
 use crate::passes::validate::constrain::uncover_globals::{Env, EnvEntry};
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::partial_type::PartialType;
 use crate::passes::validate::{CMeta, ExprConstrained, ExprUniquified};
+use crate::passes::validate::constrain::expr::constrain_expr;
 
 pub fn constrain_access_field<'p>(
     env: &mut Env<'_, 'p>,
     span: Span,
-    strct: Box<Meta<Span, ExprUniquified<'p>>>,
+    strct: Meta<Span, ExprUniquified<'p>>,
     field: Meta<Span, &'p str>,
 ) -> Result<Meta<CMeta, ExprConstrained<'p>>, TypeError> {
-    let strct = expr::constrain_expr(*strct, env)?;
+    let strct = constrain_expr(strct, env)?;
 
     let PartialType::Var { sym } = env.uf.get(strct.meta.index) else {
         return Err(TypeError::SymbolShouldBeStruct {

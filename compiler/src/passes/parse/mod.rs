@@ -108,6 +108,7 @@ pub enum Expr<IdentVars, IdentFields, Lit, M> {
     },
     BinaryOp {
         op: BinaryOp,
+        #[allow(clippy::type_complexity)]
         exprs: [Box<Meta<M, Expr<IdentVars, IdentFields, Lit, M>>>; 2],
     },
     UnaryOp {
@@ -207,6 +208,7 @@ pub enum Expr<IdentVars, IdentFields, Lit, M> {
     /// todo: documentation
     Struct {
         sym: IdentVars,
+        #[allow(clippy::type_complexity)]
         fields: Vec<(IdentFields, Meta<M, Expr<IdentVars, IdentFields, Lit, M>>)>,
     },
     /// A variant of an enum.

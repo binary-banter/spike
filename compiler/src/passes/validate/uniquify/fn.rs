@@ -3,7 +3,7 @@ use crate::passes::parse::{Def, ExprParsed, Meta, Param, Span};
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::uniquify::expr::uniquify_expr;
 use crate::passes::validate::uniquify::r#type::uniquify_type;
-use crate::passes::validate::uniquify::{expr, gen_spanned_sym};
+use crate::passes::validate::uniquify::{gen_spanned_sym};
 use crate::passes::validate::{uniquify, DefUniquified};
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::push_map::PushMap;

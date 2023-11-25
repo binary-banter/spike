@@ -9,6 +9,12 @@ pub struct UnionFind<T> {
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub struct UnionIndex(usize);
 
+impl<T> Default for UnionFind<T> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<T> UnionFind<T> {
     pub fn new() -> Self {
         Self {
@@ -31,7 +37,7 @@ impl<T> UnionFind<T> {
         let i = self.parents.len();
         self.data.extend(values);
         self.parents.extend(i..self.data.len());
-        (i..self.data.len()).into_iter().map(UnionIndex)
+        (i..self.data.len()).map(UnionIndex)
     }
 
     pub fn find(&mut self, index: UnionIndex) -> UnionIndex {

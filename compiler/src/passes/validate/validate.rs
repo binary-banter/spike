@@ -6,6 +6,6 @@ impl<'p> PrgParsed<'p> {
     pub fn validate(self) -> Result<PrgValidated<'p>, TypeError> {
         let program = self.uniquify()?.constrain()?;
         program.check_sized()?;
-        Ok(program.resolve()?)
+        program.resolve()
     }
 }

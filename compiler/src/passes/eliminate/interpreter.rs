@@ -61,8 +61,8 @@ impl<'p> PrgEliminated<'p> {
                 op,
                 exprs: [lhs, rhs],
             } => {
-                let lhs = self.interpret_atom(&lhs, scope);
-                let rhs = self.interpret_atom(&rhs, scope);
+                let lhs = self.interpret_atom(lhs, scope);
+                let rhs = self.interpret_atom(rhs, scope);
                 match op {
                     BinaryOp::Add => Val::Int {
                         val: lhs.int() + rhs.int(),
@@ -105,7 +105,7 @@ impl<'p> PrgEliminated<'p> {
                 }
             }
             EExpr::UnaryOp { op, expr } => {
-                let expr = self.interpret_atom(&expr, scope);
+                let expr = self.interpret_atom(expr, scope);
                 match op {
                     UnaryOp::Neg => Val::Int { val: -expr.int() },
                     UnaryOp::Not => Val::Bool { val: !expr.bool() },
@@ -147,7 +147,7 @@ impl<'p> PrgEliminated<'p> {
                     Val::Function { sym } => {
                         let args = self.fn_params[&sym]
                             .iter()
-                            .zip(fn_args.into_iter())
+                            .zip(fn_args)
                             .map(|(param, val)| (param.sym, val));
                         return scope.push_iter(args, |scope| {
                             self.interpret_tail(&self.blocks[&sym], scope, io)

@@ -1,6 +1,6 @@
 use crate::passes::atomize::PrgAtomized;
 use crate::passes::explicate::explicate_def::explicate_def;
-use crate::passes::explicate::{explicate_def, CTail, PrgExplicated};
+use crate::passes::explicate::{CTail, PrgExplicated};
 use crate::passes::parse::Def;
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;

@@ -2,8 +2,8 @@ use crate::interpreter::Val;
 use crate::interpreter::IO;
 use crate::passes::atomize::Atom;
 use crate::passes::explicate::{CExpr, CTail, PrgExplicated};
-use crate::passes::parse::types::Type;
-use crate::passes::parse::{BinaryOp, Meta, UnaryOp};
+
+use crate::passes::parse::{BinaryOp, UnaryOp};
 use crate::passes::validate::TLit;
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::push_map::PushMap;
@@ -57,8 +57,8 @@ impl<'p> PrgExplicated<'p> {
                 op,
                 exprs: [lhs, rhs],
             } => {
-                let lhs = self.interpret_atom(&lhs, scope);
-                let rhs = self.interpret_atom(&rhs, scope);
+                let lhs = self.interpret_atom(lhs, scope);
+                let rhs = self.interpret_atom(rhs, scope);
                 match op {
                     BinaryOp::Add => Val::Int {
                         val: lhs.int() + rhs.int(),
@@ -101,7 +101,7 @@ impl<'p> PrgExplicated<'p> {
                 }
             }
             CExpr::UnaryOp { op, expr } => {
-                let expr = self.interpret_atom(&expr, scope);
+                let expr = self.interpret_atom(expr, scope);
                 match op {
                     UnaryOp::Neg => Val::Int { val: -expr.int() },
                     UnaryOp::Not => Val::Bool { val: !expr.bool() },
@@ -143,7 +143,7 @@ impl<'p> PrgExplicated<'p> {
                     Val::Function { sym } => {
                         let args = self.fn_params[&dbg!(sym)]
                             .iter()
-                            .zip(fn_args.into_iter())
+                            .zip(fn_args)
                             .map(|(param, val)| (param.sym, val));
                         scope.push_iter(args, |scope| {
                             self.interpret_tail(&self.blocks[&sym], scope, io)

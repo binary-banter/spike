@@ -6,8 +6,8 @@ use crate::passes::validate::uniquify::{PrgUniquified, BUILT_INS};
 use crate::passes::validate::DefUniquified;
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};
-use itertools::Itertools;
-use std::collections::{HashMap, HashSet};
+
+use std::collections::{HashMap};
 
 pub struct Env<'a, 'p> {
     pub uf: &'a mut UnionFind<PartialType<'p>>,
@@ -24,12 +24,6 @@ pub enum EnvEntry<'p> {
     Def {
         def: TypeDef<Meta<Span, UniqueSym<'p>>, Meta<Span, &'p str>>,
     },
-}
-
-impl<'a, 'p> Env<'a, 'p> {
-    pub fn insert<O>(&mut self, k: UniqueSym<'p>, v: EnvEntry<'p>) {
-        self.scope.insert(k, v);
-    }
 }
 
 /// Returns a `PushMap` with all the definitions (functions, structs, etc.) in scope.
