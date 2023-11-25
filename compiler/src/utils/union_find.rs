@@ -102,10 +102,6 @@ impl<T> UnionFind<T> {
         Ok(root)
     }
 
-    pub fn len(&self) -> usize {
-        self.data.len()
-    }
-
     pub fn get(&mut self, index: UnionIndex) -> &T {
         let index = self.find(index).0;
         &self.data[index]

@@ -46,6 +46,7 @@ impl<'p> PartialType<'p> {
     }
 }
 
+#[allow(clippy::result_unit_err)]
 pub fn combine_partial_types<'p>(
     a: PartialType<'p>,
     b: PartialType<'p>,

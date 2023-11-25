@@ -31,14 +31,16 @@ cargo run -- input.jj -o output && ./output ; echo $?
 # Fixes
 * [ ] Updated README, with 3 new colors!
 * [ ] Add documentation where necessary.
-* [ ] Improve error handling for parsing pass.
-* [ ] Improve error handling for type checking pass.
+* [x] Improve error handling for parsing pass.
+* [x] Improve error handling for type checking pass.
+  * [ ] Make errors prettier.
 * [ ] Improve algorithm for colouring the interference graph.
 * [ ] Add read and write functionality to the bencher to update locally.
 * [x] Lots, and lots, of refactoring!
 * [x] Write test input in comments.
 
 # Upcoming Language Features
+* [x] Type inference.
 * [x] Implement comments in code.
 * [ ] Algebraic Data Types.
   * [x] Structs.

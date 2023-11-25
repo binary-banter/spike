@@ -14,7 +14,7 @@ impl<'p> PrgExplicated<'p> {
         let std_iter = self
             .std
             .iter()
-            .map(|(_, &def)| dbg!((def, Val::StdlibFunction { sym: def.sym })));
+            .map(|(_, &def)| (def, Val::StdlibFunction { sym: def.sym }));
 
         self.interpret_tail(
             &self.blocks[&self.entry],
@@ -141,7 +141,7 @@ impl<'p> PrgExplicated<'p> {
                         }
                     }
                     Val::Function { sym } => {
-                        let args = self.fn_params[&dbg!(sym)]
+                        let args = self.fn_params[&sym]
                             .iter()
                             .zip(fn_args)
                             .map(|(param, val)| (param.sym, val));
