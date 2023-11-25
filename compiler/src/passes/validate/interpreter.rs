@@ -29,7 +29,10 @@ macro_rules! b {
 
 impl<'p> PrgValidated<'p> {
     pub fn interpret(&'p self, io: &mut impl IO) -> Val<'p> {
-        let std_iter = self.std.iter().map(|(_, &def)| (def, Val::StdlibFunction { sym: def.sym }));
+        let std_iter = self
+            .std
+            .iter()
+            .map(|(_, &def)| (def, Val::StdlibFunction { sym: def.sym }));
 
         // Create a scope with all global definitions.
         let mut scope = PushMap::from_iter(
@@ -159,27 +162,25 @@ impl<'p> PrgValidated<'p> {
                 for arg in args {
                     fn_args.push(b!(self.interpret_expr(arg, scope, io)));
                 }
-                
+
                 match fun {
-                    Val::StdlibFunction { sym} => {
+                    Val::StdlibFunction { sym } => {
                         match sym {
                             "exit" => {
                                 unreachable!("Validated programs should not have an explicit call to exit yet.")
-                            },
+                            }
                             "print" => {
                                 let val = fn_args[0].clone();
-                                io.print(TLit::I64 {
-                                    val: val.int(),
-                                });
+                                io.print(TLit::I64 { val: val.int() });
                                 val
-                            },
-                            "read" => {
-                                io.read().into()
-                            },
-                            unknown => unreachable!("Encountered an undefined standard library function '{unknown}'")
+                            }
+                            "read" => io.read().into(),
+                            unknown => unreachable!(
+                                "Encountered an undefined standard library function '{unknown}'"
+                            ),
                         }
-                    },
-                    Val::Function{ sym } => self.interpret_fn(sym, fn_args, scope, io),
+                    }
+                    Val::Function { sym } => self.interpret_fn(sym, fn_args, scope, io),
                     _ => unreachable!("The symbol did not refer to a function."),
                 }
             }

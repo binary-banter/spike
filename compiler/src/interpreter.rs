@@ -52,7 +52,7 @@ pub enum Val<'p> {
     #[display(fmt = "fn pointer `{sym}`")]
     Function { sym: UniqueSym<'p> },
     #[display(fmt = "stdlib function `{sym}`")]
-    StdlibFunction { sym: &'p str, },
+    StdlibFunction { sym: &'p str },
     #[display(fmt = "struct instance")]
     StructInstance { fields: HashMap<&'p str, Val<'p>> },
 }

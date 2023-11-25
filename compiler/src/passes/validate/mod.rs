@@ -11,13 +11,13 @@ pub mod validate;
 
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, Expr, Lit, Meta, Span};
+use crate::passes::select::io::Std;
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};
 use derive_more::Display;
 use partial_type::PartialType;
 use std::collections::HashMap;
 use std::str::FromStr;
-use crate::passes::select::io::Std;
 
 #[derive(Debug)]
 pub struct PrgValidated<'p> {

@@ -1,123 +1,129 @@
-use crate::passes::reveal::PrgRevealed;
-use crate::passes::validate::PrgValidated;
+use crate::passes::parse::types::Type;
+use crate::passes::parse::Meta;
+use crate::passes::reveal::{DefRevealed, PrgRevealed, RExpr};
+use crate::passes::validate::{DefValidated, ExprValidated, PrgValidated};
+use crate::utils::gen_sym::UniqueSym;
+use crate::utils::push_map::PushMap;
 
 impl<'p> PrgValidated<'p> {
     #[must_use]
     pub fn reveal(self) -> PrgRevealed<'p> {
-        todo!()
+        let mut scope = PushMap::from_iter(self.defs.keys().map(|s| (*s, ())));
 
-        // let mut scope = PushMap::from_iter(self.defs.keys().map(|s| (*s, ())));
-        // PrgRevealed {
-        //     defs: self
-        //         .defs
-        //         .into_iter()
-        //         .map(|(sym, def)| (sym, reveal_def(def, &mut scope)))
-        //         .collect(),
-        //     entry: self.entry,
-        // }
+        PrgRevealed {
+            defs: self
+                .defs
+                .into_iter()
+                .map(|(sym, def)| (sym, reveal_def(def, &mut scope)))
+                .collect(),
+            entry: self.entry,
+            std: self.std,
+        }
     }
 }
 
-// fn reveal_def<'p>(
-//     def: Def<UniqueSym<'p>, &'p str, TExpr<'p>>,
-//     scope: &mut PushMap<UniqueSym<'p>, ()>,
-// ) -> Def<UniqueSym<'p>, &'p str, RExpr<'p>> {
-//     match def {
-//         Def::Fn {
-//             sym,
-//             params,
-//             typ,
-//             bdy,
-//         } => Def::Fn {
-//             sym,
-//             params,
-//             typ,
-//             bdy: reveal_expr(bdy, scope),
-//         },
-//         Def::TypeDef { sym, def } => Def::TypeDef { sym, def },
-//     }
-// }
-//
-// fn reveal_expr<'p>(expr: TExpr<'p>, scope: &mut PushMap<UniqueSym<'p>, ()>) -> RExpr<'p> {
-//     match expr {
-//         TExpr::Lit { val, typ } => RExpr::Lit { val, typ },
-//         TExpr::Var { sym, typ } => {
-//             if scope.contains(&sym) {
-//                 RExpr::FunRef { sym, typ }
-//             } else {
-//                 RExpr::Var { sym, typ }
-//             }
-//         }
-//         TExpr::Prim { op, args, typ } => RExpr::Prim {
-//             op,
-//             args: args
-//                 .into_iter()
-//                 .map(|arg| reveal_expr(arg, scope))
-//                 .collect(),
-//             typ,
-//         },
-//         TExpr::Let {
-//             sym, bnd, bdy, typ, ..
-//         } => {
-//             let bnd = Box::new(reveal_expr(*bnd, scope));
-//             scope.remove(sym, |scope| RExpr::Let {
-//                 sym,
-//                 bnd,
-//                 bdy: Box::new(reveal_expr(*bdy, scope)),
-//                 typ,
-//             })
-//         }
-//         TExpr::If { cnd, thn, els, typ } => RExpr::If {
-//             cnd: Box::new(reveal_expr(*cnd, scope)),
-//             thn: Box::new(reveal_expr(*thn, scope)),
-//             els: Box::new(reveal_expr(*els, scope)),
-//             typ,
-//         },
-//         TExpr::Apply { fun, args, typ } => RExpr::Apply {
-//             fun: Box::new(reveal_expr(*fun, scope)),
-//             args: args
-//                 .into_iter()
-//                 .map(|arg| reveal_expr(arg, scope))
-//                 .collect(),
-//             typ,
-//         },
-//         TExpr::Loop { bdy, typ } => RExpr::Loop {
-//             bdy: Box::new(reveal_expr(*bdy, scope)),
-//             typ,
-//         },
-//         TExpr::Break { bdy, typ } => RExpr::Break {
-//             bdy: Box::new(reveal_expr(*bdy, scope)),
-//             typ,
-//         },
-//         TExpr::Seq { stmt, cnt, typ } => RExpr::Seq {
-//             stmt: Box::new(reveal_expr(*stmt, scope)),
-//             cnt: Box::new(reveal_expr(*cnt, scope)),
-//             typ,
-//         },
-//         TExpr::Assign { sym, bnd, typ } => RExpr::Assign {
-//             sym,
-//             bnd: Box::new(reveal_expr(*bnd, scope)),
-//             typ,
-//         },
-//         TExpr::Continue { typ } => RExpr::Continue { typ },
-//         TExpr::Return { bdy, typ } => RExpr::Return {
-//             bdy: Box::new(reveal_expr(*bdy, scope)),
-//             typ,
-//         },
-//         TExpr::Struct { sym, fields, typ } => RExpr::Struct {
-//             sym,
-//             fields: fields
-//                 .into_iter()
-//                 .map(|(sym, expr)| (sym, reveal_expr(expr, scope)))
-//                 .collect(),
-//             typ,
-//         },
-//         TExpr::AccessField { strct, field, typ } => RExpr::AccessField {
-//             strct: Box::new(reveal_expr(*strct, scope)),
-//             field,
-//             typ,
-//         },
-//         TExpr::Variant { .. } => todo!(),
-//         TExpr::Switch { .. } => todo!(),
-//     }
-// }
+fn reveal_def<'p>(
+    def: DefValidated<'p>,
+    scope: &mut PushMap<UniqueSym<'p>, ()>,
+) -> DefRevealed<'p> {
+    match def {
+        DefValidated::Fn {
+            sym,
+            params,
+            typ,
+            bdy,
+        } => DefRevealed::Fn {
+            sym,
+            params,
+            typ,
+            bdy: reveal_expr(bdy, scope),
+        },
+        DefValidated::TypeDef { sym, def } => DefRevealed::TypeDef { sym, def },
+    }
+}
+
+fn reveal_expr<'p>(
+    expr: Meta<Type<UniqueSym<'p>>, ExprValidated<'p>>,
+    scope: &mut PushMap<UniqueSym<'p>, ()>,
+) -> Meta<Type<UniqueSym<'p>>, RExpr<'p>> {
+    let inner = match expr.inner {
+        ExprValidated::Lit { val } => RExpr::Lit { val },
+        ExprValidated::Var { sym } => {
+            if scope.contains(&sym) {
+                RExpr::FunRef { sym }
+            } else {
+                RExpr::Var { sym }
+            }
+        }
+        ExprValidated::UnaryOp { op, expr } => RExpr::UnaryOp {
+            op,
+            expr: Box::new(reveal_expr(*expr, scope)),
+        },
+        ExprValidated::BinaryOp {
+            op,
+            exprs: [lhs, rhs],
+        } => RExpr::BinaryOp {
+            op,
+            exprs: [
+                Box::new(reveal_expr(*lhs, scope)),
+                Box::new(reveal_expr(*rhs, scope)),
+            ],
+        },
+        ExprValidated::Let { sym, bnd, bdy, .. } => {
+            let bnd = Box::new(reveal_expr(*bnd, scope));
+            scope.remove(sym, |scope| RExpr::Let {
+                sym,
+                bnd,
+                bdy: Box::new(reveal_expr(*bdy, scope)),
+            })
+        }
+        ExprValidated::If { cnd, thn, els } => RExpr::If {
+            cnd: Box::new(reveal_expr(*cnd, scope)),
+            thn: Box::new(reveal_expr(*thn, scope)),
+            els: Box::new(reveal_expr(*els, scope)),
+        },
+        ExprValidated::Apply { fun, args } => RExpr::Apply {
+            fun: Box::new(reveal_expr(*fun, scope)),
+            args: args
+                .into_iter()
+                .map(|arg| reveal_expr(arg, scope))
+                .collect(),
+        },
+        ExprValidated::Loop { bdy } => RExpr::Loop {
+            bdy: Box::new(reveal_expr(*bdy, scope)),
+        },
+        ExprValidated::Break { bdy } => RExpr::Break {
+            bdy: Box::new(reveal_expr(*bdy, scope)),
+        },
+        ExprValidated::Seq { stmt, cnt } => RExpr::Seq {
+            stmt: Box::new(reveal_expr(*stmt, scope)),
+            cnt: Box::new(reveal_expr(*cnt, scope)),
+        },
+        ExprValidated::Assign { sym, bnd } => RExpr::Assign {
+            sym,
+            bnd: Box::new(reveal_expr(*bnd, scope)),
+        },
+        ExprValidated::Continue => RExpr::Continue,
+        ExprValidated::Return { bdy } => RExpr::Return {
+            bdy: Box::new(reveal_expr(*bdy, scope)),
+        },
+        ExprValidated::Struct { sym, fields } => RExpr::Struct {
+            sym,
+            fields: fields
+                .into_iter()
+                .map(|(sym, expr)| (sym, reveal_expr(expr, scope)))
+                .collect(),
+        },
+        ExprValidated::AccessField { strct, field } => RExpr::AccessField {
+            strct: Box::new(reveal_expr(*strct, scope)),
+            field,
+        },
+        ExprValidated::Variant { .. } => todo!(),
+        ExprValidated::Switch { .. } => todo!(),
+    };
+
+    Meta {
+        meta: expr.meta,
+        inner,
+    }
+}
