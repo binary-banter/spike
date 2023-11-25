@@ -1,6 +1,6 @@
 pub mod eliminate;
 mod eliminate_params;
-mod interpret;
+mod interpreter;
 #[cfg(test)]
 mod tests;
 
