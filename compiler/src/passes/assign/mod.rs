@@ -5,7 +5,7 @@ mod include_liveness;
 #[cfg(test)]
 mod tests;
 
-use crate::passes::select::io::Std;
+use crate::passes::select::std_lib::Std;
 use crate::passes::select::{Block, Instr, Reg, VarArg, X86Selected};
 use crate::utils::gen_sym::UniqueSym;
 use derive_more::Display;

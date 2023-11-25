@@ -18,6 +18,8 @@ fn select([test]: [&str; 1]) {
         .eliminate()
         .select();
 
+    println!("{program}");
+
     // Redirect program to exit
     let new_entry = gen_sym("tmp");
     program.blocks.insert(

@@ -12,7 +12,7 @@ use crate::passes::parse::types::Type;
 use crate::passes::parse::{BinaryOp, Meta, Param, TypeDef, UnaryOp};
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
-use crate::passes::select::io::Std;
+use crate::passes::select::std_lib::Std;
 
 pub struct PrgEliminated<'p> {
     pub blocks: HashMap<UniqueSym<'p>, ETail<'p>>,

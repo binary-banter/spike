@@ -1,6 +1,6 @@
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Meta, PrgParsed, Span};
-use crate::passes::select::io::Std;
+use crate::passes::select::std_lib::Std;
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::error::TypeError::{NoMain, UndeclaredVar};
 use crate::passes::validate::DefUniquified;

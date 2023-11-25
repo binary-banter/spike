@@ -1,4 +1,3 @@
-use crate::passes::parse::types::Type;
 use crate::passes::select::Cnd;
 use crate::passes::select::{Block, VarArg};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
@@ -10,30 +9,21 @@ use std::collections::HashMap;
 
 pub type Std<'p> = HashMap<&'p str, UniqueSym<'p>>;
 
-// impl<'p> Std<'p> {
-//     pub fn new(blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg>>) -> Self {
-//         let exit = add_exit_block(blocks);
-//
-//         Std {
-//             exit,
-//             print_int: add_print_block(blocks),
-//             read_int: add_read_block(blocks, exit),
-//         }
-//     }
-// }
-
-fn add_exit_block<'p>(blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg>>) -> UniqueSym<'p> {
-    let entry = gen_sym("exit");
-    blocks.insert(entry, block!(movq!(imm!(0x3C), reg!(RAX)), syscall!(2)));
-    entry
+pub fn add_std_library<'p>(std: &Std<'p>, blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg>>) {
+    add_exit_block(std["exit"], blocks);
+    add_print_block(std["print"], blocks);
+    add_read_block(std["read"], blocks, std["exit"]);
 }
 
-fn add_print_block<'p>(blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg>>) -> UniqueSym<'p> {
-    let entry = gen_sym("print_int");
-    let print_int_neg = gen_sym("print_int_neg");
-    let print_int_push_loop = gen_sym("print_int_push_loop");
-    let print_int_print_loop = gen_sym("print_int_print_loop");
-    let print_int_exit = gen_sym("print_int_exit");
+fn add_exit_block<'p>(entry: UniqueSym<'p>, blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg>>) {
+    blocks.insert(entry, block!(movq!(imm!(0x3C), reg!(RAX)), syscall!(2)));
+}
+
+fn add_print_block<'p>(entry: UniqueSym<'p>,blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg>>){
+    let print_neg = gen_sym("print_neg");
+    let print_push_loop = gen_sym("print_push_loop");
+    let print_print_loop = gen_sym("print_print_loop");
+    let print_exit = gen_sym("print_exit");
 
     blocks.insert(
         entry,
@@ -43,35 +33,35 @@ fn add_print_block<'p>(blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg>>) -
             movq!(reg!(RDI), reg!(RAX)),
             movq!(imm!(0), reg!(RSI)),
             cmpq!(imm!(0), reg!(RAX)),
-            jcc!(print_int_neg, Cnd::Sign),
-            jmp!(print_int_push_loop)
+            jcc!(print_neg, Cnd::Sign),
+            jmp!(print_push_loop)
         ),
     );
     blocks.insert(
-        print_int_neg,
+        print_neg,
         block!(
             movq!(imm!(1), reg!(RSI)),
             negq!(reg!(RAX)),
-            jmp!(print_int_push_loop)
+            jmp!(print_push_loop)
         ),
     );
     blocks.insert(
-        print_int_push_loop,
+        print_push_loop,
         block!(
             movq!(imm!(0), reg!(RDX)),
             divq!(reg!(RCX)),
             addq!(imm!(i64::from(b'0')), reg!(RDX)),
             pushq!(reg!(RDX)),
             cmpq!(imm!(0), reg!(RAX)),
-            jcc!(print_int_push_loop, Cnd::NE),
+            jcc!(print_push_loop, Cnd::NE),
             cmpq!(imm!(0), reg!(RSI)),
-            jcc!(print_int_print_loop, Cnd::EQ),
+            jcc!(print_print_loop, Cnd::EQ),
             pushq!(imm!(i64::from(b'-'))),
-            jmp!(print_int_print_loop)
+            jmp!(print_print_loop)
         ),
     );
     blocks.insert(
-        print_int_print_loop,
+        print_print_loop,
         block!(
             // Print top of stack
             movq!(imm!(1), reg!(RAX)), // syscall 1: Write
@@ -82,26 +72,24 @@ fn add_print_block<'p>(blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg>>) -
             // Check if we continue
             popq!(reg!(RAX)),
             cmpq!(imm!(i64::from(b'\n')), reg!(RAX)),
-            jcc!(print_int_print_loop, Cnd::NE),
-            jmp!(print_int_exit)
+            jcc!(print_print_loop, Cnd::NE),
+            jmp!(print_exit)
         ),
     );
-    blocks.insert(print_int_exit, block!(retq!()));
-
-    entry
+    blocks.insert(print_exit, block!(retq!()));
 }
 
 fn add_read_block<'p>(
+    entry: UniqueSym<'p>,
     blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg>>,
     exit: UniqueSym<'p>,
-) -> UniqueSym<'p> {
-    let entry = gen_sym("read_int");
-    let read_int_is_neg = gen_sym("read_int_is_neg");
-    let read_int_loop = gen_sym("read_int_loop");
-    let read_int_first = gen_sym("read_int_first");
-    let read_int_exit = gen_sym("read_int_exit");
-    let read_int_neg = gen_sym("read_int_neg");
-    let read_int_actual_exit = gen_sym("read_int_actual_exit");
+) {
+    let read_is_neg = gen_sym("read_is_neg");
+    let read_loop = gen_sym("read_loop");
+    let read_first = gen_sym("read_first");
+    let read_exit = gen_sym("read_exit");
+    let read_neg = gen_sym("read_neg");
+    let read_actual_exit = gen_sym("read_actual_exit");
 
     blocks.insert(
         entry,
@@ -121,35 +109,35 @@ fn add_read_block<'p>(
             movq!(deref!(RSP, 0), reg!(RAX)),
             movq!(reg!(RAX), reg!(RCX)),
             cmpq!(imm!(i64::from(b'-')), reg!(RCX)),
-            jcc!(read_int_is_neg, Cnd::EQ),
-            jmp!(read_int_first)
+            jcc!(read_is_neg, Cnd::EQ),
+            jmp!(read_first)
         ),
     );
     blocks.insert(
-        read_int_is_neg,
-        block!(movq!(imm!(1), reg!(R13)), jmp!(read_int_loop)),
+        read_is_neg,
+        block!(movq!(imm!(1), reg!(R13)), jmp!(read_loop)),
     );
 
     blocks.insert(
-        read_int_loop,
+        read_loop,
         block!(
             movq!(imm!(0), reg!(RAX)),   // READ = 0
             movq!(imm!(0), reg!(RDI)),   // STDIN = 0
             movq!(reg!(RSP), reg!(RSI)), // RSI is pointer to allocated byte
             movq!(imm!(1), reg!(RDX)),   // bytes to read = 1
             syscall!(4),
-            jmp!(read_int_first)
+            jmp!(read_first)
         ),
     );
 
     blocks.insert(
-        read_int_first,
+        read_first,
         block!(
             movq!(deref!(RSP, 0), reg!(RAX)),
             // check if newline
             movq!(reg!(RAX), reg!(RCX)),
             cmpq!(imm!(i64::from(b'\n')), reg!(RCX)),
-            jcc!(read_int_exit, Cnd::EQ),
+            jcc!(read_exit, Cnd::EQ),
             movq!(imm!(66), reg!(RDI)),
             // check if >b'9'
             movq!(reg!(RAX), reg!(RCX)),
@@ -165,25 +153,25 @@ fn add_read_block<'p>(
             movq!(deref!(RSP, 0), reg!(RAX)),
             subq!(imm!(i64::from(b'0')), reg!(RAX)),
             addq!(reg!(RAX), reg!(RBX)),
-            jmp!(read_int_loop)
+            jmp!(read_loop)
         ),
     );
     blocks.insert(
-        read_int_exit,
+        read_exit,
         block!(
             cmpq!(imm!(0), reg!(R13)),
-            jcc!(read_int_neg, Cnd::NE),
-            jmp!(read_int_actual_exit)
+            jcc!(read_neg, Cnd::NE),
+            jmp!(read_actual_exit)
         ),
     );
 
     blocks.insert(
-        read_int_neg,
-        block!(negq!(reg!(RBX)), jmp!(read_int_actual_exit)),
+        read_neg,
+        block!(negq!(reg!(RBX)), jmp!(read_actual_exit)),
     );
 
     blocks.insert(
-        read_int_actual_exit,
+        read_actual_exit,
         block!(
             movq!(reg!(RBX), reg!(RAX)),
             addq!(imm!(8), reg!(RSP)),
@@ -192,6 +180,4 @@ fn add_read_block<'p>(
             retq!()
         ),
     );
-
-    entry
 }
