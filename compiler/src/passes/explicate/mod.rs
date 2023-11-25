@@ -1,18 +1,18 @@
 pub mod explicate;
+mod explicate_assign;
+mod explicate_def;
+mod explicate_pred;
+mod explicate_tail;
 pub mod interpreter;
 #[cfg(test)]
 mod tests;
-mod explicate_pred;
-mod explicate_assign;
-mod explicate_def;
-mod explicate_tail;
 
 use crate::passes::atomize::Atom;
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{BinaryOp, Meta, Param, TypeDef, UnaryOp};
+use crate::passes::select::std_lib::Std;
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
-use crate::passes::select::std_lib::Std;
 
 pub struct PrgExplicated<'p> {
     pub blocks: HashMap<UniqueSym<'p>, CTail<'p>>,

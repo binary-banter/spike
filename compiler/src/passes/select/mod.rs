@@ -1,7 +1,7 @@
 pub mod interpreter;
-pub mod std_lib;
 pub mod macros;
 pub mod select;
+pub mod std_lib;
 #[cfg(test)]
 mod tests;
 

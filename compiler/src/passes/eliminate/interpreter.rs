@@ -2,10 +2,10 @@ use crate::interpreter::Val;
 use crate::interpreter::IO;
 use crate::passes::atomize::Atom;
 use crate::passes::eliminate::{EExpr, ETail, PrgEliminated};
+use crate::passes::parse::{BinaryOp, UnaryOp};
 use crate::passes::validate::TLit;
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::push_map::PushMap;
-use crate::passes::parse::{BinaryOp, UnaryOp};
 
 impl<'p> PrgEliminated<'p> {
     pub fn interpret(&self, io: &mut impl IO) -> Vec<Val<'p>> {
@@ -14,7 +14,11 @@ impl<'p> PrgEliminated<'p> {
             .iter()
             .map(|(_, &def)| (def, Val::StdlibFunction { sym: def.sym }));
 
-        self.interpret_tail(&self.blocks[&self.entry], &mut PushMap::from_iter(std_iter), io)
+        self.interpret_tail(
+            &self.blocks[&self.entry],
+            &mut PushMap::from_iter(std_iter),
+            io,
+        )
     }
 
     fn interpret_tail(
@@ -32,7 +36,7 @@ impl<'p> PrgEliminated<'p> {
                 let bnds = syms
                     .iter()
                     .cloned()
-                    .zip(self.interpret_expr(& bnd.inner, scope, io));
+                    .zip(self.interpret_expr(&bnd.inner, scope, io));
                 scope.push_iter(bnds, |scope| self.interpret_tail(tail, scope, io))
             }
             ETail::IfStmt { cnd, thn, els } => {
@@ -84,18 +88,14 @@ impl<'p> PrgEliminated<'p> {
                     BinaryOp::GE => Val::Bool {
                         val: lhs.int() >= rhs.int(),
                     },
-                    BinaryOp::EQ => Val::Bool {
-                        val: lhs == rhs,
-                    },
+                    BinaryOp::EQ => Val::Bool { val: lhs == rhs },
                     BinaryOp::LE => Val::Bool {
                         val: lhs.int() <= rhs.int(),
                     },
                     BinaryOp::LT => Val::Bool {
                         val: lhs.int() < rhs.int(),
                     },
-                    BinaryOp::NE => Val::Bool {
-                        val: lhs != rhs,
-                    },
+                    BinaryOp::NE => Val::Bool { val: lhs != rhs },
                     BinaryOp::LAnd => Val::Bool {
                         val: lhs.bool() && rhs.bool(),
                     },
@@ -118,7 +118,7 @@ impl<'p> PrgEliminated<'p> {
                 } else {
                     Val::Function { sym: *sym }
                 }
-            },
+            }
             EExpr::Apply { fun, args, .. } => {
                 let fun = self.interpret_atom(fun, scope);
 
@@ -151,8 +151,8 @@ impl<'p> PrgEliminated<'p> {
                             .map(|(param, val)| (param.sym, val));
                         return scope.push_iter(args, |scope| {
                             self.interpret_tail(&self.blocks[&sym], scope, io)
-                        })
-                    },
+                        });
+                    }
                     _ => unreachable!("The symbol did not refer to a function."),
                 }
             }

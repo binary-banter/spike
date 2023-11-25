@@ -1,5 +1,6 @@
 use crate::passes::atomize::Atom;
 use crate::passes::eliminate::{EExpr, ETail, PrgEliminated};
+use crate::passes::parse::types::Type;
 use crate::passes::parse::{BinaryOp, Meta, Param, UnaryOp};
 use crate::passes::select::std_lib::{add_std_library, Std};
 use crate::passes::select::{
@@ -8,7 +9,6 @@ use crate::passes::select::{
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use crate::*;
 use std::collections::HashMap;
-use crate::passes::parse::types::Type;
 
 impl<'p> PrgEliminated<'p> {
     #[must_use]
@@ -27,7 +27,7 @@ impl<'p> PrgEliminated<'p> {
             blocks,
             entry: self.entry,
             // todo: technically we only need this for testing
-            std: self.std
+            std: self.std,
         }
     }
 }
@@ -88,7 +88,11 @@ fn select_tail<'p>(tail: ETail<'p>, instrs: &mut Vec<Instr<'p, VarArg<'p>>>) {
             select_tail(*tail, instrs);
         }
         ETail::IfStmt { cnd, thn, els } => match cnd {
-            EExpr::BinaryOp { op, exprs: [expr_lhs, expr_rhs], .. } => {
+            EExpr::BinaryOp {
+                op,
+                exprs: [expr_lhs, expr_rhs],
+                ..
+            } => {
                 let tmp = gen_sym("tmp");
                 instrs.extend(vec![
                     movq!(select_atom(expr_lhs), var!(tmp)),
@@ -119,7 +123,10 @@ fn select_assign<'p>(
             atm: Atom::Var { sym },
             ..
         } => vec![movq!(var!(sym), dst)],
-        EExpr::BinaryOp { op, exprs: [a0, a1]} => match op {
+        EExpr::BinaryOp {
+            op,
+            exprs: [a0, a1],
+        } => match op {
             BinaryOp::Add => vec![
                 movq!(select_atom(a0), dst.clone()),
                 addq!(select_atom(a1), dst),
@@ -160,7 +167,12 @@ fn select_assign<'p>(
                 movq!(select_atom(a0), dst.clone()),
                 xorq!(select_atom(a1), dst),
             ],
-            op @ (BinaryOp::GT | BinaryOp::GE | BinaryOp::EQ | BinaryOp::LE | BinaryOp::LT | BinaryOp::NE) => {
+            op @ (BinaryOp::GT
+            | BinaryOp::GE
+            | BinaryOp::EQ
+            | BinaryOp::LE
+            | BinaryOp::LT
+            | BinaryOp::NE) => {
                 let tmp = gen_sym("tmp");
                 vec![
                     movq!(select_atom(a0), var!(tmp)),
@@ -174,7 +186,7 @@ fn select_assign<'p>(
         EExpr::UnaryOp { op, expr: a0 } => match op {
             UnaryOp::Neg => vec![movq!(select_atom(a0), dst.clone()), negq!(dst)],
             UnaryOp::Not => vec![movq!(select_atom(a0), dst.clone()), xorq!(imm!(1), dst)],
-        }
+        },
         EExpr::FunRef { sym, .. } => vec![load_lbl!(sym, dst)],
         EExpr::Apply { fun, args, .. } => {
             let mut instrs = vec![];

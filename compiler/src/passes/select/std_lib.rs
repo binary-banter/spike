@@ -15,11 +15,24 @@ pub fn add_std_library<'p>(std: &Std<'p>, blocks: &mut HashMap<UniqueSym<'p>, Bl
     add_read_block(std["read"], blocks, std["exit"]);
 }
 
-fn add_exit_block<'p>(entry: UniqueSym<'p>, blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg>>) {
-    blocks.insert(entry, block!(movq!(reg!(RAX), reg!(RDI)), movq!(imm!(0x3C), reg!(RAX)), syscall!(2)));
+fn add_exit_block<'p>(
+    entry: UniqueSym<'p>,
+    blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg>>,
+) {
+    blocks.insert(
+        entry,
+        block!(
+            movq!(reg!(RAX), reg!(RDI)),
+            movq!(imm!(0x3C), reg!(RAX)),
+            syscall!(2)
+        ),
+    );
 }
 
-fn add_print_block<'p>(entry: UniqueSym<'p>,blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg>>){
+fn add_print_block<'p>(
+    entry: UniqueSym<'p>,
+    blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg>>,
+) {
     let print_neg = gen_sym("print_neg");
     let print_push_loop = gen_sym("print_push_loop");
     let print_print_loop = gen_sym("print_print_loop");
@@ -76,10 +89,7 @@ fn add_print_block<'p>(entry: UniqueSym<'p>,blocks: &mut HashMap<UniqueSym<'p>, 
             jmp!(print_exit)
         ),
     );
-    blocks.insert(print_exit, block!(
-        popq!(reg!(RAX)),
-        retq!()
-    ));
+    blocks.insert(print_exit, block!(popq!(reg!(RAX)), retq!()));
 }
 
 fn add_read_block<'p>(
@@ -168,10 +178,7 @@ fn add_read_block<'p>(
         ),
     );
 
-    blocks.insert(
-        read_neg,
-        block!(negq!(reg!(RBX)), jmp!(read_actual_exit)),
-    );
+    blocks.insert(read_neg, block!(negq!(reg!(RBX)), jmp!(read_actual_exit)));
 
     blocks.insert(
         read_actual_exit,

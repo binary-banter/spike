@@ -1,10 +1,10 @@
-use std::collections::HashMap;
 use crate::passes::atomize::DefAtomized;
 use crate::passes::explicate::explicate;
 use crate::passes::explicate::explicate::Env;
 use crate::passes::explicate::explicate_tail::explicate_tail;
 use crate::passes::parse::{Def, TypeDef};
 use crate::utils::gen_sym::UniqueSym;
+use std::collections::HashMap;
 
 pub fn explicate_def<'p>(
     def: DefAtomized<'p>,

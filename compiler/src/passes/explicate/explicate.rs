@@ -1,9 +1,9 @@
 use crate::passes::atomize::PrgAtomized;
-use crate::passes::explicate::{CTail, explicate_def, PrgExplicated};
+use crate::passes::explicate::explicate_def::explicate_def;
+use crate::passes::explicate::{explicate_def, CTail, PrgExplicated};
 use crate::passes::parse::Def;
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
-use crate::passes::explicate::explicate_def::explicate_def;
 
 pub struct Env<'a, 'p> {
     pub blocks: &'a mut HashMap<UniqueSym<'p>, CTail<'p>>,
@@ -47,7 +47,7 @@ impl<'p> PrgAtomized<'p> {
             fn_params,
             defs,
             entry: self.entry,
-            std: self.std
+            std: self.std,
         }
     }
 }

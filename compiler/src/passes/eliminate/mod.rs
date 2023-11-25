@@ -1,18 +1,18 @@
 pub mod eliminate;
+mod eliminate_expr;
 mod eliminate_params;
+mod eliminate_seq;
+mod eliminate_tail;
 mod interpreter;
 #[cfg(test)]
 mod tests;
-mod eliminate_tail;
-mod eliminate_seq;
-mod eliminate_expr;
 
 use crate::passes::atomize::Atom;
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{BinaryOp, Meta, Param, TypeDef, UnaryOp};
+use crate::passes::select::std_lib::Std;
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
-use crate::passes::select::std_lib::Std;
 
 pub struct PrgEliminated<'p> {
     pub blocks: HashMap<UniqueSym<'p>, ETail<'p>>,
@@ -42,22 +42,9 @@ pub enum ETail<'p> {
 }
 
 pub enum EExpr<'p> {
-    Atom {
-        atm: Atom<'p>,
-    },
-    BinaryOp {
-        op: BinaryOp,
-        exprs: [Atom<'p>; 2],
-    },
-    UnaryOp {
-        op: UnaryOp,
-        expr: Atom<'p>,
-    },
-    Apply {
-        fun: Atom<'p>,
-        args: Vec<Atom<'p>>,
-    },
-    FunRef {
-        sym: UniqueSym<'p>,
-    },
+    Atom { atm: Atom<'p> },
+    BinaryOp { op: BinaryOp, exprs: [Atom<'p>; 2] },
+    UnaryOp { op: UnaryOp, expr: Atom<'p> },
+    Apply { fun: Atom<'p>, args: Vec<Atom<'p>> },
+    FunRef { sym: UniqueSym<'p> },
 }

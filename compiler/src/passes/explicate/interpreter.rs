@@ -1,13 +1,13 @@
-use std::collections::HashMap;
 use crate::interpreter::Val;
 use crate::interpreter::IO;
 use crate::passes::atomize::Atom;
 use crate::passes::explicate::{CExpr, CTail, PrgExplicated};
-use crate::passes::parse::{BinaryOp, Meta, UnaryOp};
 use crate::passes::parse::types::Type;
+use crate::passes::parse::{BinaryOp, Meta, UnaryOp};
 use crate::passes::validate::TLit;
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::push_map::PushMap;
+use std::collections::HashMap;
 
 impl<'p> PrgExplicated<'p> {
     pub fn interpret(&self, io: &mut impl IO) -> Val<'p> {
@@ -16,7 +16,11 @@ impl<'p> PrgExplicated<'p> {
             .iter()
             .map(|(_, &def)| dbg!((def, Val::StdlibFunction { sym: def.sym })));
 
-        self.interpret_tail(&self.blocks[&self.entry], &mut PushMap::from_iter(std_iter), io)
+        self.interpret_tail(
+            &self.blocks[&self.entry],
+            &mut PushMap::from_iter(std_iter),
+            io,
+        )
     }
 
     fn interpret_tail(
@@ -41,7 +45,7 @@ impl<'p> PrgExplicated<'p> {
             CTail::Goto { lbl } => self.interpret_tail(&self.blocks[lbl], scope, io),
         }
     }
-    
+
     pub fn interpret_expr(
         &self,
         expr: &CExpr<'p>,
@@ -80,18 +84,14 @@ impl<'p> PrgExplicated<'p> {
                     BinaryOp::GE => Val::Bool {
                         val: lhs.int() >= rhs.int(),
                     },
-                    BinaryOp::EQ => Val::Bool {
-                        val: lhs == rhs,
-                    },
+                    BinaryOp::EQ => Val::Bool { val: lhs == rhs },
                     BinaryOp::LE => Val::Bool {
                         val: lhs.int() <= rhs.int(),
                     },
                     BinaryOp::LT => Val::Bool {
                         val: lhs.int() < rhs.int(),
                     },
-                    BinaryOp::NE => Val::Bool {
-                        val: lhs != rhs,
-                    },
+                    BinaryOp::NE => Val::Bool { val: lhs != rhs },
                     BinaryOp::LAnd => Val::Bool {
                         val: lhs.bool() && rhs.bool(),
                     },
@@ -114,7 +114,7 @@ impl<'p> PrgExplicated<'p> {
                 } else {
                     Val::Function { sym: *sym }
                 }
-            },
+            }
             CExpr::Apply { fun, args, .. } => {
                 let fun = self.interpret_atom(fun, scope);
 
@@ -148,7 +148,7 @@ impl<'p> PrgExplicated<'p> {
                         scope.push_iter(args, |scope| {
                             self.interpret_tail(&self.blocks[&sym], scope, io)
                         })
-                    },
+                    }
                     _ => unreachable!("The symbol did not refer to a function."),
                 }
             }
@@ -167,7 +167,7 @@ impl<'p> PrgExplicated<'p> {
             }
         }
     }
-    
+
     #[must_use]
     pub fn interpret_atom(
         &self,
