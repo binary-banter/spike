@@ -1,13 +1,14 @@
-use test_each_file::test_each_file;
 use crate::interpreter::TestIO;
-use crate::utils::split_test::split_test;
 use crate::passes::parse::parse::parse_program;
 use crate::passes::validate::PrgValidated;
+use crate::utils::split_test::split_test;
+use test_each_file::test_each_file;
 
 fn atomize([test]: [&str; 1]) {
     let (input, expected_output, expected_return, _) = split_test(test);
 
-    let program: PrgValidated = parse_program(test).unwrap()
+    let program: PrgValidated = parse_program(test)
+        .unwrap()
         .validate()
         .unwrap()
         .reveal()

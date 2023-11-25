@@ -4,10 +4,10 @@ mod tests;
 
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{BinaryOp, Def, Meta, UnaryOp};
+use crate::passes::select::io::Std;
 use crate::passes::validate::{DefValidated, ExprValidated, PrgValidated, TLit};
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
-use crate::passes::select::io::Std;
 
 pub struct PrgAtomized<'p> {
     pub defs: HashMap<UniqueSym<'p>, DefAtomized<'p>>,
@@ -123,7 +123,9 @@ impl<'p> From<DefAtomized<'p>> for DefValidated<'p> {
     }
 }
 
-impl<'p> From<Meta<Type<UniqueSym<'p>>, AExpr<'p>>> for Meta<Type<UniqueSym<'p>>, ExprValidated<'p>> {
+impl<'p> From<Meta<Type<UniqueSym<'p>>, AExpr<'p>>>
+    for Meta<Type<UniqueSym<'p>>, ExprValidated<'p>>
+{
     fn from(value: Meta<Type<UniqueSym<'p>>, AExpr<'p>>) -> Self {
         let inner = match value.inner {
             AExpr::Atom { atm, .. } => return atm.into(),
@@ -176,18 +178,16 @@ impl<'p> From<Meta<Type<UniqueSym<'p>>, AExpr<'p>>> for Meta<Type<UniqueSym<'p>>
                     .into_iter()
                     .map(|(sym, atm)| (sym, atm.into()))
                     .collect(),
-                
             },
             AExpr::AccessField { strct, field } => ExprValidated::AccessField {
                 strct: Box::new(strct.into()),
                 field,
-                
             },
         };
-        
+
         Meta {
             inner,
-            meta: value.meta
+            meta: value.meta,
         }
     }
 }
@@ -195,13 +195,12 @@ impl<'p> From<Meta<Type<UniqueSym<'p>>, AExpr<'p>>> for Meta<Type<UniqueSym<'p>>
 // Note that casting to Never here is safe because this `From` is only used by the interpreter which doesn't care about the type information.
 impl<'p> From<Atom<'p>> for Meta<Type<UniqueSym<'p>>, ExprValidated<'p>> {
     fn from(value: Atom<'p>) -> Self {
-        Meta { meta: Type::Never, inner: match value {
-            Atom::Val { val } => ExprValidated::Lit {
-                val,
+        Meta {
+            meta: Type::Never,
+            inner: match value {
+                Atom::Val { val } => ExprValidated::Lit { val },
+                Atom::Var { sym } => ExprValidated::Var { sym },
             },
-            Atom::Var { sym } => ExprValidated::Var {
-                sym,
-            },
-        }}
+        }
     }
 }

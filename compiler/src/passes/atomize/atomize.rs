@@ -36,47 +36,33 @@ fn atomize_def(def: DefRevealed) -> DefAtomized {
     }
 }
 
-fn atomize_expr<'p>(expr: Meta<Type<UniqueSym<'p>>, RExpr<'p>>) -> Meta<Type<UniqueSym<'p>>, AExpr<'p>> {
+fn atomize_expr<'p>(
+    expr: Meta<Type<UniqueSym<'p>>, RExpr<'p>>,
+) -> Meta<Type<UniqueSym<'p>>, AExpr<'p>> {
+    // Keep track of all the priors. These are bindings that should come before evaluating the expression.
+    let mut priors = Vec::new();
+
+    // Returns the atomized expression. This can hold `Var`s that must be bound by the priors.
     let inner = match expr.inner {
         RExpr::Lit { val } => AExpr::Atom {
             atm: Atom::Val { val },
         },
-        RExpr::Var { sym} => AExpr::Atom {
+        RExpr::Var { sym } => AExpr::Atom {
             atm: Atom::Var { sym },
         },
-        RExpr::BinaryOp { op, exprs: [lhs, rhs] } => {
-            let (lhs_arg, lhs_extra) = atomize_atom(*lhs);
-            let (rhs_arg, rhs_extra) = atomize_atom(*rhs);
-
-            [lhs_extra, rhs_extra]
-                .into_iter()
-                .flatten()
-                .rfold(AExpr::BinaryOp { op, exprs: [lhs_arg, rhs_arg] }, |bdy, (sym, bnd)| {
-                    AExpr::Let {
-                        sym,
-                        bnd: Box::new(bnd),
-                        bdy: Box::new(Meta {
-                            inner: bdy,
-                            meta: expr.meta.clone()
-                        }),
-                    }
-                })
+        RExpr::BinaryOp {
+            op,
+            exprs: [lhs, rhs],
+        } => AExpr::BinaryOp {
+            op,
+            exprs: [
+                atomize_atom(*lhs, &mut priors),
+                atomize_atom(*rhs, &mut priors),
+            ],
         },
-        RExpr::UnaryOp { op, expr: arg } => {
-            let (arg, extra) = atomize_atom(*arg);
-
-            extra
-                .into_iter()
-                .rfold(AExpr::UnaryOp { op, expr: arg }, |bdy, (sym, bnd)| {
-                    AExpr::Let {
-                        sym,
-                        bnd: Box::new(bnd),
-                        bdy: Box::new(Meta {
-                            inner: bdy,
-                            meta: expr.meta.clone()
-                        }),
-                    }
-                })
+        RExpr::UnaryOp { op, expr: arg } => AExpr::UnaryOp {
+            op,
+            expr: atomize_atom(*arg, &mut priors),
         },
         RExpr::Let { sym, bnd, bdy } => AExpr::Let {
             sym,
@@ -93,28 +79,14 @@ fn atomize_expr<'p>(expr: Meta<Type<UniqueSym<'p>>, RExpr<'p>>) -> Meta<Type<Uni
                 unreachable!()
             };
 
-            let (args, extras): (Vec<_>, Vec<_>) = args
-                .into_iter()
-                .map(atomize_atom)
-                .zip(params)
-                .map(|((arg, extra), arg_typ)| ((arg, arg_typ), extra))
-                .unzip();
-
-            let (fun, fun_expr) = atomize_atom(*fun);
-
-            fun_expr
-                .into_iter()
-                .chain(extras.into_iter().flatten())
-                .rfold(AExpr::Apply { fun, args}, |bdy, (sym, bnd)| {
-                    AExpr::Let {
-                        sym,
-                        bnd: Box::new(bnd),
-                        bdy: Box::new(Meta {
-                            inner: bdy,
-                            meta: expr.meta.clone()
-                        }),
-                    }
-                })
+            AExpr::Apply {
+                fun: atomize_atom(*fun, &mut priors),
+                args: args
+                    .into_iter()
+                    .map(|arg| atomize_atom(arg, &mut priors))
+                    .zip(params)
+                    .collect(),
+            }
         }
         RExpr::FunRef { sym } => AExpr::FunRef { sym },
         RExpr::Loop { bdy } => AExpr::Loop {
@@ -135,55 +107,49 @@ fn atomize_expr<'p>(expr: Meta<Type<UniqueSym<'p>>, RExpr<'p>>) -> Meta<Type<Uni
         RExpr::Return { bdy } => AExpr::Return {
             bdy: Box::new(atomize_expr(*bdy)),
         },
-        RExpr::Struct { sym, fields } => {
-            let (fields, extras): (Vec<_>, Vec<_>) = fields
+        RExpr::Struct { sym, fields } => AExpr::Struct {
+            sym,
+            fields: fields
                 .into_iter()
                 .map(|(sym, expr)| {
-                    let (field, extra) = atomize_atom(expr);
-                    ((sym, field), extra)
+                    let field = atomize_atom(expr, &mut priors);
+                    (sym, field)
                 })
-                .unzip();
-
-            extras.into_iter().flatten().rfold(
-                AExpr::Struct { sym, fields },
-                |bdy , (sym, bnd)| AExpr::Let {
-                    sym,
-                    bnd: Box::new(bnd),
-                    bdy: Box::new(Meta {
-                        inner: bdy,
-                        meta: expr.meta.clone()
-                    }),
-                },
-            )
-        }
-        RExpr::AccessField { strct, field } => {
-            let (strct, extra) = atomize_atom(*strct);
-
-            extra.into_iter().rfold(
-                AExpr::AccessField { strct, field },
-                |bdy, (sym, bnd)| AExpr::Let {
-                    sym,
-                    bnd: Box::new(bnd),
-                    bdy: Box::new(Meta {
-                        inner: bdy,
-                        meta: expr.meta.clone()
-                    }),
-                },
-            )
-        }
+                .collect(),
+        },
+        RExpr::AccessField { strct, field } => AExpr::AccessField {
+            strct: atomize_atom(*strct, &mut priors),
+            field,
+        },
     };
+
+    // Chains all the priors with the atomized expression as the body.
+    let inner = priors
+        .into_iter()
+        .rfold(inner, |bdy, (sym, bnd)| AExpr::Let {
+            sym,
+            bnd: Box::new(bnd),
+            bdy: Box::new(Meta {
+                inner: bdy,
+                meta: expr.meta.clone(),
+            }),
+        });
 
     Meta {
         inner,
-        meta: expr.meta
+        meta: expr.meta,
     }
 }
 
-fn atomize_atom<'p>(expr: Meta<Type<UniqueSym<'p>>, RExpr<'p>>) -> (Atom<'p>, Option<(UniqueSym<'p>, Meta<Type<UniqueSym<'p>>, AExpr<'p>>)>) {
+fn atomize_atom<'p>(
+    expr: Meta<Type<UniqueSym<'p>>, RExpr<'p>>,
+    priors: &mut Vec<(UniqueSym<'p>, Meta<Type<UniqueSym<'p>>, AExpr<'p>>)>,
+) -> Atom<'p> {
     if let RExpr::Lit { val } = expr.inner {
-        (Atom::Val { val }, None)
+        Atom::Val { val }
     } else {
         let tmp = gen_sym("tmp");
-        (Atom::Var { sym: tmp }, Some((tmp, atomize_expr(expr))))
+        priors.push((tmp, atomize_expr(expr)));
+        Atom::Var { sym: tmp }
     }
 }
