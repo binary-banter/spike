@@ -5,7 +5,7 @@ use crate::passes::validate::{CMeta, ExprConstrained};
 use crate::utils::gen_sym::UniqueSym;
 
 pub fn constrain_var<'p>(
-    env: &mut Env<'_, 'p>,
+    env: &Env<'_, 'p>,
     span: Span,
     sym: Spanned<UniqueSym<'p>>,
 ) -> Result<Meta<CMeta, ExprConstrained<'p>>, TypeError> {
