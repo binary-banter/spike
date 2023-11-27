@@ -120,6 +120,7 @@ fn reveal_expr<'p>(
         },
         ExprValidated::Variant { .. } => todo!(),
         ExprValidated::Switch { .. } => todo!(),
+        ExprValidated::Asm { .. } => todo!(),
     };
 
     Meta {

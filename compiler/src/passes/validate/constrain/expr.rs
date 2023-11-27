@@ -51,5 +51,6 @@ pub fn constrain_expr<'p>(
         Expr::AccessField { strct, field } => constrain_access_field(env, span, *strct, field),
         Expr::Variant { .. } => todo!(),
         Expr::Switch { .. } => todo!(),
+        Expr::Asm { .. } => todo!(),
     }
 }

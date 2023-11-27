@@ -27,7 +27,7 @@ impl<'p> X86Selected<'p> {
 }
 
 fn assign_block<'p>(
-    block: Block<'p, VarArg>,
+    block: Block<'p, VarArg<UniqueSym<'p>>>,
     color_map: &HashMap<UniqueSym, Arg>,
 ) -> Block<'p, Arg> {
     Block {
@@ -40,10 +40,10 @@ fn assign_block<'p>(
 }
 
 fn assign_instr<'p>(
-    instr: Instr<'p, VarArg>,
+    instr: Instr<VarArg<UniqueSym<'p>>, UniqueSym<'p>>,
     color_map: &HashMap<UniqueSym, Arg>,
-) -> Instr<'p, Arg> {
-    let map = |arg: VarArg| -> Arg {
+) -> Instr<Arg, UniqueSym<'p>> {
+    let map = |arg: VarArg<UniqueSym<'p>>| -> Arg {
         match arg {
             VarArg::Imm { val } => Arg::Imm { val },
             VarArg::Reg { reg } => Arg::Reg { reg },

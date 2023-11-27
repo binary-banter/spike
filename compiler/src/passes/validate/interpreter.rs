@@ -220,6 +220,7 @@ impl<'p> PrgValidated<'p> {
             }
             ExprValidated::Variant { .. } => todo!(),
             ExprValidated::Switch { .. } => todo!(),
+            ExprValidated::Asm { .. } => todo!(),
         })
     }
 }

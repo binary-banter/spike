@@ -1,6 +1,7 @@
 use crate::passes::parse::{
-    BinaryOp, DefParsed, ExprParsed, Lit, Meta, Param, PrgParsed, Spanned, Type, TypeDef, UnaryOp,
+    BinaryOp, DefParsed, ExprParsed, InstrParsed, Lit, Meta, Param, PrgParsed, Spanned, Type, TypeDef, UnaryOp,
 };
+use crate::passes::select::{Instr, VarArg};
 use crate::passes::validate::partial_type::PartialType;
 use functor_derive::Functor;
 
@@ -21,6 +22,7 @@ match {
     "struct",
     "enum",
     "switch",
+    "asm",
 
     // Structural tokens
     "(",
@@ -207,6 +209,7 @@ ExprInStmt: ExprParsed<'input> = {
         bdy: Box::new(bdy.fmap(|bdy| bdy.unwrap_or(ExprParsed::Lit { val: Lit::Unit }))),
     },
     "continue" => ExprParsed::Continue,
+    "asm" "{" <instrs:Comma<AsmInstr>> "}" => ExprParsed::Asm { instrs },
     ExprLogicalOr<Struct>,
 }
 
@@ -312,7 +315,7 @@ Struct: ExprParsed<'input> = {
     },
 }
 
-StructArg : (Spanned<&'input str>, Spanned<ExprParsed<'input>>) = {
+StructArg: (Spanned<&'input str>, Spanned<ExprParsed<'input>>) = {
     <Ident> ":" <Spanned<Expr>>,
     <l:@L> <sym:Ident> <r:@R> => (sym.clone(), Meta { meta: (l, r - l), inner: ExprParsed::Var { sym } })
 }
@@ -338,3 +341,7 @@ Comma<T>: Vec<T> = {
 }
 
 Spanned<T>: Spanned<T> = <l:@L> <inner:T> <r:@R> => Meta { meta: (l, r - l), inner };
+
+AsmInstr: InstrParsed<'input> = {
+
+}

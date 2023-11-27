@@ -15,7 +15,7 @@ pub fn constrain_struct<'p>(
     fields: Vec<(Spanned<&'p str>, Spanned<ExprUniquified<'p>>)>,
 ) -> Result<Constrained<ExprConstrained<'p>>, TypeError> {
     // Get the `EnvEntry` from the scope.
-    // This should exist after yeet, but could potentially not be a struct definition.
+    // This should exist after uniquify, but could potentially not be a struct definition.
     let EnvEntry::Def {
         def: TypeDef::Struct { fields: def_fields },
     } = &env.scope[&sym.inner]

@@ -18,6 +18,7 @@ use functor_derive::Functor;
 use itertools::Itertools;
 use std::fmt::Display;
 use types::Type;
+use crate::passes::select::{Instr, VarArg};
 
 /// A parsed program with global definitions and an entry point.
 #[derive(Display)]
@@ -51,6 +52,7 @@ pub enum Def<IdentVars, IdentFields, Expr> {
 
 pub type DefParsed<'p> = Def<Spanned<&'p str>, Spanned<&'p str>, Spanned<ExprParsed<'p>>>;
 pub type ExprParsed<'p> = Expr<Spanned<&'p str>, Spanned<&'p str>, Lit<'p>, Span>;
+pub type InstrParsed<'p> = Instr<VarArg<Spanned<&'p str>>, Spanned<&'p str>>;
 
 #[derive(Clone, Debug)]
 pub enum TypeDef<IdentVars, IdentFields> {
@@ -79,7 +81,7 @@ impl<IdentVars, IdentFields, Expr> Def<IdentVars, IdentFields, Expr> {
 /// A parameter used in functions.
 ///
 /// Parameters are generic and can use symbols that are either `&str` or
-/// [`UniqueSym`](crate::utils::gen_sym::UniqueSym) for all passes after yeet.
+/// [`UniqueSym`](UniqueSym) for all passes after uniquify.
 #[derive(Clone, Display, Debug)]
 #[display(bound = "A: Display")]
 #[display(fmt = "{}{sym}: {typ}", r#"if *mutable { "mut " } else { "" }"#)]
@@ -95,9 +97,9 @@ pub struct Param<A> {
 /// An expression.
 ///
 /// Expressions are generic and can use symbols that are either `&str` or
-/// [`UniqueSym`](crate::utils::gen_sym::UniqueSym) for all passes after yeet.
+/// [`UniqueSym`](UniqueSym) for all passes after uniquify.
 #[derive(Debug)]
-pub enum Expr<IdentVars, IdentFields, Lit, M> {
+pub enum Expr<IdentVars: Display, IdentFields, Lit, M> {
     /// A literal value. See [`Lit`].
     Lit {
         /// Value of the literal. See [`Lit`].
@@ -234,6 +236,9 @@ pub enum Expr<IdentVars, IdentFields, Lit, M> {
     Switch {
         enm: Box<Meta<M, Expr<IdentVars, IdentFields, Lit, M>>>,
         arms: Vec<SwitchArm<IdentVars, IdentFields, Lit, M>>,
+    },
+    Asm {
+        instrs: Vec<Instr<VarArg<IdentVars>, IdentVars>>,
     },
 }
 

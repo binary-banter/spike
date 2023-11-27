@@ -91,6 +91,7 @@ pub fn uniquify_expr<'p>(
         },
         Expr::Variant { .. } => todo!(),
         Expr::Switch { .. } => todo!(),
+        Expr::Asm { .. } => todo!(),
     };
 
     Ok(Meta {

@@ -64,7 +64,7 @@ fn emit_block<'p>(
 }
 
 fn emit_instr<'p>(
-    instr: &Instr<'p, Arg>,
+    instr: &Instr<Arg, UniqueSym<'p>>,
     machine_code: &mut Vec<u8>,
     rel_jumps: &mut HashMap<usize, UniqueSym<'p>>,
     abs_jumps: &mut HashMap<usize, UniqueSym<'p>>,

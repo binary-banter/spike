@@ -58,7 +58,7 @@ impl<'p> X86Selected<'p> {
 }
 
 fn block_liveness<'p>(
-    block: &Block<'p, VarArg<'p>>,
+    block: &Block<'p, VarArg<UniqueSym<'p>>>,
     before_map: &HashMap<UniqueSym<'p>, HashSet<LArg<'p>>>,
 ) -> (LBlock<'p>, HashSet<LArg<'p>>) {
     let mut instrs = Vec::new();
@@ -100,9 +100,9 @@ pub enum ReadWriteOp {
 }
 
 pub fn handle_instr<'p>(
-    instr: &Instr<'p, VarArg<'p>>,
+    instr: &Instr<VarArg<UniqueSym<'p>>, UniqueSym<'p>>,
     before_map: &HashMap<UniqueSym<'p>, HashSet<LArg<'p>>>,
-    mut arg: impl FnMut(&VarArg<'p>, ReadWriteOp),
+    mut arg: impl FnMut(&VarArg<UniqueSym<'p>>, ReadWriteOp),
 ) {
     use ReadWriteOp::Read as R;
     use ReadWriteOp::ReadWrite as RW;

@@ -34,7 +34,7 @@ pub struct IStats {
 }
 
 pub struct X86Interpreter<'p, I: IO> {
-    pub blocks: &'p HashMap<UniqueSym<'p>, Block<'p, VarArg<'p>>>,
+    pub blocks: &'p HashMap<UniqueSym<'p>, Block<'p, VarArg<UniqueSym<'p>>>>,
     pub io: &'p mut I,
     pub regs: HashMap<Reg, i64>,
 
@@ -298,7 +298,7 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
         }
     }
 
-    fn get_arg(&self, a: &'p VarArg) -> i64 {
+    fn get_arg(&self, a: &'p VarArg<UniqueSym<'p>>) -> i64 {
         match a {
             VarArg::Imm { val } => *val,
             VarArg::Reg { reg } => self.regs[reg],
@@ -310,7 +310,7 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
         }
     }
 
-    fn set_arg(&mut self, a: &'p VarArg, v: i64) {
+    fn set_arg(&mut self, a: &'p VarArg<UniqueSym<'p>>, v: i64) {
         match a {
             VarArg::Imm { .. } => panic!("Tried to write to immediate, are u insane?"),
             VarArg::Reg { reg } => {

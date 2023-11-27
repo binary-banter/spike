@@ -19,18 +19,18 @@ use std::fmt::Display;
     r#"blocks.iter().map(|(sym, block)| format!("{sym}:\n{block}")).format("\n")"#
 )]
 pub struct X86Selected<'p> {
-    pub blocks: HashMap<UniqueSym<'p>, Block<'p, VarArg<'p>>>,
+    pub blocks: HashMap<UniqueSym<'p>, Block<'p, VarArg<UniqueSym<'p>>>>,
     pub entry: UniqueSym<'p>,
     pub std: Std<'p>,
 }
 
-#[derive(Clone, Display, Functor)]
+#[derive(Debug, Clone, Display, Functor)]
 #[display(fmt = "\t{}", r#"instrs.iter().format("\n\t")"#)]
 pub struct Block<'p, A: Display> {
-    pub instrs: Vec<Instr<'p, A>>,
+    pub instrs: Vec<Instr<A, UniqueSym<'p>>>,
 }
 
-#[derive(Copy, Clone, PartialEq, Display)]
+#[derive(Debug, Copy, Clone, PartialEq, Display)]
 pub enum Cnd {
     Above,
     AboveOrEqual,
@@ -52,54 +52,54 @@ pub enum Cnd {
     Sign,
 }
 
-#[derive(Clone, PartialEq, Display, Functor)]
-pub enum Instr<'p, A: Display> {
+#[derive(Debug, Clone, PartialEq, Display, Functor)]
+pub enum Instr<Arg: Display, IdentVars: Display> {
     #[display(fmt = "addq\t{src}\t{dst}")]
-    Addq { src: A, dst: A },
+    Addq { src: Arg, dst: Arg },
     #[display(fmt = "subq\t{src}\t{dst}")]
-    Subq { src: A, dst: A },
+    Subq { src: Arg, dst: Arg },
     #[display(fmt = "divq\t{divisor}")]
-    Divq { divisor: A },
+    Divq { divisor: Arg },
     #[display(fmt = "mulq\t{src}")]
-    Mulq { src: A },
+    Mulq { src: Arg },
     #[display(fmt = "negq\t{dst}")]
-    Negq { dst: A },
+    Negq { dst: Arg },
     #[display(fmt = "movq\t{src}\t{dst}")]
-    Movq { src: A, dst: A },
+    Movq { src: Arg, dst: Arg },
     #[display(fmt = "pushq\t{src}")]
-    Pushq { src: A },
+    Pushq { src: Arg },
     #[display(fmt = "popq\t{dst}")]
-    Popq { dst: A },
+    Popq { dst: Arg },
     #[display(fmt = "retq")]
     Retq,
     #[display(fmt = "syscall\t// arity: {arity}")]
     Syscall { arity: usize },
     #[display(fmt = "cmpq\t{src}\t{dst}")]
-    Cmpq { src: A, dst: A },
+    Cmpq { src: Arg, dst: Arg },
     #[display(fmt = "jmp\t{lbl}")]
-    Jmp { lbl: UniqueSym<'p> },
+    Jmp { lbl: IdentVars },
     #[display(fmt = "jcc\t{cnd}\t{lbl}")]
-    Jcc { lbl: UniqueSym<'p>, cnd: Cnd },
+    Jcc { lbl: IdentVars, cnd: Cnd },
     #[display(fmt = "andq {src}\t{dst}")]
-    Andq { src: A, dst: A },
+    Andq { src: Arg, dst: Arg },
     #[display(fmt = "orq {src}\t{dst}")]
-    Orq { src: A, dst: A },
+    Orq { src: Arg, dst: Arg },
     #[display(fmt = "xorq\t{src}\t{dst}")]
-    Xorq { src: A, dst: A },
+    Xorq { src: Arg, dst: Arg },
     #[display(fmt = "notq\t{dst}")]
-    Notq { dst: A },
+    Notq { dst: Arg },
     #[display(fmt = "setcc\t{cnd}")]
     Setcc { cnd: Cnd }, //TODO allow setting other byteregs
     #[display(fmt = "loadlbl\t{sym}\t{dst}")]
-    LoadLbl { sym: UniqueSym<'p>, dst: A },
+    LoadLbl { sym: IdentVars, dst: Arg },
     #[display(fmt = "call_direct\t{lbl}\t// arity: {arity}")]
-    CallqDirect { lbl: UniqueSym<'p>, arity: usize },
+    CallqDirect { lbl: IdentVars, arity: usize },
     #[display(fmt = "call_indirect\t{src}\t// arity: {arity}")]
-    CallqIndirect { src: A, arity: usize },
+    CallqIndirect { src: Arg, arity: usize },
 }
 
-#[derive(PartialEq, Clone, Display)]
-pub enum VarArg<'p> {
+#[derive(Debug, PartialEq, Clone, Display)]
+pub enum VarArg<IdentVars: Display> {
     #[display(fmt = "${val}")]
     Imm { val: i64 },
     #[display(fmt = "%{reg}")]
@@ -107,7 +107,7 @@ pub enum VarArg<'p> {
     #[display(fmt = "[%{reg} + ${off}]")]
     Deref { reg: Reg, off: i64 },
     #[display(fmt = "{sym}")]
-    XVar { sym: UniqueSym<'p> },
+    XVar { sym: IdentVars },
 }
 
 pub const CALLER_SAVED: [Reg; 9] = [
@@ -142,7 +142,7 @@ pub const SYSCALL_REGS: [Reg; 7] = [
     Reg::R9,
 ];
 
-#[derive(Hash, Clone, Copy, Eq, Ord, PartialEq, PartialOrd, Display)]
+#[derive(Debug, Hash, Clone, Copy, Eq, Ord, PartialEq, PartialOrd, Display)]
 #[allow(clippy::upper_case_acronyms)]
 pub enum Reg {
     RSP,

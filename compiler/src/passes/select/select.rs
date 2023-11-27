@@ -36,7 +36,7 @@ fn select_block<'p>(
     sym: UniqueSym<'p>,
     tail: ETail<'p>,
     fn_params: &HashMap<UniqueSym<'p>, Vec<Param<UniqueSym<'p>>>>,
-) -> Block<'p, VarArg<'p>> {
+) -> Block<'p, VarArg<UniqueSym<'p>>> {
     let mut instrs = Vec::new();
 
     if let Some(params) = fn_params.get(&sym) {
@@ -60,7 +60,7 @@ fn select_block<'p>(
     Block { instrs }
 }
 
-fn select_tail<'p>(tail: ETail<'p>, instrs: &mut Vec<Instr<'p, VarArg<'p>>>) {
+fn select_tail<'p>(tail: ETail<'p>, instrs: &mut Vec<Instr<VarArg<UniqueSym<'p>>, UniqueSym<'p>>>) {
     match tail {
         ETail::Return { exprs } => {
             assert!(
@@ -112,7 +112,7 @@ fn select_tail<'p>(tail: ETail<'p>, instrs: &mut Vec<Instr<'p, VarArg<'p>>>) {
 fn select_assign<'p>(
     dsts: &[UniqueSym<'p>],
     expr: Meta<Vec<Type<UniqueSym<'p>>>, EExpr<'p>>,
-) -> Vec<Instr<'p, VarArg<'p>>> {
+) -> Vec<Instr<VarArg<UniqueSym<'p>>, UniqueSym<'p>>> {
     let dst = var!(dsts[0]);
     match expr.inner {
         EExpr::Atom {
@@ -210,7 +210,7 @@ fn select_assign<'p>(
     }
 }
 
-fn select_atom(expr: Atom) -> VarArg {
+fn select_atom<'p>(expr: Atom<'p>) -> VarArg<UniqueSym<'p>> {
     match expr {
         Atom::Val { val } => imm!(val),
         Atom::Var { sym } => var!(sym),
