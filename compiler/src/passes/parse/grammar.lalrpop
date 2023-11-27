@@ -25,7 +25,20 @@ match {
     "asm",
 
     // Asm instructions
-    "mov",
+    "addq",
+    "subq",
+    "mulq",
+    "divq",
+    "negq",
+    "movq",
+    "pushq",
+    "popq",
+    "retq",
+    "andq",
+    "orq",
+    "xorq",
+    "notq",
+    "cmpq",
 
     // Asm registers
     "%RSP",
@@ -233,7 +246,7 @@ ExprInStmt: ExprParsed<'input> = {
         bdy: Box::new(bdy.fmap(|bdy| bdy.unwrap_or(ExprParsed::Lit { val: Lit::Unit }))),
     },
     "continue" => ExprParsed::Continue,
-    "asm" "{" <instrs:Comma<AsmInstr>> "}" => ExprParsed::Asm { instrs },
+    "asm" "{" <instrs:AsmInstr*> "}" => ExprParsed::Asm { instrs },
     ExprLogicalOr<Struct>,
 }
 
@@ -367,7 +380,29 @@ Comma<T>: Vec<T> = {
 Spanned<T>: Spanned<T> = <l:@L> <inner:T> <r:@R> => Meta { meta: (l, r - l), inner };
 
 AsmInstr: InstrParsed<'input> = {
-    "mov" <src:AsmArg> <dst:AsmArg> => Instr::Movq { src, dst },
+    "addq" <src:AsmArg> <dst:AsmArg> => InstrParsed::Addq { src, dst },
+    "subq" <src:AsmArg> <dst:AsmArg> => InstrParsed::Subq { src, dst },
+    "mulq" <src:AsmArg> => InstrParsed::Mulq { src },
+    "divq" <divisor:AsmArg> => InstrParsed::Divq { divisor },
+    "negq" <dst:AsmArg> => InstrParsed::Negq { dst },
+    "movq" <src:AsmArg> <dst:AsmArg> => InstrParsed::Movq { src, dst },
+    "pushq" <src:AsmArg> => InstrParsed::Pushq { src },
+    "popq" <dst:AsmArg> => InstrParsed::Popq { dst },
+    "retq" => InstrParsed::Retq,
+    "andq" <src:AsmArg> <dst:AsmArg> => InstrParsed::Andq { src, dst },
+    "orq" <src:AsmArg> <dst:AsmArg> => InstrParsed::Orq { src, dst },
+    "xorq" <src:AsmArg> <dst:AsmArg> => InstrParsed::Xorq { src, dst },
+    "notq" <dst:AsmArg> => InstrParsed::Notq { dst },
+    "cmpq" <src:AsmArg> <dst:AsmArg> => InstrParsed::Cmpq { src, dst },
+
+    // todo
+    // "syscall"
+    // "jmp"
+    // "jcc"
+    // loadlbl
+    // callqdirect
+    // callqindirect
+    // setcc
 }
 
 AsmArg: VarArg<Spanned<&'input str>> = {

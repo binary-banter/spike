@@ -2,7 +2,7 @@
 fn main() -> I64 {
     let mut x = 0;
     asm {
-        mov $1 {x}
+        movq $1 {x}
     };
     x
 }
