@@ -207,6 +207,7 @@ fn select_assign<'p>(
 
             instrs
         }
+        EExpr::Asm { instrs } => instrs,
     }
 }
 

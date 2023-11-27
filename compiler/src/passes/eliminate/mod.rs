@@ -13,6 +13,7 @@ use crate::passes::parse::{BinaryOp, Meta, Param, TypeDef, UnaryOp};
 use crate::passes::select::std_lib::Std;
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
+use crate::passes::select::{Instr, VarArg};
 
 pub struct PrgEliminated<'p> {
     pub blocks: HashMap<UniqueSym<'p>, ETail<'p>>,
@@ -47,4 +48,7 @@ pub enum EExpr<'p> {
     UnaryOp { op: UnaryOp, expr: Atom<'p> },
     Apply { fun: Atom<'p>, args: Vec<Atom<'p>> },
     FunRef { sym: UniqueSym<'p> },
+    Asm {
+        instrs: Vec<Instr<VarArg<UniqueSym<'p>>, UniqueSym<'p>>>,
+    },
 }

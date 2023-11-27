@@ -119,6 +119,7 @@ fn atomize_expr<'p>(expr: Typed<'p, RExpr<'p>>) -> Typed<'p, AExpr<'p>> {
             strct: atomize_atom(*strct, &mut priors),
             field,
         },
+        RExpr::Asm { instrs } => AExpr::Asm { instrs },
     };
 
     // Chains all the priors with the atomized expression as the body.

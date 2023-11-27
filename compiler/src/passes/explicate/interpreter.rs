@@ -165,6 +165,7 @@ impl<'p> PrgExplicated<'p> {
                 let s = self.interpret_atom(strct, scope);
                 s.strct()[field].clone()
             }
+            CExpr::Asm { .. } => todo!(),
         }
     }
 

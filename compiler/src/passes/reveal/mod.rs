@@ -8,6 +8,7 @@ use crate::passes::validate::{DefValidated, ExprValidated, PrgValidated, TLit};
 use crate::utils::gen_sym::UniqueSym;
 use functor_derive::Functor;
 use std::collections::HashMap;
+use crate::passes::select::{Instr, VarArg};
 
 pub struct PrgRevealed<'p> {
     pub defs: HashMap<UniqueSym<'p>, DefRevealed<'p>>,
@@ -74,6 +75,9 @@ pub enum RExpr<'p> {
     AccessField {
         strct: Box<Typed<'p, RExpr<'p>>>,
         field: &'p str,
+    },
+    Asm {
+        instrs: Vec<Instr<VarArg<UniqueSym<'p>>, UniqueSym<'p>>>,
     },
 }
 
@@ -168,6 +172,7 @@ impl<'p> From<Typed<'p, RExpr<'p>>> for Typed<'p, ExprValidated<'p>> {
                 strct: Box::new((*strct).into()),
                 field,
             },
+            RExpr::Asm { .. } => todo!(),
         };
 
         Meta {

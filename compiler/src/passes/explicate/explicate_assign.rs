@@ -156,5 +156,13 @@ pub fn explicate_assign<'p>(
             },
             tail: Box::new(tail),
         },
+        AExpr::Asm { instrs } => CTail::Seq {
+            sym,
+            bnd: Meta {
+                meta: bnd.meta,
+                inner: CExpr::Asm { instrs },
+            },
+            tail: Box::new(tail),
+        }
     }
 }

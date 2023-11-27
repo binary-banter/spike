@@ -13,6 +13,7 @@ use crate::passes::parse::{BinaryOp, Param, TypeDef, Typed, UnaryOp};
 use crate::passes::select::std_lib::Std;
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
+use crate::passes::select::{Instr, VarArg};
 
 pub struct PrgExplicated<'p> {
     pub blocks: HashMap<UniqueSym<'p>, CTail<'p>>,
@@ -68,5 +69,8 @@ pub enum CExpr<'p> {
     AccessField {
         strct: Atom<'p>,
         field: &'p str,
+    },
+    Asm {
+        instrs: Vec<Instr<VarArg<UniqueSym<'p>>, UniqueSym<'p>>>,
     },
 }

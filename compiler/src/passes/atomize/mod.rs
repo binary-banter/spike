@@ -8,6 +8,7 @@ use crate::passes::select::std_lib::Std;
 use crate::passes::validate::{DefValidated, ExprValidated, PrgValidated, TLit};
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
+use crate::passes::select::{Instr, VarArg};
 
 pub struct PrgAtomized<'p> {
     pub defs: HashMap<UniqueSym<'p>, DefAtomized<'p>>,
@@ -71,6 +72,9 @@ pub enum AExpr<'p> {
     AccessField {
         strct: Atom<'p>,
         field: &'p str,
+    },
+    Asm {
+        instrs: Vec<Instr<VarArg<UniqueSym<'p>>, UniqueSym<'p>>>,
     },
 }
 
@@ -181,6 +185,7 @@ impl<'p> From<Typed<'p, AExpr<'p>>> for Typed<'p, ExprValidated<'p>> {
                 strct: Box::new(strct.into()),
                 field,
             },
+            AExpr::Asm { .. } => todo!(),
         };
 
         Meta {

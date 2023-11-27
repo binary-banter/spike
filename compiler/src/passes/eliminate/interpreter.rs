@@ -156,6 +156,7 @@ impl<'p> PrgEliminated<'p> {
                     _ => unreachable!("The symbol did not refer to a function."),
                 }
             }
+            EExpr::Asm { .. } => todo!(),
         };
         vec![val]
     }
