@@ -1,19 +1,15 @@
 #![allow(clippy::module_inception)]
 
-extern crate core;
-
 pub mod interpreter;
 pub mod passes;
 pub mod utils;
 
 use crate::passes::parse::parse::parse_program;
-use miette::{NamedSource, Report};
+use miette::{IntoDiagnostic, NamedSource, Report};
 use std::fs::File;
 use std::path::Path;
 
 pub fn compile(program: &str, filename: &str, output: &Path) -> miette::Result<()> {
-    let mut file = File::create(output).unwrap();
-
     let add_source =
         |error| Report::with_source_code(error, NamedSource::new(filename, program.to_string()));
 
@@ -32,7 +28,7 @@ pub fn compile(program: &str, filename: &str, output: &Path) -> miette::Result<(
         .patch()
         .conclude()
         .emit()
-        .write(&mut file);
+        .write(&mut File::create(output).into_diagnostic()?);
 
     Ok(())
 }

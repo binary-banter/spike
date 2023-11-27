@@ -1,9 +1,8 @@
 use crate::passes::parse::{
-    BinaryOp, Def, Expr, Lit, Meta, Param, PrgParsed, Span, Type, TypeDef, UnaryOp,
+    BinaryOp, DefParsed, ExprParsed, Lit, Meta, Param, PrgParsed, Spanned, Type, TypeDef, UnaryOp,
 };
 use crate::passes::validate::partial_type::PartialType;
 use functor_derive::Functor;
-use crate::passes::parse::Spanned;
 
 grammar;
 
@@ -93,20 +92,20 @@ pub Program: PrgParsed<'input> = {
     }
 }
 
-Def: Def<Spanned<&'input str>, Spanned<&'input str>, Spanned<Expr<Spanned<&'input str>, Spanned<&'input str>, Lit<'input>, Span>>> = {
-    "struct" <sym:Ident> "{" <fields:Comma<(<Ident> ":" <Type>)>> "}" => Def::TypeDef {
+Def: DefParsed<'input> = {
+    "struct" <sym:Ident> "{" <fields:Comma<(<Ident> ":" <Type>)>> "}" => DefParsed::TypeDef {
         sym,
         def: TypeDef::Struct { fields },
     },
-    "enum" <sym:Ident> "{" <variants:Comma<(<Ident> ":" <Type>)>> "}" => Def::TypeDef {
+    "enum" <sym:Ident> "{" <variants:Comma<(<Ident> ":" <Type>)>> "}" => DefParsed::TypeDef {
         sym,
         def: TypeDef::Enum { variants },
     },
-    "fn" <sym:Ident> "(" <params:Comma<Param>> ")" <typ:("->" <Type>)?> "{" <bdy: Spanned<Expr?>> "}" => Def::Fn {
+    "fn" <sym:Ident> "(" <params:Comma<Param>> ")" <typ:("->" <Type>)?> "{" <bdy: Spanned<Expr?>> "}" => DefParsed::Fn {
         sym,
         params,
         typ: typ.unwrap_or(Type::Unit),
-        bdy: bdy.fmap(|bdy| bdy.unwrap_or(Expr::Lit { val: Lit::Unit })),
+        bdy: bdy.fmap(|bdy| bdy.unwrap_or(ExprParsed::Lit { val: Lit::Unit })),
     },
 }
 
@@ -143,76 +142,76 @@ Type: Type<Spanned<&'input str>> = {
 // Num/Bool/Ident
 Expr = ExprStmt;
 
-ExprStmt: Expr<Spanned<&'input str>, Spanned<&'input str>, Lit<'input>, Span> = {
-    "let" <mutable:"mut"?> <sym:Ident> <typ:(":" <Type>)?> "=" <bnd:Spanned<ExprLogicalOr<Struct>>> ";" <bdy:Spanned<ExprStmt?>> => Expr::Let {
+ExprStmt: ExprParsed<'input> = {
+    "let" <mutable:"mut"?> <sym:Ident> <typ:(":" <Type>)?> "=" <bnd:Spanned<ExprLogicalOr<Struct>>> ";" <bdy:Spanned<ExprStmt?>> => ExprParsed::Let {
         sym,
         mutable: mutable.is_some(),
         typ,
         bnd: Box::new(bnd),
-        bdy: Box::new(bdy.fmap(|bdy| bdy.unwrap_or(Expr::Lit { val: Lit::Unit }))),
+        bdy: Box::new(bdy.fmap(|bdy| bdy.unwrap_or(ExprParsed::Lit { val: Lit::Unit }))),
     },
-    <stmt:Spanned<ExprInStmt>> ";" <cnt:Spanned<ExprStmt?>> => Expr::Seq {
+    <stmt:Spanned<ExprInStmt>> ";" <cnt:Spanned<ExprStmt?>> => ExprParsed::Seq {
         stmt: Box::new(stmt),
-        cnt: Box::new(cnt.fmap(|cnt| cnt.unwrap_or(Expr::Lit { val: Lit::Unit }))),
+        cnt: Box::new(cnt.fmap(|cnt| cnt.unwrap_or(ExprParsed::Lit { val: Lit::Unit }))),
     },
     ExprInStmt,
 }
 
-ExprInStmt: Expr<Spanned<&'input str>, Spanned<&'input str>, Lit<'input>, Span> = {
-    <sym:Ident> "=" <bnd:Spanned<ExprLogicalOr<Struct>>> => Expr::Assign {
+ExprInStmt: ExprParsed<'input> = {
+    <sym:Ident> "=" <bnd:Spanned<ExprLogicalOr<Struct>>> => ExprParsed::Assign {
         sym,
         bnd: Box::new(bnd),
     },
-    "if" <cnd:Spanned<ExprLogicalOr<Never>>> "{" <thn:Spanned<Expr>> "}" <l:@L> <els:("else" "{" <Spanned<Expr>> "}")?> <r:@R> => Expr::If {
+    "if" <cnd:Spanned<ExprLogicalOr<Never>>> "{" <thn:Spanned<Expr>> "}" <l:@L> <els:("else" "{" <Spanned<Expr>> "}")?> <r:@R> => ExprParsed::If {
         cnd: Box::new(cnd),
         thn: Box::new(thn),
-        els: Box::new(els.unwrap_or(Meta { meta: (l, r - l), inner: Expr::Lit { val: Lit::Unit }})),
+        els: Box::new(els.unwrap_or(Meta { meta: (l, r - l), inner: ExprParsed::Lit { val: Lit::Unit }})),
     },
-    "loop" "{" <bdy:Spanned<Expr>> "}" => Expr::Loop {
+    "loop" "{" <bdy:Spanned<Expr>> "}" => ExprParsed::Loop {
         bdy: Box::new(bdy),
     },
     // todo: the spans in this desugaring do not make a lot sense.
-    <l:@L> "while" <r:@R> <cnd:Spanned<ExprLogicalOr<Never>>> "{" <bdy:Spanned<Expr>> "}" => Expr::Loop {
+    <l:@L> "while" <r:@R> <cnd:Spanned<ExprLogicalOr<Never>>> "{" <bdy:Spanned<Expr>> "}" => ExprParsed::Loop {
         bdy: Box::new(Meta {
             meta: (l, r - l),
-            inner: Expr::If {
+            inner: ExprParsed::If {
                 cnd: Box::new(cnd),
                 thn: Box::new(bdy),
                 els: Box::new(Meta {
                     meta: (l, r - l),
-                    inner: Expr::Seq {
+                    inner: ExprParsed::Seq {
                         stmt: Box::new(Meta {
                             meta: (l, r - l),
-                            inner: Expr::Break { bdy: Box::new(Meta {
+                            inner: ExprParsed::Break { bdy: Box::new(Meta {
                                 meta: (l, r - l),
-                                inner: Expr::Lit { val: Lit::Unit },
+                                inner: ExprParsed::Lit { val: Lit::Unit },
                             })},
                         }),
                         cnt: Box::new(Meta {
                             meta: (l, r - l),
-                            inner: Expr::Lit { val: Lit::Unit },
+                            inner: ExprParsed::Lit { val: Lit::Unit },
                         }),
                     },
                 }),
             },
         }),
     },
-    "switch" <enm:Spanned<ExprLogicalOr<Never>>> "{" <arms:Comma<(<Ident> "(" <Ident> ")" "=>" <Spanned<Expr>> )>> "}"  => Expr::Switch {
+    "switch" <enm:Spanned<ExprLogicalOr<Never>>> "{" <arms:Comma<(<Ident> "(" <Ident> ")" "=>" <Spanned<Expr>> )>> "}"  => ExprParsed::Switch {
         enm: Box::new(enm),
         arms: arms.into_iter().map(|(s1, s2, e)| (s1, s2, Box::new(e))).collect(),
      },
-    "break" <bdy:Spanned<ExprLogicalOr<Struct>?>> => Expr::Break {
-        bdy: Box::new(bdy.fmap(|bdy| bdy.unwrap_or(Expr::Lit { val: Lit::Unit }))),
+    "break" <bdy:Spanned<ExprLogicalOr<Struct>?>> => ExprParsed::Break {
+        bdy: Box::new(bdy.fmap(|bdy| bdy.unwrap_or(ExprParsed::Lit { val: Lit::Unit }))),
     },
-    "return" <bdy:Spanned<ExprLogicalOr<Struct>?>> => Expr::Return {
-        bdy: Box::new(bdy.fmap(|bdy| bdy.unwrap_or(Expr::Lit { val: Lit::Unit }))),
+    "return" <bdy:Spanned<ExprLogicalOr<Struct>?>> => ExprParsed::Return {
+        bdy: Box::new(bdy.fmap(|bdy| bdy.unwrap_or(ExprParsed::Lit { val: Lit::Unit }))),
     },
-    "continue" => Expr::Continue,
+    "continue" => ExprParsed::Continue,
     ExprLogicalOr<Struct>,
 }
 
-BinaryOps<Op,Next>: Expr<Spanned<&'input str>, Spanned<&'input str>, Lit<'input>, Span> = {
-    <e1:Spanned<BinaryOps<Op,Next>>> <op:Op> <e2:Spanned<Next>> => Expr::BinaryOp {
+BinaryOps<Op,Next>: ExprParsed<'input> = {
+    <e1:Spanned<BinaryOps<Op,Next>>> <op:Op> <e2:Spanned<Next>> => ExprParsed::BinaryOp {
         op,
         exprs: [Box::new(e1), Box::new(e2)],
     },
@@ -251,53 +250,53 @@ UnaryOp: UnaryOp = {
     "!" => UnaryOp::Not,
 }
 
-ExprUnary<T>: Expr<Spanned<&'input str>, Spanned<&'input str>, Lit<'input>, Span> = {
-    <op:UnaryOp> <e:Spanned<ExprUnary<T>>> => Expr::UnaryOp {
+ExprUnary<T>: ExprParsed<'input> = {
+    <op:UnaryOp> <e:Spanned<ExprUnary<T>>> => ExprParsed::UnaryOp {
         op,
         expr: Box::new(e),
     },
     ExprAccess<T>,
 }
 
-ExprAccess<T>: Expr<Spanned<&'input str>, Spanned<&'input str>, Lit<'input>, Span> = {
-    <strct:Spanned<ExprAccess<T>>> "." <field:Ident> => Expr::AccessField {
+ExprAccess<T>: ExprParsed<'input> = {
+    <strct:Spanned<ExprAccess<T>>> "." <field:Ident> => ExprParsed::AccessField {
         strct: Box::new(strct),
         field,
     },
     ExprCall<T>,
 }
 
-ExprCall<T>: Expr<Spanned<&'input str>, Spanned<&'input str>, Lit<'input>, Span> = {
-    <fun:Spanned<ExprAtom<T>>> "(" <args:Comma<Spanned<Expr>>> ")" => Expr::Apply {
+ExprCall<T>: ExprParsed<'input> = {
+    <fun:Spanned<ExprAtom<T>>> "(" <args:Comma<Spanned<Expr>>> ")" => ExprParsed::Apply {
         fun: Box::new(fun),
         args,
     },
     ExprAtom<T>,
 }
 
-ExprAtom<T>: Expr<Spanned<&'input str>, Spanned<&'input str>, Lit<'input>, Span> = {
-    <val:integer> => Expr::Lit {
+ExprAtom<T>: ExprParsed<'input> = {
+    <val:integer> => ExprParsed::Lit {
         val: Lit::Int {
             val,
             typ: None,
         },
     },
-    <val:i64> => Expr::Lit {
+    <val:i64> => ExprParsed::Lit {
         val: Lit::Int {
             val: val.trim_end_matches("i64"),
             typ: Some(PartialType::I64),
         },
     },
-    <val:u64> => Expr::Lit {
+    <val:u64> => ExprParsed::Lit {
         val: Lit::Int {
             val: val.trim_end_matches("u64"),
             typ: Some(PartialType::U64),
         },
     },
-    <val:Bool> => Expr::Lit { val: Lit::Bool { val } },
-    "unit" => Expr::Lit { val: Lit::Unit },
-    <sym:Ident> => Expr::Var { sym },
-    <enum_sym:Ident> "::" <variant_sym:Ident> "(" <bdy:Spanned<Expr>> ")" => Expr::Variant {
+    <val:Bool> => ExprParsed::Lit { val: Lit::Bool { val } },
+    "unit" => ExprParsed::Lit { val: Lit::Unit },
+    <sym:Ident> => ExprParsed::Var { sym },
+    <enum_sym:Ident> "::" <variant_sym:Ident> "(" <bdy:Spanned<Expr>> ")" => ExprParsed::Variant {
         enum_sym,
         variant_sym,
         bdy: Box::new(bdy),
@@ -306,19 +305,19 @@ ExprAtom<T>: Expr<Spanned<&'input str>, Spanned<&'input str>, Lit<'input>, Span>
     <T>,
 }
 
-Struct: Expr<Spanned<&'input str>, Spanned<&'input str>, Lit<'input>, Span> = {
-    <sym:Ident> "{" <fields:Comma<StructArg>> "}" => Expr::Struct {
+Struct: ExprParsed<'input> = {
+    <sym:Ident> "{" <fields:Comma<StructArg>> "}" => ExprParsed::Struct {
         sym,
         fields,
     },
 }
 
-StructArg : (Spanned<&'input str>, Spanned<Expr<Spanned<&'input str>, Spanned<&'input str>, Lit<'input>, Span>>) = {
+StructArg : (Spanned<&'input str>, Spanned<ExprParsed<'input>>) = {
     <Ident> ":" <Spanned<Expr>>,
-    <l:@L> <sym:Ident> <r:@R> => (sym.clone(), Meta { meta: (l, r - l), inner: Expr::Var { sym } })
+    <l:@L> <sym:Ident> <r:@R> => (sym.clone(), Meta { meta: (l, r - l), inner: ExprParsed::Var { sym } })
 }
 
-Never: Expr<Spanned<&'input str>, Spanned<&'input str>, Lit<'input>, Span> = {};
+Never: ExprParsed<'input> = {};
 
 Ident: Spanned<&'input str> = Spanned<identifier>;
 
