@@ -38,7 +38,7 @@ pub fn constrain_access_field<'p>(
     };
 
     let index = env.uf.type_to_index(typ.clone());
-    Ok(Meta {
+    Ok(Constrained {
         meta: MetaConstrained { span, index },
         inner: ExprConstrained::AccessField {
             strct: Box::new(strct),

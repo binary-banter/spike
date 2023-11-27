@@ -12,6 +12,7 @@ pub mod validate;
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Constrained, Def, Expr, Lit, Span, Spanned, Typed};
 use crate::passes::select::std_lib::Std;
+use crate::passes::select::{Instr, VarArg};
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};
 use derive_more::Display;
@@ -44,6 +45,7 @@ pub type ExprConstrained<'p> =
 pub type DefUniquified<'p> =
     Def<Spanned<UniqueSym<'p>>, Spanned<&'p str>, Spanned<ExprUniquified<'p>>>;
 pub type ExprUniquified<'p> = Expr<Spanned<UniqueSym<'p>>, Spanned<&'p str>, Lit<'p>, Span>;
+pub type InstrUniquified<'p> = Instr<VarArg<Spanned<UniqueSym<'p>>>, Spanned<UniqueSym<'p>>>;
 
 pub struct MetaConstrained {
     pub span: Span,

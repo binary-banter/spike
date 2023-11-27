@@ -21,7 +21,7 @@ pub fn constrain_loop<'p>(
 
     let bdy = expr::constrain_expr(bdy, &mut env)?;
 
-    Ok(Meta {
+    Ok(Constrained {
         meta: MetaConstrained {
             span,
             index: loop_type,

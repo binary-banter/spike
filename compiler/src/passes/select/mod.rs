@@ -98,7 +98,7 @@ pub enum Instr<Arg: Display, IdentVars: Display> {
     CallqIndirect { src: Arg, arity: usize },
 }
 
-#[derive(Debug, PartialEq, Clone, Display)]
+#[derive(Debug, PartialEq, Clone, Display, Functor)]
 pub enum VarArg<IdentVars: Display> {
     #[display(fmt = "${val}")]
     Imm { val: i64 },

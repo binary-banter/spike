@@ -13,7 +13,7 @@ pub fn constrain_seq<'p>(
     let stmt = expr::constrain_expr(stmt, env)?;
     let cnt = expr::constrain_expr(cnt, env)?;
 
-    Ok(Meta {
+    Ok(Constrained {
         meta: MetaConstrained {
             span,
             index: cnt.meta.index,

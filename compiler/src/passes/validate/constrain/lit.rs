@@ -22,7 +22,7 @@ pub fn constrain_lit<'p>(
     // Add the type to the constraints.
     let index = env.uf.add(typ);
 
-    Ok(Meta {
+    Ok(Constrained {
         meta: MetaConstrained { span, index },
         inner: ExprConstrained::Lit { val },
     })

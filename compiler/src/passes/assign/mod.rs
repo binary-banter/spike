@@ -41,7 +41,10 @@ pub struct LX86VarProgram<'p> {
 
 #[derive(PartialEq)]
 pub struct LBlock<'p> {
-    pub instrs: Vec<(Instr<VarArg<UniqueSym<'p>>, UniqueSym<'p>,>, HashSet<LArg<'p>>)>,
+    pub instrs: Vec<(
+        Instr<VarArg<UniqueSym<'p>>, UniqueSym<'p>>,
+        HashSet<LArg<'p>>,
+    )>,
 }
 
 #[derive(Hash, Clone, Copy, Eq, Ord, PartialEq, PartialOrd)]

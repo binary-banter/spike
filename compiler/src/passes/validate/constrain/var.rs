@@ -12,7 +12,7 @@ pub fn constrain_var<'p>(
     let EnvEntry::Type { typ, .. } = env.scope[&sym.inner] else {
         return Err(TypeError::SymbolShouldBeVariable { span });
     };
-    Ok(Meta {
+    Ok(Constrained {
         meta: MetaConstrained { span, index: typ },
         inner: ExprConstrained::Var { sym },
     })

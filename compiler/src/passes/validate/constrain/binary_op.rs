@@ -67,7 +67,7 @@ pub fn constrain_binary_op<'p>(
         Some(e) => env.uf.add(e),
     };
 
-    Ok(Meta {
+    Ok(Constrained {
         meta: MetaConstrained {
             span,
             index: output_index,

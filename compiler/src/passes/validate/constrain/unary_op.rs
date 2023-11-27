@@ -27,7 +27,7 @@ pub fn constrain_unary_op<'p>(
         }
     })?;
 
-    Ok(Meta {
+    Ok(Constrained {
         meta: MetaConstrained {
             span,
             index: expr.meta.index,

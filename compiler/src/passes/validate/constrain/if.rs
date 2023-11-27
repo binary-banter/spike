@@ -35,7 +35,7 @@ pub fn constrain_if<'p>(
             }
         })?;
 
-    Ok(Meta {
+    Ok(Constrained {
         meta: MetaConstrained {
             span,
             index: out_index,

@@ -10,6 +10,7 @@ pub mod parse;
 mod tests;
 pub mod types;
 
+use crate::passes::select::{Instr, VarArg};
 use crate::passes::validate::partial_type::PartialType;
 use crate::passes::validate::MetaConstrained;
 use crate::utils::gen_sym::UniqueSym;
@@ -18,7 +19,6 @@ use functor_derive::Functor;
 use itertools::Itertools;
 use std::fmt::Display;
 use types::Type;
-use crate::passes::select::{Instr, VarArg};
 
 /// A parsed program with global definitions and an entry point.
 #[derive(Display)]

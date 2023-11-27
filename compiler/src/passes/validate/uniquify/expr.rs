@@ -1,10 +1,12 @@
-use crate::passes::parse::{Expr, ExprParsed, Meta, Spanned};
+use crate::passes::parse::{Expr, ExprParsed, InstrParsed, Meta, Spanned};
+use crate::passes::select::VarArg;
 use crate::passes::validate::error::TypeError;
-use crate::passes::validate::uniquify::gen_spanned_sym;
 use crate::passes::validate::uniquify::r#type::uniquify_type;
-use crate::passes::validate::{uniquify, ExprUniquified};
+use crate::passes::validate::uniquify::{gen_spanned_sym, try_get};
+use crate::passes::validate::{uniquify, ExprUniquified, InstrUniquified};
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::push_map::PushMap;
+use crate::*;
 
 pub fn uniquify_expr<'p>(
     expr: Spanned<ExprParsed<'p>>,
@@ -91,11 +93,58 @@ pub fn uniquify_expr<'p>(
         },
         Expr::Variant { .. } => todo!(),
         Expr::Switch { .. } => todo!(),
-        Expr::Asm { .. } => todo!(),
+        ExprParsed::Asm { instrs } => ExprUniquified::Asm {
+            instrs: instrs
+                .into_iter()
+                .map(|instr| uniquify_instr(instr, scope))
+                .collect::<Result<_, _>>()?,
+        },
     };
 
     Ok(Meta {
         inner,
         meta: expr.meta,
     })
+}
+
+fn uniquify_instr<'p>(
+    instr: InstrParsed<'p>,
+    scope: &mut PushMap<&'p str, UniqueSym<'p>>,
+) -> Result<InstrUniquified<'p>, TypeError> {
+    let map = |arg: VarArg<Spanned<&'p str>>| {
+        Ok(match arg {
+            VarArg::Imm { val } => VarArg::Imm { val },
+            VarArg::Reg { reg } => VarArg::Reg { reg },
+            VarArg::Deref { reg, off } => VarArg::Deref { reg, off },
+            VarArg::XVar { sym } => VarArg::XVar {
+                sym: try_get(sym, scope)?,
+            },
+        })
+    };
+
+    let instr = match instr {
+        InstrParsed::Addq { src, dst } => addq!(map(src)?, map(dst)?),
+        InstrParsed::Subq { src, dst } => subq!(map(src)?, map(dst)?),
+        InstrParsed::Divq { divisor } => divq!(map(divisor)?),
+        InstrParsed::Mulq { src } => mulq!(map(src)?),
+        InstrParsed::Negq { dst } => negq!(map(dst)?),
+        InstrParsed::Movq { src, dst } => movq!(map(src)?, map(dst)?),
+        InstrParsed::Pushq { src } => pushq!(map(src)?),
+        InstrParsed::Popq { dst } => popq!(map(dst)?),
+        InstrParsed::Retq => retq!(),
+        InstrParsed::Syscall { arity } => syscall!(arity),
+        InstrParsed::Cmpq { src, dst } => cmpq!(map(src)?, map(dst)?),
+        InstrParsed::Andq { src, dst } => andq!(map(src)?, map(dst)?),
+        InstrParsed::Orq { src, dst } => orq!(map(src)?, map(dst)?),
+        InstrParsed::Xorq { src, dst } => xorq!(map(src)?, map(dst)?),
+        InstrParsed::Notq { dst } => notq!(map(dst)?),
+        InstrParsed::Setcc { cnd } => setcc!(cnd),
+        InstrParsed::CallqDirect { .. } => todo!(),
+        InstrParsed::Jmp { .. } => todo!(),
+        InstrParsed::Jcc { .. } => todo!(),
+        InstrParsed::LoadLbl { .. } => todo!(),
+        InstrParsed::CallqIndirect { .. } => todo!(),
+    };
+
+    Ok(instr)
 }

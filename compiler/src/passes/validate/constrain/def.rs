@@ -1,4 +1,4 @@
-use crate::passes::parse::{Def, Meta};
+use crate::passes::parse::{Constrained, Def, Meta, Spanned};
 use crate::passes::validate::constrain::expr::constrain_expr;
 use crate::passes::validate::constrain::uncover_globals::{Env, EnvEntry};
 use crate::passes::validate::error::TypeError;
@@ -37,7 +37,7 @@ pub fn constrain_def<'p>(
                 uf,
                 scope,
                 loop_type: None,
-                return_type: &Meta {
+                return_type: &Spanned {
                     inner: return_index,
                     meta: sym.meta,
                 }, // TODO replace sym.meta with return type index

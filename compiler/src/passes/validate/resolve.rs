@@ -1,5 +1,5 @@
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Constrained, Expr, Lit, Meta, Param, Spanned, TypeDef, Typed};
+use crate::passes::parse::{Constrained, Expr, Lit, Meta, Param, Spanned, TypeDef, Typed, InstrParsed};
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::partial_type::PartialType;
 use crate::passes::validate::{
@@ -9,6 +9,8 @@ use crate::passes::validate::{
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};
 use functor_derive::Functor;
+use crate::*;
+use crate::passes::select::{Instr, VarArg};
 
 impl<'p> PrgConstrained<'p> {
     pub fn resolve(mut self) -> Result<PrgValidated<'p>, TypeError> {
@@ -213,11 +215,46 @@ fn resolve_expr<'p>(
         },
         Expr::Variant { .. } => todo!(),
         Expr::Switch { .. } => todo!(),
-        Expr::Asm { .. } => todo!(),
+        ExprConstrained::Asm { instrs } => ExprValidated::Asm {
+            instrs: instrs.into_iter().map(resolve_instr).collect(),
+        },
     };
 
     Ok(Meta {
         meta: typ.unwrap(),
         inner: expr,
     })
+}
+
+pub fn resolve_instr<'p>(instr: Instr<VarArg<Spanned<UniqueSym<'p>>>, Spanned<UniqueSym<'p>>>) -> Instr<VarArg<UniqueSym<'p>>, UniqueSym<'p>> {
+    let map = |arg: VarArg<Spanned<UniqueSym<'p>>>| match arg {
+        VarArg::Imm { val } => VarArg::Imm { val },
+        VarArg::Reg { reg } => VarArg::Reg { reg },
+        VarArg::Deref { reg, off } => VarArg::Deref { reg, off },
+        VarArg::XVar { sym }=> VarArg::XVar { sym: sym.inner },
+    };
+
+    match instr {
+        Instr::Addq { src, dst } => addq!(map(src), map(dst)),
+        Instr::Subq { src, dst } => subq!(map(src), map(dst)),
+        Instr::Divq { divisor } => divq!(map(divisor)),
+        Instr::Mulq { src } => mulq!(map(src)),
+        Instr::Negq { dst } => negq!(map(dst)),
+        Instr::Movq { src, dst } => movq!(map(src), map(dst)),
+        Instr::Pushq { src } => pushq!(map(src)),
+        Instr::Popq { dst } => popq!(map(dst)),
+        Instr::Retq => retq!(),
+        Instr::Syscall { arity } => syscall!(arity),
+        Instr::Cmpq { src, dst } => cmpq!(map(src), map(dst)),
+        Instr::Andq { src, dst } => andq!(map(src), map(dst)),
+        Instr::Orq { src, dst } => orq!(map(src), map(dst)),
+        Instr::Xorq { src, dst } => xorq!(map(src), map(dst)),
+        Instr::Notq { dst } => notq!(map(dst)),
+        Instr::Setcc { cnd } => setcc!(cnd),
+        Instr::CallqDirect { .. } => todo!(),
+        Instr::Jmp { .. } => todo!(),
+        Instr::Jcc { .. } => todo!(),
+        Instr::LoadLbl { .. } => todo!(),
+        Instr::CallqIndirect { .. } => todo!(),
+    }
 }

@@ -80,7 +80,7 @@ pub fn constrain_struct<'p>(
 
     let index = env.uf.add(PartialType::Var { sym: sym.inner });
 
-    Ok(Meta {
+    Ok(Constrained {
         meta: MetaConstrained { span, index },
         inner: ExprConstrained::Struct { sym, fields },
     })

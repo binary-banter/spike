@@ -9,7 +9,10 @@ use std::collections::HashMap;
 
 pub type Std<'p> = HashMap<&'p str, UniqueSym<'p>>;
 
-pub fn add_std_library<'p>(std: &Std<'p>, blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg<UniqueSym<'p>>>>) {
+pub fn add_std_library<'p>(
+    std: &Std<'p>,
+    blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg<UniqueSym<'p>>>>,
+) {
     add_exit_block(std["exit"], blocks);
     add_print_block(std["print"], blocks);
     add_read_block(std["read"], blocks, std["exit"]);

@@ -46,7 +46,7 @@ pub fn constrain_apply<'p>(
             })?;
     }
 
-    Ok(Meta {
+    Ok(Constrained {
         meta: MetaConstrained { span, index: typ },
         inner: ExprConstrained::Apply {
             fun: Box::new(fun),

@@ -34,7 +34,7 @@ pub fn constrain_assign<'p>(
 
     let typ = env.uf.add(PartialType::Unit);
 
-    Ok(Meta {
+    Ok(Constrained {
         meta: MetaConstrained { span, index: typ },
         inner: ExprConstrained::Assign {
             sym,

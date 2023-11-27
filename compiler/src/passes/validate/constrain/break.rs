@@ -24,7 +24,7 @@ pub fn constrain_break<'p>(
             }
         })?;
 
-    Ok(Meta {
+    Ok(Constrained {
         meta: MetaConstrained {
             span,
             index: env.uf.add(PartialType::Never),

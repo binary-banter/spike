@@ -36,7 +36,7 @@ pub fn constrain_let<'p>(
     );
     let bdy = expr::constrain_expr(bdy, env)?;
 
-    Ok(Meta {
+    Ok(Constrained {
         meta: MetaConstrained {
             span,
             index: bdy.meta.index,

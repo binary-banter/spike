@@ -14,7 +14,7 @@ pub fn constrain_continue<'p>(
         TypeError::ContinueOutsideLoop { span },
     )?;
 
-    Ok(Meta {
+    Ok(Constrained {
         meta: MetaConstrained {
             span,
             index: env.uf.add(PartialType::Never),
