@@ -1,7 +1,7 @@
 use crate::passes::parse::{
     BinaryOp, DefParsed, ExprParsed, InstrParsed, Lit, Meta, Param, PrgParsed, Spanned, Type, TypeDef, UnaryOp,
 };
-use crate::passes::select::{Instr, VarArg};
+use crate::passes::select::{Instr, VarArg, Reg};
 use crate::passes::validate::partial_type::PartialType;
 use functor_derive::Functor;
 
@@ -24,11 +24,34 @@ match {
     "switch",
     "asm",
 
+    // Asm instructions
+    "mov",
+
+    // Asm registers
+    "%RSP",
+    "%RBP",
+    "%RAX",
+    "%RBX",
+    "%RCX",
+    "%RDX",
+    "%RSI",
+    "%RDI",
+    "%R8",
+    "%R9",
+    "%R10",
+    "%R11",
+    "%R12",
+    "%R13",
+    "%R14",
+    "%R15",
+
     // Structural tokens
     "(",
     ")",
     "{",
     "}",
+    "[",
+    "]",
     "->",
     "=",
     ";",
@@ -37,6 +60,7 @@ match {
     ".",
     "::",
     "=>",
+    "$",
 
     // Identifier
     r"[_a-zA-Z][_a-zA-Z0-9]*" => identifier,
@@ -343,5 +367,36 @@ Comma<T>: Vec<T> = {
 Spanned<T>: Spanned<T> = <l:@L> <inner:T> <r:@R> => Meta { meta: (l, r - l), inner };
 
 AsmInstr: InstrParsed<'input> = {
+    "mov" <src:AsmArg> <dst:AsmArg> => Instr::Movq { src, dst },
+}
 
+AsmArg: VarArg<Spanned<&'input str>> = {
+    <reg:AsmReg> => VarArg::Reg { reg },
+    "{" <sym:Ident> "}" => VarArg::XVar { sym },
+    "$" <val:integer> => VarArg::Imm {
+        val: val.parse().expect("Internal compiler error (oh no!): We were too lazy to make a proper error for this"),
+    },
+    "[" <reg:AsmReg> "+" <off:integer> "]"  => VarArg::Deref {
+        reg,
+        off: off.parse().expect("Internal compiler error (oh no!): We were too lazy to make a proper error for this"),
+    },
+}
+
+AsmReg: Reg = {
+    "%RSP" => Reg::RSP,
+    "%RBP" => Reg::RBP,
+    "%RAX" => Reg::RAX,
+    "%RBX" => Reg::RBX,
+    "%RCX" => Reg::RCX,
+    "%RDX" => Reg::RDX,
+    "%RSI" => Reg::RSI,
+    "%RDI" => Reg::RDI,
+    "%R8" => Reg::R8 ,
+    "%R9" => Reg::R9 ,
+    "%R10" => Reg::R10,
+    "%R11" => Reg::R11,
+    "%R12" => Reg::R12,
+    "%R13" => Reg::R13,
+    "%R14" => Reg::R14,
+    "%R15" => Reg::R15,
 }
