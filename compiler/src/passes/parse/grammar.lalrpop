@@ -39,6 +39,7 @@ match {
     "xorq",
     "notq",
     "cmpq",
+    "syscall",
 
     // Asm registers
     "%RSP",
@@ -394,9 +395,9 @@ AsmInstr: InstrParsed<'input> = {
     "xorq" <src:AsmArg> <dst:AsmArg> => InstrParsed::Xorq { src, dst },
     "notq" <dst:AsmArg> => InstrParsed::Notq { dst },
     "cmpq" <src:AsmArg> <dst:AsmArg> => InstrParsed::Cmpq { src, dst },
+    "syscall" <arity:integer> => InstrParsed::Syscall { arity: arity.parse().expect("internal compiler error :(") },
 
     // todo
-    // "syscall"
     // "jmp"
     // "jcc"
     // loadlbl
