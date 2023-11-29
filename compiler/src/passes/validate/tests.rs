@@ -12,13 +12,7 @@ fn validate([test]: [&str; 1], good: bool) {
     let result = parse_program(test).unwrap().validate();
 
     match (result, expected_error) {
-        (Ok(program), None) => {
-            let mut io = TestIO::new(input);
-            let result = program.interpret(&mut io);
-
-            assert_eq!(result, expected_return.into(), "Incorrect program result.");
-            assert_eq!(io.outputs(), &expected_output, "Incorrect program output.");
-        }
+        (Ok(_), None) => {}
         (Ok(_), Some(expected_error)) => {
             panic!("Expected validation to fail with: {expected_error}.")
         }

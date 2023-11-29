@@ -1,7 +1,6 @@
 use crate::passes::assign::{Arg, X86Assigned};
 use crate::passes::select::{Block, Instr, VarArg, X86Selected};
 use crate::utils::gen_sym::UniqueSym;
-use crate::*;
 use std::collections::HashMap;
 
 impl<'p> X86Selected<'p> {

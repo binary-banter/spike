@@ -3,9 +3,6 @@ mod eliminate_expr;
 mod eliminate_params;
 mod eliminate_seq;
 mod eliminate_tail;
-mod interpreter;
-#[cfg(test)]
-mod tests;
 
 use crate::passes::atomize::Atom;
 use crate::passes::parse::types::Type;

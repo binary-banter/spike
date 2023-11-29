@@ -3,9 +3,6 @@ mod explicate_assign;
 mod explicate_def;
 mod explicate_pred;
 mod explicate_tail;
-pub mod interpreter;
-#[cfg(test)]
-mod tests;
 
 use crate::passes::atomize::Atom;
 use crate::passes::parse::types::Type;

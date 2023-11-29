@@ -1,7 +1,6 @@
 mod check_sized;
 mod constrain;
 pub mod error;
-pub mod interpreter;
 pub mod partial_type;
 mod resolve;
 #[cfg(test)]
