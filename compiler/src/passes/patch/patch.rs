@@ -20,7 +20,7 @@ impl<'p> X86Assigned<'p> {
     }
 }
 
-fn patch_block<'p>(block: Block<'p, Arg>) -> Block<'p, Arg> {
+fn patch_block(block: Block<'_, Arg>) -> Block<'_, Arg> {
     Block {
         instrs: block
             .instrs
@@ -30,7 +30,7 @@ fn patch_block<'p>(block: Block<'p, Arg>) -> Block<'p, Arg> {
     }
 }
 
-fn patch_instr<'p>(instr: Instr<Arg, UniqueSym<'p>>) -> Vec<Instr<Arg, UniqueSym<'p>>> {
+fn patch_instr(instr: Instr<Arg, UniqueSym<'_>>) -> Vec<Instr<Arg, UniqueSym<'_>>> {
     match instr {
         Instr::Addq { src, dst } => patch_args(src, dst, |src, dst| addq!(src, dst)),
         Instr::Subq { src, dst } => patch_args(src, dst, |src, dst| subq!(src, dst)),

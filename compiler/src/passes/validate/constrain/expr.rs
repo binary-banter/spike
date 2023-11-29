@@ -1,7 +1,7 @@
 use crate::passes::parse::{Constrained, Expr, Spanned};
 use crate::passes::validate::constrain::access_field::constrain_access_field;
 use crate::passes::validate::constrain::apply::constrain_apply;
-use crate::passes::validate::constrain::asm;
+
 use crate::passes::validate::constrain::asm::constrain_asm;
 use crate::passes::validate::constrain::assign::constrain_assign;
 use crate::passes::validate::constrain::binary_op::constrain_binary_op;

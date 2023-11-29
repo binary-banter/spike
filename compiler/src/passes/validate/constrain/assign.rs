@@ -1,4 +1,4 @@
-use crate::passes::parse::{Constrained, Meta, Span, Spanned};
+use crate::passes::parse::{Constrained, Span, Spanned};
 use crate::passes::validate::constrain::expr;
 use crate::passes::validate::constrain::uncover_globals::{Env, EnvEntry};
 use crate::passes::validate::error::TypeError;

@@ -1,5 +1,5 @@
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Constrained, Meta, Span, Spanned, UnaryOp};
+use crate::passes::parse::{Constrained, Span, Spanned, UnaryOp};
 use crate::passes::validate::constrain::expr;
 use crate::passes::validate::constrain::uncover_globals::Env;
 use crate::passes::validate::error::TypeError;

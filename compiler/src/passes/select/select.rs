@@ -211,7 +211,7 @@ fn select_assign<'p>(
     }
 }
 
-fn select_atom<'p>(expr: Atom<'p>) -> VarArg<UniqueSym<'p>> {
+fn select_atom(expr: Atom<'_>) -> VarArg<UniqueSym<'_>> {
     match expr {
         Atom::Val { val } => imm!(val),
         Atom::Var { sym } => var!(sym),

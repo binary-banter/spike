@@ -1,10 +1,10 @@
 pub mod reveal;
 
-use crate::passes::parse::{BinaryOp, Def, Meta, Typed, UnaryOp};
+use crate::passes::parse::{BinaryOp, Def, Typed, UnaryOp};
 use crate::passes::select::std_lib::Std;
-use crate::passes::validate::{DefValidated, ExprValidated, PrgValidated, TLit};
+use crate::passes::validate::{TLit};
 use crate::utils::gen_sym::UniqueSym;
-use functor_derive::Functor;
+
 use std::collections::HashMap;
 use crate::passes::select::{Instr, VarArg};
 

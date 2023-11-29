@@ -1,10 +1,10 @@
-use crate::passes::parse::{Constrained, Span, Spanned};
-use crate::passes::select::{Instr, VarArg};
+use crate::passes::parse::{Constrained, Span};
+
 use crate::passes::validate::constrain::uncover_globals::Env;
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::partial_type::PartialType;
 use crate::passes::validate::{ExprConstrained, InstrUniquified, MetaConstrained};
-use crate::utils::gen_sym::UniqueSym;
+
 
 pub fn constrain_asm<'p>(
     env: &mut Env<'_, 'p>,
