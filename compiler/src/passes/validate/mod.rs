@@ -15,11 +15,13 @@ use crate::passes::select::{Instr, VarArg};
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};
 use derive_more::Display;
+use itertools::Itertools;
 use partial_type::PartialType;
 use std::collections::HashMap;
 use std::str::FromStr;
 
-#[derive(Debug)]
+#[derive(Debug, Display)]
+#[display(fmt = "{}", r#"defs.values().format("\n")"#)]
 pub struct PrgValidated<'p> {
     pub defs: HashMap<UniqueSym<'p>, DefValidated<'p>>,
     pub entry: UniqueSym<'p>,

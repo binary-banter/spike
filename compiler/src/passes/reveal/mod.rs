@@ -1,13 +1,17 @@
+mod display;
 pub mod reveal;
 
 use crate::passes::parse::{BinaryOp, Def, Typed, UnaryOp};
 use crate::passes::select::std_lib::Std;
-use crate::passes::validate::{TLit};
-use crate::utils::gen_sym::UniqueSym;
-
-use std::collections::HashMap;
 use crate::passes::select::{Instr, VarArg};
+use crate::passes::validate::TLit;
+use crate::utils::gen_sym::UniqueSym;
+use derive_more::Display;
+use itertools::Itertools;
+use std::collections::HashMap;
 
+#[derive(Display)]
+#[display(fmt = "{}", r#"defs.values().format("\n")"#)]
 pub struct PrgRevealed<'p> {
     pub defs: HashMap<UniqueSym<'p>, DefRevealed<'p>>,
     pub entry: UniqueSym<'p>,

@@ -1,7 +1,7 @@
 use crate::passes::parse::{
     BinaryOp, DefParsed, ExprParsed, InstrParsed, Lit, Meta, Param, PrgParsed, Spanned, Type, TypeDef, UnaryOp,
 };
-use crate::passes::select::{Instr, VarArg, Reg};
+use crate::passes::select::{VarArg, Reg};
 use crate::passes::validate::partial_type::PartialType;
 use functor_derive::Functor;
 
@@ -396,14 +396,6 @@ AsmInstr: InstrParsed<'input> = {
     "notq" <dst:AsmArg> => InstrParsed::Notq { dst },
     "cmpq" <src:AsmArg> <dst:AsmArg> => InstrParsed::Cmpq { src, dst },
     "syscall" <arity:integer> => InstrParsed::Syscall { arity: arity.parse().expect("internal compiler error :(") },
-
-    // todo
-    // "jmp"
-    // "jcc"
-    // loadlbl
-    // callqdirect
-    // callqindirect
-    // setcc
 }
 
 AsmArg: VarArg<Spanned<&'input str>> = {

@@ -5,7 +5,6 @@ use crate::passes::validate::error::TypeError;
 use crate::passes::validate::partial_type::PartialType;
 use crate::passes::validate::{ExprConstrained, InstrUniquified, MetaConstrained};
 
-
 pub fn constrain_asm<'p>(
     env: &mut Env<'_, 'p>,
     span: Span,

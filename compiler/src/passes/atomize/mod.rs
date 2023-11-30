@@ -1,13 +1,18 @@
 pub mod atomize;
+mod display;
 
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{BinaryOp, Def, Typed, UnaryOp};
 use crate::passes::select::std_lib::Std;
-use crate::passes::validate::{TLit};
-use crate::utils::gen_sym::UniqueSym;
-use std::collections::HashMap;
 use crate::passes::select::{Instr, VarArg};
+use crate::passes::validate::TLit;
+use crate::utils::gen_sym::UniqueSym;
+use derive_more::Display;
+use itertools::Itertools;
+use std::collections::HashMap;
 
+#[derive(Display)]
+#[display(fmt = "{}", r#"defs.values().format("\n")"#)]
 pub struct PrgAtomized<'p> {
     pub defs: HashMap<UniqueSym<'p>, DefAtomized<'p>>,
     pub entry: UniqueSym<'p>,
@@ -76,7 +81,7 @@ pub enum AExpr<'p> {
     },
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Display)]
 pub enum Atom<'p> {
     Val { val: TLit },
     Var { sym: UniqueSym<'p> },

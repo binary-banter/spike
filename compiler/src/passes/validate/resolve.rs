@@ -1,5 +1,6 @@
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Constrained, Expr, Lit, Meta, Param, Spanned, TypeDef, Typed};
+use crate::passes::select::{Instr, VarArg};
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::partial_type::PartialType;
 use crate::passes::validate::{
@@ -8,9 +9,8 @@ use crate::passes::validate::{
 };
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};
-use functor_derive::Functor;
 use crate::*;
-use crate::passes::select::{Instr, VarArg};
+use functor_derive::Functor;
 
 impl<'p> PrgConstrained<'p> {
     pub fn resolve(mut self) -> Result<PrgValidated<'p>, TypeError> {
@@ -226,12 +226,14 @@ fn resolve_expr<'p>(
     })
 }
 
-pub fn resolve_instr<'p>(instr: Instr<VarArg<Spanned<UniqueSym<'p>>>, Spanned<UniqueSym<'p>>>) -> Instr<VarArg<UniqueSym<'p>>, UniqueSym<'p>> {
+pub fn resolve_instr<'p>(
+    instr: Instr<VarArg<Spanned<UniqueSym<'p>>>, Spanned<UniqueSym<'p>>>,
+) -> Instr<VarArg<UniqueSym<'p>>, UniqueSym<'p>> {
     let map = |arg: VarArg<Spanned<UniqueSym<'p>>>| match arg {
         VarArg::Imm { val } => VarArg::Imm { val },
         VarArg::Reg { reg } => VarArg::Reg { reg },
         VarArg::Deref { reg, off } => VarArg::Deref { reg, off },
-        VarArg::XVar { sym }=> VarArg::XVar { sym: sym.inner },
+        VarArg::XVar { sym } => VarArg::XVar { sym: sym.inner },
     };
 
     match instr {

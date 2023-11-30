@@ -109,7 +109,7 @@ pub fn uniquify_expr<'p>(
 
 fn uniquify_instr<'p>(
     instr: InstrParsed<'p>,
-    scope: &mut PushMap<&'p str, UniqueSym<'p>>,
+    scope: &PushMap<&'p str, UniqueSym<'p>>,
 ) -> Result<InstrUniquified<'p>, TypeError> {
     let map = |arg: VarArg<Spanned<&'p str>>| {
         Ok(match arg {

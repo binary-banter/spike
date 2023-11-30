@@ -1,4 +1,3 @@
-
 use crate::passes::parse::parse::parse_program;
 use crate::utils::split_test::split_test;
 use derive_name::VariantName;

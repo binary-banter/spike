@@ -163,6 +163,6 @@ pub fn explicate_assign<'p>(
                 inner: CExpr::Asm { instrs },
             },
             tail: Box::new(tail),
-        }
+        },
     }
 }
