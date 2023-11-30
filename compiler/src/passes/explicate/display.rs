@@ -60,8 +60,12 @@ impl Display for CExpr<'_> {
             CExpr::AccessField { strct, field } => {
                 write!(f, "{strct}.{field}")
             }
-            CExpr::Asm { .. } => {
-                todo!()
+            CExpr::Asm { instrs } => {
+                writeln!(f, "asm {{")?;
+                for instr in instrs {
+                    writeln!(indented(f), "{instr}")?;
+                }
+                write!(f, "}}")
             }
         }
     }

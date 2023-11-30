@@ -72,7 +72,7 @@ pub enum Instr<Arg: Display, IdentVars: Display> {
     Popq { dst: Arg },
     #[display(fmt = "retq")]
     Retq,
-    #[display(fmt = "syscall\t// arity: {arity}")]
+    #[display(fmt = "syscall\t{arity}")]
     Syscall { arity: usize },
     #[display(fmt = "cmpq\t{src}\t{dst}")]
     Cmpq { src: Arg, dst: Arg },
@@ -92,9 +92,9 @@ pub enum Instr<Arg: Display, IdentVars: Display> {
     Setcc { cnd: Cnd }, //TODO allow setting other byteregs
     #[display(fmt = "loadlbl\t{sym}\t{dst}")]
     LoadLbl { sym: IdentVars, dst: Arg },
-    #[display(fmt = "call_direct\t{lbl}\t// arity: {arity}")]
+    #[display(fmt = "call_direct\t{lbl}\t{arity}")]
     CallqDirect { lbl: IdentVars, arity: usize },
-    #[display(fmt = "call_indirect\t{src}\t// arity: {arity}")]
+    #[display(fmt = "call_indirect\t{src}\t{arity}")]
     CallqIndirect { src: Arg, arity: usize },
 }
 
