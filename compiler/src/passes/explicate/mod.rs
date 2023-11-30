@@ -1,3 +1,4 @@
+mod display;
 pub mod explicate;
 mod explicate_assign;
 mod explicate_def;
@@ -10,8 +11,15 @@ use crate::passes::parse::{BinaryOp, Param, TypeDef, Typed, UnaryOp};
 use crate::passes::select::std_lib::Std;
 use crate::passes::select::{Instr, VarArg};
 use crate::utils::gen_sym::UniqueSym;
+use derive_more::Display;
+use itertools::Itertools;
 use std::collections::HashMap;
 
+#[derive(Display)]
+#[display(
+    fmt = "{}",
+    r#"blocks.iter().map(|(sym, tail)| format!("{sym}:\n{tail}")).format("\n")"#
+)]
 pub struct PrgExplicated<'p> {
     pub blocks: HashMap<UniqueSym<'p>, CTail<'p>>,
     pub fn_params: HashMap<UniqueSym<'p>, Vec<Param<UniqueSym<'p>>>>,

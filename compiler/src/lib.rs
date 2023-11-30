@@ -16,6 +16,7 @@ pub enum Pass {
     Validate,
     Reveal,
     Atomize,
+    Explicate,
 }
 
 pub fn compile(program: &str, filename: &str, output: &Path) -> miette::Result<()> {
@@ -46,26 +47,24 @@ pub fn display(program: &str, filename: &str, pass: Pass) -> miette::Result<()> 
     let add_source =
         |error| Report::with_source_code(error, NamedSource::new(filename, program.to_string()));
 
-    let prg_parsed = parse_program(program)
-        .map_err(Into::into)
-        .map_err(add_source)?;
-
-    display!(prg_parsed, pass, Parse);
-
-    let prg_validated = prg_parsed
-        .validate()
-        .map_err(Into::into)
-        .map_err(add_source)?;
-
-    display!(prg_validated, pass, Validate);
-
-    let prg_revealed = prg_validated.reveal();
-
-    display!(prg_revealed, pass, Reveal);
-
-    let prg_atomized = prg_revealed.atomize();
-
-    display!(prg_atomized, pass, Atomize);
+    let prg_parsed = display!(
+        parse_program(program)
+            .map_err(Into::into)
+            .map_err(add_source)?,
+        pass,
+        Parse
+    );
+    let prg_validated = display!(
+        prg_parsed
+            .validate()
+            .map_err(Into::into)
+            .map_err(add_source)?,
+        pass,
+        Validate
+    );
+    let prg_revealed = display!(prg_validated.reveal(), pass, Reveal);
+    let prg_atomized = display!(prg_revealed.atomize(), pass, Atomize);
+    let _prg_explicated = display!(prg_atomized.explicate(), pass, Explicate);
 
     Ok(())
 }
@@ -76,6 +75,8 @@ macro_rules! display {
         if matches!($pass, $crate::Pass::$pat) {
             println!("{}", $prg);
             return Ok(());
+        } else {
+            $prg
         }
     };
 }
