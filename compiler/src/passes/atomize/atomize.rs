@@ -144,11 +144,13 @@ fn atomize_atom<'p>(
     expr: Typed<'p, RExpr<'p>>,
     priors: &mut Vec<(UniqueSym<'p>, Typed<'p, AExpr<'p>>)>,
 ) -> Atom<'p> {
-    if let RExpr::Lit { val } = expr.inner {
-        Atom::Val { val }
-    } else {
-        let tmp = gen_sym("tmp");
-        priors.push((tmp, atomize_expr(expr)));
-        Atom::Var { sym: tmp }
+    match expr.inner {
+        RExpr::Lit { val } => Atom::Val { val },
+        RExpr::Var { sym} => Atom::Var { sym },
+        _ => {
+            let tmp = gen_sym("tmp");
+            priors.push((tmp, atomize_expr(expr)));
+            Atom::Var { sym: tmp }
+        }
     }
 }
