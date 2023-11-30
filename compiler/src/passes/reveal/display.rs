@@ -25,8 +25,17 @@ impl Display for RExpr<'_> {
             } => {
                 write!(f, "({e1} {op} {e2})")
             }
-            RExpr::Let { sym, bnd, bdy } => {
-                writeln!(f, "let {sym} = {bnd};",)?;
+            RExpr::Let {
+                sym,
+                mutable,
+                bnd,
+                bdy,
+            } => {
+                writeln!(
+                    f,
+                    "let {}{sym} = {bnd};",
+                    if *mutable { "mut " } else { "" }
+                )?;
                 write!(f, "{bdy}")
             }
             RExpr::If { cnd, thn, els } => {

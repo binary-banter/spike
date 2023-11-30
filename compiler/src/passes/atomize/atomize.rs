@@ -71,10 +71,14 @@ fn atomize_expr<'p>(
             op,
             expr: atomize_atom(*arg, &mut priors, scope),
         },
-        RExpr::Let { sym, bnd, bdy } => {
+        RExpr::Let {
+            sym,
+            mutable,
+            bnd,
+            bdy,
+        } => {
             let bnd = Box::new(atomize_expr(*bnd, scope));
-            // todo: this is too conservative, not every variable is mutable!
-            let bdy = Box::new(scope.push(sym, true, |scope| atomize_expr(*bdy, scope)));
+            let bdy = Box::new(scope.push(sym, mutable, |scope| atomize_expr(*bdy, scope)));
 
             AExpr::Let { sym, bnd, bdy }
         }

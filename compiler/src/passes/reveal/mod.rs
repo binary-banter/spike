@@ -40,6 +40,7 @@ pub enum RExpr<'p> {
     },
     Let {
         sym: UniqueSym<'p>,
+        mutable: bool,
         bnd: Box<Typed<'p, RExpr<'p>>>,
         bdy: Box<Typed<'p, RExpr<'p>>>,
     },
