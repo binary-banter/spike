@@ -18,24 +18,6 @@ fn read_char() -> I64 {
 }
 
 fn main() {
-    //let ASCII_NEWLINE = 10;
-    //let ASCII_NULL = 0;
-    //let ASCII_E = 101i64;
-    //let ASCII_N = 110i64;
-    //let ASCII_O = 111i64;
-    //let ASCII_T = 116i64;
-    //let ASCII_W = 119i64;
-    //let ASCII_H = 104i64;
-    //let ASCII_R = 114i64;
-    //let ASCII_F = 102i64;
-    //let ASCII_U = 117i64;
-    //let ASCII_I = 105i64;
-    //let ASCII_V = 118i64;
-    //let ASCII_X = 120i64;
-    //let ASCII_S = 115i64;
-    //let ASCII_G = 103i64;
-
-
     let mut total = 0;
     let mut first = 0;
     let mut last = 0;
@@ -47,19 +29,19 @@ fn main() {
     let mut x4 = 0;
 
     let mut next = 0;
-    while (next = read_char(); next != 0) {
+    while (next = read_char(); next != b'\0') {
         x0 = x1;
         x1 = x2;
         x2 = x3;
         x3 = x4;
         x4 = next;
-        if next == 10 {
+        if next == b'\n' {
             total = total + first * 10 + last;
             first = 0;
             continue
         };
 
-        if x2 == 111i64 && x3 == 110i64 && x4 == 101i64 {
+        if x2 == b'o' && x3 == b'n' && x4 == b'e' {
             if first == 0 {
                 first = 1;
             };
@@ -67,7 +49,7 @@ fn main() {
             continue
         };
 
-        if x2 == 116i64 && x3 == 119i64 && x4 == 111i64 {
+        if x2 == b't' && x3 == b'w' && x4 == b'o' {
             if first == 0 {
                 first = 2;
             };
@@ -75,7 +57,7 @@ fn main() {
             continue
         };
 
-        if x0 == 116i64 && x1 == 104i64 && x2 == 114i64 && x3 == 101i64 && x4 == 101i64 {
+        if x0 == b't' && x1 == b'h' && x2 == b'r' && x3 == b'e' && x4 == b'e' {
             if first == 0 {
                 first = 3;
             };
@@ -83,7 +65,7 @@ fn main() {
             continue
         };
 
-        if x1 == 102i64 && x2 == 111i64 && x3 == 117i64 && x4 == 114i64 {
+        if x1 == b'f' && x2 == b'o' && x3 == b'u' && x4 == b'r' {
             if first == 0 {
                 first = 4;
             };
@@ -91,7 +73,7 @@ fn main() {
             continue
         };
 
-        if x1 == 102i64 && x2 == 105i64 && x3 == 118i64 && x4 == 101i64 {
+        if x1 == b'f' && x2 == b'i' && x3 == b'v' && x4 == b'e' {
             if first == 0 {
                 first = 5;
             };
@@ -99,7 +81,7 @@ fn main() {
             continue
         };
 
-        if x2 == 115i64 && x3 == 105i64 && x4 == 120i64 {
+        if x2 == b's' && x3 == b'i' && x4 == b'x' {
             if first == 0 {
                 first = 6;
             };
@@ -107,7 +89,7 @@ fn main() {
             continue
         };
 
-        if x0 == 115i64 && x1 == 101i64 && x2 == 118i64 && x3 == 101i64 && x4 == 110i64 {
+        if x0 == b's' && x1 == b'e' && x2 == b'v' && x3 == b'e' && x4 == b'n' {
             if first == 0 {
                 first = 7;
             };
@@ -115,7 +97,7 @@ fn main() {
             continue
         };
 
-        if x0 == 101i64 && x1 == 105i64 && x2 == 103i64 && x3 == 104i64 && x4 == 116i64 {
+        if x0 == b'e' && x1 == b'i' && x2 == b'g' && x3 == b'h' && x4 == b't' {
             if first == 0 {
                 first = 8;
             };
@@ -123,7 +105,7 @@ fn main() {
             continue
         };
 
-        if x1 == 110i64 && x2 == 105i64 && x3 == 110i64 && x4 == 101i64 {
+        if x1 == b'n' && x2 == b'i' && x3 == b'n' && x4 == b'e' {
             if first == 0 {
                 first = 9;
             };
@@ -131,7 +113,7 @@ fn main() {
             continue
         };
 
-        next = next - 48;
+        next = next - b'0';
         if next >= 0 && next < 10 {
             if first == 0 {
                 first = next;

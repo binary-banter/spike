@@ -97,7 +97,7 @@ match {
     "true",
     "false",
     "unit",
-    r"[0-9]([a-zA-Z0-9_]*[a-zA-Z0-9])?|b'(\\)?[^'[[:cntrl:]]]'" => integer,
+    r"[0-9]([a-zA-Z0-9_]*[a-zA-Z0-9])?|b'(\\)?[^'[[:cntrl:]]]'([iu]64)?" => integer,
 
     // Logical operators
     "^",
