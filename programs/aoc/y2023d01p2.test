@@ -1,0 +1,143 @@
+fn read_char() -> I64 {
+    let mut v = 0;
+    let mut res = 0;
+    asm {
+        subq $8 %RSP    // allocate stack space for reading char
+        movq $0 %RAX    // read
+        movq $0 %RDI    // stdin
+        movq %RSP %RSI  // put read char at top of stack
+        movq $1 %RDX    // read 1 byte
+        syscall 4       // arity of 4
+        movq %RAX {res} // result of system call
+        popq {v}        // pop read char
+    };
+    if res == 0 {
+        return res
+    };
+    v
+}
+
+fn main() {
+    //let ASCII_NEWLINE = 10;
+    //let ASCII_NULL = 0;
+    //let ASCII_E = 101i64;
+    //let ASCII_N = 110i64;
+    //let ASCII_O = 111i64;
+    //let ASCII_T = 116i64;
+    //let ASCII_W = 119i64;
+    //let ASCII_H = 104i64;
+    //let ASCII_R = 114i64;
+    //let ASCII_F = 102i64;
+    //let ASCII_U = 117i64;
+    //let ASCII_I = 105i64;
+    //let ASCII_V = 118i64;
+    //let ASCII_X = 120i64;
+    //let ASCII_S = 115i64;
+    //let ASCII_G = 103i64;
+
+
+    let mut total = 0;
+    let mut first = 0;
+    let mut last = 0;
+
+    let mut x0 = 0;
+    let mut x1 = 0;
+    let mut x2 = 0;
+    let mut x3 = 0;
+    let mut x4 = 0;
+
+    let mut next = 0;
+    while (next = read_char(); next != 0) {
+        x0 = x1;
+        x1 = x2;
+        x2 = x3;
+        x3 = x4;
+        x4 = next;
+        if next == 10 {
+            total = total + first * 10 + last;
+            first = 0;
+            continue
+        };
+
+        if x2 == 111i64 && x3 == 110i64 && x4 == 101i64 {
+            if first == 0 {
+                first = 1;
+            };
+            last = 1;
+            continue
+        };
+
+        if x2 == 116i64 && x3 == 119i64 && x4 == 111i64 {
+            if first == 0 {
+                first = 2;
+            };
+            last = 2;
+            continue
+        };
+
+        if x0 == 116i64 && x1 == 104i64 && x2 == 114i64 && x3 == 101i64 && x4 == 101i64 {
+            if first == 0 {
+                first = 3;
+            };
+            last = 3;
+            continue
+        };
+
+        if x1 == 102i64 && x2 == 111i64 && x3 == 117i64 && x4 == 114i64 {
+            if first == 0 {
+                first = 4;
+            };
+            last = 4;
+            continue
+        };
+
+        if x1 == 102i64 && x2 == 105i64 && x3 == 118i64 && x4 == 101i64 {
+            if first == 0 {
+                first = 5;
+            };
+            last = 5;
+            continue
+        };
+
+        if x2 == 115i64 && x3 == 105i64 && x4 == 120i64 {
+            if first == 0 {
+                first = 6;
+            };
+            last = 6;
+            continue
+        };
+
+        if x0 == 115i64 && x1 == 101i64 && x2 == 118i64 && x3 == 101i64 && x4 == 110i64 {
+            if first == 0 {
+                first = 7;
+            };
+            last = 7;
+            continue
+        };
+
+        if x0 == 101i64 && x1 == 105i64 && x2 == 103i64 && x3 == 104i64 && x4 == 116i64 {
+            if first == 0 {
+                first = 8;
+            };
+            last = 8;
+            continue
+        };
+
+        if x1 == 110i64 && x2 == 105i64 && x3 == 110i64 && x4 == 101i64 {
+            if first == 0 {
+                first = 9;
+            };
+            last = 9;
+            continue
+        };
+
+        next = next - 48;
+        if next >= 0 && next < 10 {
+            if first == 0 {
+                first = next;
+            };
+            last = next;
+        };
+    };
+    print(total);
+}

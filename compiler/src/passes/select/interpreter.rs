@@ -333,8 +333,14 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
         assert!(buffer_len >= 1);
 
         if self.read_buffer.is_empty() {
-            self.read_buffer = format!("{}\n", self.io.read().int()).into_bytes();
-            self.read_buffer.reverse();
+            if let Some(read) = self.io.read() {
+                self.read_buffer = format!("{}\n", read.int()).into_bytes();
+                self.read_buffer.reverse();
+            } else {
+                self.memory.insert(buffer, 0);
+                self.regs.insert(Reg::RAX, 0);
+                return;
+            }
         }
         let val = self.read_buffer.pop().unwrap();
         self.memory.insert(buffer, val as i64);

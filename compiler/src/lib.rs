@@ -4,7 +4,9 @@ pub mod interpreter;
 pub mod passes;
 pub mod utils;
 
+use crate::interpreter::TestIO;
 use crate::passes::parse::parse::parse_program;
+use crate::utils::gen_sym::gen_sym;
 use clap::ValueEnum;
 use miette::{IntoDiagnostic, NamedSource, Report};
 use std::fs::File;
@@ -17,6 +19,7 @@ pub enum Pass {
     Reveal,
     Atomize,
     Explicate,
+    Select,
 }
 
 pub fn compile(program: &str, filename: &str, output: &Path) -> miette::Result<()> {
@@ -64,7 +67,8 @@ pub fn display(program: &str, filename: &str, pass: Pass) -> miette::Result<()> 
     );
     let prg_revealed = display!(prg_validated.reveal(), pass, Reveal);
     let prg_atomized = display!(prg_revealed.atomize(), pass, Atomize);
-    let _prg_explicated = display!(prg_atomized.explicate(), pass, Explicate);
+    let prg_explicated = display!(prg_atomized.explicate(), pass, Explicate);
+    let _prg_select = display!(prg_explicated.eliminate().select(), pass, Select);
 
     Ok(())
 }

@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use std::vec::IntoIter;
 
 pub trait IO {
-    fn read(&mut self) -> TLit;
+    fn read(&mut self) -> Option<TLit>;
     fn print(&mut self, v: TLit);
 }
 
@@ -29,10 +29,8 @@ impl TestIO {
 }
 
 impl IO for TestIO {
-    fn read(&mut self) -> TLit {
-        self.inputs
-            .next()
-            .expect("Test tried to read more input than were available.")
+    fn read(&mut self) -> Option<TLit> {
+        self.inputs.next()
     }
 
     fn print(&mut self, v: TLit) {
