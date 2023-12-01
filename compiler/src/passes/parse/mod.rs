@@ -338,7 +338,6 @@ pub enum Lit<'p> {
     #[display(fmt = "{val}")]
     Int {
         val: &'p str,
-        typ: Option<PartialType<'p>>,
     },
     /// Boolean literal, representing a value of *true* or *false*.
     #[display(fmt = "{}", r#"if *val { "true" } else { "false" }"#)]

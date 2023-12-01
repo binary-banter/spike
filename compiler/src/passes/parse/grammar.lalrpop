@@ -97,9 +97,7 @@ match {
     "true",
     "false",
     "unit",
-    r"[0-9]+" => integer,
-    r"[0-9]+i64" => i64,
-    r"[0-9]+u64" => u64,
+    r"[0-9]([a-zA-Z0-9_]*[a-zA-Z0-9])?|b'(\\)?[^'[[:cntrl:]]]'" => integer,
 
     // Logical operators
     "^",
@@ -319,19 +317,6 @@ ExprAtom<T>: ExprParsed<'input> = {
     <val:integer> => ExprParsed::Lit {
         val: Lit::Int {
             val,
-            typ: None,
-        },
-    },
-    <val:i64> => ExprParsed::Lit {
-        val: Lit::Int {
-            val: val.trim_end_matches("i64"),
-            typ: Some(PartialType::I64),
-        },
-    },
-    <val:u64> => ExprParsed::Lit {
-        val: Lit::Int {
-            val: val.trim_end_matches("u64"),
-            typ: Some(PartialType::U64),
         },
     },
     <val:Bool> => ExprParsed::Lit { val: Lit::Bool { val } },

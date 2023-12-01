@@ -1,3 +1,4 @@
+use std::clone::Clone;
 use crate::passes::emit::elf::program::ProgramHeader;
 use crate::passes::emit::elf::section::SectionHeader;
 use std::mem::size_of;
@@ -83,7 +84,7 @@ enum Machine {
     RISCV = 0xF3,
 }
 
-const ELF_MAGIC: [u8; 4] = [0x7F, b'E', b'L', b'F'];
+const ELF_MAGIC: [u8; 4] = *b"\x7FELF";
 
 impl ElfIdentifier {
     fn new() -> Self {

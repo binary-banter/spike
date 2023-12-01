@@ -68,7 +68,7 @@ impl<'p> InterferenceGraph<'p> {
             .max()
             .unwrap_or_default() as usize;
 
-        let stack_space = (8 * used_vars).div_ceil(16) * 16;
+        let stack_space = (8 * used_vars).div_ceil(16) * 16 + 256;
 
         let colors = node_map
             .into_iter()
@@ -107,7 +107,7 @@ fn arg_from_color(i: isize) -> Arg {
             );
             Arg::Deref {
                 reg: Reg::RBP,
-                off: (-8 * (i - 10)) as i64,
+                off: (-8 * (i - 10)) as i64 - 256,
             }
         }
     }

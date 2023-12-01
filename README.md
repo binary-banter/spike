@@ -52,6 +52,13 @@ cargo run -- input.jj -o output && ./output
 * Sequences
 * Structs
 
+# Priority list
+
+* Byte literals like `b'a'` and 0x11
+* DEZE KUT BUG FIXEN
+* Constants
+* else if
+
 # Fixes
 
 * [ ] Updated README, with 3 new colors!

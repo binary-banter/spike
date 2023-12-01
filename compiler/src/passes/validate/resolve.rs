@@ -1,3 +1,4 @@
+use std::str::FromStr;
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Constrained, Expr, Lit, Meta, Param, Spanned, TypeDef, Typed};
 use crate::passes::select::{Instr, VarArg};
@@ -105,6 +106,11 @@ fn partial_type_to_type<'p>(
     })
 }
 
+fn resolve_int_lit<T: FromStr>(s: &str) -> T {
+
+    todo!()
+}
+
 fn resolve_expr<'p>(
     expr: Constrained<ExprConstrained<'p>>,
     uf: &mut UnionFind<PartialType<'p>>,
@@ -123,13 +129,13 @@ fn resolve_expr<'p>(
                     }
                     Some(typ) => match typ {
                         Type::I64 => TLit::I64 {
-                            val: val.parse().map_err(|_| TypeError::IntegerOutOfBounds {
+                            val: val.trim_end_matches("i64").parse().map_err(|_| TypeError::IntegerOutOfBounds {
                                 span: expr.meta.span,
                                 typ: "I64",
                             })?,
                         },
                         Type::U64 => TLit::U64 {
-                            val: val.parse().map_err(|_| TypeError::IntegerOutOfBounds {
+                            val: val.trim_end_matches("u64").parse().map_err(|_| TypeError::IntegerOutOfBounds {
                                 span: expr.meta.span,
                                 typ: "U64",
                             })?,

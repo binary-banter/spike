@@ -11,10 +11,9 @@ pub fn constrain_lit<'p>(
 ) -> Result<Constrained<ExprConstrained<'p>>, TypeError> {
     // Get the type of the literal.
     let typ = match &val {
-        Lit::Int { typ, .. } => {
-            // If no type hint is given, use the generic `Int`.
-            typ.clone().unwrap_or(PartialType::Int)
-        }
+        Lit::Int { val } if val.ends_with("i64") => PartialType::I64,
+        Lit::Int { val } if val.ends_with("u64") => PartialType::U64,
+        Lit::Int { .. } => PartialType::Int,
         Lit::Bool { .. } => PartialType::Bool,
         Lit::Unit => PartialType::Unit,
     };
