@@ -6,6 +6,7 @@ use miette::{Diagnostic, IntoDiagnostic};
 use std::fs;
 use std::io::Read;
 use std::path::Path;
+use std::process::{Command, Stdio};
 use thiserror::Error;
 
 #[derive(Debug, Error, Diagnostic)]
@@ -31,6 +32,9 @@ struct Args {
 
     #[arg(value_enum, short, long, value_name = "PASS")]
     display: Option<Pass>,
+
+    #[arg(short, long)]
+    run: bool,
 }
 
 fn read_from_stdin() -> Result<String, std::io::Error> {
@@ -58,5 +62,24 @@ fn main() -> miette::Result<()> {
         )
     });
 
-    compile(&program, filename, Path::new(&output))
+    compile(&program, filename, Path::new(&output))?;
+
+    if args.run {
+        Command::new("chmod")
+            .arg("+x")
+            .arg(&output)
+            .output()
+            .into_diagnostic()?;
+
+        Command::new(format!("./{output}"))
+            .stdin(Stdio::inherit())
+            .stdout(Stdio::inherit())
+            .stderr(Stdio::inherit())
+            .output()
+            .into_diagnostic()?;
+
+        fs::remove_file(Path::new(output)).into_diagnostic()?;
+    }
+
+    Ok(())
 }
