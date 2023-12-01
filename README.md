@@ -54,7 +54,6 @@ cargo run -- input.jj -o output && ./output
 
 # Priority list
 
-* Byte literals like `b'a'` and 0x11
 * DEZE KUT BUG FIXEN
 * Constants
 * else if

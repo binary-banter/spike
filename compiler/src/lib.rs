@@ -4,9 +4,7 @@ pub mod interpreter;
 pub mod passes;
 pub mod utils;
 
-use crate::interpreter::TestIO;
 use crate::passes::parse::parse::parse_program;
-use crate::utils::gen_sym::gen_sym;
 use clap::ValueEnum;
 use miette::{IntoDiagnostic, NamedSource, Report};
 use std::fs::File;

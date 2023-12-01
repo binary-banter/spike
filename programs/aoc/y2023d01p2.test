@@ -35,91 +35,29 @@ fn main() {
         x2 = x3;
         x3 = x4;
         x4 = next;
+
         if next == b'\n' {
             total = total + first * 10 + last;
             first = 0;
             continue
         };
 
-        if x2 == b'o' && x3 == b'n' && x4 == b'e' {
-            if first == 0 {
-                first = 1;
-            };
-            last = 1;
-            continue
-        };
+        let digit = (if x2 == b'o' && x3 == b'n' && x4 == b'e' { 1 }
+        else if x2 == b't' && x3 == b'w' && x4 == b'o' { 2 }
+        else if x0 == b't' && x1 == b'h' && x2 == b'r' && x3 == b'e' && x4 == b'e' { 3 }
+        else if x1 == b'f' && x2 == b'o' && x3 == b'u' && x4 == b'r' { 4 }
+        else if x1 == b'f' && x2 == b'i' && x3 == b'v' && x4 == b'e' { 5 }
+        else if x2 == b's' && x3 == b'i' && x4 == b'x' { 6 }
+        else if x0 == b's' && x1 == b'e' && x2 == b'v' && x3 == b'e' && x4 == b'n' { 7 }
+        else if x0 == b'e' && x1 == b'i' && x2 == b'g' && x3 == b'h' && x4 == b't' { 8 }
+        else if x1 == b'n' && x2 == b'i' && x3 == b'n' && x4 == b'e' { 9 }
+        else if next >= b'0' && next <= b'9' { next - b'0' }
+        else { continue });
 
-        if x2 == b't' && x3 == b'w' && x4 == b'o' {
-            if first == 0 {
-                first = 2;
-            };
-            last = 2;
-            continue
+        if first == 0 {
+            first = digit;
         };
-
-        if x0 == b't' && x1 == b'h' && x2 == b'r' && x3 == b'e' && x4 == b'e' {
-            if first == 0 {
-                first = 3;
-            };
-            last = 3;
-            continue
-        };
-
-        if x1 == b'f' && x2 == b'o' && x3 == b'u' && x4 == b'r' {
-            if first == 0 {
-                first = 4;
-            };
-            last = 4;
-            continue
-        };
-
-        if x1 == b'f' && x2 == b'i' && x3 == b'v' && x4 == b'e' {
-            if first == 0 {
-                first = 5;
-            };
-            last = 5;
-            continue
-        };
-
-        if x2 == b's' && x3 == b'i' && x4 == b'x' {
-            if first == 0 {
-                first = 6;
-            };
-            last = 6;
-            continue
-        };
-
-        if x0 == b's' && x1 == b'e' && x2 == b'v' && x3 == b'e' && x4 == b'n' {
-            if first == 0 {
-                first = 7;
-            };
-            last = 7;
-            continue
-        };
-
-        if x0 == b'e' && x1 == b'i' && x2 == b'g' && x3 == b'h' && x4 == b't' {
-            if first == 0 {
-                first = 8;
-            };
-            last = 8;
-            continue
-        };
-
-        if x1 == b'n' && x2 == b'i' && x3 == b'n' && x4 == b'e' {
-            if first == 0 {
-                first = 9;
-            };
-            last = 9;
-            continue
-        };
-
-        next = next - b'0';
-        if next >= 0 && next < 10 {
-            if first == 0 {
-                first = next;
-            };
-            last = next;
-        };
+        last = digit;
     };
     print(total);
 }

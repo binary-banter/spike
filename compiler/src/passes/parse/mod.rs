@@ -11,7 +11,6 @@ mod tests;
 pub mod types;
 
 use crate::passes::select::{Instr, VarArg};
-use crate::passes::validate::partial_type::PartialType;
 use crate::passes::validate::MetaConstrained;
 use crate::utils::gen_sym::UniqueSym;
 use derive_more::Display;

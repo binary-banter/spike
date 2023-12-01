@@ -1,5 +1,3 @@
-use std::error::Error;
-use std::fmt::format;
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Constrained, Expr, Lit, Meta, Param, Spanned, TypeDef, Typed, Span};
 use crate::passes::select::{Instr, VarArg};
@@ -13,7 +11,6 @@ use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};
 use crate::*;
 use functor_derive::Functor;
-use std::str::FromStr;
 
 impl<'p> PrgConstrained<'p> {
     pub fn resolve(mut self) -> Result<PrgValidated<'p>, TypeError> {

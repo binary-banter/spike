@@ -2,7 +2,6 @@ use crate::passes::parse::{
     BinaryOp, DefParsed, ExprParsed, InstrParsed, Lit, Meta, Param, PrgParsed, Spanned, Type, TypeDef, UnaryOp,
 };
 use crate::passes::select::{VarArg, Reg};
-use crate::passes::validate::partial_type::PartialType;
 use functor_derive::Functor;
 
 grammar;
@@ -200,11 +199,7 @@ ExprInStmt: ExprParsed<'input> = {
         sym,
         bnd: Box::new(bnd),
     },
-    "if" <cnd:Spanned<ExprLogicalOr<Never>>> "{" <thn:Spanned<Expr>> "}" <l:@L> <els:("else" "{" <Spanned<Expr>> "}")?> <r:@R> => ExprParsed::If {
-        cnd: Box::new(cnd),
-        thn: Box::new(thn),
-        els: Box::new(els.unwrap_or(Meta { meta: (l, r - l), inner: ExprParsed::Lit { val: Lit::Unit }})),
-    },
+    ExprIf,
     "loop" "{" <bdy:Spanned<Expr>> "}" => ExprParsed::Loop {
         bdy: Box::new(bdy),
     },
@@ -247,6 +242,19 @@ ExprInStmt: ExprParsed<'input> = {
     "continue" => ExprParsed::Continue,
     "asm" "{" <instrs:AsmInstr*> "}" => ExprParsed::Asm { instrs },
     ExprLogicalOr<Struct>,
+}
+
+ExprIf: ExprParsed<'input> = {
+    "if" <cnd:Spanned<ExprLogicalOr<Never>>> "{" <thn:Spanned<Expr>> "}" <l:@L> <els:("else" <Spanned<ExprIfElse>>)?> <r:@R> => ExprParsed::If {
+        cnd: Box::new(cnd),
+        thn: Box::new(thn),
+        els: Box::new(els.unwrap_or(Meta { meta: (l, r - l), inner: ExprParsed::Lit { val: Lit::Unit }})),
+    },
+}
+
+ExprIfElse: ExprParsed<'input> = {
+    "{" <Expr> "}",
+    ExprIf,
 }
 
 BinaryOps<Op,Next>: ExprParsed<'input> = {
