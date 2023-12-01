@@ -9,7 +9,7 @@ use crate::passes::atomize::Atom;
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{BinaryOp, Param, TypeDef, Typed, UnaryOp};
 use crate::passes::select::std_lib::Std;
-use crate::passes::select::{Instr, VarArg};
+use crate::passes::select::InstrSelected;
 use crate::utils::gen_sym::UniqueSym;
 use derive_more::Display;
 use itertools::Itertools;
@@ -76,6 +76,6 @@ pub enum CExpr<'p> {
         field: &'p str,
     },
     Asm {
-        instrs: Vec<Instr<VarArg<UniqueSym<'p>>, UniqueSym<'p>>>,
+        instrs: Vec<InstrSelected<'p>>,
     },
 }

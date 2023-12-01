@@ -3,7 +3,7 @@ pub mod reveal;
 
 use crate::passes::parse::{BinaryOp, Def, Typed, UnaryOp};
 use crate::passes::select::std_lib::Std;
-use crate::passes::select::{Instr, VarArg};
+use crate::passes::select::InstrSelected;
 use crate::passes::validate::TLit;
 use crate::utils::gen_sym::UniqueSym;
 use derive_more::Display;
@@ -80,6 +80,6 @@ pub enum RExpr<'p> {
         field: &'p str,
     },
     Asm {
-        instrs: Vec<Instr<VarArg<UniqueSym<'p>>, UniqueSym<'p>>>,
+        instrs: Vec<InstrSelected<'p>>,
     },
 }

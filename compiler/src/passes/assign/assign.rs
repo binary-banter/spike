@@ -1,5 +1,5 @@
 use crate::passes::assign::{Arg, X86Assigned};
-use crate::passes::select::{Block, Instr, VarArg, X86Selected};
+use crate::passes::select::{Block, Instr, InstrSelected, VarArg, X86Selected};
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
 
@@ -39,7 +39,7 @@ fn assign_block<'p>(
 }
 
 fn assign_instr<'p>(
-    instr: Instr<VarArg<UniqueSym<'p>>, UniqueSym<'p>>,
+    instr: InstrSelected<'p>,
     color_map: &HashMap<UniqueSym, Arg>,
 ) -> Instr<Arg, UniqueSym<'p>> {
     let map = |arg: VarArg<UniqueSym<'p>>| -> Arg {

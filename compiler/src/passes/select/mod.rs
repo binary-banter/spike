@@ -30,6 +30,8 @@ pub struct Block<'p, A: Display> {
     pub instrs: Vec<Instr<A, UniqueSym<'p>>>,
 }
 
+pub type InstrSelected<'p> = Instr<VarArg<UniqueSym<'p>>, UniqueSym<'p>>;
+
 #[derive(Debug, Copy, Clone, PartialEq, Display)]
 pub enum Cnd {
     Above,

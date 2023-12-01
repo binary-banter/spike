@@ -6,7 +6,7 @@ mod include_liveness;
 mod tests;
 
 use crate::passes::select::std_lib::Std;
-use crate::passes::select::{Block, Instr, Reg, VarArg, X86Selected};
+use crate::passes::select::{Block, InstrSelected, Reg, VarArg, X86Selected};
 use crate::utils::gen_sym::UniqueSym;
 use derive_more::Display;
 use functor_derive::Functor;
@@ -41,10 +41,7 @@ pub struct LX86VarProgram<'p> {
 
 #[derive(PartialEq)]
 pub struct LBlock<'p> {
-    pub instrs: Vec<(
-        Instr<VarArg<UniqueSym<'p>>, UniqueSym<'p>>,
-        HashSet<LArg<'p>>,
-    )>,
+    pub instrs: Vec<(InstrSelected<'p>, HashSet<LArg<'p>>)>,
 }
 
 #[derive(Hash, Clone, Copy, Eq, Ord, PartialEq, PartialOrd)]
