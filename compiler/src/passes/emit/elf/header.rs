@@ -1,6 +1,6 @@
-use std::clone::Clone;
 use crate::passes::emit::elf::program::ProgramHeader;
 use crate::passes::emit::elf::section::SectionHeader;
+use std::clone::Clone;
 use std::mem::size_of;
 use zerocopy::AsBytes;
 

@@ -1,6 +1,7 @@
-use std::str::FromStr;
+use std::error::Error;
+use std::fmt::format;
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Constrained, Expr, Lit, Meta, Param, Spanned, TypeDef, Typed};
+use crate::passes::parse::{Constrained, Expr, Lit, Meta, Param, Spanned, TypeDef, Typed, Span};
 use crate::passes::select::{Instr, VarArg};
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::partial_type::PartialType;
@@ -12,6 +13,7 @@ use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};
 use crate::*;
 use functor_derive::Functor;
+use std::str::FromStr;
 
 impl<'p> PrgConstrained<'p> {
     pub fn resolve(mut self) -> Result<PrgValidated<'p>, TypeError> {
@@ -106,9 +108,52 @@ fn partial_type_to_type<'p>(
     })
 }
 
-fn resolve_int_lit<T: FromStr>(s: &str) -> T {
+fn resolve_int_lit(original_val: &str, span: Span) -> Result<i64, TypeError> {
+    let mut val = original_val;
+    if val.ends_with("i64") || val.ends_with("u64") {
+        val = &val[..val.len() - 3];
+    }
 
-    todo!()
+    let (base, val) = match val {
+        s if s.starts_with("b") => {
+            let mut s = s[1..].chars();
+
+            let int = match (s.next(), s.next(), s.next(), s.next(), s.next()) {
+                (Some('\''), Some(s), Some('\''), None, None) => {
+                    s as i64
+                },
+                (Some('\''), Some('\\'), Some(s), Some('\''), None) => {
+                    let int = match s {
+                        'n' => '\n',
+                        'r' => '\r',
+                        '\\' => '\\',
+                        '"' => '"',
+                        '\'' => '\'',
+                        '0' => '\0',
+                        s => return Err(TypeError::InvalidEscape {
+                            span,
+                            val: format!("\\{s}"),
+                        }),
+                    };
+                    int as i64
+                } ,
+                _ => unreachable!("Congrats you made an invalid byte lit, plx tell us how"),
+            };
+
+            return Ok(int)
+        }
+        s if s.starts_with("0b") => (2, &s[2..]),
+        s if s.starts_with("0o") => (8, &s[2..]),
+        s if s.starts_with("0x") => (16, &s[2..]),
+        s => (10, s),
+    };
+
+    i64::from_str_radix(&val.replace("_", ""), base).map_err(|error| TypeError::InvalidInteger {
+        span,
+        val: original_val.to_string(),
+        typ: "I64",
+        err: error.to_string(),
+    })
 }
 
 fn resolve_expr<'p>(
@@ -129,16 +174,10 @@ fn resolve_expr<'p>(
                     }
                     Some(typ) => match typ {
                         Type::I64 => TLit::I64 {
-                            val: val.trim_end_matches("i64").parse().map_err(|_| TypeError::IntegerOutOfBounds {
-                                span: expr.meta.span,
-                                typ: "I64",
-                            })?,
+                            val: resolve_int_lit(val, expr.meta.span)?,
                         },
                         Type::U64 => TLit::U64 {
-                            val: val.trim_end_matches("u64").parse().map_err(|_| TypeError::IntegerOutOfBounds {
-                                span: expr.meta.span,
-                                typ: "U64",
-                            })?,
+                            val: todo!(),
                         },
                         _ => unreachable!(),
                     },

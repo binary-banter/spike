@@ -336,9 +336,7 @@ pub enum BinaryOp {
 pub enum Lit<'p> {
     /// Integer literal, representing a signed 64-bit number.
     #[display(fmt = "{val}")]
-    Int {
-        val: &'p str,
-    },
+    Int { val: &'p str },
     /// Boolean literal, representing a value of *true* or *false*.
     #[display(fmt = "{}", r#"if *val { "true" } else { "false" }"#)]
     Bool { val: bool },
