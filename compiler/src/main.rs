@@ -67,7 +67,7 @@ fn main() -> miette::Result<()> {
     if args.run {
         Command::new("chmod")
             .arg("+x")
-            .arg(&output)
+            .arg(output)
             .output()
             .into_diagnostic()?;
 
