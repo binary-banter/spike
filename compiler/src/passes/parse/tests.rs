@@ -22,5 +22,5 @@ fn parse([test]: [&str; 1]) {
     }
 }
 
-test_each_file! { for ["test"] in "./programs/good" as parse_succeed => parse }
-test_each_file! { for ["test"] in "./programs/fail/parse" as parse_fail => parse }
+test_each_file! { for ["sp"] in "./programs/good" as parse_succeed => parse }
+test_each_file! { for ["sp"] in "./programs/fail/parse" as parse_fail => parse }

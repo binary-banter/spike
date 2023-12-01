@@ -29,5 +29,5 @@ fn validate([test]: [&str; 1], good: bool) {
     }
 }
 
-test_each_file! { for ["test"] in "./programs/good" as validate_succeed => |i| validate(i, true) }
-test_each_file! { for ["test"] in "./programs/fail/validate" as validate_fail => |i| validate(i, false) }
+test_each_file! { for ["sp"] in "./programs/good" as validate_succeed => |i| validate(i, true) }
+test_each_file! { for ["sp"] in "./programs/fail/validate" as validate_fail => |i| validate(i, false) }

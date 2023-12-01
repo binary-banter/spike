@@ -40,4 +40,4 @@ fn assign([test]: [&str; 1]) {
     assert_eq!(io.outputs(), &expected_output, "Incorrect program output.");
 }
 
-test_each_file! { for ["test"] in "./programs/good" as assign => assign }
+test_each_file! { for ["sp"] in "./programs/good" as assign => assign }

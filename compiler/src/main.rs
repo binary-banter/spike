@@ -22,7 +22,7 @@ enum MainError {
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
-    /// Specifies the path to an input .jj file. If None, it means stdin is used for input.
+    /// Specifies the path to an input .sp file. If None, it means stdin is used for input.
     input: Option<String>,
 
     /// Specifies the path to an output file. If None, it uses the input filename.

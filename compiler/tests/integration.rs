@@ -75,4 +75,4 @@ fn integration([test]: [&str; 1]) {
     }
 }
 
-test_each_file! { for ["test"] in "./programs/good" as integration => integration }
+test_each_file! { for ["sp"] in "./programs/good" as integration => integration }

@@ -26,7 +26,7 @@ echo "fn main() { print(42); }" | cargo run && ./output
 Run with specified input path, without specifying an output path:
 
 ```sh
-cargo run -- example.jj && ./example
+cargo run -- example.sp && ./example
 ```
 
 Run with specified input path and specified output path:
