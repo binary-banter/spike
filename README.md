@@ -1,16 +1,17 @@
 # How to Use
 
 ```
-Usage: rust_compiler_construction.exe [OPTIONS] [INPUT]
+Usage: compiler [OPTIONS] [INPUT]
 
 Arguments:
-  [INPUT]  Specifies the path to an input .jj file. If None, it means stdin is used for input
+  [INPUT]  Specifies the path to an input .sp file. If None, it means stdin is used for input
 
 Options:
-  -o, --output <OUTPUT>  Specifies the path to an output file. If None, it uses the input filename. If that's also None, it defaults to "output"
-  -h, --help             Print help
-  -V, --version          Print version
-
+  -o, --output <FILE>   Specifies the path to an output file. If None, it uses the input filename. If that's also None, it defaults to "output"
+  -d, --display <PASS>  [possible values: parse, validate, reveal, atomize, explicate, select]
+  -r, --run             
+  -h, --help            Print help
+  -V, --version         Print version
 ```
 
 # Examples
@@ -20,19 +21,19 @@ These examples demonstrate how to build and run the compiler using Cargo.
 Run with input from stdin:
 
 ```sh
-echo "fn main() { print(42); }" | cargo run && ./output
+echo "fn main() { print(42); }" | cargo run -- -r
 ```
 
 Run with specified input path, without specifying an output path:
 
 ```sh
-cargo run -- example.sp && ./example
+cargo run -- example.sp -r
 ```
 
-Run with specified input path and specified output path:
+Compile with specified input path and specified output path:
 
 ```sh
-cargo run -- input.jj -o output && ./output
+cargo run -- input.sp -o output
 ```
 
 # Language Features
