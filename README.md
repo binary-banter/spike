@@ -52,11 +52,11 @@ cargo run -- input.jj -o output && ./output
 * Sequences
 * Structs
 
-# Priority list
+# AoC Wishlist for Christmas
 
-* DEZE KUT BUG FIXEN
-* Constants
-* else if
+* Fixing that not very nice bug.
+* Pass raw strings for testing (allows testing AoC problems).
+* Compile + run
 
 # Fixes
 
@@ -78,6 +78,7 @@ cargo run -- input.jj -o output && ./output
   * [x] Structs.
   * [ ] Enums.
 * [ ] First-class functions.
+* [ ] Constants.
 
 # Upcoming Optimizations
 

@@ -1,3 +1,4 @@
+use std::num::ParseIntError;
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Constrained, Expr, Lit, Meta, Param, Spanned, TypeDef, Typed, Span};
 use crate::passes::select::{Instr, VarArg};
@@ -105,7 +106,7 @@ fn partial_type_to_type<'p>(
     })
 }
 
-fn resolve_int_lit(original_val: &str, span: Span) -> Result<i64, TypeError> {
+fn resolve_int_lit<T: From<u8>>(original_val: &str, span: Span, from_radix: fn(&str, u32) -> Result<T, ParseIntError>) -> Result<T, TypeError> {
     let mut val = original_val;
     if val.ends_with("i64") || val.ends_with("u64") {
         val = &val[..val.len() - 3];
@@ -117,10 +118,10 @@ fn resolve_int_lit(original_val: &str, span: Span) -> Result<i64, TypeError> {
 
             let int = match (s.next(), s.next(), s.next(), s.next(), s.next()) {
                 (Some('\''), Some(s), Some('\''), None, None) => {
-                    s as i64
+                    T::from(s as u8)
                 },
                 (Some('\''), Some('\\'), Some(s), Some('\''), None) => {
-                    let int = match s {
+                    let s = match s {
                         'n' => '\n',
                         'r' => '\r',
                         '\\' => '\\',
@@ -132,7 +133,7 @@ fn resolve_int_lit(original_val: &str, span: Span) -> Result<i64, TypeError> {
                             val: format!("\\{s}"),
                         }),
                     };
-                    int as i64
+                    T::from(s as u8)
                 } ,
                 _ => unreachable!("Congrats you made an invalid byte lit, plx tell us how"),
             };
@@ -145,7 +146,7 @@ fn resolve_int_lit(original_val: &str, span: Span) -> Result<i64, TypeError> {
         s => (10, s),
     };
 
-    i64::from_str_radix(&val.replace("_", ""), base).map_err(|error| TypeError::InvalidInteger {
+    from_radix(&val.replace("_", ""), base).map_err(|error| TypeError::InvalidInteger {
         span,
         val: original_val.to_string(),
         typ: "I64",
@@ -171,10 +172,10 @@ fn resolve_expr<'p>(
                     }
                     Some(typ) => match typ {
                         Type::I64 => TLit::I64 {
-                            val: resolve_int_lit(val, expr.meta.span)?,
+                            val: resolve_int_lit(val, expr.meta.span, i64::from_str_radix)?,
                         },
                         Type::U64 => TLit::U64 {
-                            val: todo!(),
+                            val: resolve_int_lit(val, expr.meta.span, u64::from_str_radix)?,
                         },
                         _ => unreachable!(),
                     },
