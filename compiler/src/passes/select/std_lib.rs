@@ -9,7 +9,10 @@ use std::collections::HashMap;
 
 pub type Std<'p> = HashMap<&'p str, UniqueSym<'p>>;
 
-pub fn add_std_library<'p>(std: &Std<'p>, blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg>>) {
+pub fn add_std_library<'p>(
+    std: &Std<'p>,
+    blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg<UniqueSym<'p>>>>,
+) {
     add_exit_block(std["exit"], blocks);
     add_print_block(std["print"], blocks);
     add_read_block(std["read"], blocks, std["exit"]);
@@ -17,7 +20,7 @@ pub fn add_std_library<'p>(std: &Std<'p>, blocks: &mut HashMap<UniqueSym<'p>, Bl
 
 fn add_exit_block<'p>(
     entry: UniqueSym<'p>,
-    blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg>>,
+    blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg<UniqueSym<'p>>>>,
 ) {
     blocks.insert(
         entry,
@@ -31,7 +34,7 @@ fn add_exit_block<'p>(
 
 fn add_print_block<'p>(
     entry: UniqueSym<'p>,
-    blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg>>,
+    blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg<UniqueSym<'p>>>>,
 ) {
     let print_neg = gen_sym("print_neg");
     let print_push_loop = gen_sym("print_push_loop");
@@ -94,7 +97,7 @@ fn add_print_block<'p>(
 
 fn add_read_block<'p>(
     entry: UniqueSym<'p>,
-    blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg>>,
+    blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg<UniqueSym<'p>>>>,
     exit: UniqueSym<'p>,
 ) {
     let read_is_neg = gen_sym("read_is_neg");

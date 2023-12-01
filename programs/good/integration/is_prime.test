@@ -4,10 +4,10 @@ fn is_prime(n: I64) -> Bool {
     let mut i = 2;
     loop {
         if i == n {
-            break true;
+            break true
         } else {
             if n % i == 0 {
-                break false;
+                break false
             } else {
                 i = i + 1;
             }
@@ -19,7 +19,7 @@ fn main() {
     loop {
         let n = read();
         if n == 0 {
-            break;
+            break
         } else {
             if is_prime(n) {
                 print(1);

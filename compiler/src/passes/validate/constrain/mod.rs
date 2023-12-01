@@ -11,6 +11,7 @@ use uncover_globals::uncover_globals;
 
 mod access_field;
 mod apply;
+mod asm;
 mod assign;
 mod binary_op;
 mod r#break;

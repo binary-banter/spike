@@ -124,6 +124,7 @@ impl<IdentVars: Display, IdentFields: Display, Lit: Display, M> Display
             }
             Expr::Variant { .. } => todo!(),
             Expr::Switch { .. } => todo!(),
+            Expr::Asm { .. } => todo!(),
         }
     }
 }

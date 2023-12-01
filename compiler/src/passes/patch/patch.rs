@@ -1,6 +1,7 @@
 use crate::passes::assign::{Arg, X86Assigned};
 use crate::passes::patch::X86Patched;
 use crate::passes::select::{Block, Instr};
+use crate::utils::gen_sym::UniqueSym;
 use crate::{addq, movq, reg, subq};
 
 impl<'p> X86Assigned<'p> {
@@ -29,7 +30,7 @@ fn patch_block(block: Block<'_, Arg>) -> Block<'_, Arg> {
     }
 }
 
-fn patch_instr(instr: Instr<'_, Arg>) -> Vec<Instr<'_, Arg>> {
+fn patch_instr(instr: Instr<Arg, UniqueSym<'_>>) -> Vec<Instr<Arg, UniqueSym<'_>>> {
     match instr {
         Instr::Addq { src, dst } => patch_args(src, dst, |src, dst| addq!(src, dst)),
         Instr::Subq { src, dst } => patch_args(src, dst, |src, dst| subq!(src, dst)),
@@ -38,7 +39,11 @@ fn patch_instr(instr: Instr<'_, Arg>) -> Vec<Instr<'_, Arg>> {
     }
 }
 
-fn patch_args<'p>(src: Arg, dst: Arg, op: fn(Arg, Arg) -> Instr<'p, Arg>) -> Vec<Instr<'p, Arg>> {
+fn patch_args<'p>(
+    src: Arg,
+    dst: Arg,
+    op: fn(Arg, Arg) -> Instr<Arg, UniqueSym<'p>>,
+) -> Vec<Instr<Arg, UniqueSym<'p>>> {
     match (&src, &dst) {
         (Arg::Deref { .. }, Arg::Deref { .. }) => vec![movq!(src, reg!(RAX)), op(reg!(RAX), dst)],
         _ => vec![op(src, dst)],

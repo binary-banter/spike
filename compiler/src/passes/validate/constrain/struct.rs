@@ -1,9 +1,9 @@
-use crate::passes::parse::{Meta, Span, Spanned, TypeDef};
+use crate::passes::parse::{Constrained, Span, Spanned, TypeDef};
 use crate::passes::validate::constrain::expr;
 use crate::passes::validate::constrain::uncover_globals::{Env, EnvEntry};
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::partial_type::PartialType;
-use crate::passes::validate::{CMeta, ExprConstrained, ExprUniquified};
+use crate::passes::validate::{ExprConstrained, ExprUniquified, MetaConstrained};
 use crate::utils::expect::expect;
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::{HashMap, HashSet};
@@ -13,9 +13,9 @@ pub fn constrain_struct<'p>(
     span: Span,
     sym: Spanned<UniqueSym<'p>>,
     fields: Vec<(Spanned<&'p str>, Spanned<ExprUniquified<'p>>)>,
-) -> Result<Meta<CMeta, ExprConstrained<'p>>, TypeError> {
+) -> Result<Constrained<ExprConstrained<'p>>, TypeError> {
     // Get the `EnvEntry` from the scope.
-    // This should exist after yeet, but could potentially not be a struct definition.
+    // This should exist after uniquify, but could potentially not be a struct definition.
     let EnvEntry::Def {
         def: TypeDef::Struct { fields: def_fields },
     } = &env.scope[&sym.inner]
@@ -80,8 +80,8 @@ pub fn constrain_struct<'p>(
 
     let index = env.uf.add(PartialType::Var { sym: sym.inner });
 
-    Ok(Meta {
-        meta: CMeta { span, index },
+    Ok(Constrained {
+        meta: MetaConstrained { span, index },
         inner: ExprConstrained::Struct { sym, fields },
     })
 }

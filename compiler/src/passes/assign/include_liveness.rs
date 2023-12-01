@@ -1,7 +1,9 @@
 use crate::utils::gen_sym::UniqueSym;
 
 use crate::passes::assign::{LArg, LBlock, LX86VarProgram};
-use crate::passes::select::{Block, Instr, Reg, VarArg, X86Selected, CALLER_SAVED, SYSCALL_REGS};
+use crate::passes::select::{
+    Block, Instr, InstrSelected, Reg, VarArg, X86Selected, CALLER_SAVED, SYSCALL_REGS,
+};
 use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet};
 
@@ -58,7 +60,7 @@ impl<'p> X86Selected<'p> {
 }
 
 fn block_liveness<'p>(
-    block: &Block<'p, VarArg<'p>>,
+    block: &Block<'p, VarArg<UniqueSym<'p>>>,
     before_map: &HashMap<UniqueSym<'p>, HashSet<LArg<'p>>>,
 ) -> (LBlock<'p>, HashSet<LArg<'p>>) {
     let mut instrs = Vec::new();
@@ -100,9 +102,9 @@ pub enum ReadWriteOp {
 }
 
 pub fn handle_instr<'p>(
-    instr: &Instr<'p, VarArg<'p>>,
+    instr: &InstrSelected<'p>,
     before_map: &HashMap<UniqueSym<'p>, HashSet<LArg<'p>>>,
-    mut arg: impl FnMut(&VarArg<'p>, ReadWriteOp),
+    mut arg: impl FnMut(&VarArg<UniqueSym<'p>>, ReadWriteOp),
 ) {
     use ReadWriteOp::Read as R;
     use ReadWriteOp::ReadWrite as RW;

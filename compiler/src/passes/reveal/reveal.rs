@@ -69,10 +69,17 @@ fn reveal_expr<'p>(
                 Box::new(reveal_expr(*rhs, scope)),
             ],
         },
-        ExprValidated::Let { sym, bnd, bdy, .. } => {
+        ExprValidated::Let {
+            sym,
+            mutable,
+            bnd,
+            bdy,
+            ..
+        } => {
             let bnd = Box::new(reveal_expr(*bnd, scope));
             scope.remove(sym, |scope| RExpr::Let {
                 sym,
+                mutable,
                 bnd,
                 bdy: Box::new(reveal_expr(*bdy, scope)),
             })
@@ -120,6 +127,7 @@ fn reveal_expr<'p>(
         },
         ExprValidated::Variant { .. } => todo!(),
         ExprValidated::Switch { .. } => todo!(),
+        ExprValidated::Asm { instrs } => RExpr::Asm { instrs },
     };
 
     Meta {

@@ -4,7 +4,7 @@ use crate::passes::parse::types::Type;
 use crate::passes::parse::{BinaryOp, Meta, Param, UnaryOp};
 use crate::passes::select::std_lib::add_std_library;
 use crate::passes::select::{
-    Block, Cnd, Instr, VarArg, X86Selected, CALLEE_SAVED_NO_STACK, CALLER_SAVED,
+    Block, Cnd, InstrSelected, VarArg, X86Selected, CALLEE_SAVED_NO_STACK, CALLER_SAVED,
 };
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use crate::*;
@@ -36,7 +36,7 @@ fn select_block<'p>(
     sym: UniqueSym<'p>,
     tail: ETail<'p>,
     fn_params: &HashMap<UniqueSym<'p>, Vec<Param<UniqueSym<'p>>>>,
-) -> Block<'p, VarArg<'p>> {
+) -> Block<'p, VarArg<UniqueSym<'p>>> {
     let mut instrs = Vec::new();
 
     if let Some(params) = fn_params.get(&sym) {
@@ -60,7 +60,7 @@ fn select_block<'p>(
     Block { instrs }
 }
 
-fn select_tail<'p>(tail: ETail<'p>, instrs: &mut Vec<Instr<'p, VarArg<'p>>>) {
+fn select_tail<'p>(tail: ETail<'p>, instrs: &mut Vec<InstrSelected<'p>>) {
     match tail {
         ETail::Return { exprs } => {
             assert!(
@@ -112,7 +112,7 @@ fn select_tail<'p>(tail: ETail<'p>, instrs: &mut Vec<Instr<'p, VarArg<'p>>>) {
 fn select_assign<'p>(
     dsts: &[UniqueSym<'p>],
     expr: Meta<Vec<Type<UniqueSym<'p>>>, EExpr<'p>>,
-) -> Vec<Instr<'p, VarArg<'p>>> {
+) -> Vec<InstrSelected<'p>> {
     let dst = var!(dsts[0]);
     match expr.inner {
         EExpr::Atom {
@@ -207,10 +207,11 @@ fn select_assign<'p>(
 
             instrs
         }
+        EExpr::Asm { instrs } => instrs,
     }
 }
 
-fn select_atom(expr: Atom) -> VarArg {
+fn select_atom(expr: Atom<'_>) -> VarArg<UniqueSym<'_>> {
     match expr {
         Atom::Val { val } => imm!(val),
         Atom::Var { sym } => var!(sym),

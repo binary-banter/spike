@@ -1,16 +1,16 @@
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Meta, Span, Spanned, UnaryOp};
+use crate::passes::parse::{Constrained, Span, Spanned, UnaryOp};
 use crate::passes::validate::constrain::expr;
 use crate::passes::validate::constrain::uncover_globals::Env;
 use crate::passes::validate::error::TypeError;
-use crate::passes::validate::{CMeta, ExprConstrained, ExprUniquified};
+use crate::passes::validate::{ExprConstrained, ExprUniquified, MetaConstrained};
 
 pub fn constrain_unary_op<'p>(
     env: &mut Env<'_, 'p>,
     span: Span,
     op: UnaryOp,
     expr: Spanned<ExprUniquified<'p>>,
-) -> Result<Meta<CMeta, ExprConstrained<'p>>, TypeError> {
+) -> Result<Constrained<ExprConstrained<'p>>, TypeError> {
     let typ = match op {
         UnaryOp::Neg => Type::I64,
         UnaryOp::Not => Type::Bool,
@@ -27,8 +27,8 @@ pub fn constrain_unary_op<'p>(
         }
     })?;
 
-    Ok(Meta {
-        meta: CMeta {
+    Ok(Constrained {
+        meta: MetaConstrained {
             span,
             index: expr.meta.index,
         },

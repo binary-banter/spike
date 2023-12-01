@@ -1,7 +1,7 @@
 use clap::Parser;
-use compiler::compile;
 use compiler::passes::parse::parse::PrettyParseError;
 use compiler::passes::validate::error::TypeError;
+use compiler::{compile, display, Pass};
 use miette::{Diagnostic, IntoDiagnostic};
 use std::fs;
 use std::io::Read;
@@ -26,8 +26,11 @@ struct Args {
 
     /// Specifies the path to an output file. If None, it uses the input filename.
     /// If that's also None, it defaults to "output".
-    #[arg(short, long)]
+    #[arg(short, long, value_name = "FILE")]
     output: Option<String>,
+
+    #[arg(value_enum, short, long, value_name = "PASS")]
+    display: Option<Pass>,
 }
 
 fn read_from_stdin() -> Result<String, std::io::Error> {
@@ -44,7 +47,11 @@ fn main() -> miette::Result<()> {
         Some(file) => (fs::read_to_string(file).into_diagnostic()?, file.as_str()),
     };
 
-    let output: &str = args.output.as_deref().unwrap_or_else(|| {
+    if let Some(pass) = args.display {
+        return display(&program, filename, pass);
+    }
+
+    let output = args.output.as_deref().unwrap_or_else(|| {
         args.input.as_ref().map_or_else(
             || "output",
             |s| Path::new(s).file_stem().unwrap().to_str().unwrap(),

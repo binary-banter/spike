@@ -6,7 +6,7 @@ mod include_liveness;
 mod tests;
 
 use crate::passes::select::std_lib::Std;
-use crate::passes::select::{Block, Instr, Reg, VarArg, X86Selected};
+use crate::passes::select::{Block, InstrSelected, Reg, VarArg, X86Selected};
 use crate::utils::gen_sym::UniqueSym;
 use derive_more::Display;
 use functor_derive::Functor;
@@ -41,7 +41,7 @@ pub struct LX86VarProgram<'p> {
 
 #[derive(PartialEq)]
 pub struct LBlock<'p> {
-    pub instrs: Vec<(Instr<'p, VarArg<'p>>, HashSet<LArg<'p>>)>,
+    pub instrs: Vec<(InstrSelected<'p>, HashSet<LArg<'p>>)>,
 }
 
 #[derive(Hash, Clone, Copy, Eq, Ord, PartialEq, PartialOrd)]
@@ -50,7 +50,7 @@ pub enum LArg<'p> {
     Reg { reg: Reg },
 }
 
-impl<'p> From<LArg<'p>> for VarArg<'p> {
+impl<'p> From<LArg<'p>> for VarArg<UniqueSym<'p>> {
     fn from(val: LArg<'p>) -> Self {
         match val {
             LArg::Var { sym } => VarArg::XVar { sym },
@@ -59,7 +59,7 @@ impl<'p> From<LArg<'p>> for VarArg<'p> {
     }
 }
 
-impl<'p> From<LBlock<'p>> for Block<'p, VarArg<'p>> {
+impl<'p> From<LBlock<'p>> for Block<'p, VarArg<UniqueSym<'p>>> {
     fn from(value: LBlock<'p>) -> Self {
         Block {
             instrs: value.instrs.into_iter().map(|(instr, _)| instr).collect(),
@@ -67,7 +67,7 @@ impl<'p> From<LBlock<'p>> for Block<'p, VarArg<'p>> {
     }
 }
 
-impl<'p> From<Arg> for VarArg<'p> {
+impl<'p> From<Arg> for VarArg<UniqueSym<'p>> {
     fn from(value: Arg) -> Self {
         match value {
             Arg::Imm { val } => VarArg::Imm { val },

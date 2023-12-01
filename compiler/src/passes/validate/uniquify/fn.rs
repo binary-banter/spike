@@ -21,7 +21,7 @@ pub fn uniquify_fn<'p>(
         .iter()
         .map(|param| (param.sym.inner, gen_spanned_sym(param.sym.clone()).inner));
 
-    // Push the parameters into scope and yeet the function.
+    // Push the parameters into scope and uniquify the function.
     scope.push_iter(iterator, |scope| {
         // Collect uniquified parameters.
         let params = params

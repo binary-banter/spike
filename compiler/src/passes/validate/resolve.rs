@@ -1,14 +1,17 @@
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Expr, Lit, Meta, Param, Spanned, TypeDef, Typed};
+use crate::passes::parse::{Constrained, Expr, Lit, Meta, Param, Span, Spanned, TypeDef, Typed};
+use crate::passes::select::{Instr, InstrSelected, VarArg};
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::partial_type::PartialType;
 use crate::passes::validate::{
-    CMeta, DefConstrained, DefValidated, ExprConstrained, ExprValidated, PrgConstrained,
-    PrgValidated, TLit,
+    DefConstrained, DefValidated, ExprConstrained, ExprValidated, PrgConstrained, PrgValidated,
+    TLit,
 };
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};
+use crate::*;
 use functor_derive::Functor;
+use std::num::ParseIntError;
 
 impl<'p> PrgConstrained<'p> {
     pub fn resolve(mut self) -> Result<PrgValidated<'p>, TypeError> {
@@ -103,8 +106,60 @@ fn partial_type_to_type<'p>(
     })
 }
 
+fn resolve_int_lit<T: From<u8>>(
+    original_val: &str,
+    span: Span,
+    from_radix: fn(&str, u32) -> Result<T, ParseIntError>,
+) -> Result<T, TypeError> {
+    let mut val = original_val;
+    if val.ends_with("i64") || val.ends_with("u64") {
+        val = &val[..val.len() - 3];
+    }
+
+    let (base, val) = match val {
+        s if s.starts_with('b') => {
+            let mut s = s[1..].chars();
+
+            let int = match (s.next(), s.next(), s.next(), s.next(), s.next()) {
+                (Some('\''), Some(s), Some('\''), None, None) => T::from(s as u8),
+                (Some('\''), Some('\\'), Some(s), Some('\''), None) => {
+                    let s = match s {
+                        'n' => '\n',
+                        'r' => '\r',
+                        '\\' => '\\',
+                        '"' => '"',
+                        '\'' => '\'',
+                        '0' => '\0',
+                        s => {
+                            return Err(TypeError::InvalidEscape {
+                                span,
+                                val: format!("\\{s}"),
+                            })
+                        }
+                    };
+                    T::from(s as u8)
+                }
+                _ => unreachable!("Congrats you made an invalid byte lit, plx tell us how"),
+            };
+
+            return Ok(int);
+        }
+        s if s.starts_with("0b") => (2, &s[2..]),
+        s if s.starts_with("0o") => (8, &s[2..]),
+        s if s.starts_with("0x") => (16, &s[2..]),
+        s => (10, s),
+    };
+
+    from_radix(&val.replace('_', ""), base).map_err(|error| TypeError::InvalidInteger {
+        span,
+        val: original_val.to_string(),
+        typ: "I64",
+        err: error.to_string(),
+    })
+}
+
 fn resolve_expr<'p>(
-    expr: Meta<CMeta, ExprConstrained<'p>>,
+    expr: Constrained<ExprConstrained<'p>>,
     uf: &mut UnionFind<PartialType<'p>>,
 ) -> Result<Typed<'p, ExprValidated<'p>>, TypeError> {
     // Type of the expression, if `None` then type is still ambiguous.
@@ -121,16 +176,10 @@ fn resolve_expr<'p>(
                     }
                     Some(typ) => match typ {
                         Type::I64 => TLit::I64 {
-                            val: val.parse().map_err(|_| TypeError::IntegerOutOfBounds {
-                                span: expr.meta.span,
-                                typ: "I64",
-                            })?,
+                            val: resolve_int_lit(val, expr.meta.span, i64::from_str_radix)?,
                         },
                         Type::U64 => TLit::U64 {
-                            val: val.parse().map_err(|_| TypeError::IntegerOutOfBounds {
-                                span: expr.meta.span,
-                                typ: "U64",
-                            })?,
+                            val: resolve_int_lit(val, expr.meta.span, u64::from_str_radix)?,
                         },
                         _ => unreachable!(),
                     },
@@ -213,10 +262,48 @@ fn resolve_expr<'p>(
         },
         Expr::Variant { .. } => todo!(),
         Expr::Switch { .. } => todo!(),
+        ExprConstrained::Asm { instrs } => ExprValidated::Asm {
+            instrs: instrs.into_iter().map(resolve_instr).collect(),
+        },
     };
 
     Ok(Meta {
         meta: typ.unwrap(),
         inner: expr,
     })
+}
+
+pub fn resolve_instr<'p>(
+    instr: Instr<VarArg<Spanned<UniqueSym<'p>>>, Spanned<UniqueSym<'p>>>,
+) -> InstrSelected<'p> {
+    let map = |arg: VarArg<Spanned<UniqueSym<'p>>>| match arg {
+        VarArg::Imm { val } => VarArg::Imm { val },
+        VarArg::Reg { reg } => VarArg::Reg { reg },
+        VarArg::Deref { reg, off } => VarArg::Deref { reg, off },
+        VarArg::XVar { sym } => VarArg::XVar { sym: sym.inner },
+    };
+
+    match instr {
+        Instr::Addq { src, dst } => addq!(map(src), map(dst)),
+        Instr::Subq { src, dst } => subq!(map(src), map(dst)),
+        Instr::Divq { divisor } => divq!(map(divisor)),
+        Instr::Mulq { src } => mulq!(map(src)),
+        Instr::Negq { dst } => negq!(map(dst)),
+        Instr::Movq { src, dst } => movq!(map(src), map(dst)),
+        Instr::Pushq { src } => pushq!(map(src)),
+        Instr::Popq { dst } => popq!(map(dst)),
+        Instr::Retq => retq!(),
+        Instr::Syscall { arity } => syscall!(arity),
+        Instr::Cmpq { src, dst } => cmpq!(map(src), map(dst)),
+        Instr::Andq { src, dst } => andq!(map(src), map(dst)),
+        Instr::Orq { src, dst } => orq!(map(src), map(dst)),
+        Instr::Xorq { src, dst } => xorq!(map(src), map(dst)),
+        Instr::Notq { dst } => notq!(map(dst)),
+        Instr::Setcc { cnd } => setcc!(cnd),
+        Instr::CallqDirect { .. } => todo!(),
+        Instr::Jmp { .. } => todo!(),
+        Instr::Jcc { .. } => todo!(),
+        Instr::LoadLbl { .. } => todo!(),
+        Instr::CallqIndirect { .. } => todo!(),
+    }
 }

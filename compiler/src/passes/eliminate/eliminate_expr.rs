@@ -12,6 +12,7 @@ pub fn eliminate_expr(e: CExpr) -> EExpr {
             args: args.fmap(|(arg, _)| arg),
         },
         CExpr::FunRef { sym } => EExpr::FunRef { sym },
+        CExpr::Asm { instrs } => EExpr::Asm { instrs },
         CExpr::Struct { .. } | CExpr::AccessField { .. } => unreachable!(),
     }
 }

@@ -3,14 +3,12 @@ mod eliminate_expr;
 mod eliminate_params;
 mod eliminate_seq;
 mod eliminate_tail;
-mod interpreter;
-#[cfg(test)]
-mod tests;
 
 use crate::passes::atomize::Atom;
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{BinaryOp, Meta, Param, TypeDef, UnaryOp};
 use crate::passes::select::std_lib::Std;
+use crate::passes::select::InstrSelected;
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
 
@@ -47,4 +45,5 @@ pub enum EExpr<'p> {
     UnaryOp { op: UnaryOp, expr: Atom<'p> },
     Apply { fun: Atom<'p>, args: Vec<Atom<'p>> },
     FunRef { sym: UniqueSym<'p> },
+    Asm { instrs: Vec<InstrSelected<'p>> },
 }

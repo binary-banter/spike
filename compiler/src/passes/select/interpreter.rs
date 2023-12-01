@@ -34,7 +34,7 @@ pub struct IStats {
 }
 
 pub struct X86Interpreter<'p, I: IO> {
-    pub blocks: &'p HashMap<UniqueSym<'p>, Block<'p, VarArg<'p>>>,
+    pub blocks: &'p HashMap<UniqueSym<'p>, Block<'p, VarArg<UniqueSym<'p>>>>,
     pub io: &'p mut I,
     pub regs: HashMap<Reg, i64>,
 
@@ -298,7 +298,7 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
         }
     }
 
-    fn get_arg(&self, a: &'p VarArg) -> i64 {
+    fn get_arg(&self, a: &'p VarArg<UniqueSym<'p>>) -> i64 {
         match a {
             VarArg::Imm { val } => *val,
             VarArg::Reg { reg } => self.regs[reg],
@@ -310,7 +310,7 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
         }
     }
 
-    fn set_arg(&mut self, a: &'p VarArg, v: i64) {
+    fn set_arg(&mut self, a: &'p VarArg<UniqueSym<'p>>, v: i64) {
         match a {
             VarArg::Imm { .. } => panic!("Tried to write to immediate, are u insane?"),
             VarArg::Reg { reg } => {
@@ -333,8 +333,14 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
         assert!(buffer_len >= 1);
 
         if self.read_buffer.is_empty() {
-            self.read_buffer = format!("{}\n", self.io.read().int()).into_bytes();
-            self.read_buffer.reverse();
+            if let Some(read) = self.io.read() {
+                self.read_buffer = format!("{}\n", read.int()).into_bytes();
+                self.read_buffer.reverse();
+            } else {
+                self.memory.insert(buffer, 0);
+                self.regs.insert(Reg::RAX, 0);
+                return;
+            }
         }
         let val = self.read_buffer.pop().unwrap();
         self.memory.insert(buffer, val as i64);

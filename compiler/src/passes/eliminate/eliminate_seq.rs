@@ -130,7 +130,8 @@ pub fn eliminate_seq<'p>(
                 CExpr::BinaryOp { .. }
                 | CExpr::UnaryOp { .. }
                 | CExpr::FunRef { .. }
-                | CExpr::AccessField { .. } => {
+                | CExpr::AccessField { .. }
+                | CExpr::Asm { .. } => {
                     unreachable!()
                 }
             },

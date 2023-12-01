@@ -1,9 +1,9 @@
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{Meta, Span, Spanned};
+use crate::passes::parse::{Constrained, Span, Spanned};
 use crate::passes::validate::constrain::expr;
 use crate::passes::validate::constrain::uncover_globals::Env;
 use crate::passes::validate::error::TypeError;
-use crate::passes::validate::{CMeta, ExprConstrained, ExprUniquified};
+use crate::passes::validate::{ExprConstrained, ExprUniquified, MetaConstrained};
 
 pub fn constrain_if<'p>(
     env: &mut Env<'_, 'p>,
@@ -11,7 +11,7 @@ pub fn constrain_if<'p>(
     cnd: Spanned<ExprUniquified<'p>>,
     thn: Spanned<ExprUniquified<'p>>,
     els: Spanned<ExprUniquified<'p>>,
-) -> Result<Meta<CMeta, ExprConstrained<'p>>, TypeError> {
+) -> Result<Constrained<ExprConstrained<'p>>, TypeError> {
     let cnd = expr::constrain_expr(cnd, env)?;
 
     env.uf.expect_type(cnd.meta.index, Type::Bool, |got, _| {
@@ -35,8 +35,8 @@ pub fn constrain_if<'p>(
             }
         })?;
 
-    Ok(Meta {
-        meta: CMeta {
+    Ok(Constrained {
+        meta: MetaConstrained {
             span,
             index: out_index,
         },

@@ -1,7 +1,7 @@
 use crate::passes::parse::{
-    BinaryOp, DefParsed, ExprParsed, Lit, Meta, Param, PrgParsed, Spanned, Type, TypeDef, UnaryOp,
+    BinaryOp, DefParsed, ExprParsed, InstrParsed, Lit, Meta, Param, PrgParsed, Spanned, Type, TypeDef, UnaryOp,
 };
-use crate::passes::validate::partial_type::PartialType;
+use crate::passes::select::{VarArg, Reg};
 use functor_derive::Functor;
 
 grammar;
@@ -21,12 +21,50 @@ match {
     "struct",
     "enum",
     "switch",
+    "asm",
+
+    // Asm instructions
+    "addq",
+    "subq",
+    "mulq",
+    "divq",
+    "negq",
+    "movq",
+    "pushq",
+    "popq",
+    "retq",
+    "andq",
+    "orq",
+    "xorq",
+    "notq",
+    "cmpq",
+    "syscall",
+
+    // Asm registers
+    "%RSP",
+    "%RBP",
+    "%RAX",
+    "%RBX",
+    "%RCX",
+    "%RDX",
+    "%RSI",
+    "%RDI",
+    "%R8",
+    "%R9",
+    "%R10",
+    "%R11",
+    "%R12",
+    "%R13",
+    "%R14",
+    "%R15",
 
     // Structural tokens
     "(",
     ")",
     "{",
     "}",
+    "[",
+    "]",
     "->",
     "=",
     ";",
@@ -35,6 +73,7 @@ match {
     ".",
     "::",
     "=>",
+    "$",
 
     // Identifier
     r"[_a-zA-Z][_a-zA-Z0-9]*" => identifier,
@@ -57,9 +96,7 @@ match {
     "true",
     "false",
     "unit",
-    r"[0-9]+" => integer,
-    r"[0-9]+i64" => i64,
-    r"[0-9]+u64" => u64,
+    r"[0-9]([a-zA-Z0-9_]*[a-zA-Z0-9])?|b'(\\)?[^'[[:cntrl:]]]'([iu]64)?" => integer,
 
     // Logical operators
     "^",
@@ -162,11 +199,7 @@ ExprInStmt: ExprParsed<'input> = {
         sym,
         bnd: Box::new(bnd),
     },
-    "if" <cnd:Spanned<ExprLogicalOr<Never>>> "{" <thn:Spanned<Expr>> "}" <l:@L> <els:("else" "{" <Spanned<Expr>> "}")?> <r:@R> => ExprParsed::If {
-        cnd: Box::new(cnd),
-        thn: Box::new(thn),
-        els: Box::new(els.unwrap_or(Meta { meta: (l, r - l), inner: ExprParsed::Lit { val: Lit::Unit }})),
-    },
+    ExprIf,
     "loop" "{" <bdy:Spanned<Expr>> "}" => ExprParsed::Loop {
         bdy: Box::new(bdy),
     },
@@ -207,7 +240,21 @@ ExprInStmt: ExprParsed<'input> = {
         bdy: Box::new(bdy.fmap(|bdy| bdy.unwrap_or(ExprParsed::Lit { val: Lit::Unit }))),
     },
     "continue" => ExprParsed::Continue,
+    "asm" "{" <instrs:AsmInstr*> "}" => ExprParsed::Asm { instrs },
     ExprLogicalOr<Struct>,
+}
+
+ExprIf: ExprParsed<'input> = {
+    "if" <cnd:Spanned<ExprLogicalOr<Never>>> "{" <thn:Spanned<Expr>> "}" <l:@L> <els:("else" <Spanned<ExprIfElse>>)?> <r:@R> => ExprParsed::If {
+        cnd: Box::new(cnd),
+        thn: Box::new(thn),
+        els: Box::new(els.unwrap_or(Meta { meta: (l, r - l), inner: ExprParsed::Lit { val: Lit::Unit }})),
+    },
+}
+
+ExprIfElse: ExprParsed<'input> = {
+    "{" <Expr> "}",
+    ExprIf,
 }
 
 BinaryOps<Op,Next>: ExprParsed<'input> = {
@@ -278,19 +325,6 @@ ExprAtom<T>: ExprParsed<'input> = {
     <val:integer> => ExprParsed::Lit {
         val: Lit::Int {
             val,
-            typ: None,
-        },
-    },
-    <val:i64> => ExprParsed::Lit {
-        val: Lit::Int {
-            val: val.trim_end_matches("i64"),
-            typ: Some(PartialType::I64),
-        },
-    },
-    <val:u64> => ExprParsed::Lit {
-        val: Lit::Int {
-            val: val.trim_end_matches("u64"),
-            typ: Some(PartialType::U64),
         },
     },
     <val:Bool> => ExprParsed::Lit { val: Lit::Bool { val } },
@@ -312,7 +346,7 @@ Struct: ExprParsed<'input> = {
     },
 }
 
-StructArg : (Spanned<&'input str>, Spanned<ExprParsed<'input>>) = {
+StructArg: (Spanned<&'input str>, Spanned<ExprParsed<'input>>) = {
     <Ident> ":" <Spanned<Expr>>,
     <l:@L> <sym:Ident> <r:@R> => (sym.clone(), Meta { meta: (l, r - l), inner: ExprParsed::Var { sym } })
 }
@@ -338,3 +372,52 @@ Comma<T>: Vec<T> = {
 }
 
 Spanned<T>: Spanned<T> = <l:@L> <inner:T> <r:@R> => Meta { meta: (l, r - l), inner };
+
+AsmInstr: InstrParsed<'input> = {
+    "addq" <src:AsmArg> <dst:AsmArg> => InstrParsed::Addq { src, dst },
+    "subq" <src:AsmArg> <dst:AsmArg> => InstrParsed::Subq { src, dst },
+    "mulq" <src:AsmArg> => InstrParsed::Mulq { src },
+    "divq" <divisor:AsmArg> => InstrParsed::Divq { divisor },
+    "negq" <dst:AsmArg> => InstrParsed::Negq { dst },
+    "movq" <src:AsmArg> <dst:AsmArg> => InstrParsed::Movq { src, dst },
+    "pushq" <src:AsmArg> => InstrParsed::Pushq { src },
+    "popq" <dst:AsmArg> => InstrParsed::Popq { dst },
+    "retq" => InstrParsed::Retq,
+    "andq" <src:AsmArg> <dst:AsmArg> => InstrParsed::Andq { src, dst },
+    "orq" <src:AsmArg> <dst:AsmArg> => InstrParsed::Orq { src, dst },
+    "xorq" <src:AsmArg> <dst:AsmArg> => InstrParsed::Xorq { src, dst },
+    "notq" <dst:AsmArg> => InstrParsed::Notq { dst },
+    "cmpq" <src:AsmArg> <dst:AsmArg> => InstrParsed::Cmpq { src, dst },
+    "syscall" <arity:integer> => InstrParsed::Syscall { arity: arity.parse().expect("internal compiler error :(") },
+}
+
+AsmArg: VarArg<Spanned<&'input str>> = {
+    <reg:AsmReg> => VarArg::Reg { reg },
+    "{" <sym:Ident> "}" => VarArg::XVar { sym },
+    "$" <val:integer> => VarArg::Imm {
+        val: val.parse().expect("Internal compiler error (oh no!): We were too lazy to make a proper error for this"),
+    },
+    "[" <reg:AsmReg> "+" <off:integer> "]"  => VarArg::Deref {
+        reg,
+        off: off.parse().expect("Internal compiler error (oh no!): We were too lazy to make a proper error for this"),
+    },
+}
+
+AsmReg: Reg = {
+    "%RSP" => Reg::RSP,
+    "%RBP" => Reg::RBP,
+    "%RAX" => Reg::RAX,
+    "%RBX" => Reg::RBX,
+    "%RCX" => Reg::RCX,
+    "%RDX" => Reg::RDX,
+    "%RSI" => Reg::RSI,
+    "%RDI" => Reg::RDI,
+    "%R8" => Reg::R8 ,
+    "%R9" => Reg::R9 ,
+    "%R10" => Reg::R10,
+    "%R11" => Reg::R11,
+    "%R12" => Reg::R12,
+    "%R13" => Reg::R13,
+    "%R14" => Reg::R14,
+    "%R15" => Reg::R15,
+}

@@ -188,6 +188,7 @@ pub fn explicate_pred<'p>(
         | AExpr::Break { .. }
         | AExpr::Continue { .. }
         | AExpr::Return { .. }
-        | AExpr::Struct { .. } => unreachable!(),
+        | AExpr::Struct { .. }
+        | AExpr::Asm { .. } => unreachable!(),
     }
 }

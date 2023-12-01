@@ -2,7 +2,6 @@ use derive_more::Display;
 use itertools::Itertools;
 use std::fmt::Display;
 
-//TODO generic not needed
 #[derive(Debug, Clone, Display)]
 #[display(bound = "A: Display")]
 pub enum Type<A> {

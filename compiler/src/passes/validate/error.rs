@@ -85,11 +85,26 @@ pub enum TypeError {
         #[label = "The type definition `{sym}` is not sized."]
         span: (usize, usize),
     },
-    #[error("Integer out of bounds.")]
-    IntegerOutOfBounds {
-        #[label = "This number does not fit in type `{typ}`"]
+    #[error("Could not parse integer.")]
+    InvalidInteger {
+        #[label = "`{val}` is not a valid {typ}: {err}"]
         span: (usize, usize),
+        val: String,
         typ: &'static str,
+        err: String,
+    },
+    #[error("Could not parse integer.")]
+    InvalidByteLit {
+        #[label = "`{val}` is not a valid {typ}"]
+        span: (usize, usize),
+        val: String,
+        typ: &'static str,
+    },
+    #[error("Could not parse integer.")]
+    InvalidEscape {
+        #[label = "`{val}` is not an escape sequence (or has not been added to the compiler as an escape sequence!)"]
+        span: (usize, usize),
+        val: String,
     },
     #[error("Integer ambiguous.")]
     IntegerAmbiguous {

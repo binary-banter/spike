@@ -1,0 +1,15 @@
+fn main() {
+    let a: I64 = 4_2;
+    let b: I64 = b'*';
+    let c: I64 = 0x2A;
+    let d: I64 = 0x2a;
+    let e: I64 = 0x2_A;
+    let f: I64 = 0b101010;
+    let g: I64 = 0b101_010;
+    let h: I64 = 0b1_0_1_0_1_0; // please do not do this, we will find you and we will [redacted]
+    let i: I64 = 0o52;
+    let j: I64 = 0o5_2;
+    let k: I64 = b'\n';         // sadly this is not 42
+    let l = b'*'i64;
+    let m = 4_2i64;
+}

@@ -1,19 +1,25 @@
+mod display;
 pub mod explicate;
 mod explicate_assign;
 mod explicate_def;
 mod explicate_pred;
 mod explicate_tail;
-pub mod interpreter;
-#[cfg(test)]
-mod tests;
 
 use crate::passes::atomize::Atom;
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{BinaryOp, Param, TypeDef, Typed, UnaryOp};
 use crate::passes::select::std_lib::Std;
+use crate::passes::select::InstrSelected;
 use crate::utils::gen_sym::UniqueSym;
+use derive_more::Display;
+use itertools::Itertools;
 use std::collections::HashMap;
 
+#[derive(Display)]
+#[display(
+    fmt = "{}",
+    r#"blocks.iter().map(|(sym, tail)| format!("{sym}:\n{tail}")).format("\n")"#
+)]
 pub struct PrgExplicated<'p> {
     pub blocks: HashMap<UniqueSym<'p>, CTail<'p>>,
     pub fn_params: HashMap<UniqueSym<'p>, Vec<Param<UniqueSym<'p>>>>,
@@ -68,5 +74,8 @@ pub enum CExpr<'p> {
     AccessField {
         strct: Atom<'p>,
         field: &'p str,
+    },
+    Asm {
+        instrs: Vec<InstrSelected<'p>>,
     },
 }
