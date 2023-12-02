@@ -1,12 +1,11 @@
-use crate::passes::atomize::PrgAtomized;
-use crate::passes::explicate::explicate_def::explicate_def;
-use crate::passes::explicate::{CTail, PrgExplicated};
-use crate::passes::parse::Def;
+use crate::passes::atomize::{DefAtomized, PrgAtomized};
+use crate::passes::explicate::{TailExplicated, PrgExplicated, FunExplicated};
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
+use crate::passes::explicate::explicate_tail::explicate_tail;
 
 pub struct Env<'a, 'p> {
-    pub blocks: &'a mut HashMap<UniqueSym<'p>, CTail<'p>>,
+    pub blocks: &'a mut HashMap<UniqueSym<'p>, TailExplicated<'p>>,
     /// (block to jump to, variable to write to)
     pub break_target: Option<(UniqueSym<'p>, UniqueSym<'p>)>,
     /// block to jump to
@@ -16,35 +15,36 @@ pub struct Env<'a, 'p> {
 impl<'p> PrgAtomized<'p> {
     #[must_use]
     pub fn explicate(self) -> PrgExplicated<'p> {
-        let mut blocks = HashMap::new();
-        let mut env = Env {
-            blocks: &mut blocks,
-            break_target: None,
-            continue_target: None,
-        };
+        let mut fns = HashMap::new();
+        let mut defs = HashMap::new();
 
-        let mut fn_params = HashMap::new();
-
-        for (sym, def) in &self.defs {
+        for (entry, def) in self.defs {
             match def {
-                Def::Fn { params, .. } => {
-                    fn_params.insert(*sym, params.clone());
+                DefAtomized::Fn { sym, params, bdy, .. } => {
+                    let mut blocks = HashMap::new();
+                    let mut env = Env {
+                        blocks: &mut blocks,
+                        break_target: None,
+                        continue_target: None,
+                    };
+
+                    let tail = explicate_tail(bdy, &mut env);
+                    env.blocks.insert(sym, tail);
+
+                    fns.insert(sym, FunExplicated {
+                        params,
+                        blocks,
+                        entry,
+                    });
                 }
-                Def::TypeDef { .. } => {
-                    // todo?
+                DefAtomized::TypeDef { sym, def } => {
+                    defs.insert(sym, def);
                 }
             }
         }
 
-        let mut defs = HashMap::new();
-
-        for (_, def) in self.defs {
-            explicate_def(def, &mut env, &mut defs);
-        }
-
         PrgExplicated {
-            blocks,
-            fn_params,
+            fns,
             defs,
             entry: self.entry,
             std: self.std,

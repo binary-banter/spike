@@ -1,7 +1,7 @@
 use crate::passes::atomize::{AExpr, Atom};
 use crate::passes::explicate::explicate::Env;
 use crate::passes::explicate::explicate_assign::explicate_assign;
-use crate::passes::explicate::{CExpr, CTail};
+use crate::passes::explicate::{ExprExplicated, TailExplicated};
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{BinaryOp, Meta, UnaryOp};
 use crate::passes::validate::TLit;
@@ -9,11 +9,11 @@ use crate::utils::gen_sym::gen_sym;
 
 pub fn explicate_pred<'p>(
     cnd: AExpr<'p>,
-    thn: CTail<'p>,
-    els: CTail<'p>,
+    thn: TailExplicated<'p>,
+    els: TailExplicated<'p>,
     env: &mut Env<'_, 'p>,
-) -> CTail<'p> {
-    let mut create_block = |goto: CTail<'p>| {
+) -> TailExplicated<'p> {
+    let mut create_block = |goto: TailExplicated<'p>| {
         let sym = gen_sym("tmp");
         env.blocks.insert(sym, goto);
         sym
@@ -23,8 +23,8 @@ pub fn explicate_pred<'p>(
         AExpr::Atom {
             atm: Atom::Var { sym },
             ..
-        } => CTail::IfStmt {
-            cnd: CExpr::BinaryOp {
+        } => TailExplicated::IfStmt {
+            cnd: ExprExplicated::BinaryOp {
                 op: BinaryOp::EQ,
                 exprs: [
                     Atom::Var { sym },
@@ -73,8 +73,8 @@ pub fn explicate_pred<'p>(
             | BinaryOp::EQ
             | BinaryOp::LE
             | BinaryOp::LT
-            | BinaryOp::NE => CTail::IfStmt {
-                cnd: CExpr::BinaryOp { op, exprs },
+            | BinaryOp::NE => TailExplicated::IfStmt {
+                cnd: ExprExplicated::BinaryOp { op, exprs },
                 thn: create_block(thn),
                 els: create_block(els),
             },
@@ -102,14 +102,14 @@ pub fn explicate_pred<'p>(
                 cnd_sub.inner,
                 explicate_pred(
                     thn_sub.inner,
-                    CTail::Goto { lbl: thn },
-                    CTail::Goto { lbl: els },
+                    TailExplicated::Goto { lbl: thn },
+                    TailExplicated::Goto { lbl: els },
                     env,
                 ),
                 explicate_pred(
                     els_sub.inner,
-                    CTail::Goto { lbl: thn },
-                    CTail::Goto { lbl: els },
+                    TailExplicated::Goto { lbl: thn },
+                    TailExplicated::Goto { lbl: els },
                     env,
                 ),
                 env,

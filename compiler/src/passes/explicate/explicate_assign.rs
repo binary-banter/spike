@@ -1,6 +1,6 @@
 use crate::passes::atomize::{AExpr, Atom};
 use crate::passes::explicate::explicate::Env;
-use crate::passes::explicate::{explicate_pred, CExpr, CTail};
+use crate::passes::explicate::{explicate_pred, ExprExplicated, TailExplicated};
 
 use crate::passes::parse::{Meta, Typed};
 use crate::passes::validate::TLit;
@@ -9,53 +9,53 @@ use crate::utils::gen_sym::{gen_sym, UniqueSym};
 pub fn explicate_assign<'p>(
     sym: UniqueSym<'p>,
     bnd: Typed<'p, AExpr<'p>>,
-    tail: CTail<'p>,
+    tail: TailExplicated<'p>,
     env: &mut Env<'_, 'p>,
-) -> CTail<'p> {
-    let mut create_block = |goto: CTail<'p>| {
+) -> TailExplicated<'p> {
+    let mut create_block = |goto: TailExplicated<'p>| {
         let sym = gen_sym("tmp");
         env.blocks.insert(sym, goto);
         sym
     };
 
     match bnd.inner {
-        AExpr::Apply { fun, args } => CTail::Seq {
+        AExpr::Apply { fun, args } => TailExplicated::Seq {
             sym,
             bnd: Meta {
                 meta: bnd.meta,
-                inner: CExpr::Apply { fun, args },
+                inner: ExprExplicated::Apply { fun, args },
             },
             tail: Box::new(tail),
         },
-        AExpr::FunRef { sym: sym_fn } => CTail::Seq {
+        AExpr::FunRef { sym: sym_fn } => TailExplicated::Seq {
             sym,
             bnd: Meta {
                 meta: bnd.meta,
-                inner: CExpr::FunRef { sym: sym_fn },
+                inner: ExprExplicated::FunRef { sym: sym_fn },
             },
             tail: Box::new(tail),
         },
-        AExpr::Atom { atm } => CTail::Seq {
+        AExpr::Atom { atm } => TailExplicated::Seq {
             sym,
             bnd: Meta {
                 meta: bnd.meta,
-                inner: CExpr::Atom { atm },
+                inner: ExprExplicated::Atom { atm },
             },
             tail: Box::new(tail),
         },
-        AExpr::BinaryOp { op, exprs } => CTail::Seq {
+        AExpr::BinaryOp { op, exprs } => TailExplicated::Seq {
             sym,
             bnd: Meta {
                 meta: bnd.meta,
-                inner: CExpr::BinaryOp { op, exprs },
+                inner: ExprExplicated::BinaryOp { op, exprs },
             },
             tail: Box::new(tail),
         },
-        AExpr::UnaryOp { op, expr } => CTail::Seq {
+        AExpr::UnaryOp { op, expr } => TailExplicated::Seq {
             sym,
             bnd: Meta {
                 meta: bnd.meta,
-                inner: CExpr::UnaryOp { op, expr },
+                inner: ExprExplicated::UnaryOp { op, expr },
             },
             tail: Box::new(tail),
         },
@@ -69,8 +69,8 @@ pub fn explicate_assign<'p>(
             let tb = create_block(tail);
             explicate_pred::explicate_pred(
                 cnd.inner,
-                explicate_assign(sym, *thn, CTail::Goto { lbl: tb }, env),
-                explicate_assign(sym, *els, CTail::Goto { lbl: tb }, env),
+                explicate_assign(sym, *thn, TailExplicated::Goto { lbl: tb }, env),
+                explicate_assign(sym, *els, TailExplicated::Goto { lbl: tb }, env),
                 env,
             )
         }
@@ -86,19 +86,19 @@ pub fn explicate_assign<'p>(
             let loop_block = explicate_assign(
                 gen_sym("ignore"),
                 *bdy,
-                CTail::Goto {
+                TailExplicated::Goto {
                     lbl: loop_block_sym,
                 },
                 &mut env,
             );
             env.blocks.insert(loop_block_sym, loop_block);
-            CTail::Goto {
+            TailExplicated::Goto {
                 lbl: loop_block_sym,
             }
         }
         AExpr::Break { bdy, .. } => {
             let (break_sym, break_var) = env.break_target.unwrap();
-            let break_goto = CTail::Goto { lbl: break_sym };
+            let break_goto = TailExplicated::Goto { lbl: break_sym };
             explicate_assign(break_var, *bdy, break_goto, env)
         }
         AExpr::Seq { stmt, cnt, .. } => explicate_assign(
@@ -127,12 +127,12 @@ pub fn explicate_assign<'p>(
             ),
             env,
         ),
-        AExpr::Continue { .. } => CTail::Goto {
+        AExpr::Continue { .. } => TailExplicated::Goto {
             lbl: env.continue_target.unwrap(),
         },
         AExpr::Return { bdy, .. } => {
             let tmp = gen_sym("return");
-            let tail = CTail::Return {
+            let tail = TailExplicated::Return {
                 expr: Meta {
                     meta: bnd.meta,
                     inner: Atom::Var { sym: tmp },
@@ -140,27 +140,27 @@ pub fn explicate_assign<'p>(
             };
             explicate_assign(tmp, *bdy, tail, env)
         }
-        AExpr::Struct { sym: sym_, fields } => CTail::Seq {
+        AExpr::Struct { sym: sym_, fields } => TailExplicated::Seq {
             sym,
             bnd: Meta {
                 meta: bnd.meta,
-                inner: CExpr::Struct { sym: sym_, fields },
+                inner: ExprExplicated::Struct { sym: sym_, fields },
             },
             tail: Box::new(tail),
         },
-        AExpr::AccessField { strct, field } => CTail::Seq {
+        AExpr::AccessField { strct, field } => TailExplicated::Seq {
             sym,
             bnd: Meta {
                 meta: bnd.meta,
-                inner: CExpr::AccessField { strct, field },
+                inner: ExprExplicated::AccessField { strct, field },
             },
             tail: Box::new(tail),
         },
-        AExpr::Asm { instrs } => CTail::Seq {
+        AExpr::Asm { instrs } => TailExplicated::Seq {
             sym,
             bnd: Meta {
                 meta: bnd.meta,
-                inner: CExpr::Asm { instrs },
+                inner: ExprExplicated::Asm { instrs },
             },
             tail: Box::new(tail),
         },

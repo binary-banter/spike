@@ -1,7 +1,6 @@
 mod display;
 pub mod explicate;
 mod explicate_assign;
-mod explicate_def;
 mod explicate_pred;
 mod explicate_tail;
 
@@ -18,27 +17,34 @@ use std::collections::HashMap;
 #[derive(Display)]
 #[display(
     fmt = "{}",
-    r#"blocks.iter().map(|(sym, tail)| format!("{sym}:\n{tail}")).format("\n")"#
+    r#"fns.iter().map(|(sym, fun)| format!("{sym}:\n{fun}")).format("\n")"#
 )]
 pub struct PrgExplicated<'p> {
-    pub blocks: HashMap<UniqueSym<'p>, CTail<'p>>,
-    pub fn_params: HashMap<UniqueSym<'p>, Vec<Param<UniqueSym<'p>>>>,
+    pub fns: HashMap<UniqueSym<'p>, FunExplicated<'p>>,
     pub defs: HashMap<UniqueSym<'p>, TypeDef<UniqueSym<'p>, &'p str>>,
     pub entry: UniqueSym<'p>,
     pub std: Std<'p>,
 }
 
-pub enum CTail<'p> {
+#[derive(Display)]
+#[display(fmt = "")]
+pub struct FunExplicated<'p> {
+    pub params: Vec<Param<UniqueSym<'p>>>,
+    pub blocks: HashMap<UniqueSym<'p>, TailExplicated<'p>>,
+    pub entry: UniqueSym<'p>,
+}
+
+pub enum TailExplicated<'p> {
     Return {
         expr: Typed<'p, Atom<'p>>,
     },
     Seq {
         sym: UniqueSym<'p>,
-        bnd: Typed<'p, CExpr<'p>>,
-        tail: Box<CTail<'p>>,
+        bnd: Typed<'p, ExprExplicated<'p>>,
+        tail: Box<TailExplicated<'p>>,
     },
     IfStmt {
-        cnd: CExpr<'p>,
+        cnd: ExprExplicated<'p>,
         thn: UniqueSym<'p>,
         els: UniqueSym<'p>,
     },
@@ -47,7 +53,7 @@ pub enum CTail<'p> {
     },
 }
 
-pub enum CExpr<'p> {
+pub enum ExprExplicated<'p> {
     Atom {
         atm: Atom<'p>,
     },

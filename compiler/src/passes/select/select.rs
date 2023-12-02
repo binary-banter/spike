@@ -1,7 +1,7 @@
 use crate::passes::atomize::Atom;
-use crate::passes::eliminate::{EExpr, ETail, PrgEliminated};
+use crate::passes::eliminate::{ExprEliminated, TailEliminated, PrgEliminated, FunEliminated};
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{BinaryOp, Meta, Param, UnaryOp};
+use crate::passes::parse::{BinaryOp, Meta, UnaryOp};
 use crate::passes::select::std_lib::add_std_library;
 use crate::passes::select::{
     Block, Cnd, InstrSelected, VarArg, X86Selected, CALLEE_SAVED_NO_STACK, CALLER_SAVED,
@@ -14,55 +14,54 @@ impl<'p> PrgEliminated<'p> {
     #[must_use]
     pub fn select(self) -> X86Selected<'p> {
         let mut blocks = HashMap::new();
-
-        blocks.extend(
-            self.blocks
-                .into_iter()
-                .map(|(sym, block)| (sym, select_block(sym, block, &self.fn_params))),
-        );
+        for (_, fun) in self.fns {
+            select_fun(fun, &mut blocks);
+        }
 
         add_std_library(&self.std, &mut blocks);
 
         X86Selected {
             blocks,
             entry: self.entry,
-            // todo: technically we only need this for testing
             std: self.std,
         }
     }
 }
 
-fn select_block<'p>(
-    sym: UniqueSym<'p>,
-    tail: ETail<'p>,
-    fn_params: &HashMap<UniqueSym<'p>, Vec<Param<UniqueSym<'p>>>>,
-) -> Block<'p, VarArg<UniqueSym<'p>>> {
-    let mut instrs = Vec::new();
+fn select_fun<'p>(
+    fun: FunEliminated<'p>,
+    blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg<UniqueSym<'p>>>>,
+) {
+    for (block_sym, block) in fun.blocks {
+        let mut instrs = Vec::new();
 
-    if let Some(params) = fn_params.get(&sym) {
-        instrs.push(pushq!(reg!(RBP)));
-        instrs.push(movq!(reg!(RSP), reg!(RBP)));
-        for reg in CALLEE_SAVED_NO_STACK {
-            instrs.push(pushq!(VarArg::Reg { reg }));
+        if block_sym == fun.entry {
+            instrs.push(pushq!(reg!(RBP)));
+            instrs.push(movq!(reg!(RSP), reg!(RBP)));
+
+            // TODO this is too much (sometimes)
+            for reg in CALLEE_SAVED_NO_STACK {
+                instrs.push(pushq!(VarArg::Reg { reg }));
+            }
+
+            for (reg, param) in CALLER_SAVED.into_iter().zip(fun.params.iter()) {
+                instrs.push(movq!(VarArg::Reg { reg }, VarArg::XVar { sym: param.sym }));
+            }
+            assert!(
+                fun.params.len() <= 9,
+                "Argument passing to stack is not yet implemented."
+            );
         }
 
-        for (reg, param) in CALLER_SAVED.into_iter().zip(params.iter()) {
-            instrs.push(movq!(VarArg::Reg { reg }, VarArg::XVar { sym: param.sym }));
-        }
-        assert!(
-            params.len() <= 9,
-            "Argument passing to stack is not yet implemented."
-        );
+        select_tail(block, &mut instrs);
+
+        blocks.insert(block_sym, Block { instrs });
     }
-
-    select_tail(tail, &mut instrs);
-
-    Block { instrs }
 }
 
-fn select_tail<'p>(tail: ETail<'p>, instrs: &mut Vec<InstrSelected<'p>>) {
+fn select_tail<'p>(tail: TailEliminated<'p>, instrs: &mut Vec<InstrSelected<'p>>) {
     match tail {
-        ETail::Return { exprs } => {
+        TailEliminated::Return { exprs } => {
             assert!(
                 exprs.len() <= 9,
                 "Argument passing to stack is not yet implemented."
@@ -79,7 +78,7 @@ fn select_tail<'p>(tail: ETail<'p>, instrs: &mut Vec<InstrSelected<'p>>) {
 
             instrs.push(retq!());
         }
-        ETail::Seq {
+        TailEliminated::Seq {
             syms: sym,
             bnd,
             tail,
@@ -87,8 +86,8 @@ fn select_tail<'p>(tail: ETail<'p>, instrs: &mut Vec<InstrSelected<'p>>) {
             instrs.extend(select_assign(&sym, bnd));
             select_tail(*tail, instrs);
         }
-        ETail::IfStmt { cnd, thn, els } => match cnd {
-            EExpr::BinaryOp {
+        TailEliminated::IfStmt { cnd, thn, els } => match cnd {
+            ExprEliminated::BinaryOp {
                 op,
                 exprs: [expr_lhs, expr_rhs],
                 ..
@@ -103,7 +102,7 @@ fn select_tail<'p>(tail: ETail<'p>, instrs: &mut Vec<InstrSelected<'p>>) {
             }
             _ => unreachable!(),
         },
-        ETail::Goto { lbl } => {
+        TailEliminated::Goto { lbl } => {
             instrs.push(jmp!(lbl));
         }
     }
@@ -111,19 +110,19 @@ fn select_tail<'p>(tail: ETail<'p>, instrs: &mut Vec<InstrSelected<'p>>) {
 
 fn select_assign<'p>(
     dsts: &[UniqueSym<'p>],
-    expr: Meta<Vec<Type<UniqueSym<'p>>>, EExpr<'p>>,
+    expr: Meta<Vec<Type<UniqueSym<'p>>>, ExprEliminated<'p>>,
 ) -> Vec<InstrSelected<'p>> {
     let dst = var!(dsts[0]);
     match expr.inner {
-        EExpr::Atom {
+        ExprEliminated::Atom {
             atm: Atom::Val { val },
             ..
         } => vec![movq!(imm!(val), dst)],
-        EExpr::Atom {
+        ExprEliminated::Atom {
             atm: Atom::Var { sym },
             ..
         } => vec![movq!(var!(sym), dst)],
-        EExpr::BinaryOp {
+        ExprEliminated::BinaryOp {
             op,
             exprs: [a0, a1],
         } => match op {
@@ -183,12 +182,12 @@ fn select_assign<'p>(
                 ]
             }
         },
-        EExpr::UnaryOp { op, expr: a0 } => match op {
+        ExprEliminated::UnaryOp { op, expr: a0 } => match op {
             UnaryOp::Neg => vec![movq!(select_atom(a0), dst.clone()), negq!(dst)],
             UnaryOp::Not => vec![movq!(select_atom(a0), dst.clone()), xorq!(imm!(1), dst)],
         },
-        EExpr::FunRef { sym, .. } => vec![load_lbl!(sym, dst)],
-        EExpr::Apply { fun, args, .. } => {
+        ExprEliminated::FunRef { sym, .. } => vec![load_lbl!(sym, dst)],
+        ExprEliminated::Apply { fun, args, .. } => {
             let mut instrs = vec![];
 
             for (arg, reg) in args.iter().zip(CALLER_SAVED.into_iter()) {
@@ -207,7 +206,7 @@ fn select_assign<'p>(
 
             instrs
         }
-        EExpr::Asm { instrs } => instrs,
+        ExprEliminated::Asm { instrs } => instrs,
     }
 }
 

@@ -5,28 +5,20 @@ use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
 
 pub fn eliminate_params<'p>(
-    fn_params: HashMap<UniqueSym<'p>, Vec<Param<UniqueSym<'p>>>>,
+    params: Vec<Param<UniqueSym<'p>>>,
     ctx: &mut Ctx<'p>,
     defs: &HashMap<UniqueSym<'p>, TypeDef<UniqueSym<'p>, &'p str>>,
-) -> HashMap<UniqueSym<'p>, Vec<Param<UniqueSym<'p>>>> {
-    fn_params
+) -> Vec<Param<UniqueSym<'p>>> {
+    params
         .into_iter()
-        .map(|(sym, params)| {
-            (
-                sym,
-                params
-                    .into_iter()
-                    .flat_map(|param| {
-                        flatten_type(param.sym, &param.typ, ctx, defs)
-                            .into_iter()
-                            .map(move |(sym, typ)| Param {
-                                sym,
-                                typ,
-                                mutable: param.mutable,
-                            })
-                    })
-                    .collect(),
-            )
+        .flat_map(|param| {
+            flatten_type(param.sym, &param.typ, ctx, defs)
+                .into_iter()
+                .map(move |(sym, typ)| Param {
+                    sym,
+                    typ,
+                    mutable: param.mutable,
+                })
         })
         .collect()
 }

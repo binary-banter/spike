@@ -2,8 +2,8 @@ use crate::passes::atomize::Atom;
 use crate::passes::eliminate::eliminate::Ctx;
 use crate::passes::eliminate::eliminate_expr::eliminate_expr;
 use crate::passes::eliminate::eliminate_params::flatten_type;
-use crate::passes::eliminate::{EExpr, ETail};
-use crate::passes::explicate::CExpr;
+use crate::passes::eliminate::{ExprEliminated, TailEliminated};
+use crate::passes::explicate::ExprExplicated;
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Meta, TypeDef, Typed};
 use crate::utils::gen_sym::UniqueSym;
@@ -12,15 +12,15 @@ use std::collections::HashMap;
 pub fn eliminate_seq<'p>(
     sym: UniqueSym<'p>,
     ctx: &mut Ctx<'p>,
-    bnd: Typed<'p, CExpr<'p>>,
-    tail: ETail<'p>,
+    bnd: Typed<'p, ExprExplicated<'p>>,
+    tail: TailEliminated<'p>,
     defs: &HashMap<UniqueSym<'p>, TypeDef<UniqueSym<'p>, &'p str>>,
-) -> ETail<'p> {
+) -> TailEliminated<'p> {
     let typ = bnd.meta;
 
     // Changes based on RHS
     let bnd = match bnd.inner {
-        CExpr::AccessField { strct, field } => {
+        ExprExplicated::AccessField { strct, field } => {
             let strct = strct.var();
             let new_sym = *ctx.entry((strct, field)).or_insert_with(|| sym.fresh());
 
@@ -29,7 +29,7 @@ pub fn eliminate_seq<'p>(
                 ctx,
                 Meta {
                     meta: typ,
-                    inner: CExpr::Atom {
+                    inner: ExprExplicated::Atom {
                         atm: Atom::Var { sym: new_sym },
                     },
                 },
@@ -37,7 +37,7 @@ pub fn eliminate_seq<'p>(
                 defs,
             );
         }
-        CExpr::Apply { fun, args } => {
+        ExprExplicated::Apply { fun, args } => {
             // Flatten the arguments. This is trivial for `Val` atoms, but for `Var` atoms `flatten_type` is used.
             let args = args
                 .into_iter()
@@ -50,7 +50,7 @@ pub fn eliminate_seq<'p>(
                 })
                 .collect();
 
-            CExpr::Apply { fun, args }
+            ExprExplicated::Apply { fun, args }
         }
         inner => inner,
     };
@@ -59,7 +59,7 @@ pub fn eliminate_seq<'p>(
     match typ {
         // No changes needed
         Type::I64 | Type::U64 | Type::Bool | Type::Unit | Type::Never | Type::Fn { .. } => {
-            ETail::Seq {
+            TailEliminated::Seq {
                 syms: vec![sym],
                 bnd: Meta {
                     meta: vec![typ],
@@ -71,7 +71,7 @@ pub fn eliminate_seq<'p>(
         Type::Var { sym: def_sym } => match &defs[&def_sym] {
             // Changes needed, since LHS is a struct
             TypeDef::Struct { fields: def_fields } => match bnd {
-                CExpr::Atom { atm, .. } => {
+                ExprExplicated::Atom { atm, .. } => {
                     def_fields.iter().fold(tail, |tail, (field, field_type)| {
                         let sym_lhs = *ctx.entry((sym, field)).or_insert_with(|| sym.fresh());
                         let sym_rhs = *ctx
@@ -83,7 +83,7 @@ pub fn eliminate_seq<'p>(
                             ctx,
                             Meta {
                                 meta: field_type.clone(),
-                                inner: CExpr::Atom {
+                                inner: ExprExplicated::Atom {
                                     atm: Atom::Var { sym: sym_rhs },
                                 },
                             },
@@ -92,7 +92,7 @@ pub fn eliminate_seq<'p>(
                         )
                     })
                 }
-                CExpr::Struct { fields, .. } => {
+                ExprExplicated::Struct { fields, .. } => {
                     let field_values = fields.into_iter().collect::<HashMap<_, _>>();
 
                     def_fields.iter().fold(tail, |tail, (field, field_type)| {
@@ -104,22 +104,22 @@ pub fn eliminate_seq<'p>(
                             ctx,
                             Meta {
                                 meta: field_type.clone(),
-                                inner: CExpr::Atom { atm: atom_rhs },
+                                inner: ExprExplicated::Atom { atm: atom_rhs },
                             },
                             tail,
                             defs,
                         )
                     })
                 }
-                CExpr::Apply { fun, args } => {
+                ExprExplicated::Apply { fun, args } => {
                     let (syms, typs): (Vec<_>, Vec<_>) =
                         flatten_type(sym, &typ, ctx, defs).into_iter().unzip();
 
-                    ETail::Seq {
+                    TailEliminated::Seq {
                         syms,
                         bnd: Meta {
                             meta: typs,
-                            inner: EExpr::Apply {
+                            inner: ExprEliminated::Apply {
                                 fun,
                                 args: args.into_iter().map(|(atm, _)| atm).collect(),
                             },
@@ -127,11 +127,11 @@ pub fn eliminate_seq<'p>(
                         tail: Box::new(tail),
                     }
                 }
-                CExpr::BinaryOp { .. }
-                | CExpr::UnaryOp { .. }
-                | CExpr::FunRef { .. }
-                | CExpr::AccessField { .. }
-                | CExpr::Asm { .. } => {
+                ExprExplicated::BinaryOp { .. }
+                | ExprExplicated::UnaryOp { .. }
+                | ExprExplicated::FunRef { .. }
+                | ExprExplicated::AccessField { .. }
+                | ExprExplicated::Asm { .. } => {
                     unreachable!()
                 }
             },

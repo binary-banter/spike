@@ -13,24 +13,29 @@ use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
 
 pub struct PrgEliminated<'p> {
-    pub blocks: HashMap<UniqueSym<'p>, ETail<'p>>,
-    pub fn_params: HashMap<UniqueSym<'p>, Vec<Param<UniqueSym<'p>>>>,
+    pub fns: HashMap<UniqueSym<'p>, FunEliminated<'p>>,
     pub defs: HashMap<UniqueSym<'p>, TypeDef<UniqueSym<'p>, &'p str>>,
     pub entry: UniqueSym<'p>,
     pub std: Std<'p>,
 }
 
-pub enum ETail<'p> {
+pub struct FunEliminated<'p> {
+    pub params: Vec<Param<UniqueSym<'p>>>,
+    pub blocks: HashMap<UniqueSym<'p>, TailEliminated<'p>>,
+    pub entry: UniqueSym<'p>,
+}
+
+pub enum TailEliminated<'p> {
     Return {
         exprs: Vec<Atom<'p>>,
     },
     Seq {
         syms: Vec<UniqueSym<'p>>,
-        bnd: Meta<Vec<Type<UniqueSym<'p>>>, EExpr<'p>>,
-        tail: Box<ETail<'p>>,
+        bnd: Meta<Vec<Type<UniqueSym<'p>>>, ExprEliminated<'p>>,
+        tail: Box<TailEliminated<'p>>,
     },
     IfStmt {
-        cnd: EExpr<'p>,
+        cnd: ExprEliminated<'p>,
         thn: UniqueSym<'p>,
         els: UniqueSym<'p>,
     },
@@ -39,7 +44,7 @@ pub enum ETail<'p> {
     },
 }
 
-pub enum EExpr<'p> {
+pub enum ExprEliminated<'p> {
     Atom { atm: Atom<'p> },
     BinaryOp { op: BinaryOp, exprs: [Atom<'p>; 2] },
     UnaryOp { op: UnaryOp, expr: Atom<'p> },
