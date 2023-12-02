@@ -10,20 +10,25 @@ pub type Ctx<'p> = HashMap<(UniqueSym<'p>, &'p str), UniqueSym<'p>>;
 
 impl<'p> PrgExplicated<'p> {
     pub fn eliminate(self) -> PrgEliminated<'p> {
-        let fns = self.fns.into_iter().map(|(sym, fun)| {
-            let mut ctx = Ctx::new();
+        let fns = self
+            .fns
+            .into_iter()
+            .map(|(sym, fun)| {
+                let mut ctx = Ctx::new();
 
-            let fun = FunEliminated {
-                params: eliminate_params(fun.params, &mut ctx, &self.defs),
-                blocks: fun.blocks
-                    .into_iter()
-                    .map(|(sym, tail)| (sym, eliminate_tail(tail, &mut ctx, &self.defs)))
-                    .collect(),
-                entry: fun.entry,
-            };
+                let fun = FunEliminated {
+                    params: eliminate_params(fun.params, &mut ctx, &self.defs),
+                    blocks: fun
+                        .blocks
+                        .into_iter()
+                        .map(|(sym, tail)| (sym, eliminate_tail(tail, &mut ctx, &self.defs)))
+                        .collect(),
+                    entry: fun.entry,
+                };
 
-            (sym, fun)
-        }).collect();
+                (sym, fun)
+            })
+            .collect();
 
         PrgEliminated {
             fns,

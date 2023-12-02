@@ -26,7 +26,7 @@ impl<'p> PrgParsed<'p> {
         let mut scope = PushMap::from_iter(
             self.defs
                 .iter()
-                .map(|def| (def.sym().inner, gen_sym(def.sym().inner)))
+                .map(|def| (def.sym().inner, gen_sym(def.sym().inner))),
         );
 
         let entry = *scope.get(&"main").ok_or(NoMain)?;

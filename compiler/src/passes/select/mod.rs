@@ -1,9 +1,9 @@
+mod display;
 pub mod interpreter;
 pub mod macros;
 pub mod select;
 #[cfg(test)]
 mod tests;
-mod display;
 
 use crate::utils::gen_sym::UniqueSym;
 use derive_more::Display;
@@ -55,9 +55,9 @@ pub enum Cnd {
 
 #[derive(Debug, Clone, PartialEq, Display, Functor)]
 pub enum Instr<Arg: Display, IdentVars: Display> {
-    #[display(fmt = "addq\t{src}\t{dst}")]
+    #[display(fmt = "addq\t{src} {dst}")]
     Addq { src: Arg, dst: Arg },
-    #[display(fmt = "subq\t{src}\t{dst}")]
+    #[display(fmt = "subq\t{src} {dst}")]
     Subq { src: Arg, dst: Arg },
     #[display(fmt = "divq\t{divisor}")]
     Divq { divisor: Arg },
@@ -65,7 +65,7 @@ pub enum Instr<Arg: Display, IdentVars: Display> {
     Mulq { src: Arg },
     #[display(fmt = "negq\t{dst}")]
     Negq { dst: Arg },
-    #[display(fmt = "movq\t{src}\t{dst}")]
+    #[display(fmt = "movq\t{src} {dst}")]
     Movq { src: Arg, dst: Arg },
     #[display(fmt = "pushq\t{src}")]
     Pushq { src: Arg },
@@ -75,27 +75,27 @@ pub enum Instr<Arg: Display, IdentVars: Display> {
     Retq,
     #[display(fmt = "syscall\t{arity}")]
     Syscall { arity: usize },
-    #[display(fmt = "cmpq\t{src}\t{dst}")]
+    #[display(fmt = "cmpq\t{src} {dst}")]
     Cmpq { src: Arg, dst: Arg },
     #[display(fmt = "jmp\t{lbl}")]
     Jmp { lbl: IdentVars },
-    #[display(fmt = "jcc\t{cnd}\t{lbl}")]
+    #[display(fmt = "jcc\t{cnd} {lbl}")]
     Jcc { lbl: IdentVars, cnd: Cnd },
-    #[display(fmt = "andq {src}\t{dst}")]
+    #[display(fmt = "andq {src} {dst}")]
     Andq { src: Arg, dst: Arg },
-    #[display(fmt = "orq {src}\t{dst}")]
+    #[display(fmt = "orq {src} {dst}")]
     Orq { src: Arg, dst: Arg },
-    #[display(fmt = "xorq\t{src}\t{dst}")]
+    #[display(fmt = "xorq\t{src} {dst}")]
     Xorq { src: Arg, dst: Arg },
     #[display(fmt = "notq\t{dst}")]
     Notq { dst: Arg },
     #[display(fmt = "setcc\t{cnd}")]
     Setcc { cnd: Cnd }, //TODO allow setting other byteregs
-    #[display(fmt = "loadlbl\t{sym}\t{dst}")]
+    #[display(fmt = "loadlbl\t{sym} {dst}")]
     LoadLbl { sym: IdentVars, dst: Arg },
-    #[display(fmt = "call_direct\t{lbl}\t{arity}")]
+    #[display(fmt = "call_direct\t{lbl} {arity}")]
     CallqDirect { lbl: IdentVars, arity: usize },
-    #[display(fmt = "call_indirect\t{src}\t{arity}")]
+    #[display(fmt = "call_indirect\t{src} {arity}")]
     CallqIndirect { src: Arg, arity: usize },
 }
 

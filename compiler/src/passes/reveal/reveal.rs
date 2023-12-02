@@ -7,8 +7,7 @@ use crate::utils::push_map::PushMap;
 impl<'p> PrgValidated<'p> {
     #[must_use]
     pub fn reveal(self) -> PrgRevealed<'p> {
-        let mut scope =
-            PushMap::from_iter(self.defs.keys().map(|s| (*s, ())));
+        let mut scope = PushMap::from_iter(self.defs.keys().map(|s| (*s, ())));
 
         PrgRevealed {
             defs: self

@@ -1,8 +1,11 @@
 use crate::passes::atomize::Atom;
-use crate::passes::eliminate::{ExprEliminated, TailEliminated, PrgEliminated, FunEliminated};
+use crate::passes::eliminate::{ExprEliminated, FunEliminated, PrgEliminated, TailEliminated};
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{BinaryOp, Meta, UnaryOp};
-use crate::passes::select::{Block, Cnd, InstrSelected, VarArg, X86Selected, CALLEE_SAVED_NO_STACK, CALLER_SAVED, FunSelected};
+use crate::passes::select::{
+    Block, Cnd, FunSelected, InstrSelected, VarArg, X86Selected, CALLEE_SAVED_NO_STACK,
+    CALLER_SAVED,
+};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use crate::*;
 use std::collections::HashMap;
@@ -10,7 +13,11 @@ use std::collections::HashMap;
 impl<'p> PrgEliminated<'p> {
     #[must_use]
     pub fn select(self) -> X86Selected<'p> {
-        let fns = self.fns.into_iter().map(|(sym, fun)| (sym, select_fun(fun))).collect();
+        let fns = self
+            .fns
+            .into_iter()
+            .map(|(sym, fun)| (sym, select_fun(fun)))
+            .collect();
 
         X86Selected {
             fns,
@@ -19,50 +26,84 @@ impl<'p> PrgEliminated<'p> {
     }
 }
 
-fn select_fun<'p>(
-    fun: FunEliminated<'p>,
-) -> FunSelected<'p> {
-    // let mut blocks = HashMap::new();
-    //
-    // // Collapse all exits from the function into one exit.
-    // let exit = gen_sym(fun.entry.sym);
-    // let mut exit_instrs = Vec::new();
-    // for reg in CALLEE_SAVED_NO_STACK.into_iter().rev() {
-    //     exit_instrs.push(popq!(VarArg::Reg { reg }));
-    // }
-    // exit_instrs.push(popq!(reg!(RBP)));
-    // exit_instrs.push(retq!());
-    // blocks.insert(exit, Block{ instrs: exit_instrs });
-    //
-    // for (block_sym, block) in fun.blocks {
-    //     let mut instrs = Vec::new();
-    //
-    //     if block_sym == fun.entry {
-    //         instrs.push(pushq!(reg!(RBP)));
-    //         instrs.push(movq!(reg!(RSP), reg!(RBP)));
-    //
-    //         // TODO this is too much (sometimes)
-    //         for reg in CALLEE_SAVED_NO_STACK {
-    //             instrs.push(pushq!(VarArg::Reg { reg }));
-    //         }
-    //
-    //         for (reg, param) in CALLER_SAVED.into_iter().zip(fun.params.iter()) {
-    //             instrs.push(movq!(VarArg::Reg { reg }, VarArg::XVar { sym: param.sym }));
-    //         }
-    //         assert!(
-    //             fun.params.len() <= 9,
-    //             "Argument passing to stack is not yet implemented."
-    //         );
-    //     }
-    //
-    //     select_tail(block, &mut instrs, exit);
-    //
-    //     blocks.insert(block_sym, Block { instrs });
-    // }
-    todo!()
+fn select_fun(fun: FunEliminated) -> FunSelected {
+    let mut blocks = HashMap::new();
+
+    // Function entry & exit
+    let entry = entry_block(&fun, &mut blocks);
+    let exit = exit_block(&mut blocks);
+
+    for (block_sym, block) in fun.blocks {
+        let mut instrs = Vec::new();
+        select_tail(block, &mut instrs, exit);
+        blocks.insert(block_sym, Block { instrs });
+    }
+
+    FunSelected {
+        blocks,
+        entry,
+        exit,
+    }
 }
 
-fn select_tail<'p>(tail: TailEliminated<'p>, instrs: &mut Vec<InstrSelected<'p>>, exit: UniqueSym<'p>) {
+/// Creates an entry block for the function.
+fn entry_block<'p>(
+    fun: &FunEliminated<'p>,
+    blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg<UniqueSym<'p>>>>,
+) -> UniqueSym<'p> {
+    let sym = gen_sym("entry");
+    let mut instrs = Vec::new();
+
+    // Save stack pointers.
+    instrs.push(pushq!(reg!(RBP)));
+    instrs.push(movq!(reg!(RSP), reg!(RBP)));
+
+    // Save callee-saved registers (excluding stack pointers).
+    for reg in CALLEE_SAVED_NO_STACK {
+        instrs.push(pushq!(VarArg::Reg { reg }));
+    }
+
+    // Move parameters into local variables.
+    for (reg, param) in CALLER_SAVED.into_iter().zip(fun.params.iter()) {
+        instrs.push(movq!(VarArg::Reg { reg }, VarArg::XVar { sym: param.sym }));
+    }
+
+    assert!(
+        fun.params.len() <= 9,
+        "Argument passing to stack is not yet implemented."
+    );
+
+    // Jump to core of the function - this was previously called "entry".
+    instrs.push(jmp!(fun.entry));
+    blocks.insert(sym, Block { instrs });
+    sym
+}
+
+/// Creates an exit block for the function.
+fn exit_block<'p>(
+    blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg<UniqueSym<'p>>>>,
+) -> UniqueSym<'p> {
+    let sym = gen_sym("exit");
+    let mut instrs = Vec::new();
+
+    // Restore callee-saved registers (excluding stack pointers).
+    for reg in CALLEE_SAVED_NO_STACK.into_iter().rev() {
+        instrs.push(popq!(VarArg::Reg { reg }));
+    }
+
+    // Restore stack pointers.
+    instrs.push(popq!(reg!(RBP)));
+    instrs.push(retq!());
+
+    blocks.insert(sym, Block { instrs });
+    sym
+}
+
+fn select_tail<'p>(
+    tail: TailEliminated<'p>,
+    instrs: &mut Vec<InstrSelected<'p>>,
+    exit: UniqueSym<'p>,
+) {
     match tail {
         TailEliminated::Return { exprs } => {
             assert!(
