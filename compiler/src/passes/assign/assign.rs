@@ -20,7 +20,6 @@ impl<'p> X86Selected<'p> {
             blocks,
             entry: program.entry,
             stack_space,
-            std: program.std,
         }
     }
 }

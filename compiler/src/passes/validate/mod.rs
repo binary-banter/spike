@@ -10,7 +10,6 @@ pub mod validate;
 
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Constrained, Def, Expr, Lit, Span, Spanned, Typed};
-use crate::passes::select::std_lib::Std;
 use crate::passes::select::{Instr, VarArg};
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};
@@ -25,14 +24,12 @@ use std::str::FromStr;
 pub struct PrgValidated<'p> {
     pub defs: HashMap<UniqueSym<'p>, DefValidated<'p>>,
     pub entry: UniqueSym<'p>,
-    pub std: Std<'p>,
 }
 
 pub struct PrgConstrained<'p> {
     pub defs: HashMap<UniqueSym<'p>, DefConstrained<'p>>,
     pub entry: UniqueSym<'p>,
     pub uf: UnionFind<PartialType<'p>>,
-    pub std: Std<'p>,
 }
 
 pub type DefValidated<'p> = Def<UniqueSym<'p>, &'p str, Typed<'p, ExprValidated<'p>>>;

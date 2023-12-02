@@ -2,10 +2,7 @@ use crate::passes::atomize::Atom;
 use crate::passes::eliminate::{ExprEliminated, TailEliminated, PrgEliminated, FunEliminated};
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{BinaryOp, Meta, UnaryOp};
-use crate::passes::select::std_lib::add_std_library;
-use crate::passes::select::{
-    Block, Cnd, InstrSelected, VarArg, X86Selected, CALLEE_SAVED_NO_STACK, CALLER_SAVED,
-};
+use crate::passes::select::{Block, Cnd, InstrSelected, VarArg, X86Selected, CALLEE_SAVED_NO_STACK, CALLER_SAVED, FunSelected};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use crate::*;
 use std::collections::HashMap;
@@ -13,60 +10,56 @@ use std::collections::HashMap;
 impl<'p> PrgEliminated<'p> {
     #[must_use]
     pub fn select(self) -> X86Selected<'p> {
-        let mut blocks = HashMap::new();
-        for (_, fun) in self.fns {
-            select_fun(fun, &mut blocks);
-        }
-
-        add_std_library(&self.std, &mut blocks);
+        let fns = self.fns.into_iter().map(|(sym, fun)| (sym, select_fun(fun))).collect();
 
         X86Selected {
-            blocks,
+            fns,
             entry: self.entry,
-            std: self.std,
         }
     }
 }
 
 fn select_fun<'p>(
     fun: FunEliminated<'p>,
-    blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg<UniqueSym<'p>>>>,
-) {
-    // Collapse all exits from the function into one exit.
-    let exit = gen_sym("fn_exit");
-    let mut exit_instrs = Vec::new();
-    for reg in CALLEE_SAVED_NO_STACK.into_iter().rev() {
-        exit_instrs.push(popq!(VarArg::Reg { reg }));
-    }
-    exit_instrs.push(popq!(reg!(RBP)));
-    exit_instrs.push(retq!());
-    blocks.insert(exit, Block{ instrs: exit_instrs });
-
-    for (block_sym, block) in fun.blocks {
-        let mut instrs = Vec::new();
-
-        if block_sym == fun.entry {
-            instrs.push(pushq!(reg!(RBP)));
-            instrs.push(movq!(reg!(RSP), reg!(RBP)));
-
-            // TODO this is too much (sometimes)
-            for reg in CALLEE_SAVED_NO_STACK {
-                instrs.push(pushq!(VarArg::Reg { reg }));
-            }
-
-            for (reg, param) in CALLER_SAVED.into_iter().zip(fun.params.iter()) {
-                instrs.push(movq!(VarArg::Reg { reg }, VarArg::XVar { sym: param.sym }));
-            }
-            assert!(
-                fun.params.len() <= 9,
-                "Argument passing to stack is not yet implemented."
-            );
-        }
-
-        select_tail(block, &mut instrs, exit);
-
-        blocks.insert(block_sym, Block { instrs });
-    }
+) -> FunSelected<'p> {
+    // let mut blocks = HashMap::new();
+    //
+    // // Collapse all exits from the function into one exit.
+    // let exit = gen_sym(fun.entry.sym);
+    // let mut exit_instrs = Vec::new();
+    // for reg in CALLEE_SAVED_NO_STACK.into_iter().rev() {
+    //     exit_instrs.push(popq!(VarArg::Reg { reg }));
+    // }
+    // exit_instrs.push(popq!(reg!(RBP)));
+    // exit_instrs.push(retq!());
+    // blocks.insert(exit, Block{ instrs: exit_instrs });
+    //
+    // for (block_sym, block) in fun.blocks {
+    //     let mut instrs = Vec::new();
+    //
+    //     if block_sym == fun.entry {
+    //         instrs.push(pushq!(reg!(RBP)));
+    //         instrs.push(movq!(reg!(RSP), reg!(RBP)));
+    //
+    //         // TODO this is too much (sometimes)
+    //         for reg in CALLEE_SAVED_NO_STACK {
+    //             instrs.push(pushq!(VarArg::Reg { reg }));
+    //         }
+    //
+    //         for (reg, param) in CALLER_SAVED.into_iter().zip(fun.params.iter()) {
+    //             instrs.push(movq!(VarArg::Reg { reg }, VarArg::XVar { sym: param.sym }));
+    //         }
+    //         assert!(
+    //             fun.params.len() <= 9,
+    //             "Argument passing to stack is not yet implemented."
+    //         );
+    //     }
+    //
+    //     select_tail(block, &mut instrs, exit);
+    //
+    //     blocks.insert(block_sym, Block { instrs });
+    // }
+    todo!()
 }
 
 fn select_tail<'p>(tail: TailEliminated<'p>, instrs: &mut Vec<InstrSelected<'p>>, exit: UniqueSym<'p>) {

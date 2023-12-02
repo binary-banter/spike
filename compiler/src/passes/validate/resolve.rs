@@ -22,7 +22,6 @@ impl<'p> PrgConstrained<'p> {
                 .map(|(sym, def)| resolve_def(def, &mut self.uf).map(|def| (sym, def)))
                 .collect::<Result<_, _>>()?,
             entry: self.entry,
-            std: self.std,
         })
     }
 }

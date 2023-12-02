@@ -29,7 +29,6 @@ impl<'p> PrgExplicated<'p> {
             fns,
             defs: self.defs,
             entry: self.entry,
-            std: self.std,
         }
     }
 }

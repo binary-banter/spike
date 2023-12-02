@@ -2,7 +2,6 @@ mod display;
 pub mod reveal;
 
 use crate::passes::parse::{BinaryOp, Def, Typed, UnaryOp};
-use crate::passes::select::std_lib::Std;
 use crate::passes::select::InstrSelected;
 use crate::passes::validate::TLit;
 use crate::utils::gen_sym::UniqueSym;
@@ -15,7 +14,6 @@ use std::collections::HashMap;
 pub struct PrgRevealed<'p> {
     pub defs: HashMap<UniqueSym<'p>, DefRevealed<'p>>,
     pub entry: UniqueSym<'p>,
-    pub std: Std<'p>,
 }
 
 pub type DefRevealed<'p> = Def<UniqueSym<'p>, &'p str, Typed<'p, RExpr<'p>>>;

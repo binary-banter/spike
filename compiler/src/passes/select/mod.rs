@@ -1,11 +1,10 @@
 pub mod interpreter;
 pub mod macros;
 pub mod select;
-pub mod std_lib;
 #[cfg(test)]
 mod tests;
+mod display;
 
-use crate::passes::select::std_lib::Std;
 use crate::utils::gen_sym::UniqueSym;
 use derive_more::Display;
 use functor_derive::Functor;
@@ -13,20 +12,16 @@ use itertools::Itertools;
 use std::collections::HashMap;
 use std::fmt::Display;
 
-#[derive(Display)]
-#[display(
-    fmt = "{}",
-    r#"blocks.iter().map(|(sym, block)| format!("{sym}:\n{block}")).format("\n")"#
-)]
 pub struct X86Selected<'p> {
-    pub blocks: HashMap<UniqueSym<'p>, Block<'p, VarArg<UniqueSym<'p>>>>,
+    pub fns: HashMap<UniqueSym<'p>, FunSelected<'p>>,
     pub entry: UniqueSym<'p>,
-    pub std: Std<'p>,
 }
 
-// pub struct FunSelected<'p> {
-//
-// }
+pub struct FunSelected<'p> {
+    pub blocks: HashMap<UniqueSym<'p>, Block<'p, VarArg<UniqueSym<'p>>>>,
+    pub entry: UniqueSym<'p>,
+    pub exit: UniqueSym<'p>,
+}
 
 #[derive(Debug, Clone, Display, Functor)]
 #[display(fmt = "\t{}", r#"instrs.iter().format("\n\t")"#)]

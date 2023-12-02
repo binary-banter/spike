@@ -8,7 +8,7 @@ impl<'p> PrgValidated<'p> {
     #[must_use]
     pub fn reveal(self) -> PrgRevealed<'p> {
         let mut scope =
-            PushMap::from_iter(self.defs.keys().chain(self.std.values()).map(|s| (*s, ())));
+            PushMap::from_iter(self.defs.keys().map(|s| (*s, ())));
 
         PrgRevealed {
             defs: self
@@ -17,7 +17,6 @@ impl<'p> PrgValidated<'p> {
                 .map(|(sym, def)| (sym, reveal_def(def, &mut scope)))
                 .collect(),
             entry: self.entry,
-            std: self.std,
         }
     }
 }

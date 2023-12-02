@@ -3,7 +3,6 @@ mod display;
 
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{BinaryOp, Def, Typed, UnaryOp};
-use crate::passes::select::std_lib::Std;
 use crate::passes::select::InstrSelected;
 use crate::passes::validate::TLit;
 use crate::utils::gen_sym::UniqueSym;
@@ -16,7 +15,6 @@ use std::collections::HashMap;
 pub struct PrgAtomized<'p> {
     pub defs: HashMap<UniqueSym<'p>, DefAtomized<'p>>,
     pub entry: UniqueSym<'p>,
-    pub std: Std<'p>,
 }
 
 pub type DefAtomized<'p> = Def<UniqueSym<'p>, &'p str, Typed<'p, AExpr<'p>>>;

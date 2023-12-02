@@ -15,7 +15,6 @@ impl<'p> X86Assigned<'p> {
                 .collect(),
             entry: self.entry,
             stack_space: self.stack_space,
-            std: self.std,
         }
     }
 }

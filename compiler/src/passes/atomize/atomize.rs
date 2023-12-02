@@ -15,7 +15,6 @@ impl<'p> PrgRevealed<'p> {
                 .map(|(sym, def)| (sym, atomize_def(def)))
                 .collect(),
             entry: self.entry,
-            std: self.std,
         }
     }
 }

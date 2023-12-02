@@ -7,7 +7,6 @@ mod explicate_tail;
 use crate::passes::atomize::Atom;
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{BinaryOp, Param, TypeDef, Typed, UnaryOp};
-use crate::passes::select::std_lib::Std;
 use crate::passes::select::InstrSelected;
 use crate::utils::gen_sym::UniqueSym;
 use derive_more::Display;
@@ -23,7 +22,6 @@ pub struct PrgExplicated<'p> {
     pub fns: HashMap<UniqueSym<'p>, FunExplicated<'p>>,
     pub defs: HashMap<UniqueSym<'p>, TypeDef<UniqueSym<'p>, &'p str>>,
     pub entry: UniqueSym<'p>,
-    pub std: Std<'p>,
 }
 
 #[derive(Display)]

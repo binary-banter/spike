@@ -47,7 +47,6 @@ impl<'p> PrgAtomized<'p> {
             fns,
             defs,
             entry: self.entry,
-            std: self.std,
         }
     }
 }

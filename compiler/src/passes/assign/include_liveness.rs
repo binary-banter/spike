@@ -10,52 +10,53 @@ use std::collections::{HashMap, HashSet};
 impl<'p> X86Selected<'p> {
     #[must_use]
     pub(super) fn include_liveness(self) -> LX86VarProgram<'p> {
-        // maps block names to what is live before the block
-        let mut before_map = HashMap::<UniqueSym, HashSet<LArg>>::new();
-        // maps block names to blocks with liveness info added
-        let mut liveness = HashMap::<UniqueSym, LBlock>::new();
-
-        let mut changed = true;
-
-        while changed {
-            changed = false;
-
-            for (sym, block) in &self.blocks {
-                let (new_liveness, before) = block_liveness(block, &before_map);
-
-                match before_map.entry(*sym) {
-                    Entry::Occupied(mut e) => {
-                        if e.get() != &before {
-                            changed = true;
-                            e.insert(before);
-                        }
-                    }
-                    Entry::Vacant(e) => {
-                        changed = true;
-                        e.insert(before);
-                    }
-                }
-
-                match liveness.get(sym) {
-                    None => {
-                        liveness.insert(*sym, new_liveness);
-                        changed = true;
-                    }
-                    Some(old_liveness) => {
-                        if *old_liveness != new_liveness {
-                            liveness.insert(*sym, new_liveness);
-                            changed = true;
-                        }
-                    }
-                }
-            }
-        }
-
-        LX86VarProgram {
-            blocks: liveness,
-            entry: self.entry,
-            std: self.std,
-        }
+        // // maps block names to what is live before the block
+        // let mut before_map = HashMap::<UniqueSym, HashSet<LArg>>::new();
+        // // maps block names to blocks with liveness info added
+        // let mut liveness = HashMap::<UniqueSym, LBlock>::new();
+        //
+        // let mut changed = true;
+        //
+        // while changed {
+        //     changed = false;
+        //
+        //     for (sym, block) in &self.blocks {
+        //         let (new_liveness, before) = block_liveness(block, &before_map);
+        //
+        //         match before_map.entry(*sym) {
+        //             Entry::Occupied(mut e) => {
+        //                 if e.get() != &before {
+        //                     changed = true;
+        //                     e.insert(before);
+        //                 }
+        //             }
+        //             Entry::Vacant(e) => {
+        //                 changed = true;
+        //                 e.insert(before);
+        //             }
+        //         }
+        //
+        //         match liveness.get(sym) {
+        //             None => {
+        //                 liveness.insert(*sym, new_liveness);
+        //                 changed = true;
+        //             }
+        //             Some(old_liveness) => {
+        //                 if *old_liveness != new_liveness {
+        //                     liveness.insert(*sym, new_liveness);
+        //                     changed = true;
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
+        //
+        // LX86VarProgram {
+        //     blocks: liveness,
+        //     entry: self.entry,
+        //     std: self.std,
+        // }
+        todo!()
     }
 }
 

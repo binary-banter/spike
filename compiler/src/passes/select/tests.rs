@@ -19,16 +19,17 @@ fn select([test]: [&str; 1]) {
         .select();
 
     // Redirect program to exit
-    let new_entry = gen_sym("tmp");
-    program.blocks.insert(
-        new_entry,
-        block!(
-            callq_direct!(program.entry, 0),
-            movq!(reg!(RAX), reg!(RDI)),
-            callq_direct!(program.std["exit"], 1)
-        ),
-    );
-    program.entry = new_entry;
+    // let new_entry = gen_sym("tmp");
+    // program.blocks.insert(
+    //     new_entry,
+    //     block!(
+    //         callq_direct!(program.entry, 0),
+    //         movq!(reg!(RAX), reg!(RDI)),
+    //         callq_direct!(program.std["exit"], 1)
+    //     ),
+    // );
+    // program.entry = new_entry;
+    todo!();
 
     let mut io = TestIO::new(input);
     let result = program.interpret(&mut io);

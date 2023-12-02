@@ -7,7 +7,6 @@ mod eliminate_tail;
 use crate::passes::atomize::Atom;
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{BinaryOp, Meta, Param, TypeDef, UnaryOp};
-use crate::passes::select::std_lib::Std;
 use crate::passes::select::InstrSelected;
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
@@ -16,7 +15,6 @@ pub struct PrgEliminated<'p> {
     pub fns: HashMap<UniqueSym<'p>, FunEliminated<'p>>,
     pub defs: HashMap<UniqueSym<'p>, TypeDef<UniqueSym<'p>, &'p str>>,
     pub entry: UniqueSym<'p>,
-    pub std: Std<'p>,
 }
 
 pub struct FunEliminated<'p> {

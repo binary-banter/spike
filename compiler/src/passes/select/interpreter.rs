@@ -89,32 +89,33 @@ impl<'p> X86Concluded<'p> {
 
 impl<'p> X86Selected<'p> {
     pub fn interpret(&self, io: &mut impl IO) -> i64 {
-        let block_ids = self.blocks.keys().map(|sym| (sym.id, *sym)).collect();
-
-        let mut regs = HashMap::new();
-        for reg in CALLEE_SAVED.into_iter().chain(CALLER_SAVED.into_iter()) {
-            regs.insert(reg, 0);
-        }
-
-        // We give 0x1000 stack space to test programs - this might not be enough (you weirdos)!
-        regs.insert(Reg::RBP, i64::MAX - 7);
-        regs.insert(Reg::RSP, (i64::MAX - 7) - 0x1000);
-
-        let mut state = X86Interpreter {
-            blocks: &self.blocks,
-            io,
-            regs,
-            vars: HashMap::default(),
-            var_stack: vec![],
-            memory: HashMap::default(),
-            block_ids,
-            read_buffer: Vec::new(),
-            write_buffer: Vec::new(),
-            status: Default::default(),
-            stats: IStats::default(),
-        };
-
-        state.interpret_block(self.entry, 0)
+        // let block_ids = self.blocks.keys().map(|sym| (sym.id, *sym)).collect();
+        //
+        // let mut regs = HashMap::new();
+        // for reg in CALLEE_SAVED.into_iter().chain(CALLER_SAVED.into_iter()) {
+        //     regs.insert(reg, 0);
+        // }
+        //
+        // // We give 0x1000 stack space to test programs - this might not be enough (you weirdos)!
+        // regs.insert(Reg::RBP, i64::MAX - 7);
+        // regs.insert(Reg::RSP, (i64::MAX - 7) - 0x1000);
+        //
+        // let mut state = X86Interpreter {
+        //     blocks: &self.blocks,
+        //     io,
+        //     regs,
+        //     vars: HashMap::default(),
+        //     var_stack: vec![],
+        //     memory: HashMap::default(),
+        //     block_ids,
+        //     read_buffer: Vec::new(),
+        //     write_buffer: Vec::new(),
+        //     status: Default::default(),
+        //     stats: IStats::default(),
+        // };
+        //
+        // state.interpret_block(self.entry, 0)
+        todo!()
     }
 }
 
