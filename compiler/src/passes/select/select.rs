@@ -32,6 +32,16 @@ fn select_fun<'p>(
     fun: FunEliminated<'p>,
     blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg<UniqueSym<'p>>>>,
 ) {
+    // Collapse all exits from the function into one exit.
+    let exit = gen_sym("fn_exit");
+    let mut exit_instrs = Vec::new();
+    for reg in CALLEE_SAVED_NO_STACK.into_iter().rev() {
+        exit_instrs.push(popq!(VarArg::Reg { reg }));
+    }
+    exit_instrs.push(popq!(reg!(RBP)));
+    exit_instrs.push(retq!());
+    blocks.insert(exit, Block{ instrs: exit_instrs });
+
     for (block_sym, block) in fun.blocks {
         let mut instrs = Vec::new();
 
@@ -53,30 +63,23 @@ fn select_fun<'p>(
             );
         }
 
-        select_tail(block, &mut instrs);
+        select_tail(block, &mut instrs, exit);
 
         blocks.insert(block_sym, Block { instrs });
     }
 }
 
-fn select_tail<'p>(tail: TailEliminated<'p>, instrs: &mut Vec<InstrSelected<'p>>) {
+fn select_tail<'p>(tail: TailEliminated<'p>, instrs: &mut Vec<InstrSelected<'p>>, exit: UniqueSym<'p>) {
     match tail {
         TailEliminated::Return { exprs } => {
             assert!(
                 exprs.len() <= 9,
                 "Argument passing to stack is not yet implemented."
             );
-
             for (reg, arg) in CALLER_SAVED.into_iter().zip(exprs) {
                 instrs.push(movq!(select_atom(arg), VarArg::Reg { reg }));
             }
-
-            for reg in CALLEE_SAVED_NO_STACK.into_iter().rev() {
-                instrs.push(popq!(VarArg::Reg { reg }));
-            }
-            instrs.push(popq!(reg!(RBP)));
-
-            instrs.push(retq!());
+            instrs.push(jmp!(exit));
         }
         TailEliminated::Seq {
             syms: sym,
@@ -84,7 +87,7 @@ fn select_tail<'p>(tail: TailEliminated<'p>, instrs: &mut Vec<InstrSelected<'p>>
             tail,
         } => {
             instrs.extend(select_assign(&sym, bnd));
-            select_tail(*tail, instrs);
+            select_tail(*tail, instrs, exit);
         }
         TailEliminated::IfStmt { cnd, thn, els } => match cnd {
             ExprEliminated::BinaryOp {

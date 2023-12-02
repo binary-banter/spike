@@ -24,6 +24,10 @@ pub struct X86Selected<'p> {
     pub std: Std<'p>,
 }
 
+// pub struct FunSelected<'p> {
+//
+// }
+
 #[derive(Debug, Clone, Display, Functor)]
 #[display(fmt = "\t{}", r#"instrs.iter().format("\n\t")"#)]
 pub struct Block<'p, A: Display> {
