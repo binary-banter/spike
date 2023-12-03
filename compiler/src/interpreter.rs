@@ -2,17 +2,21 @@ use crate::passes::validate::TLit;
 use crate::utils::gen_sym::UniqueSym;
 use derive_more::Display;
 use std::collections::HashMap;
+use zerocopy::AsBytes;
 
 use std::vec::IntoIter;
 
 pub trait IO {
-    fn read(&mut self) -> Option<TLit>;
-    fn print(&mut self, v: TLit);
+    fn read(&mut self) -> Option<u8>;
+    fn print(&mut self, v: u8);
 }
 
 pub struct TestIO {
     inputs: IntoIter<TLit>,
     outputs: Vec<TLit>,
+
+    read_buffer: Vec<u8>,
+    write_buffer: Vec<u8>,
 }
 
 impl TestIO {
@@ -20,6 +24,9 @@ impl TestIO {
         Self {
             inputs: inputs.into_iter(),
             outputs: Vec::new(),
+
+            read_buffer: Vec::new(),
+            write_buffer: Vec::new(),
         }
     }
 
@@ -29,12 +36,33 @@ impl TestIO {
 }
 
 impl IO for TestIO {
-    fn read(&mut self) -> Option<TLit> {
-        self.inputs.next()
+    fn read(&mut self) -> Option<u8> {
+        if self.read_buffer.is_empty() {
+            if let Some(read) = self.inputs.next() {
+                self.read_buffer = format!("{}\n", read.int()).into_bytes();
+                self.read_buffer.reverse();
+            } else {
+                return None
+            }
+        }
+
+        Some(self.read_buffer.pop().unwrap())
     }
 
-    fn print(&mut self, v: TLit) {
-        self.outputs.push(v);
+    fn print(&mut self, val: u8) {
+        match val {
+            b'\n' => {
+                let val = std::str::from_utf8(self.write_buffer.as_bytes())
+                    .unwrap()
+                    .parse()
+                    .unwrap();
+                self.outputs.push(TLit::I64 { val });
+                self.write_buffer.clear();
+            }
+            val => {
+                self.write_buffer.push(val);
+            }
+        }
     }
 }
 

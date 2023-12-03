@@ -10,7 +10,6 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::mem;
-use zerocopy::AsBytes;
 
 #[derive(Default)]
 pub struct Status {
@@ -42,12 +41,8 @@ pub struct X86Interpreter<'p, I: IO> {
     /// Variables (`XVars`) mapped to their values in memory.
     pub vars: HashMap<UniqueSym<'p>, i64>,
     pub var_stack: Vec<HashMap<UniqueSym<'p>, i64>>,
-
     pub memory: HashMap<i64, i64>,
     pub block_ids: HashMap<usize, UniqueSym<'p>>,
-    pub read_buffer: Vec<u8>,
-    pub write_buffer: Vec<u8>,
-
     /// Status register.
     pub status: Status,
     /// Stats for bencher.
@@ -121,8 +116,6 @@ impl<'p> X86Selected<'p> {
             var_stack: vec![],
             memory: HashMap::default(),
             block_ids,
-            read_buffer: Vec::new(),
-            write_buffer: Vec::new(),
             status: Default::default(),
             stats: IStats::default(),
         };
@@ -363,53 +356,45 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
         }
     }
 
+    /// Emulates a syscall read on Linux.
     fn syscall_read(&mut self) {
         let file = self.regs[&Reg::RDI];
-        assert_eq!(file, 0, "Only reading from stdin is supported right now.");
         let buffer = self.regs[&Reg::RSI];
         let buffer_len = self.regs[&Reg::RDX];
-        assert!(buffer_len >= 1);
 
-        if self.read_buffer.is_empty() {
-            if let Some(read) = self.io.read() {
-                self.read_buffer = format!("{}\n", read.int()).into_bytes();
-                self.read_buffer.reverse();
-            } else {
-                self.memory.insert(buffer, 0);
-                self.regs.insert(Reg::RAX, 0);
-                return;
-            }
+        assert_eq!(file, 0, "Only reading from stdin is supported right now.");
+
+        if buffer_len == 0 {
+            self.memory.insert(buffer, 0); // This memory insert guarantees the interpreter finds a key.
+            self.regs.insert(Reg::RAX, 0); // 0 bytes read
+            return;
         }
-        let val = self.read_buffer.pop().unwrap();
-        self.memory.insert(buffer, val as i64);
-        self.regs.insert(Reg::RAX, 1);
+
+        if let Some(read) = self.io.read() {
+            self.memory.insert(buffer, read as i64);
+            self.regs.insert(Reg::RAX, 1);
+        } else {
+            self.memory.insert(buffer, 0); // This memory insert guarantees the interpreter finds a key.
+            self.regs.insert(Reg::RAX, 0); // 0 bytes read
+            return;
+        }
     }
 
+    /// Emulates a syscall write on Linux.
     fn syscall_write(&mut self) {
         let file = self.regs[&Reg::RDI];
-        assert_eq!(file, 1, "Only writing to stdout is supported right now.");
         let buffer = self.regs[&Reg::RSI];
         let buffer_len = self.regs[&Reg::RDX];
+
+        assert_eq!(file, 1, "Only writing to stdout is supported right now.");
+
         assert_eq!(
             buffer_len, 1,
             "Only writing 1 byte at a time is supported right now."
         );
 
         let val = *self.memory.get(&buffer).unwrap();
-        match val as u8 {
-            b'\n' => {
-                let val = std::str::from_utf8(self.write_buffer.as_bytes())
-                    .unwrap()
-                    .parse()
-                    .unwrap();
-                self.io.print(TLit::I64 { val });
-                self.write_buffer.clear();
-            }
-            val => {
-                self.write_buffer.push(val);
-            }
-        }
-
+        self.io.print(val as u8);
         self.regs.insert(Reg::RAX, 1);
     }
 }
