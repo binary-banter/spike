@@ -30,7 +30,8 @@ fn select_fun(fun: FunEliminated) -> FunSelected {
     let mut blocks = HashMap::new();
 
     // Function entry & exit
-    let entry = entry_block(&fun, &mut blocks);
+    let intro = intro_block(&fun, &mut blocks);
+    let entry = entry_block(&mut blocks, intro);
     let exit = exit_block(&mut blocks);
 
     for (block_sym, block) in fun.blocks {
@@ -48,10 +49,10 @@ fn select_fun(fun: FunEliminated) -> FunSelected {
 
 /// Creates an entry block for the function.
 fn entry_block<'p>(
-    fun: &FunEliminated<'p>,
     blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg<UniqueSym<'p>>>>,
+    intro: UniqueSym<'p>,
 ) -> UniqueSym<'p> {
-    let sym = gen_sym("entry");
+    let entry = gen_sym("entry");
     let mut instrs = Vec::new();
 
     // Save stack pointers.
@@ -63,7 +64,19 @@ fn entry_block<'p>(
         instrs.push(pushq!(VarArg::Reg { reg }));
     }
 
-    // Move parameters into local variables.
+    instrs.push(jmp!(intro));
+    blocks.insert(entry, Block { instrs });
+    entry
+}
+
+fn intro_block<'p> (
+    fun: &FunEliminated<'p>,
+    blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg<UniqueSym<'p>>>>,
+) -> UniqueSym<'p> {
+    let intro = gen_sym("intro");
+    let mut instrs = Vec::new();
+
+    // Introduce parameters as local variables.
     for (reg, param) in CALLER_SAVED.into_iter().zip(fun.params.iter()) {
         instrs.push(movq!(VarArg::Reg { reg }, VarArg::XVar { sym: param.sym }));
     }
@@ -75,15 +88,15 @@ fn entry_block<'p>(
 
     // Jump to core of the function - this was previously called "entry".
     instrs.push(jmp!(fun.entry));
-    blocks.insert(sym, Block { instrs });
-    sym
+    blocks.insert(intro, Block { instrs });
+    intro
 }
 
 /// Creates an exit block for the function.
 fn exit_block<'p>(
     blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg<UniqueSym<'p>>>>,
 ) -> UniqueSym<'p> {
-    let sym = gen_sym("exit");
+    let exit = gen_sym("exit");
     let mut instrs = Vec::new();
 
     // Restore callee-saved registers (excluding stack pointers).
@@ -95,8 +108,8 @@ fn exit_block<'p>(
     instrs.push(popq!(reg!(RBP)));
     instrs.push(retq!());
 
-    blocks.insert(sym, Block { instrs });
-    sym
+    blocks.insert(exit, Block { instrs });
+    exit
 }
 
 fn select_tail<'p>(

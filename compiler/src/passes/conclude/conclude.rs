@@ -1,11 +1,27 @@
+use functor_derive::Functor;
 use crate::passes::conclude::X86Concluded;
 use crate::passes::patch::X86Patched;
 use crate::utils::gen_sym::gen_sym;
 use crate::*;
+use crate::passes::select::CALLEE_SAVED_NO_STACK;
 
 impl<'p> X86Patched<'p> {
     #[must_use]
     pub fn conclude(mut self) -> X86Concluded<'p> {
+        // let blocks = self.fns.into_iter().flat_map(|(_, mut fun)| {
+        //     // fun.blocks.get_mut(&fun.entry).unwrap().instrs.(2 + CALLEE_SAVED_NO_STACK.len(), )
+        //
+        //     fun.blocks.into_iter().map(|(block_sym, block)| {
+        //         // let block = match block_sym {
+        //         //     s if s == fun.entry => ,
+        //         //     s if s == fun.exit => todo!(),
+        //         //     _ => block,
+        //         // };
+        //
+        //         (block_sym, block)
+        //     })
+        // }).collect();
+
         // let entry = gen_sym("main");
         // self.blocks.insert(
         //     entry,
@@ -20,12 +36,11 @@ impl<'p> X86Patched<'p> {
         //         callq_direct!(self.std["exit"], 1)
         //     ),
         // );
-        //
-        // X86Concluded {
-        //     blocks: self.blocks,
-        //     entry,
-        //     std: self.std,
-        // }
+
         todo!()
+        // X86Concluded {
+        //     blocks,
+        //     entry,
+        // }
     }
 }

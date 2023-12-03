@@ -1,5 +1,5 @@
 use crate::passes::assign::{Arg, InterferenceGraph, LArg};
-use crate::passes::select::Reg;
+use crate::passes::select::{CALLEE_SAVED_NO_STACK, Reg};
 use crate::utils::gen_sym::UniqueSym;
 use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
@@ -68,7 +68,7 @@ impl<'p> InterferenceGraph<'p> {
             .max()
             .unwrap_or_default() as usize;
 
-        let stack_space = (8 * used_vars).div_ceil(16) * 16 + 256;
+        let stack_space = (8 * used_vars).div_ceil(16) * 16;
 
         let colors = node_map
             .into_iter()
@@ -107,7 +107,7 @@ fn arg_from_color(i: isize) -> Arg {
             );
             Arg::Deref {
                 reg: Reg::RBP,
-                off: (-8 * (i - 10)) as i64 - 256,
+                off: - 8 * ((i - 10) as i64 + CALLEE_SAVED_NO_STACK.len() as i64),
             }
         }
     }

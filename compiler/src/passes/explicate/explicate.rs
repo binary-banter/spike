@@ -1,7 +1,7 @@
 use crate::passes::atomize::{DefAtomized, PrgAtomized};
 use crate::passes::explicate::explicate_tail::explicate_tail;
 use crate::passes::explicate::{FunExplicated, PrgExplicated, TailExplicated};
-use crate::utils::gen_sym::UniqueSym;
+use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use std::collections::HashMap;
 
 pub struct Env<'a, 'p> {
@@ -18,7 +18,7 @@ impl<'p> PrgAtomized<'p> {
         let mut fns = HashMap::new();
         let mut defs = HashMap::new();
 
-        for (entry, def) in self.defs {
+        for (def_sym, def) in self.defs {
             match def {
                 DefAtomized::Fn {
                     sym, params, bdy, ..
@@ -31,10 +31,11 @@ impl<'p> PrgAtomized<'p> {
                     };
 
                     let tail = explicate_tail(bdy, &mut env);
-                    env.blocks.insert(sym, tail);
+                    let entry = sym.fresh();
+                    env.blocks.insert(entry, tail);
 
                     fns.insert(
-                        sym,
+                        def_sym,
                         FunExplicated {
                             params,
                             blocks,
