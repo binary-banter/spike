@@ -1,10 +1,10 @@
 use crate::interpreter::TestIO;
 use crate::passes::parse::parse::parse_program;
 use crate::passes::select::X86Selected;
-use crate::utils::gen_sym::gen_sym;
+
 use crate::utils::split_test::split_test;
 use crate::utils::test_runtime::add_runtime;
-use crate::{block, callq_direct, movq, reg};
+
 use test_each_file::test_each_file;
 
 fn assign([test]: [&str; 1]) {

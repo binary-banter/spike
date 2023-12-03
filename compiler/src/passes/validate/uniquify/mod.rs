@@ -1,12 +1,9 @@
-use crate::passes::parse::types::Type;
 use crate::passes::parse::{Meta, PrgParsed, Spanned};
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::error::TypeError::{NoMain, UndeclaredVar};
 use crate::passes::validate::DefUniquified;
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use crate::utils::push_map::PushMap;
-use once_cell::sync::Lazy;
-use std::collections::HashMap;
 
 mod def;
 mod expr;

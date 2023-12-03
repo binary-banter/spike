@@ -4,7 +4,7 @@ use crate::passes::patch::X86Patched;
 use crate::passes::select::{Block, Instr};
 use crate::utils::gen_sym::gen_sym;
 use crate::*;
-use itertools::Itertools;
+
 use std::collections::HashMap;
 
 impl<'p> X86Patched<'p> {

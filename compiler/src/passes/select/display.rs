@@ -9,7 +9,7 @@ impl Display for X86Selected<'_> {
             writeln!(f, "fn {sym} {{")?;
             write!(indented(f), "{fun}")?;
             writeln!(f, "}}")?;
-            writeln!(f, "")?;
+            writeln!(f)?;
         }
 
         Ok(())

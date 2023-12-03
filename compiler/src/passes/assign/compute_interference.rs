@@ -1,5 +1,5 @@
 use crate::passes::assign::include_liveness::{handle_instr, ReadWriteOp};
-use crate::passes::assign::{InterferenceGraph, LArg, LFun, LX86VarProgram};
+use crate::passes::assign::{InterferenceGraph, LArg, LFun};
 use crate::passes::select::VarArg;
 use petgraph::graphmap::GraphMap;
 use petgraph::Undirected;

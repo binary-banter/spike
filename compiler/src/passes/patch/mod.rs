@@ -2,8 +2,8 @@ pub mod patch;
 #[cfg(test)]
 mod tests;
 
-use crate::passes::assign::{Arg, FunAssigned};
-use crate::passes::select::{Block, X86Selected};
+use crate::passes::assign::FunAssigned;
+use crate::passes::select::X86Selected;
 use crate::utils::gen_sym::UniqueSym;
 use functor_derive::Functor;
 use std::collections::HashMap;

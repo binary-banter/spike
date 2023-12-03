@@ -1,7 +1,7 @@
 use crate::passes::atomize::{DefAtomized, PrgAtomized};
 use crate::passes::explicate::explicate_tail::explicate_tail;
 use crate::passes::explicate::{FunExplicated, PrgExplicated, TailExplicated};
-use crate::utils::gen_sym::{gen_sym, UniqueSym};
+use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
 
 pub struct Env<'a, 'p> {

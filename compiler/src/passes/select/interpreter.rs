@@ -1,11 +1,9 @@
 use crate::interpreter::IO;
 use crate::passes::conclude::X86Concluded;
-
 use crate::passes::select::{
-    Block, Cnd, FunSelected, Instr, Reg, VarArg, X86Selected, CALLEE_SAVED, CALLER_SAVED,
+    Block, Cnd, Instr, Reg, VarArg, X86Selected, CALLEE_SAVED, CALLER_SAVED,
 };
 use crate::utils::gen_sym::UniqueSym;
-use functor_derive::Functor;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt::Debug;
@@ -61,7 +59,7 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
         let mut regs = HashMap::from_iter(
             CALLEE_SAVED
                 .into_iter()
-                .chain(CALLER_SAVED.into_iter())
+                .chain(CALLER_SAVED)
                 .map(|reg| (reg, 0)),
         );
 
@@ -85,7 +83,7 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
 
 impl<'p> X86Concluded<'p> {
     pub fn interpret_with_stats(&self, io: &mut impl IO) -> (i64, IStats) {
-        let entries = self.blocks.iter().map(|(&k, v)| (k, k)).collect();
+        let entries = self.blocks.iter().map(|(&k, _v)| (k, k)).collect();
 
         let blocks = self
             .blocks
@@ -367,7 +365,6 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
         } else {
             self.memory.insert(buffer, 0); // This memory insert guarantees the interpreter finds a key.
             self.regs.insert(Reg::RAX, 0); // 0 bytes read
-            return;
         }
     }
 
