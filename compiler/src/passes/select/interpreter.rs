@@ -1,8 +1,9 @@
 use crate::interpreter::IO;
 use crate::passes::conclude::X86Concluded;
 
+use crate::block;
 use crate::passes::select::{
-    Block, Cnd, Instr, Reg, VarArg, X86Selected, CALLEE_SAVED, CALLER_SAVED,
+    Block, Cnd, FunSelected, Instr, Reg, VarArg, X86Selected, CALLEE_SAVED, CALLER_SAVED,
 };
 use crate::passes::validate::TLit;
 use crate::utils::gen_sym::UniqueSym;
@@ -34,10 +35,12 @@ pub struct IStats {
 }
 
 pub struct X86Interpreter<'p, I: IO> {
-    pub blocks: &'p HashMap<UniqueSym<'p>, Block<'p, VarArg<UniqueSym<'p>>>>,
+    pub fns: &'p HashMap<UniqueSym<'p>, FunSelected<'p>>,
+    pub blocks: &'p HashMap<UniqueSym<'p>, &'p Block<'p, VarArg<UniqueSym<'p>>>>,
     pub io: &'p mut I,
+    /// Registers (`Reg`) mapped to their values in memory.
     pub regs: HashMap<Reg, i64>,
-
+    /// Variables (`XVars`) mapped to their values in memory.
     pub vars: HashMap<UniqueSym<'p>, i64>,
     pub var_stack: Vec<HashMap<UniqueSym<'p>, i64>>,
 
@@ -45,41 +48,46 @@ pub struct X86Interpreter<'p, I: IO> {
     pub block_ids: HashMap<usize, UniqueSym<'p>>,
     pub read_buffer: Vec<u8>,
     pub write_buffer: Vec<u8>,
+
+    /// Status register.
     pub status: Status,
+    /// Stats for bencher.
     pub stats: IStats,
 }
 
 impl<'p> X86Concluded<'p> {
     pub fn interpret_with_stats(&self, io: &mut impl IO) -> (i64, IStats) {
-        let block_ids = self.blocks.keys().map(|sym| (sym.id, *sym)).collect();
+        // let block_ids = self.blocks.keys().map(|sym| (sym.id, *sym)).collect();
+        //
+        // let mut regs = HashMap::new();
+        // for reg in CALLEE_SAVED.into_iter().chain(CALLER_SAVED.into_iter()) {
+        //     regs.insert(reg, 0);
+        // }
+        //
+        // let mut state = X86Interpreter {
+        //     // todo: remove this clone
+        //     blocks: &self
+        //         .blocks
+        //         .clone()
+        //         .into_iter()
+        //         .map(|(sym, block)| (sym, block.fmap(Into::into)))
+        //         .collect(),
+        //     io,
+        //     regs,
+        //     vars: HashMap::default(),
+        //     var_stack: vec![],
+        //     memory: HashMap::default(),
+        //     block_ids,
+        //     read_buffer: Vec::new(),
+        //     write_buffer: Vec::new(),
+        //     status: Status::default(),
+        //     stats: IStats::default(),
+        // };
+        //
+        // let val = state.interpret_block(self.entry, 0);
+        // (val, state.stats)
 
-        let mut regs = HashMap::new();
-        for reg in CALLEE_SAVED.into_iter().chain(CALLER_SAVED.into_iter()) {
-            regs.insert(reg, 0);
-        }
-
-        let mut state = X86Interpreter {
-            // todo: remove this clone
-            blocks: &self
-                .blocks
-                .clone()
-                .into_iter()
-                .map(|(sym, block)| (sym, block.fmap(Into::into)))
-                .collect(),
-            io,
-            regs,
-            vars: HashMap::default(),
-            var_stack: vec![],
-            memory: HashMap::default(),
-            block_ids,
-            read_buffer: Vec::new(),
-            write_buffer: Vec::new(),
-            status: Status::default(),
-            stats: IStats::default(),
-        };
-
-        let val = state.interpret_block(self.entry, 0);
-        (val, state.stats)
+        todo!()
     }
 
     pub fn interpret(&self, io: &mut impl IO) -> i64 {
@@ -89,48 +97,61 @@ impl<'p> X86Concluded<'p> {
 
 impl<'p> X86Selected<'p> {
     pub fn interpret(&self, io: &mut impl IO) -> i64 {
-        // let block_ids = self.blocks.keys().map(|sym| (sym.id, *sym)).collect();
-        //
-        // let mut regs = HashMap::new();
-        // for reg in CALLEE_SAVED.into_iter().chain(CALLER_SAVED.into_iter()) {
-        //     regs.insert(reg, 0);
-        // }
-        //
-        // // We give 0x1000 stack space to test programs - this might not be enough (you weirdos)!
-        // regs.insert(Reg::RBP, i64::MAX - 7);
-        // regs.insert(Reg::RSP, (i64::MAX - 7) - 0x1000);
-        //
-        // let mut state = X86Interpreter {
-        //     blocks: &self.blocks,
-        //     io,
-        //     regs,
-        //     vars: HashMap::default(),
-        //     var_stack: vec![],
-        //     memory: HashMap::default(),
-        //     block_ids,
-        //     read_buffer: Vec::new(),
-        //     write_buffer: Vec::new(),
-        //     status: Default::default(),
-        //     stats: IStats::default(),
-        // };
-        //
-        // state.interpret_block(self.entry, 0)
-        todo!()
+        let mut regs = HashMap::new();
+        for reg in CALLEE_SAVED.into_iter().chain(CALLER_SAVED.into_iter()) {
+            regs.insert(reg, 0);
+        }
+
+        // We give 0x1000 stack space to test programs - this might not be enough (you weirdos)!
+        regs.insert(Reg::RBP, i64::MAX - 7);
+        regs.insert(Reg::RSP, (i64::MAX - 7) - 0x1000);
+
+        let blocks: HashMap<_, _> = self
+            .fns
+            .values()
+            .flat_map(|fun| fun.blocks.iter().map(|(&k, v)| (k, v)))
+            .collect();
+        let block_ids = blocks.keys().map(|sym| (sym.id, *sym)).collect();
+
+        let mut state = X86Interpreter {
+            fns: &self.fns,
+            blocks: &blocks,
+            io,
+            regs,
+            vars: HashMap::default(),
+            var_stack: vec![],
+            memory: HashMap::default(),
+            block_ids,
+            read_buffer: Vec::new(),
+            write_buffer: Vec::new(),
+            status: Default::default(),
+            stats: IStats::default(),
+        };
+
+        state.interpret_block(self.fns[&self.entry].entry, 0)
     }
 }
 
 impl<'p, I: IO> X86Interpreter<'p, I> {
+    /// Turns an instruction in a specified block into its address.
     fn instr_to_addr(&self, block_name: UniqueSym, instr_id: usize) -> i64 {
         // Please do not make more than 2^32 blocks or blocks with more than 2^32 instructions!
         ((block_name.id << 32) | instr_id) as i64
     }
 
+    /// Turns a function label into its address.
+    fn fn_to_addr(&self, fn_name: UniqueSym) -> i64 {
+        self.instr_to_addr(self.fns[&fn_name].entry, 0)
+    }
+
+    /// Starts interpreting at the given address.
     fn interpret_addr(&mut self, addr: i64) -> i64 {
         let block_id = (addr >> 32) as usize;
         let instr_id = (addr & 0xFF_FF_FF_FF) as usize;
         self.interpret_block(self.block_ids[&block_id], instr_id)
     }
 
+    /// Starts interpreting at the given block using a specified offset.
     pub fn interpret_block(&mut self, block_name: UniqueSym<'p>, offset: usize) -> i64 {
         let block = &self.blocks[&block_name];
 
@@ -176,9 +197,7 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                 Instr::Syscall { .. } => match self.regs[&Reg::RAX] {
                     0x00 => self.syscall_read(),
                     0x01 => self.syscall_write(),
-                    0x3C => {
-                        return self.regs[&Reg::RDI];
-                    }
+                    0x3C => return self.regs[&Reg::RDI],
                     _ => unreachable!(),
                 },
                 Instr::Divq { divisor } => {
@@ -242,7 +261,7 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                     self.regs.insert(Reg::RAX, rax & !0xFF | cnd);
                 }
                 Instr::LoadLbl { sym, dst } => {
-                    let val = self.instr_to_addr(*sym, 0);
+                    let val = self.fn_to_addr(*sym);
                     self.set_arg(dst, val);
                 }
                 Instr::CallqDirect { lbl, .. } => {
@@ -256,7 +275,7 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                     //Push old var context
                     self.var_stack.push(mem::take(&mut self.vars));
 
-                    return self.interpret_block(*lbl, 0);
+                    return self.interpret_addr(self.fn_to_addr(*lbl));
                 }
                 Instr::CallqIndirect { src, .. } => {
                     let ret_addr = self.instr_to_addr(block_name, instr_id + 1);
@@ -278,6 +297,7 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
         panic!("A block ran out of instructions.");
     }
 
+    /// Evaluates whether a condition holds.
     fn evaluate_cnd(&self, cnd: Cnd) -> bool {
         match cnd {
             Cnd::Above => !self.status.carry && !self.status.zero,
@@ -299,6 +319,7 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
         }
     }
 
+    /// Retrieves the argument from memory. This can be from `regs`, `memory` or `vars`.
     fn get_arg(&self, a: &'p VarArg<UniqueSym<'p>>) -> i64 {
         match a {
             VarArg::Imm { val } => *val,
@@ -311,6 +332,7 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
         }
     }
 
+    /// Sets the argument in memory. This can be in `regs`, `memory` or `vars`.
     fn set_arg(&mut self, a: &'p VarArg<UniqueSym<'p>>, v: i64) {
         match a {
             VarArg::Imm { .. } => panic!("Tried to write to immediate, are u insane?"),

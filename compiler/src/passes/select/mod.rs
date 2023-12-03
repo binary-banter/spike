@@ -17,6 +17,7 @@ pub struct X86Selected<'p> {
     pub entry: UniqueSym<'p>,
 }
 
+#[derive(Debug)]
 pub struct FunSelected<'p> {
     pub blocks: HashMap<UniqueSym<'p>, Block<'p, VarArg<UniqueSym<'p>>>>,
     pub entry: UniqueSym<'p>,
