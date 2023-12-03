@@ -2,8 +2,8 @@ use crate::interpreter::TestIO;
 use crate::passes::parse::parse::parse_program;
 use crate::passes::select::X86Selected;
 use crate::utils::split_test::split_test;
-use test_each_file::test_each_file;
 use crate::utils::test_runtime::add_runtime;
+use test_each_file::test_each_file;
 
 fn patch([test]: [&str; 1]) {
     let (input, expected_output, expected_return, _) = split_test(test);

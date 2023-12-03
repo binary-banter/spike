@@ -1,9 +1,9 @@
-use functor_derive::Functor;
 use crate::passes::assign::{Arg, FunAssigned, X86Assigned};
 use crate::passes::patch::X86Patched;
 use crate::passes::select::{Block, Instr};
 use crate::utils::gen_sym::UniqueSym;
 use crate::{addq, movq, reg, subq};
+use functor_derive::Functor;
 
 impl<'p> X86Assigned<'p> {
     #[must_use]
@@ -16,8 +16,10 @@ impl<'p> X86Assigned<'p> {
 }
 
 fn patch_fn(fun: FunAssigned) -> FunAssigned {
-    FunAssigned{
-        blocks: fun.blocks.into_iter()
+    FunAssigned {
+        blocks: fun
+            .blocks
+            .into_iter()
             .map(|(lbl, block)| (lbl, patch_block(block)))
             .collect(),
         entry: fun.entry,

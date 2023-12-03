@@ -39,8 +39,7 @@ impl<'p> LFun<'p> {
                 });
             }
         }
-        
+
         InterferenceGraph(graph)
     }
-
 }

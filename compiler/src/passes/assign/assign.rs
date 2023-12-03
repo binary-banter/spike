@@ -1,8 +1,8 @@
 use crate::passes::assign::{Arg, FunAssigned, X86Assigned};
 use crate::passes::select::{Block, Instr, InstrSelected, VarArg, X86Selected};
 use crate::utils::gen_sym::UniqueSym;
-use std::collections::HashMap;
 use functor_derive::Functor;
+use std::collections::HashMap;
 
 impl<'p> X86Selected<'p> {
     #[must_use]

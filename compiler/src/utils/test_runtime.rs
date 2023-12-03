@@ -1,7 +1,7 @@
-use std::collections::HashMap;
-use crate::*;
 use crate::passes::select::{FunSelected, X86Selected};
 use crate::utils::gen_sym::gen_sym;
+use crate::*;
+use std::collections::HashMap;
 
 /// Adds runtime for testing.
 pub fn add_runtime(program: &mut X86Selected) {
@@ -9,10 +9,7 @@ pub fn add_runtime(program: &mut X86Selected) {
     let entry = gen_sym("entry");
     let exit = gen_sym("exit");
 
-    let entry_block = block!(
-        callq_direct!(program.entry, 0),
-        jmp!(exit)
-    );
+    let entry_block = block!(callq_direct!(program.entry, 0), jmp!(exit));
     let exit_block = block!(
         movq!(reg!(RAX), reg!(RDI)),
         movq!(imm!(0x3C), reg!(RAX)),

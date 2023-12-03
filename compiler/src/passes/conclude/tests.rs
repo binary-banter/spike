@@ -1,13 +1,13 @@
 use crate::interpreter::TestIO;
+use crate::passes::conclude::X86Concluded;
 use crate::passes::parse::parse::parse_program;
-use crate::passes::select::X86Selected;
 use crate::utils::split_test::split_test;
 use test_each_file::test_each_file;
 
 fn conclude([test]: [&str; 1]) {
     let (input, expected_output, expected_return, _) = split_test(test);
 
-    let program: X86Selected = parse_program(test)
+    let program: X86Concluded = parse_program(test)
         .unwrap()
         .validate()
         .unwrap()
@@ -18,8 +18,7 @@ fn conclude([test]: [&str; 1]) {
         .select()
         .assign()
         .patch()
-        .conclude()
-        .into();
+        .conclude();
 
     let mut io = TestIO::new(input);
     let result = program.interpret(&mut io);

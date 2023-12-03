@@ -5,7 +5,7 @@ mod include_liveness;
 #[cfg(test)]
 mod tests;
 
-use crate::passes::select::{Block, FunSelected, InstrSelected, Reg, VarArg, X86Selected};
+use crate::passes::select::{Block, FunSelected, Instr, InstrSelected, Reg, VarArg, X86Selected};
 use crate::utils::gen_sym::UniqueSym;
 use derive_more::Display;
 use functor_derive::Functor;
@@ -24,6 +24,8 @@ pub struct FunAssigned<'p> {
     pub exit: UniqueSym<'p>,
     pub stack_space: usize,
 }
+
+pub type InstrAssigned<'p> = Instr<Arg, UniqueSym<'p>>;
 
 #[derive(Clone, Display)]
 pub enum Arg {
@@ -95,7 +97,6 @@ impl<'p> From<FunAssigned<'p>> for FunSelected<'p> {
         }
     }
 }
-
 
 impl<'p> From<X86Assigned<'p>> for X86Selected<'p> {
     fn from(value: X86Assigned<'p>) -> Self {

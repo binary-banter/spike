@@ -4,8 +4,8 @@ use crate::passes::conclude::X86Concluded;
 use crate::passes::select::{
     Block, Cnd, FunSelected, Instr, Reg, VarArg, X86Selected, CALLEE_SAVED, CALLER_SAVED,
 };
-use crate::passes::validate::TLit;
 use crate::utils::gen_sym::UniqueSym;
+use functor_derive::Functor;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt::Debug;
@@ -33,8 +33,10 @@ pub struct IStats {
 }
 
 pub struct X86Interpreter<'p, I: IO> {
-    pub fns: &'p HashMap<UniqueSym<'p>, FunSelected<'p>>,
-    pub blocks: &'p HashMap<UniqueSym<'p>, &'p Block<'p, VarArg<UniqueSym<'p>>>>,
+    /// Maps labels to entry points.
+    pub entries: &'p HashMap<UniqueSym<'p>, UniqueSym<'p>>,
+    pub blocks: &'p HashMap<UniqueSym<'p>, Block<'p, VarArg<UniqueSym<'p>>>>,
+    pub block_ids: HashMap<usize, UniqueSym<'p>>,
     pub io: &'p mut I,
     /// Registers (`Reg`) mapped to their values in memory.
     pub regs: HashMap<Reg, i64>,
@@ -42,46 +44,60 @@ pub struct X86Interpreter<'p, I: IO> {
     pub vars: HashMap<UniqueSym<'p>, i64>,
     pub var_stack: Vec<HashMap<UniqueSym<'p>, i64>>,
     pub memory: HashMap<i64, i64>,
-    pub block_ids: HashMap<usize, UniqueSym<'p>>,
     /// Status register.
     pub status: Status,
     /// Stats for bencher.
     pub stats: IStats,
 }
 
+impl<'p, I: IO> X86Interpreter<'p, I> {
+    fn new(
+        entries: &'p HashMap<UniqueSym<'p>, UniqueSym<'p>>,
+        blocks: &'p HashMap<UniqueSym<'p>, Block<'p, VarArg<UniqueSym<'p>>>>,
+        io: &'p mut I,
+    ) -> Self {
+        let block_ids = blocks.keys().map(|sym| (sym.id, *sym)).collect();
+
+        let mut regs = HashMap::from_iter(
+            CALLEE_SAVED
+                .into_iter()
+                .chain(CALLER_SAVED.into_iter())
+                .map(|reg| (reg, 0)),
+        );
+
+        regs.insert(Reg::RBP, i64::MAX - 7);
+        regs.insert(Reg::RSP, i64::MAX - 7);
+
+        Self {
+            entries,
+            blocks,
+            block_ids,
+            io,
+            regs,
+            vars: Default::default(),
+            var_stack: Default::default(),
+            memory: Default::default(),
+            status: Default::default(),
+            stats: Default::default(),
+        }
+    }
+}
+
 impl<'p> X86Concluded<'p> {
     pub fn interpret_with_stats(&self, io: &mut impl IO) -> (i64, IStats) {
-        // let block_ids = self.blocks.keys().map(|sym| (sym.id, *sym)).collect();
-        //
-        // let mut regs = HashMap::new();
-        // for reg in CALLEE_SAVED.into_iter().chain(CALLER_SAVED.into_iter()) {
-        //     regs.insert(reg, 0);
-        // }
-        //
-        // let mut state = X86Interpreter {
-        //     // todo: remove this clone
-        //     blocks: &self
-        //         .blocks
-        //         .clone()
-        //         .into_iter()
-        //         .map(|(sym, block)| (sym, block.fmap(Into::into)))
-        //         .collect(),
-        //     io,
-        //     regs,
-        //     vars: HashMap::default(),
-        //     var_stack: vec![],
-        //     memory: HashMap::default(),
-        //     block_ids,
-        //     read_buffer: Vec::new(),
-        //     write_buffer: Vec::new(),
-        //     status: Status::default(),
-        //     stats: IStats::default(),
-        // };
-        //
-        // let val = state.interpret_block(self.entry, 0);
-        // (val, state.stats)
+        let entries = self.blocks.iter().map(|(&k, v)| (k, k)).collect();
 
-        todo!()
+        let blocks = self
+            .blocks
+            .clone()
+            .into_iter()
+            .map(|(sym, block)| (sym, block.fmap(Into::into)))
+            .collect();
+
+        let mut state = X86Interpreter::new(&entries, &blocks, io);
+
+        let val = state.run(self.entry);
+        (val, state.stats)
     }
 
     pub fn interpret(&self, io: &mut impl IO) -> i64 {
@@ -91,42 +107,27 @@ impl<'p> X86Concluded<'p> {
 
 impl<'p> X86Selected<'p> {
     pub fn interpret(&self, io: &mut impl IO) -> i64 {
-        let mut regs = HashMap::new();
-        for reg in CALLEE_SAVED.into_iter().chain(CALLER_SAVED.into_iter()) {
-            regs.insert(reg, 0);
-        }
-
-        // We give 0x1000 stack space to test programs - this might not be enough (you weirdos)!
-        regs.insert(Reg::RBP, i64::MAX - 7);
-        regs.insert(Reg::RSP, (i64::MAX - 7) - 0x1000);
+        let entries = self
+            .fns
+            .iter()
+            .map(|(&fun_sym, fun)| (fun_sym, fun.entry))
+            .collect();
 
         let blocks: HashMap<_, _> = self
             .fns
             .values()
-            .flat_map(|fun| fun.blocks.iter().map(|(&k, v)| (k, v)))
+            .flat_map(|fun| fun.blocks.iter().map(|(&k, v)| (k, v.clone())))
             .collect();
-        let block_ids = blocks.keys().map(|sym| (sym.id, *sym)).collect();
 
-        let mut state = X86Interpreter {
-            fns: &self.fns,
-            blocks: &blocks,
-            io,
-            regs,
-            vars: HashMap::default(),
-            var_stack: vec![],
-            memory: HashMap::default(),
-            block_ids,
-            status: Default::default(),
-            stats: IStats::default(),
-        };
+        let mut state = X86Interpreter::new(&entries, &blocks, io);
 
         state.run(self.entry)
     }
 }
 
 impl<'p, I: IO> X86Interpreter<'p, I> {
-    fn run(&mut self, fn_entry: UniqueSym<'p>) -> i64 {
-        let mut block_sym = self.fns[&fn_entry].entry;
+    fn run(&mut self, entry: UniqueSym<'p>) -> i64 {
+        let mut block_sym = self.entries[&entry];
         let mut instr_id = 0;
 
         loop {
@@ -137,12 +138,8 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                 Instr::Subq { src, dst } => {
                     self.set_arg(dst, self.get_arg(dst) - self.get_arg(src));
                 }
-                Instr::Negq { dst } => {
-                    self.set_arg(dst, -self.get_arg(dst))
-                },
-                Instr::Movq { src, dst } => {
-                    self.set_arg(dst, self.get_arg(src))
-                },
+                Instr::Negq { dst } => self.set_arg(dst, -self.get_arg(dst)),
+                Instr::Movq { src, dst } => self.set_arg(dst, self.get_arg(src)),
                 Instr::Pushq { src } => {
                     let rsp = self.regs.get_mut(&Reg::RSP).unwrap();
                     assert_eq!(*rsp % 8, 0, "Misaligned stack pointer.");
@@ -158,7 +155,7 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                 Instr::Jmp { lbl } => {
                     block_sym = *lbl;
                     instr_id = 0;
-                    continue
+                    continue;
                 }
                 Instr::Retq => {
                     let rsp = self.regs[&Reg::RSP];
@@ -172,15 +169,13 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                     );
 
                     (block_sym, instr_id) = self.destruct_addr(addr);
-                    continue
+                    continue;
                 }
-                Instr::Syscall { .. } => {
-                    match self.regs[&Reg::RAX] {
-                        0x00 => self.syscall_read(),
-                        0x01 => self.syscall_write(),
-                        0x3C => return self.regs[&Reg::RDI],
-                        _ => unreachable!(),
-                    }
+                Instr::Syscall { .. } => match self.regs[&Reg::RAX] {
+                    0x00 => self.syscall_read(),
+                    0x01 => self.syscall_write(),
+                    0x3C => return self.regs[&Reg::RDI],
+                    _ => unreachable!(),
                 },
                 Instr::Divq { divisor } => {
                     let rax = self.regs[&Reg::RAX];
@@ -205,7 +200,7 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                     if self.evaluate_cnd(*cnd) {
                         block_sym = *lbl;
                         instr_id = 0;
-                        continue
+                        continue;
                     }
                 }
                 Instr::Cmpq { src, dst } => {
@@ -234,21 +229,17 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                 Instr::Andq { src, dst } => {
                     self.set_arg(dst, self.get_arg(src) & self.get_arg(dst));
                 }
-                Instr::Orq { src, dst } => {
-                    self.set_arg(dst, self.get_arg(src) | self.get_arg(dst))
-                },
+                Instr::Orq { src, dst } => self.set_arg(dst, self.get_arg(src) | self.get_arg(dst)),
                 Instr::Xorq { src, dst } => {
                     self.set_arg(dst, self.get_arg(src) ^ self.get_arg(dst));
                 }
-                Instr::Notq { dst } => {
-                    self.set_arg(dst, !self.get_arg(dst))
-                },
+                Instr::Notq { dst } => self.set_arg(dst, !self.get_arg(dst)),
                 Instr::Setcc { cnd } => {
                     let rax = self.regs[&Reg::RAX];
                     let cnd = i64::from(self.evaluate_cnd(*cnd));
                     self.regs.insert(Reg::RAX, rax & !0xFF | cnd);
                 }
-                Instr::LoadLbl { sym, dst } => {
+                Instr::LoadLbl { lbl: sym, dst } => {
                     let val = self.fn_to_addr(*sym);
                     self.set_arg(dst, val);
                 }
@@ -264,7 +255,7 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                     self.var_stack.push(mem::take(&mut self.vars));
 
                     (block_sym, instr_id) = self.destruct_addr(self.fn_to_addr(*lbl));
-                    continue
+                    continue;
                 }
                 Instr::CallqIndirect { src, .. } => {
                     let ret_addr = self.instr_to_addr(block_sym, instr_id + 1);
@@ -280,7 +271,7 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
                     self.var_stack.push(mem::take(&mut self.vars));
 
                     (block_sym, instr_id) = self.destruct_addr(target);
-                    continue
+                    continue;
                 }
             }
             instr_id += 1;
@@ -294,8 +285,8 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
     }
 
     /// Turns a function label into its address.
-    fn fn_to_addr(&self, fn_name: UniqueSym) -> i64 {
-        self.instr_to_addr(self.fns[&fn_name].entry, 0)
+    fn fn_to_addr(&self, entry: UniqueSym) -> i64 {
+        self.instr_to_addr(self.entries[&entry], 0)
     }
 
     /// Destructures into a block label and instruction index.

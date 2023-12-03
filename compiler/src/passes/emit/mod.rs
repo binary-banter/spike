@@ -111,7 +111,7 @@ fn emit_instr<'p>(
             },
             src,
         ),
-        Instr::LoadLbl { sym, dst } => {
+        Instr::LoadLbl { lbl: sym, dst } => {
             // todo: this offset is *only* correct when dst is a register!
             assert!(matches!(dst, Arg::Reg { .. }));
             abs_jumps.insert(machine_code.len() + 3, *sym);

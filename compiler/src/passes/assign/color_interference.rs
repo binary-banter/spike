@@ -1,5 +1,5 @@
 use crate::passes::assign::{Arg, InterferenceGraph, LArg};
-use crate::passes::select::{CALLEE_SAVED_NO_STACK, Reg};
+use crate::passes::select::{Reg, CALLEE_SAVED_NO_STACK};
 use crate::utils::gen_sym::UniqueSym;
 use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
@@ -107,7 +107,7 @@ fn arg_from_color(i: isize) -> Arg {
             );
             Arg::Deref {
                 reg: Reg::RBP,
-                off: - 8 * ((i - 10) as i64 + CALLEE_SAVED_NO_STACK.len() as i64),
+                off: -8 * ((i - 10) as i64 + CALLEE_SAVED_NO_STACK.len() as i64),
             }
         }
     }

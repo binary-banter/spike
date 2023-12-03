@@ -1,9 +1,9 @@
 use crate::interpreter::TestIO;
 use crate::passes::parse::parse::parse_program;
 use crate::utils::split_test::split_test;
+use crate::utils::test_runtime::add_runtime;
 use crate::*;
 use test_each_file::test_each_file;
-use crate::utils::test_runtime::add_runtime;
 
 fn select([test]: [&str; 1]) {
     let (input, expected_output, expected_return, _) = split_test(test);

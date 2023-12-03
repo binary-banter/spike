@@ -30,8 +30,7 @@ fn select_fun(fun: FunEliminated) -> FunSelected {
     let mut blocks = HashMap::new();
 
     // Function entry & exit
-    let intro = intro_block(&fun, &mut blocks);
-    let entry = entry_block(&mut blocks, intro);
+    let entry = entry_block(&fun, &mut blocks);
     let exit = exit_block(&mut blocks);
 
     for (block_sym, block) in fun.blocks {
@@ -49,8 +48,8 @@ fn select_fun(fun: FunEliminated) -> FunSelected {
 
 /// Creates an entry block for the function.
 fn entry_block<'p>(
+    fun: &FunEliminated<'p>,
     blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg<UniqueSym<'p>>>>,
-    intro: UniqueSym<'p>,
 ) -> UniqueSym<'p> {
     let entry = gen_sym("entry");
     let mut instrs = Vec::new();
@@ -64,17 +63,8 @@ fn entry_block<'p>(
         instrs.push(pushq!(VarArg::Reg { reg }));
     }
 
-    instrs.push(jmp!(intro));
-    blocks.insert(entry, Block { instrs });
-    entry
-}
-
-fn intro_block<'p> (
-    fun: &FunEliminated<'p>,
-    blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg<UniqueSym<'p>>>>,
-) -> UniqueSym<'p> {
-    let intro = gen_sym("intro");
-    let mut instrs = Vec::new();
+    // Prepare temporary stack space - this will be optimized in later passes.
+    instrs.push(subq!(imm!(0x1000), reg!(RSP)));
 
     // Introduce parameters as local variables.
     for (reg, param) in CALLER_SAVED.into_iter().zip(fun.params.iter()) {
@@ -88,8 +78,8 @@ fn intro_block<'p> (
 
     // Jump to core of the function - this was previously called "entry".
     instrs.push(jmp!(fun.entry));
-    blocks.insert(intro, Block { instrs });
-    intro
+    blocks.insert(entry, Block { instrs });
+    entry
 }
 
 /// Creates an exit block for the function.
@@ -98,6 +88,9 @@ fn exit_block<'p>(
 ) -> UniqueSym<'p> {
     let exit = gen_sym("exit");
     let mut instrs = Vec::new();
+
+    // Restore temporary stack space.
+    instrs.push(addq!(imm!(0x1000), reg!(RSP)));
 
     // Restore callee-saved registers (excluding stack pointers).
     for reg in CALLEE_SAVED_NO_STACK.into_iter().rev() {

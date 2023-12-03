@@ -3,9 +3,9 @@ use crate::passes::parse::parse::parse_program;
 use crate::passes::select::X86Selected;
 use crate::utils::gen_sym::gen_sym;
 use crate::utils::split_test::split_test;
+use crate::utils::test_runtime::add_runtime;
 use crate::{block, callq_direct, movq, reg};
 use test_each_file::test_each_file;
-use crate::utils::test_runtime::add_runtime;
 
 fn assign([test]: [&str; 1]) {
     let (input, expected_output, expected_return, _) = split_test(test);

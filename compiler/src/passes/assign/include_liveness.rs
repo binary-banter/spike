@@ -1,10 +1,12 @@
 use crate::utils::gen_sym::UniqueSym;
 
 use crate::passes::assign::{LArg, LBlock, LFun, LX86VarProgram};
-use crate::passes::select::{Block, Instr, InstrSelected, Reg, VarArg, X86Selected, CALLER_SAVED, SYSCALL_REGS, FunSelected};
+use crate::passes::select::{
+    Block, FunSelected, Instr, InstrSelected, Reg, VarArg, X86Selected, CALLER_SAVED, SYSCALL_REGS,
+};
+use functor_derive::Functor;
 use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet};
-use functor_derive::Functor;
 
 impl<'p> X86Selected<'p> {
     #[must_use]

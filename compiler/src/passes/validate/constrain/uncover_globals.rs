@@ -42,7 +42,7 @@ pub fn uncover_globals<'p>(
                 span1: prev_span,
                 span2: sym.meta,
                 sym: sym.inner.sym.to_string(),
-            })
+            });
         }
     }
 

@@ -2,8 +2,8 @@ use crate::passes::validate::TLit;
 use crate::utils::gen_sym::UniqueSym;
 use derive_more::Display;
 use std::collections::HashMap;
-use zerocopy::AsBytes;
 use std::vec::IntoIter;
+use zerocopy::AsBytes;
 
 pub trait IO {
     fn read(&mut self) -> Option<u8>;
@@ -41,7 +41,7 @@ impl IO for TestIO {
                 self.read_buffer = format!("{}\n", read.int()).into_bytes();
                 self.read_buffer.reverse();
             } else {
-                return None
+                return None;
             }
         }
 

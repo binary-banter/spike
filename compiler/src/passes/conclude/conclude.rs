@@ -1,46 +1,74 @@
-use functor_derive::Functor;
+use crate::passes::assign::{Arg, InstrAssigned};
 use crate::passes::conclude::X86Concluded;
 use crate::passes::patch::X86Patched;
+use crate::passes::select::{Block, Instr};
 use crate::utils::gen_sym::gen_sym;
 use crate::*;
-use crate::passes::select::CALLEE_SAVED_NO_STACK;
+use itertools::Itertools;
+use std::collections::HashMap;
 
 impl<'p> X86Patched<'p> {
     #[must_use]
-    pub fn conclude(mut self) -> X86Concluded<'p> {
-        // let blocks = self.fns.into_iter().flat_map(|(_, mut fun)| {
-        //     // fun.blocks.get_mut(&fun.entry).unwrap().instrs.(2 + CALLEE_SAVED_NO_STACK.len(), )
-        //
-        //     fun.blocks.into_iter().map(|(block_sym, block)| {
-        //         // let block = match block_sym {
-        //         //     s if s == fun.entry => ,
-        //         //     s if s == fun.exit => todo!(),
-        //         //     _ => block,
-        //         // };
-        //
-        //         (block_sym, block)
-        //     })
-        // }).collect();
+    pub fn conclude(self) -> X86Concluded<'p> {
+        let entries = self
+            .fns
+            .iter()
+            .map(|(sym, f)| (*sym, f.entry))
+            .collect::<HashMap<_, _>>();
 
-        // let entry = gen_sym("main");
-        // self.blocks.insert(
-        //     entry,
-        //     block!(
-        //         pushq!(reg!(RBP)),
-        //         movq!(reg!(RSP), reg!(RBP)),
-        //         subq!(imm!(self.stack_space as i64), reg!(RSP)),
-        //         callq_direct!(self.entry, 0),
-        //         movq!(reg!(RAX), reg!(RDI)),
-        //         addq!(imm!(self.stack_space as i64), reg!(RSP)),
-        //         popq!(reg!(RBP)),
-        //         callq_direct!(self.std["exit"], 1)
-        //     ),
-        // );
+        let mut blocks = self
+            .fns
+            .into_iter()
+            .flat_map(|(_, mut fun)| {
+                fix_stack_space(fun.blocks.get_mut(&fun.entry).unwrap(), fun.stack_space);
+                fix_stack_space(fun.blocks.get_mut(&fun.exit).unwrap(), fun.stack_space);
 
-        todo!()
-        // X86Concluded {
-        //     blocks,
-        //     entry,
-        // }
+                // Replace calls to function labels with calls to the entries of those functions.
+                fun.blocks.into_iter().map(|(block_sym, mut block)| {
+                    for instr in &mut block.instrs {
+                        match instr {
+                            Instr::CallqDirect { lbl, .. } | Instr::LoadLbl { lbl, .. } => {
+                                *lbl = entries[&lbl];
+                            }
+                            _ => {}
+                        }
+                    }
+                    (block_sym, block)
+                })
+            })
+            .collect::<HashMap<_, _>>();
+
+        let entry = gen_sym("runtime");
+        blocks.insert(
+            entry,
+            block!(
+                callq_direct!(entries[&self.entry], 0),
+                movq!(reg!(RAX), reg!(RDI)),
+                movq!(imm!(0x3C), reg!(RAX)),
+                syscall!(2)
+            ),
+        );
+
+        X86Concluded { blocks, entry }
+    }
+}
+
+/// Fixes stack allocation for spilled variables.
+fn fix_stack_space(block: &mut Block<Arg>, stack_space: usize) {
+    for instr in &mut block.instrs {
+        match instr {
+            InstrAssigned::Addq {
+                src: Arg::Imm { val },
+                ..
+            }
+            | InstrAssigned::Subq {
+                src: Arg::Imm { val },
+                ..
+            } => {
+                assert_eq!(*val, 0x1000);
+                *val = stack_space as i64;
+            }
+            _ => {}
+        }
     }
 }

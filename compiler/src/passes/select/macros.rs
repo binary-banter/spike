@@ -106,7 +106,7 @@ macro_rules! movq {
 macro_rules! load_lbl {
     ($lbl:expr, $dst: expr) => {
         $crate::passes::select::Instr::LoadLbl {
-            sym: $lbl,
+            lbl: $lbl,
             dst: $dst,
         }
     };

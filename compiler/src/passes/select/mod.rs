@@ -92,8 +92,8 @@ pub enum Instr<Arg: Display, IdentVars: Display> {
     Notq { dst: Arg },
     #[display(fmt = "setcc\t{cnd}")]
     Setcc { cnd: Cnd }, //TODO allow setting other byteregs
-    #[display(fmt = "loadlbl\t{sym} {dst}")]
-    LoadLbl { sym: IdentVars, dst: Arg },
+    #[display(fmt = "loadlbl\t{lbl} {dst}")]
+    LoadLbl { lbl: IdentVars, dst: Arg },
     #[display(fmt = "call_direct\t{lbl} {arity}")]
     CallqDirect { lbl: IdentVars, arity: usize },
     #[display(fmt = "call_indirect\t{src} {arity}")]
