@@ -383,8 +383,8 @@ impl<'p, I: IO> X86Interpreter<'p, I> {
         let val = *self.memory.get(&buffer).unwrap();
         match val as u8 {
             b'\n' => {
-                let val = std::str::from_utf8(self.write_buffer.as_bytes())
-                    .unwrap()
+                let val = dbg!(std::str::from_utf8(self.write_buffer.as_bytes())
+                    .unwrap())
                     .parse()
                     .unwrap();
                 self.io.print(TLit::I64 { val });

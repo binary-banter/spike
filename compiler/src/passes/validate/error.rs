@@ -20,12 +20,6 @@ pub enum TypeError {
         span2: (usize, usize),
         sym: String,
     },
-    #[error("Duplicate global definition.")]
-    DuplicateGlobalBuiltin {
-        #[label = "Global `{sym}` conflicts with a builtin definition."]
-        span: (usize, usize),
-        sym: String,
-    },
     #[error("Duplicate argument name.")]
     DuplicateArg {
         #[label = "Argument `{sym}` was first declared here"]

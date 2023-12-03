@@ -1,25 +1,34 @@
-use crate::passes::assign::{Arg, X86Assigned};
+use crate::passes::assign::{Arg, FunAssigned, X86Assigned};
 use crate::passes::select::{Block, Instr, InstrSelected, VarArg, X86Selected};
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
+use functor_derive::Functor;
 
 impl<'p> X86Selected<'p> {
     #[must_use]
     pub fn assign(self) -> X86Assigned<'p> {
         let program = self.include_liveness();
-        let interference = program.compute_interference();
-        let (color_map, stack_space) = interference.color();
+        let fns = program.fns.fmap(|fun| {
+            let interference = fun.compute_interference();
+            let (color_map, stack_space) = interference.color();
 
-        let blocks = program
-            .blocks
-            .into_iter()
-            .map(|(lbl, block)| (lbl, assign_block(block.into(), &color_map)))
-            .collect();
+            let blocks = fun
+                .blocks
+                .into_iter()
+                .map(|(lbl, block)| (lbl, assign_block(block.into(), &color_map)))
+                .collect();
+
+            FunAssigned {
+                blocks,
+                entry: fun.entry,
+                exit: fun.exit,
+                stack_space,
+            }
+        });
 
         X86Assigned {
-            blocks,
+            fns,
             entry: program.entry,
-            stack_space,
         }
     }
 }

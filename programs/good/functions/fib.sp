@@ -1,4 +1,4 @@
-//* ret: 21
+//* ret: 34
 fn fib(n: I64) -> I64 {
     if n <= 1 {
         if n  == 0 { 0 } else { 1 }
@@ -7,5 +7,5 @@ fn fib(n: I64) -> I64 {
     }
 }
 fn main() -> I64 {
-    fib(8)
+    fib(9)
 }

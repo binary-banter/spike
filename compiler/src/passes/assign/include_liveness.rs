@@ -1,62 +1,67 @@
 use crate::utils::gen_sym::UniqueSym;
 
-use crate::passes::assign::{LArg, LBlock, LX86VarProgram};
-use crate::passes::select::{
-    Block, Instr, InstrSelected, Reg, VarArg, X86Selected, CALLER_SAVED, SYSCALL_REGS,
-};
+use crate::passes::assign::{LArg, LBlock, LFun, LX86VarProgram};
+use crate::passes::select::{Block, Instr, InstrSelected, Reg, VarArg, X86Selected, CALLER_SAVED, SYSCALL_REGS, FunSelected};
 use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet};
+use functor_derive::Functor;
 
 impl<'p> X86Selected<'p> {
     #[must_use]
     pub(super) fn include_liveness(self) -> LX86VarProgram<'p> {
-        // // maps block names to what is live before the block
-        // let mut before_map = HashMap::<UniqueSym, HashSet<LArg>>::new();
-        // // maps block names to blocks with liveness info added
-        // let mut liveness = HashMap::<UniqueSym, LBlock>::new();
-        //
-        // let mut changed = true;
-        //
-        // while changed {
-        //     changed = false;
-        //
-        //     for (sym, block) in &self.blocks {
-        //         let (new_liveness, before) = block_liveness(block, &before_map);
-        //
-        //         match before_map.entry(*sym) {
-        //             Entry::Occupied(mut e) => {
-        //                 if e.get() != &before {
-        //                     changed = true;
-        //                     e.insert(before);
-        //                 }
-        //             }
-        //             Entry::Vacant(e) => {
-        //                 changed = true;
-        //                 e.insert(before);
-        //             }
-        //         }
-        //
-        //         match liveness.get(sym) {
-        //             None => {
-        //                 liveness.insert(*sym, new_liveness);
-        //                 changed = true;
-        //             }
-        //             Some(old_liveness) => {
-        //                 if *old_liveness != new_liveness {
-        //                     liveness.insert(*sym, new_liveness);
-        //                     changed = true;
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
-        //
-        // LX86VarProgram {
-        //     blocks: liveness,
-        //     entry: self.entry,
-        //     std: self.std,
-        // }
-        todo!()
+        LX86VarProgram {
+            fns: self.fns.fmap(fn_liveness),
+            entry: self.entry,
+        }
+    }
+}
+
+fn fn_liveness(fun: FunSelected) -> LFun {
+    // maps block names to what is live before the block
+    let mut before_map = HashMap::<UniqueSym, HashSet<LArg>>::new();
+    // maps block names to blocks with liveness info added
+    let mut liveness = HashMap::<UniqueSym, LBlock>::new();
+
+    let mut changed = true;
+
+    while changed {
+        changed = false;
+
+        for (sym, block) in &fun.blocks {
+            let (new_liveness, before) = block_liveness(block, &before_map);
+
+            match before_map.entry(*sym) {
+                Entry::Occupied(mut e) => {
+                    if e.get() != &before {
+                        changed = true;
+                        e.insert(before);
+                    }
+                }
+                Entry::Vacant(e) => {
+                    changed = true;
+                    e.insert(before);
+                }
+            }
+
+            match liveness.get(sym) {
+                None => {
+                    liveness.insert(*sym, new_liveness);
+                    changed = true;
+                }
+                Some(old_liveness) => {
+                    if *old_liveness != new_liveness {
+                        liveness.insert(*sym, new_liveness);
+                        changed = true;
+                    }
+                }
+            }
+        }
+    }
+
+    LFun {
+        blocks: liveness,
+        entry: fun.entry,
+        exit: fun.exit,
     }
 }
 

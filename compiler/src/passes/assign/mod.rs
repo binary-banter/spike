@@ -5,7 +5,7 @@ mod include_liveness;
 #[cfg(test)]
 mod tests;
 
-use crate::passes::select::{Block, InstrSelected, Reg, VarArg, X86Selected};
+use crate::passes::select::{Block, FunSelected, InstrSelected, Reg, VarArg, X86Selected};
 use crate::utils::gen_sym::UniqueSym;
 use derive_more::Display;
 use functor_derive::Functor;
@@ -14,8 +14,14 @@ use petgraph::Undirected;
 use std::collections::{HashMap, HashSet};
 
 pub struct X86Assigned<'p> {
+    pub fns: HashMap<UniqueSym<'p>, FunAssigned<'p>>,
+    pub entry: UniqueSym<'p>,
+}
+
+pub struct FunAssigned<'p> {
     pub blocks: HashMap<UniqueSym<'p>, Block<'p, Arg>>,
     pub entry: UniqueSym<'p>,
+    pub exit: UniqueSym<'p>,
     pub stack_space: usize,
 }
 
@@ -32,8 +38,14 @@ pub enum Arg {
 pub struct InterferenceGraph<'p>(GraphMap<LArg<'p>, (), Undirected>);
 
 pub struct LX86VarProgram<'p> {
+    pub fns: HashMap<UniqueSym<'p>, LFun<'p>>,
+    pub entry: UniqueSym<'p>,
+}
+
+pub struct LFun<'p> {
     pub blocks: HashMap<UniqueSym<'p>, LBlock<'p>>,
     pub entry: UniqueSym<'p>,
+    pub exit: UniqueSym<'p>,
 }
 
 #[derive(PartialEq)]
@@ -74,13 +86,22 @@ impl<'p> From<Arg> for VarArg<UniqueSym<'p>> {
     }
 }
 
+impl<'p> From<FunAssigned<'p>> for FunSelected<'p> {
+    fn from(value: FunAssigned<'p>) -> Self {
+        FunSelected {
+            blocks: value.blocks.fmap(|v| v.fmap(Into::into)),
+            entry: value.entry,
+            exit: value.exit,
+        }
+    }
+}
+
+
 impl<'p> From<X86Assigned<'p>> for X86Selected<'p> {
     fn from(value: X86Assigned<'p>) -> Self {
-        // X86Selected {
-        //     blocks: value.blocks.fmap(|v| v.fmap(Into::into)),
-        //     entry: value.entry,
-        //     std: value.std,
-        // }
-        todo!()
+        X86Selected {
+            fns: value.fns.fmap(Into::into),
+            entry: value.entry,
+        }
     }
 }

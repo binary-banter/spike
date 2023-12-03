@@ -37,20 +37,12 @@ pub fn uncover_globals<'p>(
     for def in &program.defs {
         let sym = def.sym();
 
-        if let Some(prev_span) = seen.insert(sym.inner.sym, Some(sym.meta)) {
-            let error = match prev_span {
-                Some(prev_span) => TypeError::DuplicateGlobal {
-                    span1: prev_span,
-                    span2: sym.meta,
-                    sym: sym.inner.sym.to_string(),
-                },
-                None => TypeError::DuplicateGlobalBuiltin {
-                    span: sym.meta,
-                    sym: sym.inner.sym.to_string(),
-                },
-            };
-
-            return Err(error);
+        if let Some(prev_span) = seen.insert(sym.inner.sym, sym.meta) {
+            return Err(TypeError::DuplicateGlobal {
+                span1: prev_span,
+                span2: sym.meta,
+                sym: sym.inner.sym.to_string(),
+            })
         }
     }
 

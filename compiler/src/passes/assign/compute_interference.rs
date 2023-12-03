@@ -1,11 +1,11 @@
 use crate::passes::assign::include_liveness::{handle_instr, ReadWriteOp};
-use crate::passes::assign::{InterferenceGraph, LArg, LX86VarProgram};
+use crate::passes::assign::{InterferenceGraph, LArg, LFun, LX86VarProgram};
 use crate::passes::select::VarArg;
 use petgraph::graphmap::GraphMap;
 use petgraph::Undirected;
 use std::collections::HashMap;
 
-impl<'p> LX86VarProgram<'p> {
+impl<'p> LFun<'p> {
     #[must_use]
     pub fn compute_interference(&self) -> InterferenceGraph<'p> {
         let mut graph = GraphMap::<LArg<'p>, (), Undirected>::new();
@@ -39,7 +39,8 @@ impl<'p> LX86VarProgram<'p> {
                 });
             }
         }
-
+        
         InterferenceGraph(graph)
     }
+
 }
