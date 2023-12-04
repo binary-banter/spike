@@ -55,9 +55,10 @@ cargo run -- input.sp -o output
 
 # AoC Wishlist for Christmas
 
-* Fixing that not very nice bug.
 * Pass raw strings for testing (allows testing AoC problems).
-* Compile + run
+* Exprs instead of syms in asm
+* And/or lazyness is ruined by atomize
+* U8
 
 # Fixes
 

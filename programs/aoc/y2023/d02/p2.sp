@@ -1,11 +1,3 @@
-fn max(lhs: I64, rhs: I64) -> I64 {
-    if lhs >= rhs {
-        lhs
-    } else {
-        rhs
-    }
-}
-
 fn main() {
     let mut total = 0;
     let mut next = 0;
