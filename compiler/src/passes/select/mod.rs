@@ -134,12 +134,14 @@ pub const CALLEE_SAVED: [Reg; 7] = [
 ];
 pub const CALLEE_SAVED_NO_STACK: [Reg; 5] = [Reg::RBX, Reg::R12, Reg::R13, Reg::R14, Reg::R15];
 
+/// Refer to [this](https://blog.rchapman.org/posts/Linux_System_Call_Table_for_x86_64/) table and
+/// [this](https://man7.org/linux/man-pages/man2/intro.2.html) manual when writing Linux syscalls.
 pub const SYSCALL_REGS: [Reg; 7] = [
     Reg::RAX,
     Reg::RDI,
     Reg::RSI,
     Reg::RDX,
-    Reg::RCX,
+    Reg::R10,
     Reg::R8,
     Reg::R9,
 ];
