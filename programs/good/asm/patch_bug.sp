@@ -1,5 +1,5 @@
 // This test allocates every register and performs an instruction that will result in two operands being dereferences.
-//* out: 2 3 4 5 6 7 8 9 10 11 12 13 14 15
+//* out: 15 14 13 12 11 10 9 8 7 6 5 4 3 2
 fn main() {
     let mut res = 0i64;
     asm {
@@ -18,33 +18,24 @@ fn main() {
         movq $14 %R14
         movq $15 %R15
         movq {res} {res}
+        pushq %RAX
+        pushq %RBX
+        pushq %RCX
+        pushq %RDX
+        pushq %RSI
+        pushq %RDI
+        pushq %R8
+        pushq %R9
+        pushq %R10
+        pushq %R11
+        pushq %R12
+        pushq %R13
+        pushq %R14
+        pushq %R15
     };
-    asm { movq %RAX {res} };
-    print(res);
-    asm { movq %RBX {res} };
-    print(res);
-    asm { movq %RCX {res} };
-    print(res);
-    asm { movq %RDX {res} };
-    print(res);
-    asm { movq %RSI {res} };
-    print(res);
-    asm { movq %RDI {res} };
-    print(res);
-    asm { movq %R8 {res} };
-    print(res);
-    asm { movq %R9 {res} };
-    print(res);
-    asm { movq %R10 {res} };
-    print(res);
-    asm { movq %R11 {res} };
-    print(res);
-    asm { movq %R12 {res} };
-    print(res);
-    asm { movq %R13 {res} };
-    print(res);
-    asm { movq %R14 {res} };
-    print(res);
-    asm { movq %R15 {res} };
-    print(res);
+    let mut i = 14i64;
+    while (i = i - 1; i >= 0) {
+        asm { popq {res} };
+        print(res);
+    };
 }

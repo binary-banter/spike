@@ -2,7 +2,7 @@ use crate::passes::assign::{Arg, FunAssigned, X86Assigned};
 use crate::passes::patch::X86Patched;
 use crate::passes::select::{Block, Instr};
 use crate::utils::gen_sym::UniqueSym;
-use crate::{addq, movq, reg, subq};
+use crate::{addq, movq, popq, pushq, reg, subq};
 use functor_derive::Functor;
 
 impl<'p> X86Assigned<'p> {
@@ -53,7 +53,12 @@ fn patch_args<'p>(
     op: fn(Arg, Arg) -> Instr<Arg, UniqueSym<'p>>,
 ) -> Vec<Instr<Arg, UniqueSym<'p>>> {
     match (&src, &dst) {
-        (Arg::Deref { .. }, Arg::Deref { .. }) => vec![movq!(src, reg!(RAX)), op(reg!(RAX), dst)],
+        (Arg::Deref { .. }, Arg::Deref { .. }) => vec![
+            pushq!(reg!(R8)),
+            movq!(src, reg!(R8)),
+            op(reg!(R8), dst),
+            popq!(reg!(R8)),
+        ],
         _ => vec![op(src, dst)],
     }
 }

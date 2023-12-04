@@ -26,7 +26,7 @@ fn print_char(v: I64) {
         movq $1 %RDI    // stdout
         movq %RSP %RSI  // print char on top of stack
         movq $1 %RDX    // print 1 byte
-        syscall 4       // arity of 4
+        syscall 4
         addq $8 %RSP    // reset stack
     };
 }

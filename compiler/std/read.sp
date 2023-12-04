@@ -35,9 +35,9 @@ fn read_char() -> I64 {
         movq $0 %RDI    // stdin
         movq %RSP %RSI  // put read char at top of stack
         movq $1 %RDX    // read 1 byte
-        syscall 4       // arity of 4
+        syscall 4
         movq %RAX {res} // result of system call
-    popq {v}        // pop read char
+        popq {v}        // pop read char
     };
     if res == 0 {
         return res
