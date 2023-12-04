@@ -59,6 +59,7 @@ cargo run -- input.sp -o output
 * Exprs instead of syms in asm
 * And/or lazyness is ruined by atomize
 * U8
+* += *= etc.
 
 # Fixes
 
@@ -96,3 +97,4 @@ cargo run -- input.sp -o output
 * [ ] Nested definitions.
 * [ ] Match statements.
 * [ ] LSP.
+* [ ] GDB

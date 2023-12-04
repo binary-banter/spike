@@ -99,7 +99,7 @@ pub fn encode_binary_instr(op_info: BinaryOpInfo, src: &Arg, dst: &Arg) -> Vec<u
                 op_info.r_rm,
                 0b10_000_000 | sss << 3 | ddd,
             ];
-            if matches!(src, Reg::RSP | Reg::R12) {
+            if matches!(dst, Reg::RSP | Reg::R12) {
                 v.push(0x24);
             }
             v.extend(off.to_le_bytes());
@@ -242,6 +242,11 @@ mod tests {
             reg_deref1,
             movq!(reg!(RCX), deref!(R15, i32::MAX as i64)),
             vec![0x49, 0x89, 0x8F, 0xFF, 0xFF, 0xFF, 0x7F]
+        );
+        check!(
+            reg_deref2,
+            movq!(reg!(R12), deref!(RBP, -56)),
+            vec![0x4C, 0x89, 0xA5, 0xC8, 0xFF, 0xFF, 0xFF]
         );
         check!(
             imm_deref1,
