@@ -180,6 +180,7 @@ Type: Type<Spanned<&'input str>> = {
 Expr = ExprStmt;
 
 ExprStmt: ExprParsed<'input> = {
+    ";" => ExprParsed::Lit { val: Lit::Unit },
     "let" <mutable:"mut"?> <sym:Ident> <typ:(":" <Type>)?> "=" <bnd:Spanned<ExprLogicalOr<Struct>>> ";" <bdy:Spanned<ExprStmt?>> => ExprParsed::Let {
         sym,
         mutable: mutable.is_some(),
@@ -187,23 +188,24 @@ ExprStmt: ExprParsed<'input> = {
         bnd: Box::new(bnd),
         bdy: Box::new(bdy.fmap(|bdy| bdy.unwrap_or(ExprParsed::Lit { val: Lit::Unit }))),
     },
-    <stmt:Spanned<ExprInStmt>> ";" <cnt:Spanned<ExprStmt?>> => ExprParsed::Seq {
+    <stmt:Spanned<ExprWithBlock>> ";"? <cnt:Spanned<ExprStmt>> => ExprParsed::Seq {
+        stmt: Box::new(stmt),
+        cnt: Box::new(cnt),
+    },
+    <stmt:Spanned<ExprWithoutBlock>> ";" <cnt:Spanned<ExprStmt?>> => ExprParsed::Seq {
         stmt: Box::new(stmt),
         cnt: Box::new(cnt.fmap(|cnt| cnt.unwrap_or(ExprParsed::Lit { val: Lit::Unit }))),
     },
-    ExprInStmt,
+    ExprWithBlock,
+    ExprWithoutBlock,
 }
 
-ExprInStmt: ExprParsed<'input> = {
-    <sym:Ident> "=" <bnd:Spanned<ExprLogicalOr<Struct>>> => ExprParsed::Assign {
-        sym,
-        bnd: Box::new(bnd),
-    },
+ExprWithBlock: ExprParsed<'input> = {
     ExprIf,
-    "loop" "{" <bdy:Spanned<Expr>> "}" => ExprParsed::Loop {
-        bdy: Box::new(bdy),
+    "loop" "{" <bdy:Spanned<Expr?>> "}" => ExprParsed::Loop {
+        bdy: Box::new(bdy.fmap(|cnt| cnt.unwrap_or(ExprParsed::Lit { val: Lit::Unit }))),
     },
-    // todo: the spans in this desugaring do not make a lot sense.
+    // todo: this should become a proper expression that gets "desugared" in its own pass
     <l:@L> "while" <r:@R> <cnd:Spanned<ExprLogicalOr<Never>>> "{" <bdy:Spanned<Expr>> "}" => ExprParsed::Loop {
         bdy: Box::new(Meta {
             meta: (l, r - l),
@@ -229,19 +231,11 @@ ExprInStmt: ExprParsed<'input> = {
             },
         }),
     },
+    "asm" "{" <instrs:AsmInstr*> "}" => ExprParsed::Asm { instrs },
     "switch" <enm:Spanned<ExprLogicalOr<Never>>> "{" <arms:Comma<(<Ident> "(" <Ident> ")" "=>" <Spanned<Expr>> )>> "}"  => ExprParsed::Switch {
         enm: Box::new(enm),
         arms: arms.into_iter().map(|(s1, s2, e)| (s1, s2, Box::new(e))).collect(),
-     },
-    "break" <bdy:Spanned<ExprLogicalOr<Struct>?>> => ExprParsed::Break {
-        bdy: Box::new(bdy.fmap(|bdy| bdy.unwrap_or(ExprParsed::Lit { val: Lit::Unit }))),
     },
-    "return" <bdy:Spanned<ExprLogicalOr<Struct>?>> => ExprParsed::Return {
-        bdy: Box::new(bdy.fmap(|bdy| bdy.unwrap_or(ExprParsed::Lit { val: Lit::Unit }))),
-    },
-    "continue" => ExprParsed::Continue,
-    "asm" "{" <instrs:AsmInstr*> "}" => ExprParsed::Asm { instrs },
-    ExprLogicalOr<Struct>,
 }
 
 ExprIf: ExprParsed<'input> = {
@@ -250,6 +244,21 @@ ExprIf: ExprParsed<'input> = {
         thn: Box::new(thn),
         els: Box::new(els.unwrap_or(Meta { meta: (l, r - l), inner: ExprParsed::Lit { val: Lit::Unit }})),
     },
+}
+
+ExprWithoutBlock: ExprParsed<'input> = {
+    <sym:Ident> "=" <bnd:Spanned<ExprLogicalOr<Struct>>> => ExprParsed::Assign {
+        sym,
+        bnd: Box::new(bnd),
+    },
+    "break" <bdy:Spanned<ExprLogicalOr<Struct>?>> => ExprParsed::Break {
+        bdy: Box::new(bdy.fmap(|bdy| bdy.unwrap_or(ExprParsed::Lit { val: Lit::Unit }))),
+    },
+    "return" <bdy:Spanned<ExprLogicalOr<Struct>?>> => ExprParsed::Return {
+        bdy: Box::new(bdy.fmap(|bdy| bdy.unwrap_or(ExprParsed::Lit { val: Lit::Unit }))),
+    },
+    "continue" => ExprParsed::Continue,
+    ExprLogicalOr<Struct>,
 }
 
 ExprIfElse: ExprParsed<'input> = {

@@ -6,8 +6,8 @@ fn main() -> I64 {
     while (x = read(); x != 0) {
         if x % 2 == 1 {
             continue;
-        };
+        }
         sum = sum + x
-    };
+    }
     sum
 }

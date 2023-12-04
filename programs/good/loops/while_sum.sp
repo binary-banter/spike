@@ -5,6 +5,6 @@ fn main() -> I64 {
     let mut sum = 0;
     while (x = read(); x != 0) {
         sum = sum + x
-    };
+    }
     sum
 }

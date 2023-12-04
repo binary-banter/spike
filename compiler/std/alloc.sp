@@ -20,10 +20,10 @@ fn malloc(size: I64) -> I64 {
         movq $0 %R9         // offset
         syscall 7
         movq %RAX {ptr}
-    };
+    }
     if ptr < 0 {
         print(ptr);
         exit(-1);
-    };
+    }
     ptr
 }

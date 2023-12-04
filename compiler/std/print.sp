@@ -6,7 +6,7 @@ fn print(mut v: I64) -> I64 {
         print_char(b'0');
     } else {
         _print_rec(v);
-    };
+    }
     print_char(b'\n');
     v
 }
@@ -14,7 +14,7 @@ fn print(mut v: I64) -> I64 {
 fn _print_rec(v: I64) {
     if v == 0 {
         return;
-    };
+    }
     _print_rec(v / 10);
     print_char((v % 10) + b'0');
 }

@@ -32,7 +32,7 @@ fn main() {
         pushq %R13
         pushq %R14
         pushq %R15
-    };
+    }
     let mut i = 14i64;
     while (i = i - 1; i >= 0) {
         asm { popq {res} };

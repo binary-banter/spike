@@ -1,5 +1,5 @@
 fn test() -> Never {
-    loop { 1i64 }
+    loop { }
 }
 
 fn main() -> Unit {

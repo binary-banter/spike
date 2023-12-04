@@ -21,7 +21,7 @@ fn main() {
             total = total + first * 10 + last;
             first = 0;
             continue
-        };
+        }
 
         let digit = (if x2 == b'o' && x3 == b'n' && x4 == b'e' { 1 }
         else if x2 == b't' && x3 == b'w' && x4 == b'o' { 2 }
@@ -37,8 +37,8 @@ fn main() {
 
         if first == 0 {
             first = digit;
-        };
+        }
         last = digit;
-    };
+    }
     print(total);
 }

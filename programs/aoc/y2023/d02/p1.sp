@@ -5,7 +5,7 @@ fn main() {
 
     while (next = read_char(); next != b'\0') {
         game = game + 1;
-        while (next = read_char(); next != b':') { unit };
+        while (next = read_char(); next != b':') { }
 
         let mut is_possible = true;
 
@@ -15,7 +15,7 @@ fn main() {
             let mut number = 0;
             while (next = read_char(); next >= b'0' && next <= b'9') {
                 number = number * 10 + next - b'0';
-            };
+            }
 
             next = read_char(); // r | g | b
 
@@ -42,14 +42,14 @@ fn main() {
                 next = read_char(); // e
             } else {
                 exit(1)
-            };
+            }
 
             next = read_char(); // newline | comma | semicolon
-        };
+        }
 
         if is_possible {
             total = total + game;
-        };
-    };
+        }
+    }
     print(total);
 }

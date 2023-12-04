@@ -8,7 +8,7 @@ fn read() -> I64 {
 
     if negative {
         next = read_char();
-    };
+    }
 
     let mut total = 0;
 
@@ -16,12 +16,12 @@ fn read() -> I64 {
     while next != ASCII_NEWLINE {
         total = total * 10 + next - ASCII_ZERO;
         next = read_char();
-    };
+    }
 
     // If the number was negative, negate it.
     if negative {
         total = -total;
-    };
+    }
 
     total
 }
@@ -38,9 +38,9 @@ fn read_char() -> I64 {
         syscall 4
         movq %RAX {res} // result of system call
         popq {v}        // pop read char
-    };
+    }
     if res == 0 {
         return res
-    };
+    }
     v
 }

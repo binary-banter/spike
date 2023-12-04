@@ -7,6 +7,6 @@ fn main() -> I64 {
         movq {x} %RAX
         mulq {y}
         movq %RAX {x}
-    };
+    }
     x
 }

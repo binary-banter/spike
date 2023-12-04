@@ -8,14 +8,14 @@ fn main() {
         if next == b'\n' {
             total = total + first * 10 + last;
             first = 0;
-        };
+        }
         next = next - b'0';
         if next >= 0 && next < 10 {
             if first == 0 {
                 first = next;
-            };
+            }
             last = next;
-        };
-    };
+        }
+    }
     print(total);
 }

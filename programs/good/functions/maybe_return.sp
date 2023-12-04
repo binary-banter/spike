@@ -2,7 +2,7 @@
 fn add(x: I64, y: I64) -> I64 {
     if x + y != 13 {
         return 42;
-    };
+    }
     x + y
 }
 

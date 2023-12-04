@@ -1,11 +1,13 @@
+#![cfg(unix)]
+
+use compiler::passes::parse::parse::parse_program;
+use compiler::utils::split_test::split_test;
 use std::fs;
 use std::fs::OpenOptions;
 use std::os::unix::fs::OpenOptionsExt;
 use std::path::Path;
 use tempfile::TempDir;
 use test_each_file::{test_each_file, test_each_path};
-use compiler::passes::parse::parse::parse_program;
-use compiler::utils::split_test::split_test;
 
 fn aoc([test]: [&Path; 1]) {
     todo!()
