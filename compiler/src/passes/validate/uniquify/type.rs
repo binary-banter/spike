@@ -10,8 +10,7 @@ pub fn uniquify_type<'p>(
     scope: &mut PushMap<&'p str, UniqueSym<'p>>,
 ) -> Result<Type<Spanned<UniqueSym<'p>>>, TypeError> {
     let typ = match typ {
-        Type::I64 => Type::I64,
-        Type::U64 => Type::U64,
+        Type::Int(int) => Type::Int(int),
         Type::Bool => Type::Bool,
         Type::Unit => Type::Unit,
         Type::Never => Type::Never,

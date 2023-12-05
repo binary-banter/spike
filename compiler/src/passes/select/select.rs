@@ -2,13 +2,11 @@ use crate::passes::atomize::Atom;
 use crate::passes::eliminate::{ExprEliminated, FunEliminated, PrgEliminated, TailEliminated};
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{BinaryOp, Meta, UnaryOp};
-use crate::passes::select::{
-    Block, Cnd, FunSelected, InstrSelected, VarArg, X86Selected, CALLEE_SAVED_NO_STACK,
-    CALLER_SAVED,
-};
+use crate::passes::select::{Block, Cnd, FunSelected, InstrSelected, VarArg, X86Selected, CALLEE_SAVED_NO_STACK, CALLER_SAVED, Imm};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use crate::*;
 use std::collections::HashMap;
+use crate::passes::validate::{TInt, TLit};
 
 impl<'p> PrgEliminated<'p> {
     #[must_use]
@@ -64,7 +62,7 @@ fn entry_block<'p>(
     }
 
     // Prepare temporary stack space - this will be optimized in later passes.
-    instrs.push(subq!(imm!(0x1000), reg!(RSP)));
+    instrs.push(subq!(imm32!(0x1000), reg!(RSP)));
 
     // Introduce parameters as local variables.
     for (reg, param) in CALLER_SAVED.into_iter().zip(fun.params.iter()) {
@@ -90,7 +88,7 @@ fn exit_block<'p>(
     let mut instrs = Vec::new();
 
     // Restore temporary stack space.
-    instrs.push(addq!(imm!(0x1000), reg!(RSP)));
+    instrs.push(addq!(imm32!(0x1000), reg!(RSP)));
 
     // Restore callee-saved registers (excluding stack pointers).
     for reg in CALLEE_SAVED_NO_STACK.into_iter().rev() {
@@ -160,7 +158,7 @@ fn select_assign<'p>(
         ExprEliminated::Atom {
             atm: Atom::Val { val },
             ..
-        } => vec![movq!(imm!(val), dst)],
+        } => vec![movq!(imm32!(val), dst)],
         ExprEliminated::Atom {
             atm: Atom::Var { sym },
             ..
@@ -184,14 +182,14 @@ fn select_assign<'p>(
                 movq!(reg!(RAX), dst),
             ],
             BinaryOp::Div => vec![
-                movq!(imm!(0), reg!(RDX)),
+                movq!(imm32!(0), reg!(RDX)),
                 movq!(select_atom(a0), reg!(RAX)),
                 movq!(select_atom(a1), reg!(RBX)),
                 divq!(reg!(RBX)),
                 movq!(reg!(RAX), dst),
             ],
             BinaryOp::Mod => vec![
-                movq!(imm!(0), reg!(RDX)),
+                movq!(imm32!(0), reg!(RDX)),
                 movq!(select_atom(a0), reg!(RAX)),
                 movq!(select_atom(a1), reg!(RBX)),
                 divq!(reg!(RBX)),
@@ -219,15 +217,14 @@ fn select_assign<'p>(
                 vec![
                     movq!(select_atom(a0), var!(tmp)),
                     cmpq!(select_atom(a1), var!(tmp)),
-                    movq!(imm!(0), reg!(RAX)),
-                    setcc!(select_cmp(op)),
+                    movq!(imm32!(0), reg!(RAX)),  // todo: can be smaller
                     movq!(reg!(RAX), dst),
                 ]
             }
         },
         ExprEliminated::UnaryOp { op, expr: a0 } => match op {
             UnaryOp::Neg => vec![movq!(select_atom(a0), dst.clone()), negq!(dst)],
-            UnaryOp::Not => vec![movq!(select_atom(a0), dst.clone()), xorq!(imm!(1), dst)],
+            UnaryOp::Not => vec![movq!(select_atom(a0), dst.clone()), xorq!(imm32!(1), dst)],  // todo: can be smaller
         },
         ExprEliminated::FunRef { sym, .. } => vec![load_lbl!(sym, dst)],
         ExprEliminated::Apply { fun, args, .. } => {
@@ -255,7 +252,24 @@ fn select_assign<'p>(
 
 fn select_atom(expr: Atom<'_>) -> VarArg<UniqueSym<'_>> {
     match expr {
-        Atom::Val { val } => imm!(val),
+        Atom::Val { val } => {
+            match val {
+                TLit::Int(int) => {
+                    match int {
+                        TInt::I8(_) => todo!(),
+                        TInt::U8(_) => todo!(),
+                        TInt::I16(_) => todo!(),
+                        TInt::U16(_) => todo!(),
+                        TInt::I32(_) => todo!(),
+                        TInt::U32(_) => todo!(),
+                        TInt::I64(int) => imm32!(int as i32), // not correct yet
+                        TInt::U64(_) => todo!(),
+                    }
+                }
+                TLit::Bool(bool) => imm32!(bool as i32), // todo: can be smaller
+                TLit::Unit => imm32!(0), // todo: can be smaller
+            }
+        },
         Atom::Var { sym } => var!(sym),
     }
 }
@@ -269,5 +283,46 @@ fn select_cmp(op: BinaryOp) -> Cnd {
         BinaryOp::LT => Cnd::LT,
         BinaryOp::NE => Cnd::NE,
         _ => unreachable!(),
+    }
+}
+
+// fn to_imm(v: i128) -> Imm {
+//     let sign_byte = v.to_be_bytes()[0];
+//
+//     match v.to_be_bytes().iter().take_while(|n| **n == sign_byte).count() - 8 {
+//         0..=3 => Imm::Imm64(v),
+//         4..=5 => Imm::Imm32(v as u32),
+//         6 => Imm::Imm16(v as u16),
+//         7..=8 => Imm::Imm8(v as u8),
+//         _ => unreachable!(),
+//     }
+// }
+
+impl From<u8> for Imm {
+    fn from(value: u8) -> Self {
+        Imm::Imm8(value)
+    }
+}
+
+impl From<i8> for Imm {
+    fn from(value: i8) -> Self {
+        Imm::Imm8(value as u8)
+    }
+}
+
+impl From<u64> for Imm {
+    fn from(value: u64) -> Self {
+        match value {
+            ..=(1 << 8 - 1 => Imm::Imm8(value as u8),
+            ..=(1 << 16) - 1 => Imm::Imm16(value as u16),
+            ..=(1 << 32) -1 => Imm::Imm32(value as u32),
+            _ => Imm::Imm64(value),
+        }
+    }
+}
+
+impl From<i64> for Imm {
+    fn from(value: i8) -> Self {
+        Imm::Imm8(value as u8)
     }
 }

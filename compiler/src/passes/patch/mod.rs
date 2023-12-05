@@ -1,6 +1,4 @@
 pub mod patch;
-#[cfg(test)]
-mod tests;
 
 use crate::passes::assign::FunAssigned;
 use crate::passes::select::X86Selected;

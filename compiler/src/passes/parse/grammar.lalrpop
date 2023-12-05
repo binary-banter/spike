@@ -1,5 +1,5 @@
 use crate::passes::parse::{
-    BinaryOp, DefParsed, ExprParsed, InstrParsed, Lit, Meta, Param, PrgParsed, Spanned, Type, TypeDef, UnaryOp,
+    BinaryOp, DefParsed, ExprParsed, InstrParsed, Lit, Meta, Param, PrgParsed, Spanned, Type, TypeDef, UnaryOp, types::Int,
 };
 use crate::passes::select::{VarArg, Reg};
 use functor_derive::Functor;
@@ -159,8 +159,8 @@ Param: Param<Spanned<&'input str>> = {
 }
 
 Type: Type<Spanned<&'input str>> = {
-    "I64" => Type::I64,
-    "U64" => Type::U64,
+    "I64" => Type::Int(Int::I64),
+    "U64" => Type::Int(Int::I64),
     "Bool" => Type::Bool,
     "Unit" => Type::Unit,
     "Never" => Type::Never,
@@ -340,7 +340,7 @@ ExprAtom<T>: ExprParsed<'input> = {
             val,
         },
     },
-    <val:Bool> => ExprParsed::Lit { val: Lit::Bool { val } },
+    <val:Bool> => ExprParsed::Lit { val: Lit::Bool(val) },
     "unit" => ExprParsed::Lit { val: Lit::Unit },
     <sym:Ident> => ExprParsed::Var { sym },
     <enum_sym:Ident> "::" <variant_sym:Ident> "(" <bdy:Spanned<Expr>> ")" => ExprParsed::Variant {

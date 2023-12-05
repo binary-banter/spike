@@ -1,12 +1,9 @@
-use crate::passes::parse::types::Type;
+use crate::passes::parse::types::{Int, Type};
 use crate::passes::parse::{Constrained, Expr, Lit, Meta, Param, Span, Spanned, TypeDef, Typed};
 use crate::passes::select::{Instr, InstrSelected, VarArg};
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::partial_type::PartialType;
-use crate::passes::validate::{
-    DefConstrained, DefValidated, ExprConstrained, ExprValidated, PrgConstrained, PrgValidated,
-    TLit,
-};
+use crate::passes::validate::{DefConstrained, DefValidated, ExprConstrained, ExprValidated, PrgConstrained, PrgValidated, TInt, TLit};
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};
 use crate::*;
@@ -69,8 +66,7 @@ fn resolve_typedef<'p>(
 
 fn resolve_type(typ: Type<Spanned<UniqueSym>>) -> Type<UniqueSym> {
     match typ {
-        Type::I64 => Type::I64,
-        Type::U64 => Type::U64,
+        Type::Int(int) => Type::Int(int),
         Type::Bool => Type::Bool,
         Type::Unit => Type::Unit,
         Type::Never => Type::Never,
@@ -88,9 +84,8 @@ fn partial_type_to_type<'p>(
     uf: &mut UnionFind<PartialType<'p>>,
 ) -> Option<Type<UniqueSym<'p>>> {
     Some(match uf.get(value).clone() {
-        PartialType::I64 => Type::I64,
-        PartialType::U64 => Type::U64,
-        PartialType::Int => return None,
+        PartialType::Int(int) => Type::Int(int),
+        PartialType::IntAmbiguous => return None,
         PartialType::Bool => Type::Bool,
         PartialType::Unit => Type::Unit,
         PartialType::Never => Type::Never,
@@ -168,22 +163,31 @@ fn resolve_expr<'p>(
         Expr::Lit { val } => {
             let val = match val {
                 Lit::Int { val, .. } => match &typ {
+                    Some(typ) => {
+                        let int = match typ {
+                            Type::Int(int) => {
+                                match int {
+                                    Int::I8 => todo!(),
+                                    Int::U8 => TInt::U8(resolve_int_lit(val, expr.meta.span, u8::from_str_radix)?),
+                                    Int::I16 => TInt::I16(resolve_int_lit(val, expr.meta.span, i16::from_str_radix)?),
+                                    Int::U16 => TInt::U16(resolve_int_lit(val, expr.meta.span, u16::from_str_radix)?),
+                                    Int::I32 => TInt::I32(resolve_int_lit(val, expr.meta.span, i32::from_str_radix)?),
+                                    Int::U32 => TInt::U32(resolve_int_lit(val, expr.meta.span, u32::from_str_radix)?),
+                                    Int::I64 => TInt::I64(resolve_int_lit(val, expr.meta.span, i64::from_str_radix)?),
+                                    Int::U64 => TInt::U64(resolve_int_lit(val, expr.meta.span, u64::from_str_radix)?),
+                                }
+                            },
+                            _ => unreachable!(),
+                        };
+                        TLit::Int(int)
+                    },
                     None => {
                         return Err(TypeError::IntegerAmbiguous {
                             span: expr.meta.span,
                         })
                     }
-                    Some(typ) => match typ {
-                        Type::I64 => TLit::I64 {
-                            val: resolve_int_lit(val, expr.meta.span, i64::from_str_radix)?,
-                        },
-                        Type::U64 => TLit::U64 {
-                            val: resolve_int_lit(val, expr.meta.span, u64::from_str_radix)?,
-                        },
-                        _ => unreachable!(),
-                    },
                 },
-                Lit::Bool { val } => TLit::Bool { val },
+                Lit::Bool(bool) => TLit::Bool(bool),
                 Lit::Unit => TLit::Unit,
             };
             Expr::Lit { val }

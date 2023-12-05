@@ -5,7 +5,6 @@ mod push_pop;
 mod special;
 mod unary;
 
-use crate::imm;
 use crate::passes::assign::Arg;
 use crate::passes::conclude::X86Concluded;
 use crate::passes::emit::binary::{
@@ -19,6 +18,7 @@ use crate::passes::emit::unary::{encode_unary_instr, CALLQ_INDIRECT_INFO, NEGQ_I
 use crate::passes::select::{Block, Cnd, Instr, Reg};
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
+use crate::imm32;
 
 impl<'p> X86Concluded<'p> {
     #[must_use]
@@ -115,7 +115,7 @@ fn emit_instr<'p>(
             // todo: this offset is *only* correct when dst is a register!
             assert!(matches!(dst, Arg::Reg { .. }));
             abs_jumps.insert(machine_code.len() + 3, *sym);
-            encode_binary_instr(MOVQ_INFO, &imm!(0), dst)
+            encode_binary_instr(MOVQ_INFO, &imm32!(0), dst)
         }
     };
     machine_code.extend(v);

@@ -337,15 +337,9 @@ pub enum Lit<'p> {
     #[display(fmt = "{val}")]
     Int { val: &'p str },
     /// Boolean literal, representing a value of *true* or *false*.
-    #[display(fmt = "{}", r#"if *val { "true" } else { "false" }"#)]
-    Bool { val: bool },
+    #[display(fmt = "{}", r#"if *_0 { "true" } else { "false" }"#)]
+    Bool(bool),
     /// Unit literal, representing the absence of a value.
     #[display(fmt = "unit")]
     Unit,
-}
-
-#[derive(Copy, Clone)]
-pub enum IntSuffix {
-    I64,
-    U64,
 }

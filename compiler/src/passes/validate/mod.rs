@@ -1,10 +1,10 @@
+#[cfg(test)]
+mod tests;
 mod check_sized;
 mod constrain;
 pub mod error;
 pub mod partial_type;
 mod resolve;
-#[cfg(test)]
-mod tests;
 mod uniquify;
 pub mod validate;
 
@@ -52,64 +52,22 @@ pub struct MetaConstrained {
 
 #[derive(Copy, Clone, Debug, PartialEq, Display)]
 pub enum TLit {
-    #[display(fmt = "{val}")]
-    I64 { val: i64 },
-    #[display(fmt = "{val}")]
-    U64 { val: u64 },
-    #[display(fmt = "{}", r#"if *val { "true" } else { "false" }"#)]
-    Bool { val: bool },
+    #[display(fmt = "{_0}")]
+    Int(TInt),
+    #[display(fmt = "{}", r#"if *_0 { "true" } else { "false" }"#)]
+    Bool(bool),
     #[display(fmt = "unit")]
     Unit,
 }
 
-impl TLit {
-    /// Returns the integer value if `TLit` is `Int`.
-    /// # Panics
-    /// Panics if `TLit` is not `Int`.
-    #[must_use]
-    pub fn int(self) -> i64 {
-        match self {
-            TLit::I64 { val, .. } => val,
-            TLit::U64 { val, .. } => val as i64,
-            _ => panic!(),
-        }
-    }
-
-    /// Returns the boolean value if `TLit` is `Bool`.
-    /// # Panics
-    /// Panics if `TLit` is not `Bool`.
-    #[must_use]
-    pub fn bool(self) -> bool {
-        if let TLit::Bool { val } = self {
-            val
-        } else {
-            panic!()
-        }
-    }
-}
-
-impl From<TLit> for i64 {
-    fn from(value: TLit) -> Self {
-        match value {
-            TLit::I64 { val } => val,
-            TLit::U64 { val } => val as i64,
-            TLit::Bool { val } => val as i64,
-            TLit::Unit => 0,
-        }
-    }
-}
-
-impl FromStr for TLit {
-    type Err = ();
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(match s {
-            "false" => TLit::Bool { val: false },
-            "true" => TLit::Bool { val: true },
-            "unit" => TLit::Unit,
-            s => TLit::I64 {
-                val: s.parse().map_err(|_| ())?,
-            },
-        })
-    }
+#[derive(Copy, Clone, Debug, PartialEq, Display)]
+pub enum TInt {
+    I8(i8),
+    U8(u8),
+    I16(i16),
+    U16(u16),
+    I32(i32),
+    U32(u32),
+    I64(i64),
+    U64(u64),
 }

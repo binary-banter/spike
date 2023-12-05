@@ -2,7 +2,7 @@
 
 use compiler::passes::parse::parse::parse_program;
 use compiler::passes::validate::TLit;
-use compiler::utils::split_test::split_test;
+use compiler::utils::split_test::{split_test, str_to_int};
 use std::fs::OpenOptions;
 use std::io::{BufRead, Write};
 use std::os::unix::prelude::OpenOptionsExt;
@@ -71,7 +71,7 @@ fn integration([test]: [&str; 1]) {
     );
 
     for (got, expected) in out.stdout.lines().map(|r| r.unwrap()).zip(expected_output) {
-        assert_eq!(got.parse::<TLit>().unwrap(), expected);
+        assert_eq!(str_to_int(&got), expected);
     }
 }
 

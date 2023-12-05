@@ -1,12 +1,12 @@
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};
 use itertools::Itertools;
+use crate::passes::parse::types::Int;
 
 #[derive(Debug, Clone)]
 pub enum PartialType<'p> {
-    I64,
-    U64,
-    Int,
+    Int(Int),
+    IntAmbiguous,
     Bool,
     Unit,
     Never,
@@ -22,9 +22,8 @@ pub enum PartialType<'p> {
 impl<'p> PartialType<'p> {
     pub fn to_string(&self, uf: &mut UnionFind<PartialType>) -> String {
         match self {
-            PartialType::I64 => "I64".to_string(),
-            PartialType::U64 => "U64".to_string(),
-            PartialType::Int => "{int}".to_string(),
+            PartialType::Int(int) => int.to_string(),
+            PartialType::IntAmbiguous => "{int}".to_string(),
             PartialType::Bool => "Bool".to_string(),
             PartialType::Unit => "Unit".to_string(),
             PartialType::Never => "Never".to_string(),
@@ -53,11 +52,10 @@ pub fn combine_partial_types<'p>(
     uf: &mut UnionFind<PartialType<'p>>,
 ) -> Result<PartialType<'p>, ()> {
     let typ = match (a, b) {
-        (PartialType::I64, PartialType::I64 | PartialType::Int) => PartialType::I64,
-        (PartialType::Int, PartialType::I64) => PartialType::I64,
-        (PartialType::U64, PartialType::U64 | PartialType::Int) => PartialType::U64,
-        (PartialType::Int, PartialType::U64) => PartialType::U64,
-        (PartialType::Int, PartialType::Int) => PartialType::Int,
+        (PartialType::Int(int_lhs), PartialType::Int(int_rhs)) if int_lhs == int_rhs => PartialType::Int(int_lhs),
+        (PartialType::Int(int), PartialType::IntAmbiguous) => PartialType::Int(int),
+        (PartialType::IntAmbiguous, PartialType::Int(int)) => PartialType::Int(int),
+        (PartialType::IntAmbiguous, PartialType::IntAmbiguous) => PartialType::IntAmbiguous,
         (PartialType::Bool, PartialType::Bool) => PartialType::Bool,
         (PartialType::Unit, PartialType::Unit) => PartialType::Unit,
         (PartialType::Never, t) => t.clone(),

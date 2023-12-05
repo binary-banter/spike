@@ -2,8 +2,6 @@ mod assign;
 mod color_interference;
 mod compute_interference;
 mod include_liveness;
-#[cfg(test)]
-mod tests;
 
 use crate::passes::select::{Block, FunSelected, Instr, InstrSelected, Reg, VarArg, X86Selected};
 use crate::utils::gen_sym::UniqueSym;

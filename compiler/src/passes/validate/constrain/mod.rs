@@ -87,8 +87,7 @@ impl<'p> UnionFind<PartialType<'p>> {
 
     pub fn type_to_index(&mut self, t: Type<Spanned<UniqueSym<'p>>>) -> UnionIndex {
         let pt = match t {
-            Type::I64 => PartialType::I64,
-            Type::U64 => PartialType::U64,
+            Type::Int(int) => PartialType::Int(int),
             Type::Bool => PartialType::Bool,
             Type::Unit => PartialType::Unit,
             Type::Never => PartialType::Never,

@@ -58,7 +58,7 @@ pub fn eliminate_seq<'p>(
     // Changes based on LHS
     match typ {
         // No changes needed
-        Type::I64 | Type::U64 | Type::Bool | Type::Unit | Type::Never | Type::Fn { .. } => {
+        Type::Int {.. } | Type::Bool | Type::Unit | Type::Never | Type::Fn { .. } => {
             TailEliminated::Seq {
                 syms: vec![sym],
                 bnd: Meta {

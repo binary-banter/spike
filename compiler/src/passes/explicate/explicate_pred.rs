@@ -29,7 +29,7 @@ pub fn explicate_pred<'p>(
                 exprs: [
                     Atom::Var { sym },
                     Atom::Val {
-                        val: TLit::Bool { val: true },
+                        val: TLit::Bool(true),
                     },
                 ],
             },
@@ -38,7 +38,7 @@ pub fn explicate_pred<'p>(
         },
         AExpr::Atom {
             atm: Atom::Val {
-                val: TLit::Bool { val },
+                val: TLit::Bool(val),
             },
             ..
         } => {
@@ -180,7 +180,7 @@ pub fn explicate_pred<'p>(
         | AExpr::Atom {
             atm:
                 Atom::Val {
-                    val: TLit::U64 { .. } | TLit::I64 { .. } | TLit::Unit,
+                    val: TLit::Int { .. } | TLit::Unit,
                 },
             ..
         }

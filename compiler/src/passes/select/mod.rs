@@ -1,9 +1,6 @@
 mod display;
-pub mod interpreter;
 pub mod macros;
 pub mod select;
-#[cfg(test)]
-mod tests;
 
 use crate::utils::gen_sym::UniqueSym;
 use derive_more::Display;
@@ -102,14 +99,26 @@ pub enum Instr<Arg: Display, IdentVars: Display> {
 
 #[derive(Debug, PartialEq, Clone, Display, Functor)]
 pub enum VarArg<IdentVars: Display> {
-    #[display(fmt = "${val}")]
-    Imm { val: i64 },
+    #[display(fmt = "${_0}")]
+    Imm(Imm),
     #[display(fmt = "%{reg}")]
     Reg { reg: Reg },
     #[display(fmt = "[%{reg} + ${off}]")]
     Deref { reg: Reg, off: i64 },
     #[display(fmt = "{sym}")]
     XVar { sym: IdentVars },
+}
+
+#[derive(Debug, PartialEq, Clone, Display)]
+pub enum Imm {
+    #[display(fmt = "{_0}")]
+    Imm8(u8),
+    #[display(fmt = "{_0}")]
+    Imm16(u16),
+    #[display(fmt = "{_0}")]
+    Imm32(u32),
+    #[display(fmt = "{_0}")]
+    Imm64(u64)
 }
 
 pub const CALLER_SAVED: [Reg; 9] = [

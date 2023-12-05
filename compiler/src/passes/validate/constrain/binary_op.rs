@@ -16,11 +16,11 @@ pub fn constrain_binary_op<'p>(
     // output: None = Same as input, Some = this
     let (input, output) = match op {
         BinaryOp::Add | BinaryOp::Sub | BinaryOp::Mul | BinaryOp::Div | BinaryOp::Mod => {
-            (Some(PartialType::Int), None)
+            (Some(PartialType::IntAmbiguous), None)
         }
         BinaryOp::LAnd | BinaryOp::LOr | BinaryOp::Xor => (Some(PartialType::Bool), None),
         BinaryOp::GT | BinaryOp::GE | BinaryOp::LE | BinaryOp::LT => {
-            (Some(PartialType::Int), Some(PartialType::Bool))
+            (Some(PartialType::IntAmbiguous), Some(PartialType::Bool))
         }
         BinaryOp::EQ | BinaryOp::NE => (None, Some(PartialType::Bool)),
     };

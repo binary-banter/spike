@@ -17,8 +17,7 @@ impl<'p> PrgConstrained<'p> {
                     TypeDef::Struct { fields } => {
                         for (_, field) in fields {
                             match field {
-                                Type::I64
-                                | Type::U64
+                                Type::Int(_)
                                 | Type::Bool
                                 | Type::Unit
                                 | Type::Never

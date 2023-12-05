@@ -185,9 +185,9 @@ macro_rules! syscall {
 }
 
 #[macro_export]
-macro_rules! imm {
+macro_rules! imm32 {
     ($val:expr) => {
-        $crate::passes::assign::Arg::Imm { val: $val.into() }.into()
+        $crate::passes::assign::Arg::Imm { val: todo!() }.into()
     };
 }
 

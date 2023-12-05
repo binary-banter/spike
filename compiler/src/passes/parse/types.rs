@@ -5,10 +5,8 @@ use std::fmt::Display;
 #[derive(Debug, Clone, Display)]
 #[display(bound = "A: Display")]
 pub enum Type<A> {
-    #[display(fmt = "I64")]
-    I64,
-    #[display(fmt = "U64")]
-    U64,
+    #[display(fmt = "{_0}")]
+    Int(Int),
     #[display(fmt = "Bool")]
     Bool,
     #[display(fmt = "Unit")]
@@ -22,4 +20,17 @@ pub enum Type<A> {
     },
     #[display(fmt = "{sym}")]
     Var { sym: A },
+}
+
+/// Integer types
+#[derive(Debug, Clone, Display, Eq, PartialEq)]
+pub enum Int{
+    I8,
+    U8,
+    I16,
+    U16,
+    I32,
+    U32,
+    I64,
+    U64,
 }
