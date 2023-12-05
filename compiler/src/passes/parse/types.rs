@@ -24,7 +24,7 @@ pub enum Type<A> {
 
 /// Integer types
 #[derive(Debug, Clone, Display, Eq, PartialEq)]
-pub enum Int{
+pub enum Int {
     I8,
     U8,
     I16,

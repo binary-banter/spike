@@ -118,7 +118,7 @@ pub enum Imm {
     #[display(fmt = "{_0}")]
     Imm32(u32),
     #[display(fmt = "{_0}")]
-    Imm64(u64)
+    Imm64(u64),
 }
 
 pub const CALLER_SAVED: [Reg; 9] = [

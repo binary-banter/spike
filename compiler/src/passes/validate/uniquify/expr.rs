@@ -113,7 +113,7 @@ fn uniquify_instr<'p>(
 ) -> Result<InstrUniquified<'p>, TypeError> {
     let map = |arg: VarArg<Spanned<&'p str>>| {
         Ok(match arg {
-            VarArg::Imm { val } => VarArg::Imm { val },
+            VarArg::Imm(imm) => VarArg::Imm(imm),
             VarArg::Reg { reg } => VarArg::Reg { reg },
             VarArg::Deref { reg, off } => VarArg::Deref { reg, off },
             VarArg::XVar { sym } => VarArg::XVar {

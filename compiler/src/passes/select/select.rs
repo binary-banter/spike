@@ -2,11 +2,14 @@ use crate::passes::atomize::Atom;
 use crate::passes::eliminate::{ExprEliminated, FunEliminated, PrgEliminated, TailEliminated};
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{BinaryOp, Meta, UnaryOp};
-use crate::passes::select::{Block, Cnd, FunSelected, InstrSelected, VarArg, X86Selected, CALLEE_SAVED_NO_STACK, CALLER_SAVED, Imm};
+use crate::passes::select::{
+    Block, Cnd, FunSelected, InstrSelected, VarArg, X86Selected, CALLEE_SAVED_NO_STACK,
+    CALLER_SAVED,
+};
+use crate::passes::validate::{TInt, TLit};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use crate::*;
 use std::collections::HashMap;
-use crate::passes::validate::{TInt, TLit};
 
 impl<'p> PrgEliminated<'p> {
     #[must_use]
@@ -158,7 +161,7 @@ fn select_assign<'p>(
         ExprEliminated::Atom {
             atm: Atom::Val { val },
             ..
-        } => vec![movq!(imm32!(val), dst)],
+        } => vec![movq!(imm32!(u32::from(val)), dst)],
         ExprEliminated::Atom {
             atm: Atom::Var { sym },
             ..
@@ -217,14 +220,15 @@ fn select_assign<'p>(
                 vec![
                     movq!(select_atom(a0), var!(tmp)),
                     cmpq!(select_atom(a1), var!(tmp)),
-                    movq!(imm32!(0), reg!(RAX)),  // todo: can be smaller
+                    movq!(imm32!(0), reg!(RAX)), // todo: can be smaller
+                    setcc!(select_cmp(op)),
                     movq!(reg!(RAX), dst),
                 ]
             }
         },
         ExprEliminated::UnaryOp { op, expr: a0 } => match op {
             UnaryOp::Neg => vec![movq!(select_atom(a0), dst.clone()), negq!(dst)],
-            UnaryOp::Not => vec![movq!(select_atom(a0), dst.clone()), xorq!(imm32!(1), dst)],  // todo: can be smaller
+            UnaryOp::Not => vec![movq!(select_atom(a0), dst.clone()), xorq!(imm32!(1), dst)], // todo: can be smaller
         },
         ExprEliminated::FunRef { sym, .. } => vec![load_lbl!(sym, dst)],
         ExprEliminated::Apply { fun, args, .. } => {
@@ -267,9 +271,9 @@ fn select_atom(expr: Atom<'_>) -> VarArg<UniqueSym<'_>> {
                     }
                 }
                 TLit::Bool(bool) => imm32!(bool as i32), // todo: can be smaller
-                TLit::Unit => imm32!(0), // todo: can be smaller
+                TLit::Unit => imm32!(0),                 // todo: can be smaller
             }
-        },
+        }
         Atom::Var { sym } => var!(sym),
     }
 }
@@ -286,43 +290,21 @@ fn select_cmp(op: BinaryOp) -> Cnd {
     }
 }
 
-// fn to_imm(v: i128) -> Imm {
-//     let sign_byte = v.to_be_bytes()[0];
-//
-//     match v.to_be_bytes().iter().take_while(|n| **n == sign_byte).count() - 8 {
-//         0..=3 => Imm::Imm64(v),
-//         4..=5 => Imm::Imm32(v as u32),
-//         6 => Imm::Imm16(v as u16),
-//         7..=8 => Imm::Imm8(v as u8),
-//         _ => unreachable!(),
-//     }
-// }
-
-impl From<u8> for Imm {
-    fn from(value: u8) -> Self {
-        Imm::Imm8(value)
-    }
-}
-
-impl From<i8> for Imm {
-    fn from(value: i8) -> Self {
-        Imm::Imm8(value as u8)
-    }
-}
-
-impl From<u64> for Imm {
-    fn from(value: u64) -> Self {
+impl From<TLit> for u32 {
+    fn from(value: TLit) -> Self {
         match value {
-            ..=(1 << 8 - 1 => Imm::Imm8(value as u8),
-            ..=(1 << 16) - 1 => Imm::Imm16(value as u16),
-            ..=(1 << 32) -1 => Imm::Imm32(value as u32),
-            _ => Imm::Imm64(value),
+            TLit::Int(int) => match int {
+                TInt::I8(int) => int as u32,
+                TInt::U8(int) => int as u32,
+                TInt::I16(int) => int as u32,
+                TInt::U16(int) => int as u32,
+                TInt::I32(int) => int as u32,
+                TInt::U32(int) => int,
+                TInt::I64(int) => int as u32,
+                TInt::U64(int) => int as u32,
+            },
+            TLit::Bool(bool) => bool as u32,
+            TLit::Unit => 0,
         }
-    }
-}
-
-impl From<i64> for Imm {
-    fn from(value: i8) -> Self {
-        Imm::Imm8(value as u8)
     }
 }

@@ -52,7 +52,7 @@ fn assign_instr<'p>(
 ) -> Instr<Arg, UniqueSym<'p>> {
     let map = |arg: VarArg<UniqueSym<'p>>| -> Arg {
         match arg {
-            VarArg::Imm { val } => Arg::Imm { val },
+            VarArg::Imm(imm) => Arg::Imm(imm),
             VarArg::Reg { reg } => Arg::Reg { reg },
             VarArg::Deref { reg, off } => Arg::Deref { reg, off },
             VarArg::XVar { sym } => color_map[&sym].clone(),

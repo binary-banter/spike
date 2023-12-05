@@ -5,6 +5,7 @@ mod push_pop;
 mod special;
 mod unary;
 
+use crate::imm32;
 use crate::passes::assign::Arg;
 use crate::passes::conclude::X86Concluded;
 use crate::passes::emit::binary::{
@@ -18,7 +19,6 @@ use crate::passes::emit::unary::{encode_unary_instr, CALLQ_INDIRECT_INFO, NEGQ_I
 use crate::passes::select::{Block, Cnd, Instr, Reg};
 use crate::utils::gen_sym::UniqueSym;
 use std::collections::HashMap;
-use crate::imm32;
 
 impl<'p> X86Concluded<'p> {
     #[must_use]

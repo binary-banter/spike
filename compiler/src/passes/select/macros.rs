@@ -187,7 +187,7 @@ macro_rules! syscall {
 #[macro_export]
 macro_rules! imm32 {
     ($val:expr) => {
-        $crate::passes::assign::Arg::Imm { val: todo!() }.into()
+        $crate::passes::assign::Arg::Imm($crate::passes::select::Imm::Imm32($val as u32)).into()
     };
 }
 

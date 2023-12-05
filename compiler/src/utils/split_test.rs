@@ -14,12 +14,8 @@ pub fn split_test(test: &str) -> (Vec<i64>, Vec<i64>, i64, Option<&str>) {
         let mut parts = line.split_whitespace();
 
         match (parts.next(), parts.next()) {
-            (Some("//*"), Some("inp:")) => input
-                .set(parts.map(str_to_int).collect())
-                .unwrap(),
-            (Some("//*"), Some("out:")) => output
-                .set(parts.map(str_to_int).collect())
-                .unwrap(),
+            (Some("//*"), Some("inp:")) => input.set(parts.map(str_to_int).collect()).unwrap(),
+            (Some("//*"), Some("out:")) => output.set(parts.map(str_to_int).collect()).unwrap(),
             (Some("//*"), Some("ret:")) => expected_return
                 .set(parts.next().map(str_to_int).unwrap())
                 .unwrap(),
@@ -39,8 +35,8 @@ pub fn split_test(test: &str) -> (Vec<i64>, Vec<i64>, i64, Option<&str>) {
 pub fn str_to_int(str: &str) -> i64 {
     match str {
         "true" => 1,
-        "false" => -1,
+        "false" => 0,
         "unit" => 0,
-        _ => str.parse().unwrap()
+        _ => str.parse().unwrap(),
     }
 }

@@ -178,10 +178,9 @@ pub fn explicate_pred<'p>(
         // cargo format should get some help
         AExpr::FunRef { .. }
         | AExpr::Atom {
-            atm:
-                Atom::Val {
-                    val: TLit::Int { .. } | TLit::Unit,
-                },
+            atm: Atom::Val {
+                val: TLit::Int { .. } | TLit::Unit,
+            },
             ..
         }
         | AExpr::Assign { .. }

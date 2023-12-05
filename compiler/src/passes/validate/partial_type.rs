@@ -1,7 +1,7 @@
+use crate::passes::parse::types::Int;
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};
 use itertools::Itertools;
-use crate::passes::parse::types::Int;
 
 #[derive(Debug, Clone)]
 pub enum PartialType<'p> {
@@ -52,7 +52,9 @@ pub fn combine_partial_types<'p>(
     uf: &mut UnionFind<PartialType<'p>>,
 ) -> Result<PartialType<'p>, ()> {
     let typ = match (a, b) {
-        (PartialType::Int(int_lhs), PartialType::Int(int_rhs)) if int_lhs == int_rhs => PartialType::Int(int_lhs),
+        (PartialType::Int(int_lhs), PartialType::Int(int_rhs)) if int_lhs == int_rhs => {
+            PartialType::Int(int_lhs)
+        }
         (PartialType::Int(int), PartialType::IntAmbiguous) => PartialType::Int(int),
         (PartialType::IntAmbiguous, PartialType::Int(int)) => PartialType::Int(int),
         (PartialType::IntAmbiguous, PartialType::IntAmbiguous) => PartialType::IntAmbiguous,

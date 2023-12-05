@@ -3,7 +3,9 @@ mod color_interference;
 mod compute_interference;
 mod include_liveness;
 
-use crate::passes::select::{Block, FunSelected, Instr, InstrSelected, Reg, VarArg, X86Selected};
+use crate::passes::select::{
+    Block, FunSelected, Imm, Instr, InstrSelected, Reg, VarArg, X86Selected,
+};
 use crate::utils::gen_sym::UniqueSym;
 use derive_more::Display;
 use functor_derive::Functor;
@@ -27,8 +29,8 @@ pub type InstrAssigned<'p> = Instr<Arg, UniqueSym<'p>>;
 
 #[derive(Clone, Display)]
 pub enum Arg {
-    #[display(fmt = "${val}")]
-    Imm { val: i64 },
+    #[display(fmt = "${_0}")]
+    Imm(Imm),
     #[display(fmt = "%{reg}")]
     Reg { reg: Reg },
     #[display(fmt = "[%{reg} + ${off}]")]
@@ -79,7 +81,7 @@ impl<'p> From<LBlock<'p>> for Block<'p, VarArg<UniqueSym<'p>>> {
 impl<'p> From<Arg> for VarArg<UniqueSym<'p>> {
     fn from(value: Arg) -> Self {
         match value {
-            Arg::Imm { val } => VarArg::Imm { val },
+            Arg::Imm(imm) => VarArg::Imm(imm),
             Arg::Reg { reg } => VarArg::Reg { reg },
             Arg::Deref { reg, off } => VarArg::Deref { reg, off },
         }

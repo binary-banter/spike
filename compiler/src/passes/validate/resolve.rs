@@ -3,7 +3,10 @@ use crate::passes::parse::{Constrained, Expr, Lit, Meta, Param, Span, Spanned, T
 use crate::passes::select::{Instr, InstrSelected, VarArg};
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::partial_type::PartialType;
-use crate::passes::validate::{DefConstrained, DefValidated, ExprConstrained, ExprValidated, PrgConstrained, PrgValidated, TInt, TLit};
+use crate::passes::validate::{
+    DefConstrained, DefValidated, ExprConstrained, ExprValidated, PrgConstrained, PrgValidated,
+    TInt, TLit,
+};
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};
 use crate::*;
@@ -165,22 +168,48 @@ fn resolve_expr<'p>(
                 Lit::Int { val, .. } => match &typ {
                     Some(typ) => {
                         let int = match typ {
-                            Type::Int(int) => {
-                                match int {
-                                    Int::I8 => todo!(),
-                                    Int::U8 => TInt::U8(resolve_int_lit(val, expr.meta.span, u8::from_str_radix)?),
-                                    Int::I16 => TInt::I16(resolve_int_lit(val, expr.meta.span, i16::from_str_radix)?),
-                                    Int::U16 => TInt::U16(resolve_int_lit(val, expr.meta.span, u16::from_str_radix)?),
-                                    Int::I32 => TInt::I32(resolve_int_lit(val, expr.meta.span, i32::from_str_radix)?),
-                                    Int::U32 => TInt::U32(resolve_int_lit(val, expr.meta.span, u32::from_str_radix)?),
-                                    Int::I64 => TInt::I64(resolve_int_lit(val, expr.meta.span, i64::from_str_radix)?),
-                                    Int::U64 => TInt::U64(resolve_int_lit(val, expr.meta.span, u64::from_str_radix)?),
-                                }
+                            Type::Int(int) => match int {
+                                Int::I8 => todo!(),
+                                Int::U8 => TInt::U8(resolve_int_lit(
+                                    val,
+                                    expr.meta.span,
+                                    u8::from_str_radix,
+                                )?),
+                                Int::I16 => TInt::I16(resolve_int_lit(
+                                    val,
+                                    expr.meta.span,
+                                    i16::from_str_radix,
+                                )?),
+                                Int::U16 => TInt::U16(resolve_int_lit(
+                                    val,
+                                    expr.meta.span,
+                                    u16::from_str_radix,
+                                )?),
+                                Int::I32 => TInt::I32(resolve_int_lit(
+                                    val,
+                                    expr.meta.span,
+                                    i32::from_str_radix,
+                                )?),
+                                Int::U32 => TInt::U32(resolve_int_lit(
+                                    val,
+                                    expr.meta.span,
+                                    u32::from_str_radix,
+                                )?),
+                                Int::I64 => TInt::I64(resolve_int_lit(
+                                    val,
+                                    expr.meta.span,
+                                    i64::from_str_radix,
+                                )?),
+                                Int::U64 => TInt::U64(resolve_int_lit(
+                                    val,
+                                    expr.meta.span,
+                                    u64::from_str_radix,
+                                )?),
                             },
                             _ => unreachable!(),
                         };
                         TLit::Int(int)
-                    },
+                    }
                     None => {
                         return Err(TypeError::IntegerAmbiguous {
                             span: expr.meta.span,
@@ -280,7 +309,7 @@ pub fn resolve_instr<'p>(
     instr: Instr<VarArg<Spanned<UniqueSym<'p>>>, Spanned<UniqueSym<'p>>>,
 ) -> InstrSelected<'p> {
     let map = |arg: VarArg<Spanned<UniqueSym<'p>>>| match arg {
-        VarArg::Imm { val } => VarArg::Imm { val },
+        VarArg::Imm(imm) => VarArg::Imm(imm),
         VarArg::Reg { reg } => VarArg::Reg { reg },
         VarArg::Deref { reg, off } => VarArg::Deref { reg, off },
         VarArg::XVar { sym } => VarArg::XVar { sym: sym.inner },

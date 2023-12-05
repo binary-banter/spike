@@ -1,10 +1,10 @@
-#[cfg(test)]
-mod tests;
 mod check_sized;
 mod constrain;
 pub mod error;
 pub mod partial_type;
 mod resolve;
+#[cfg(test)]
+mod tests;
 mod uniquify;
 pub mod validate;
 
@@ -17,7 +17,6 @@ use derive_more::Display;
 use itertools::Itertools;
 use partial_type::PartialType;
 use std::collections::HashMap;
-use std::str::FromStr;
 
 #[derive(Debug, Display)]
 #[display(fmt = "{}", r#"defs.values().format("\n")"#)]

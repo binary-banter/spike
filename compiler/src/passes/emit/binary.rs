@@ -1,6 +1,6 @@
 use crate::passes::assign::Arg;
 use crate::passes::emit::encode_reg;
-use crate::passes::select::Reg;
+use crate::passes::select::{Imm, Reg};
 
 pub struct BinaryOpInfo {
     /// Opcode when src = Reg and dst = Reg | Deref.
@@ -105,35 +105,43 @@ pub fn encode_binary_instr(op_info: BinaryOpInfo, src: &Arg, dst: &Arg) -> Vec<u
             v.extend(off.to_le_bytes());
             v
         }
-        (Arg::Imm { val: imm }, Arg::Reg { reg: dst }) => {
-            let (d, ddd) = encode_reg(dst);
-            let imm = *imm as i32;
+        (Arg::Imm(imm), Arg::Reg { reg: dst }) => match imm {
+            Imm::Imm8(_) => todo!(),
+            Imm::Imm16(_) => todo!(),
+            Imm::Imm32(imm) => {
+                let (d, ddd) = encode_reg(dst);
 
-            let mut v = vec![
-                0b0100_1000 | d,
-                op_info.i_rm,
-                0b11_000_000 | op_info.pad << 3 | ddd,
-            ];
-            v.extend(imm.to_le_bytes());
-            v
-        }
-        (Arg::Imm { val: imm }, Arg::Deref { reg: dst, off }) => {
-            let (d, ddd) = encode_reg(dst);
-            let off = *off as i32;
-            let imm = *imm as i32;
-
-            let mut v = vec![
-                0b0100_1000 | d,
-                op_info.i_rm,
-                0b10_000_000 | op_info.pad << 3 | ddd,
-            ];
-            if matches!(dst, Reg::RSP | Reg::R12) {
-                v.push(0x24);
+                let mut v = vec![
+                    0b0100_1000 | d,
+                    op_info.i_rm,
+                    0b11_000_000 | op_info.pad << 3 | ddd,
+                ];
+                v.extend(imm.to_le_bytes());
+                v
             }
-            v.extend(off.to_le_bytes());
-            v.extend(imm.to_le_bytes());
-            v
-        }
+            Imm::Imm64(_) => todo!(),
+        },
+        (Arg::Imm(imm), Arg::Deref { reg: dst, off }) => match imm {
+            Imm::Imm8(_) => todo!(),
+            Imm::Imm16(_) => todo!(),
+            Imm::Imm32(imm) => {
+                let (d, ddd) = encode_reg(dst);
+                let off = *off as i32;
+
+                let mut v = vec![
+                    0b0100_1000 | d,
+                    op_info.i_rm,
+                    0b10_000_000 | op_info.pad << 3 | ddd,
+                ];
+                if matches!(dst, Reg::RSP | Reg::R12) {
+                    v.push(0x24);
+                }
+                v.extend(off.to_le_bytes());
+                v.extend(imm.to_le_bytes());
+                v
+            }
+            Imm::Imm64(_) => todo!(),
+        },
         (Arg::Deref { .. }, Arg::Deref { .. }) => {
             unreachable!("Found binary instruction with 2 derefs.");
         }
@@ -153,7 +161,7 @@ mod tests {
         check!(reg_reg, addq!(reg!(RSP), reg!(RDX)), vec![0x48, 0x01, 0xE2]);
         check!(
             imm_reg,
-            addq!(imm!(i32::MAX as i64), reg!(RBP)),
+            addq!(imm32!(i32::MAX as i64), reg!(RBP)),
             vec![0x48, 0x81, 0xC5, 0xFF, 0xFF, 0xFF, 0x7F]
         );
         check!(
@@ -173,12 +181,18 @@ mod tests {
         );
         check!(
             imm_deref1,
-            addq!(imm!((i32::MAX - 0xFF) as i64), deref!(R9, i32::MAX as i64)),
+            addq!(
+                imm32!((i32::MAX - 0xFF) as i64),
+                deref!(R9, i32::MAX as i64)
+            ),
             vec![0x49, 0x81, 0x81, 0xFF, 0xFF, 0xFF, 0x7F, 0x00, 0xFF, 0xFF, 0x7F]
         );
         check!(
             imm_deref2,
-            addq!(imm!((i32::MAX - 0xFF) as i64), deref!(RDX, i32::MAX as i64)),
+            addq!(
+                imm32!((i32::MAX - 0xFF) as i64),
+                deref!(RDX, i32::MAX as i64)
+            ),
             vec![0x48, 0x81, 0x82, 0xFF, 0xFF, 0xFF, 0x7F, 0x00, 0xFF, 0xFF, 0x7F]
         );
     }
@@ -189,7 +203,7 @@ mod tests {
         check!(reg_reg, subq!(reg!(RSP), reg!(RDX)), vec![0x48, 0x29, 0xE2]);
         check!(
             imm_reg,
-            subq!(imm!(i32::MAX as i64), reg!(RBP)),
+            subq!(imm32!(i32::MAX as i64), reg!(RBP)),
             vec![0x48, 0x81, 0xED, 0xFF, 0xFF, 0xFF, 0x7F]
         );
         check!(
@@ -209,12 +223,18 @@ mod tests {
         );
         check!(
             imm_deref1,
-            subq!(imm!((i32::MAX - 0xFF) as i64), deref!(R9, i32::MAX as i64)),
+            subq!(
+                imm32!((i32::MAX - 0xFF) as i64),
+                deref!(R9, i32::MAX as i64)
+            ),
             vec![0x49, 0x81, 0xA9, 0xFF, 0xFF, 0xFF, 0x7F, 0x00, 0xFF, 0xFF, 0x7F]
         );
         check!(
             imm_deref2,
-            subq!(imm!((i32::MAX - 0xFF) as i64), deref!(RDX, i32::MAX as i64)),
+            subq!(
+                imm32!((i32::MAX - 0xFF) as i64),
+                deref!(RDX, i32::MAX as i64)
+            ),
             vec![0x48, 0x81, 0xAA, 0xFF, 0xFF, 0xFF, 0x7F, 0x00, 0xFF, 0xFF, 0x7F]
         );
     }
@@ -225,7 +245,7 @@ mod tests {
         check!(reg_reg, movq!(reg!(RSP), reg!(RDX)), vec![0x48, 0x89, 0xE2]);
         check!(
             imm_reg,
-            movq!(imm!(i32::MAX as i64), reg!(RBP)),
+            movq!(imm32!(i32::MAX as i64), reg!(RBP)),
             vec![0x48, 0xC7, 0xC5, 0xFF, 0xFF, 0xFF, 0x7F]
         );
         check!(
@@ -250,12 +270,18 @@ mod tests {
         );
         check!(
             imm_deref1,
-            movq!(imm!((i32::MAX - 0xFF) as i64), deref!(R9, i32::MAX as i64)),
+            movq!(
+                imm32!((i32::MAX - 0xFF) as i64),
+                deref!(R9, i32::MAX as i64)
+            ),
             vec![0x49, 0xC7, 0x81, 0xFF, 0xFF, 0xFF, 0x7F, 0x00, 0xFF, 0xFF, 0x7F]
         );
         check!(
             imm_deref2,
-            movq!(imm!((i32::MAX - 0xFF) as i64), deref!(RDX, i32::MAX as i64)),
+            movq!(
+                imm32!((i32::MAX - 0xFF) as i64),
+                deref!(RDX, i32::MAX as i64)
+            ),
             vec![0x48, 0xC7, 0x82, 0xFF, 0xFF, 0xFF, 0x7F, 0x00, 0xFF, 0xFF, 0x7F]
         );
     }

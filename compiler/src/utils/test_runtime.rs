@@ -12,7 +12,7 @@ pub fn add_runtime(program: &mut X86Selected) {
     let entry_block = block!(callq_direct!(program.entry, 0), jmp!(exit));
     let exit_block = block!(
         movq!(reg!(RAX), reg!(RDI)),
-        movq!(imm!(0x3C), reg!(RAX)),
+        movq!(imm32!(0x3C), reg!(RAX)),
         syscall!(2)
     );
 

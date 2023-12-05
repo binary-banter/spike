@@ -1,7 +1,7 @@
 use crate::passes::assign::{Arg, InstrAssigned};
 use crate::passes::conclude::X86Concluded;
 use crate::passes::patch::X86Patched;
-use crate::passes::select::{Block, Instr};
+use crate::passes::select::{Block, Imm, Instr};
 use crate::utils::gen_sym::gen_sym;
 use crate::*;
 
@@ -44,7 +44,7 @@ impl<'p> X86Patched<'p> {
             block!(
                 callq_direct!(entries[&self.entry], 0),
                 movq!(reg!(RAX), reg!(RDI)),
-                movq!(imm!(0x3C), reg!(RAX)),
+                movq!(imm32!(0x3C), reg!(RAX)), // todo: can be smaller
                 syscall!(2)
             ),
         );
@@ -58,15 +58,23 @@ fn fix_stack_space(block: &mut Block<Arg>, stack_space: usize) {
     for instr in &mut block.instrs {
         match instr {
             InstrAssigned::Addq {
-                src: Arg::Imm { val },
+                src: Arg::Imm(Imm::Imm32(val)),
                 ..
             }
             | InstrAssigned::Subq {
-                src: Arg::Imm { val },
+                src: Arg::Imm(Imm::Imm32(val)),
                 ..
             } => {
                 assert_eq!(*val, 0x1000);
-                *val = stack_space as i64;
+                *val = stack_space as u32;
+            }
+            InstrAssigned::Addq {
+                src: Arg::Imm(_), ..
+            }
+            | InstrAssigned::Subq {
+                src: Arg::Imm(_), ..
+            } => {
+                todo!()
             }
             _ => {}
         }
