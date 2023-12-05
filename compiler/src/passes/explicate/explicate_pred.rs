@@ -3,8 +3,7 @@ use crate::passes::explicate::explicate::Env;
 use crate::passes::explicate::explicate_assign::explicate_assign;
 use crate::passes::explicate::{ExprExplicated, TailExplicated};
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{BinaryOp, Meta, UnaryOp};
-use crate::passes::validate::TLit;
+use crate::passes::parse::{BinaryOp, Lit, Meta, UnaryOp};
 use crate::utils::gen_sym::gen_sym;
 
 pub fn explicate_pred<'p>(
@@ -29,7 +28,7 @@ pub fn explicate_pred<'p>(
                 exprs: [
                     Atom::Var { sym },
                     Atom::Val {
-                        val: TLit::Bool(true),
+                        val: Lit::Bool(true),
                     },
                 ],
             },
@@ -38,7 +37,7 @@ pub fn explicate_pred<'p>(
         },
         AExpr::Atom {
             atm: Atom::Val {
-                val: TLit::Bool(val),
+                val: Lit::Bool(val),
             },
             ..
         } => {
@@ -179,7 +178,7 @@ pub fn explicate_pred<'p>(
         AExpr::FunRef { .. }
         | AExpr::Atom {
             atm: Atom::Val {
-                val: TLit::Int { .. } | TLit::Unit,
+                val: Lit::Int { .. } | Lit::Unit,
             },
             ..
         }

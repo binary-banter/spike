@@ -1,4 +1,3 @@
-use crate::passes::validate::TLit;
 use std::cell::OnceCell;
 
 /// Splits the inputs, expected outputs and expected return from the test.

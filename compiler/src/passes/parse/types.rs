@@ -6,7 +6,7 @@ use std::fmt::Display;
 #[display(bound = "A: Display")]
 pub enum Type<A> {
     #[display(fmt = "{_0}")]
-    Int(Int),
+    Int(IntType),
     #[display(fmt = "Bool")]
     Bool,
     #[display(fmt = "Unit")]
@@ -23,8 +23,8 @@ pub enum Type<A> {
 }
 
 /// Integer types
-#[derive(Debug, Clone, Display, Eq, PartialEq)]
-pub enum Int {
+#[derive(Display, Debug, Copy, Clone, Eq, PartialEq)]
+pub enum IntType {
     I8,
     U8,
     I16,

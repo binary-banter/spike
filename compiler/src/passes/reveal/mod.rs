@@ -1,9 +1,9 @@
 mod display;
 pub mod reveal;
 
-use crate::passes::parse::{BinaryOp, Def, Typed, UnaryOp};
+use crate::passes::parse::{BinaryOp, Def, Lit, Typed, UnaryOp};
 use crate::passes::select::InstrSelected;
-use crate::passes::validate::TLit;
+use crate::passes::validate::Int;
 use crate::utils::gen_sym::UniqueSym;
 use derive_more::Display;
 use itertools::Itertools;
@@ -20,7 +20,7 @@ pub type DefRevealed<'p> = Def<UniqueSym<'p>, &'p str, Typed<'p, RExpr<'p>>>;
 
 pub enum RExpr<'p> {
     Lit {
-        val: TLit,
+        val: Lit<Int>,
     },
     Var {
         sym: UniqueSym<'p>,

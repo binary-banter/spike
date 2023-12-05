@@ -32,16 +32,16 @@ pub struct PrgConstrained<'p> {
 }
 
 pub type DefValidated<'p> = Def<UniqueSym<'p>, &'p str, Typed<'p, ExprValidated<'p>>>;
-pub type ExprValidated<'p> = Expr<UniqueSym<'p>, &'p str, TLit, Type<UniqueSym<'p>>>;
+pub type ExprValidated<'p> = Expr<UniqueSym<'p>, &'p str, Lit<Int>, Type<UniqueSym<'p>>>;
 
 pub type DefConstrained<'p> =
     Def<Spanned<UniqueSym<'p>>, Spanned<&'p str>, Constrained<ExprConstrained<'p>>>;
 pub type ExprConstrained<'p> =
-    Expr<Spanned<UniqueSym<'p>>, Spanned<&'p str>, Lit<'p>, MetaConstrained>;
+    Expr<Spanned<UniqueSym<'p>>, Spanned<&'p str>, Lit<&'p str>, MetaConstrained>;
 
 pub type DefUniquified<'p> =
     Def<Spanned<UniqueSym<'p>>, Spanned<&'p str>, Spanned<ExprUniquified<'p>>>;
-pub type ExprUniquified<'p> = Expr<Spanned<UniqueSym<'p>>, Spanned<&'p str>, Lit<'p>, Span>;
+pub type ExprUniquified<'p> = Expr<Spanned<UniqueSym<'p>>, Spanned<&'p str>, Lit<&'p str>, Span>;
 pub type InstrUniquified<'p> = Instr<VarArg<Spanned<UniqueSym<'p>>>, Spanned<UniqueSym<'p>>>;
 
 pub struct MetaConstrained {
@@ -50,17 +50,7 @@ pub struct MetaConstrained {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Display)]
-pub enum TLit {
-    #[display(fmt = "{_0}")]
-    Int(TInt),
-    #[display(fmt = "{}", r#"if *_0 { "true" } else { "false" }"#)]
-    Bool(bool),
-    #[display(fmt = "unit")]
-    Unit,
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Display)]
-pub enum TInt {
+pub enum Int {
     I8(i8),
     U8(u8),
     I16(i16),

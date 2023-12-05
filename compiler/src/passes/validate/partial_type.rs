@@ -1,11 +1,11 @@
-use crate::passes::parse::types::Int;
+use crate::passes::parse::types::IntType;
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};
 use itertools::Itertools;
 
 #[derive(Debug, Clone)]
 pub enum PartialType<'p> {
-    Int(Int),
+    Int(IntType),
     IntAmbiguous,
     Bool,
     Unit,

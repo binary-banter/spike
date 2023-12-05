@@ -1,11 +1,10 @@
-use crate::passes::parse::types::{Int, Type};
+use crate::passes::parse::types::{IntType, Type};
 use crate::passes::parse::{Constrained, Expr, Lit, Meta, Param, Span, Spanned, TypeDef, Typed};
 use crate::passes::select::{Instr, InstrSelected, VarArg};
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::partial_type::PartialType;
 use crate::passes::validate::{
-    DefConstrained, DefValidated, ExprConstrained, ExprValidated, PrgConstrained, PrgValidated,
-    TInt, TLit,
+    DefConstrained, DefValidated, ExprConstrained, ExprValidated, Int, PrgConstrained, PrgValidated,
 };
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};
@@ -165,42 +164,42 @@ fn resolve_expr<'p>(
     let expr = match expr.inner {
         Expr::Lit { val } => {
             let val = match val {
-                Lit::Int { val, .. } => match &typ {
+                Lit::Int(val) => match &typ {
                     Some(typ) => {
                         let int = match typ {
                             Type::Int(int) => match int {
-                                Int::I8 => todo!(),
-                                Int::U8 => TInt::U8(resolve_int_lit(
+                                IntType::I8 => todo!(),
+                                IntType::U8 => Int::U8(resolve_int_lit(
                                     val,
                                     expr.meta.span,
                                     u8::from_str_radix,
                                 )?),
-                                Int::I16 => TInt::I16(resolve_int_lit(
+                                IntType::I16 => Int::I16(resolve_int_lit(
                                     val,
                                     expr.meta.span,
                                     i16::from_str_radix,
                                 )?),
-                                Int::U16 => TInt::U16(resolve_int_lit(
+                                IntType::U16 => Int::U16(resolve_int_lit(
                                     val,
                                     expr.meta.span,
                                     u16::from_str_radix,
                                 )?),
-                                Int::I32 => TInt::I32(resolve_int_lit(
+                                IntType::I32 => Int::I32(resolve_int_lit(
                                     val,
                                     expr.meta.span,
                                     i32::from_str_radix,
                                 )?),
-                                Int::U32 => TInt::U32(resolve_int_lit(
+                                IntType::U32 => Int::U32(resolve_int_lit(
                                     val,
                                     expr.meta.span,
                                     u32::from_str_radix,
                                 )?),
-                                Int::I64 => TInt::I64(resolve_int_lit(
+                                IntType::I64 => Int::I64(resolve_int_lit(
                                     val,
                                     expr.meta.span,
                                     i64::from_str_radix,
                                 )?),
-                                Int::U64 => TInt::U64(resolve_int_lit(
+                                IntType::U64 => Int::U64(resolve_int_lit(
                                     val,
                                     expr.meta.span,
                                     u64::from_str_radix,
@@ -208,7 +207,7 @@ fn resolve_expr<'p>(
                             },
                             _ => unreachable!(),
                         };
-                        TLit::Int(int)
+                        Lit::Int(int)
                     }
                     None => {
                         return Err(TypeError::IntegerAmbiguous {
@@ -216,8 +215,8 @@ fn resolve_expr<'p>(
                         })
                     }
                 },
-                Lit::Bool(bool) => TLit::Bool(bool),
-                Lit::Unit => TLit::Unit,
+                Lit::Bool(bool) => Lit::Bool(bool),
+                Lit::Unit => Lit::Unit,
             };
             Expr::Lit { val }
         }

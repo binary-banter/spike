@@ -50,7 +50,7 @@ pub enum Def<IdentVars, IdentFields, Expr> {
 }
 
 pub type DefParsed<'p> = Def<Spanned<&'p str>, Spanned<&'p str>, Spanned<ExprParsed<'p>>>;
-pub type ExprParsed<'p> = Expr<Spanned<&'p str>, Spanned<&'p str>, Lit<'p>, Span>;
+pub type ExprParsed<'p> = Expr<Spanned<&'p str>, Spanned<&'p str>, Lit<&'p str>, Span>;
 pub type InstrParsed<'p> = Instr<VarArg<Spanned<&'p str>>, Spanned<&'p str>>;
 
 #[derive(Clone, Debug)]
@@ -331,11 +331,11 @@ pub enum BinaryOp {
 }
 
 /// A literal value.
-#[derive(Display)]
-pub enum Lit<'p> {
+#[derive(Display, Debug, Copy, Clone)]
+pub enum Lit<Int: Display> {
     /// Integer literal, representing a signed 64-bit number.
-    #[display(fmt = "{val}")]
-    Int { val: &'p str },
+    #[display(fmt = "{_0}")]
+    Int(Int),
     /// Boolean literal, representing a value of *true* or *false*.
     #[display(fmt = "{}", r#"if *_0 { "true" } else { "false" }"#)]
     Bool(bool),

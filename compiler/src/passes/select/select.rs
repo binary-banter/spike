@@ -1,12 +1,12 @@
 use crate::passes::atomize::Atom;
 use crate::passes::eliminate::{ExprEliminated, FunEliminated, PrgEliminated, TailEliminated};
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{BinaryOp, Meta, UnaryOp};
+use crate::passes::parse::{BinaryOp, Lit, Meta, UnaryOp};
 use crate::passes::select::{
     Block, Cnd, FunSelected, InstrSelected, VarArg, X86Selected, CALLEE_SAVED_NO_STACK,
     CALLER_SAVED,
 };
-use crate::passes::validate::{TInt, TLit};
+use crate::passes::validate::Int;
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use crate::*;
 use std::collections::HashMap;
@@ -258,20 +258,20 @@ fn select_atom(expr: Atom<'_>) -> VarArg<UniqueSym<'_>> {
     match expr {
         Atom::Val { val } => {
             match val {
-                TLit::Int(int) => {
+                Lit::Int(int) => {
                     match int {
-                        TInt::I8(_) => todo!(),
-                        TInt::U8(_) => todo!(),
-                        TInt::I16(_) => todo!(),
-                        TInt::U16(_) => todo!(),
-                        TInt::I32(_) => todo!(),
-                        TInt::U32(_) => todo!(),
-                        TInt::I64(int) => imm32!(int as i32), // not correct yet
-                        TInt::U64(_) => todo!(),
+                        Int::I8(_) => todo!(),
+                        Int::U8(_) => todo!(),
+                        Int::I16(_) => todo!(),
+                        Int::U16(_) => todo!(),
+                        Int::I32(_) => todo!(),
+                        Int::U32(_) => todo!(),
+                        Int::I64(int) => imm32!(int as i32), // not correct yet
+                        Int::U64(_) => todo!(),
                     }
                 }
-                TLit::Bool(bool) => imm32!(bool as i32), // todo: can be smaller
-                TLit::Unit => imm32!(0),                 // todo: can be smaller
+                Lit::Bool(bool) => imm32!(bool as i32), // todo: can be smaller
+                Lit::Unit => imm32!(0),                 // todo: can be smaller
             }
         }
         Atom::Var { sym } => var!(sym),
@@ -290,21 +290,21 @@ fn select_cmp(op: BinaryOp) -> Cnd {
     }
 }
 
-impl From<TLit> for u32 {
-    fn from(value: TLit) -> Self {
+impl From<Lit<Int>> for u32 {
+    fn from(value: Lit<Int>) -> Self {
         match value {
-            TLit::Int(int) => match int {
-                TInt::I8(int) => int as u32,
-                TInt::U8(int) => int as u32,
-                TInt::I16(int) => int as u32,
-                TInt::U16(int) => int as u32,
-                TInt::I32(int) => int as u32,
-                TInt::U32(int) => int,
-                TInt::I64(int) => int as u32,
-                TInt::U64(int) => int as u32,
+            Lit::Int(int) => match int {
+                Int::I8(int) => int as u32,
+                Int::U8(int) => int as u32,
+                Int::I16(int) => int as u32,
+                Int::U16(int) => int as u32,
+                Int::I32(int) => int as u32,
+                Int::U32(int) => int,
+                Int::I64(int) => int as u32,
+                Int::U64(int) => int as u32,
             },
-            TLit::Bool(bool) => bool as u32,
-            TLit::Unit => 0,
+            Lit::Bool(bool) => bool as u32,
+            Lit::Unit => 0,
         }
     }
 }

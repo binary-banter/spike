@@ -2,9 +2,9 @@ pub mod atomize;
 mod display;
 
 use crate::passes::parse::types::Type;
-use crate::passes::parse::{BinaryOp, Def, Typed, UnaryOp};
+use crate::passes::parse::{BinaryOp, Def, Lit, Typed, UnaryOp};
 use crate::passes::select::InstrSelected;
-use crate::passes::validate::TLit;
+use crate::passes::validate::Int;
 use crate::utils::gen_sym::UniqueSym;
 use derive_more::Display;
 use itertools::Itertools;
@@ -81,7 +81,7 @@ pub enum AExpr<'p> {
 
 #[derive(Copy, Clone, Display)]
 pub enum Atom<'p> {
-    Val { val: TLit },
+    Val { val: Lit<Int> },
     Var { sym: UniqueSym<'p> },
 }
 

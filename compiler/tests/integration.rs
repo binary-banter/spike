@@ -1,7 +1,6 @@
 #![cfg(unix)]
 
 use compiler::passes::parse::parse::parse_program;
-use compiler::passes::validate::TLit;
 use compiler::utils::split_test::{split_test, str_to_int};
 use std::fs::OpenOptions;
 use std::io::{BufRead, Write};

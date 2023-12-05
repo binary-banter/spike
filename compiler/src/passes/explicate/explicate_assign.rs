@@ -2,8 +2,7 @@ use crate::passes::atomize::{AExpr, Atom};
 use crate::passes::explicate::explicate::Env;
 use crate::passes::explicate::{explicate_pred, ExprExplicated, TailExplicated};
 
-use crate::passes::parse::{Meta, Typed};
-use crate::passes::validate::TLit;
+use crate::passes::parse::{Lit, Meta, Typed};
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
 
 pub fn explicate_assign<'p>(
@@ -119,7 +118,7 @@ pub fn explicate_assign<'p>(
                 Meta {
                     meta: bnd.meta,
                     inner: AExpr::Atom {
-                        atm: Atom::Val { val: TLit::Unit },
+                        atm: Atom::Val { val: Lit::Unit },
                     },
                 },
                 tail,
