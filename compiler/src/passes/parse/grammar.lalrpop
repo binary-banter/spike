@@ -78,7 +78,7 @@ match {
     // Identifier
     r"[_a-zA-Z][_a-zA-Z0-9]*" => identifier,
 
-    // Integer operators
+    // Int operators
     "+",
     "-",
     "*",
@@ -96,7 +96,11 @@ match {
     "true",
     "false",
     "unit",
-    r"(0b[01]([01_]*[01])?|0o[0-7]([0-7_]*[0-7])?|0x[0-9a-fA-F]([0-9a-fA-F_]*[0-9a-fA-F])?|b'(\\)?[^'[[:cntrl:]]]'|[0-9]([0-9_]*[0-9])?)([iu](8|16|32|64))?" => integer,
+    r"0b[01]([01_]*[01])?([iu](8|16|32|64))?" => binary,
+    r"0o[0-7]([0-7_]*[0-7])?([iu](8|16|32|64))?" => octal,
+    r"[0-9]([0-9_]*[0-9])?([iu](8|16|32|64))?" => decimal,
+    r"0x[0-9a-fA-F]([0-9a-fA-F_]*[0-9a-fA-F])?([iu](8|16|32|64))?" => hexadecimal,
+    r"b'(\\)?[^'[[:cntrl:]]]'([iu](8|16|32|64))?" => character,
 
     // Logical operators
     "^",
@@ -331,7 +335,7 @@ ExprCall<T>: ExprParsed<'input> = {
 }
 
 ExprAtom<T>: ExprParsed<'input> = {
-    <val:integer> => ExprParsed::Lit {
+    <val:Int> => ExprParsed::Lit {
         val: Lit::Int {
             val,
         },
@@ -397,19 +401,27 @@ AsmInstr: InstrParsed<'input> = {
     "xorq" <src:AsmArg> <dst:AsmArg> => InstrParsed::Xorq { src, dst },
     "notq" <dst:AsmArg> => InstrParsed::Notq { dst },
     "cmpq" <src:AsmArg> <dst:AsmArg> => InstrParsed::Cmpq { src, dst },
-    "syscall" <arity:integer> => InstrParsed::Syscall { arity: arity.parse().expect("internal compiler error :(") },
+    "syscall" <arity:Int> => InstrParsed::Syscall { arity: arity.parse().expect("internal compiler error :(") },
 }
 
 AsmArg: VarArg<Spanned<&'input str>> = {
     <reg:AsmReg> => VarArg::Reg { reg },
     "{" <sym:Ident> "}" => VarArg::XVar { sym },
-    "$" <val:integer> => VarArg::Imm {
+    "$" <val:Int> => VarArg::Imm {
         val: val.parse().expect("Internal compiler error (oh no!): We were too lazy to make a proper error for this"),
     },
-    "[" <reg:AsmReg> "+" <off:integer> "]"  => VarArg::Deref {
+    "[" <reg:AsmReg> "+" <off:Int> "]"  => VarArg::Deref {
         reg,
         off: off.parse().expect("Internal compiler error (oh no!): We were too lazy to make a proper error for this"),
     },
+}
+
+Int: &'input str = {
+    binary,
+    octal,
+    decimal,
+    hexadecimal,
+    character,
 }
 
 AsmReg: Reg = {
