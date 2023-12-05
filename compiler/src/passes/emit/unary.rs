@@ -13,7 +13,7 @@ pub const CALLQ_INDIRECT_INFO: UnaryOpInfo = UnaryOpInfo { op: 0xFF, pad: 0x2 };
 
 pub fn encode_unary_instr(op_info: UnaryOpInfo, dst: &Arg) -> Vec<u8> {
     match dst {
-        Arg::Reg { reg: dst } => {
+        Arg::Reg(dst) => {
             // use: REX.W + opcode /r
             let (d, ddd) = emit::encode_reg(dst);
             vec![

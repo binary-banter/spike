@@ -194,10 +194,7 @@ macro_rules! imm32 {
 #[macro_export]
 macro_rules! reg {
     ($reg:ident) => {
-        $crate::passes::assign::Arg::Reg {
-            reg: $crate::passes::select::Reg::$reg,
-        }
-        .into()
+        $crate::passes::assign::Arg::Reg($crate::passes::select::Reg::$reg).into()
     };
 }
 

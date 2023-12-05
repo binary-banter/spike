@@ -31,8 +31,8 @@ pub type InstrAssigned<'p> = Instr<Arg, UniqueSym<'p>>;
 pub enum Arg {
     #[display(fmt = "${_0}")]
     Imm(Imm),
-    #[display(fmt = "%{reg}")]
-    Reg { reg: Reg },
+    #[display(fmt = "%{_0}")]
+    Reg(Reg),
     #[display(fmt = "[%{reg} + ${off}]")]
     Deref { reg: Reg, off: i64 },
 }
@@ -65,7 +65,7 @@ impl<'p> From<LArg<'p>> for VarArg<UniqueSym<'p>> {
     fn from(val: LArg<'p>) -> Self {
         match val {
             LArg::Var { sym } => VarArg::XVar { sym },
-            LArg::Reg { reg } => VarArg::Reg { reg },
+            LArg::Reg { reg } => VarArg::Reg(reg),
         }
     }
 }
@@ -82,7 +82,7 @@ impl<'p> From<Arg> for VarArg<UniqueSym<'p>> {
     fn from(value: Arg) -> Self {
         match value {
             Arg::Imm(imm) => VarArg::Imm(imm),
-            Arg::Reg { reg } => VarArg::Reg { reg },
+            Arg::Reg(reg) => VarArg::Reg(reg),
             Arg::Deref { reg, off } => VarArg::Deref { reg, off },
         }
     }

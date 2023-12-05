@@ -15,7 +15,7 @@ impl<'p> LFun<'p> {
                 //TODO move optimization: If instruction is a move instruction then for every in w in writes, if w != dst and v != src, add the edge (dst, w).
                 handle_instr(instr, &HashMap::new(), |arg, op| {
                     let w = match (arg, op) {
-                        (VarArg::Reg { reg }, ReadWriteOp::Write | ReadWriteOp::ReadWrite) => {
+                        (VarArg::Reg(reg), ReadWriteOp::Write | ReadWriteOp::ReadWrite) => {
                             LArg::Reg { reg: *reg }
                         }
                         (VarArg::XVar { sym }, ReadWriteOp::Write | ReadWriteOp::ReadWrite) => {

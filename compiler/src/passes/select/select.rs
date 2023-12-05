@@ -61,7 +61,7 @@ fn entry_block<'p>(
 
     // Save callee-saved registers (excluding stack pointers).
     for reg in CALLEE_SAVED_NO_STACK {
-        instrs.push(pushq!(VarArg::Reg { reg }));
+        instrs.push(pushq!(VarArg::Reg(reg)));
     }
 
     // Prepare temporary stack space - this will be optimized in later passes.
@@ -69,7 +69,7 @@ fn entry_block<'p>(
 
     // Introduce parameters as local variables.
     for (reg, param) in CALLER_SAVED.into_iter().zip(fun.params.iter()) {
-        instrs.push(movq!(VarArg::Reg { reg }, VarArg::XVar { sym: param.sym }));
+        instrs.push(movq!(VarArg::Reg(reg), VarArg::XVar { sym: param.sym }));
     }
 
     assert!(
@@ -95,7 +95,7 @@ fn exit_block<'p>(
 
     // Restore callee-saved registers (excluding stack pointers).
     for reg in CALLEE_SAVED_NO_STACK.into_iter().rev() {
-        instrs.push(popq!(VarArg::Reg { reg }));
+        instrs.push(popq!(VarArg::Reg(reg)));
     }
 
     // Restore stack pointers.
@@ -118,7 +118,7 @@ fn select_tail<'p>(
                 "Argument passing to stack is not yet implemented."
             );
             for (reg, arg) in CALLER_SAVED.into_iter().zip(exprs) {
-                instrs.push(movq!(select_atom(arg), VarArg::Reg { reg }));
+                instrs.push(movq!(select_atom(arg), VarArg::Reg(reg)));
             }
             instrs.push(jmp!(exit));
         }
@@ -235,7 +235,7 @@ fn select_assign<'p>(
             let mut instrs = vec![];
 
             for (arg, reg) in args.iter().zip(CALLER_SAVED.into_iter()) {
-                instrs.push(movq!(select_atom(*arg), VarArg::Reg { reg }));
+                instrs.push(movq!(select_atom(*arg), VarArg::Reg(reg)));
             }
             assert!(
                 args.len() <= 9,
@@ -245,7 +245,7 @@ fn select_assign<'p>(
             instrs.push(callq_indirect!(select_atom(fun), args.len()));
 
             for (reg, dst) in CALLER_SAVED.into_iter().zip(dsts) {
-                instrs.push(movq!(VarArg::Reg { reg }, var!(*dst)));
+                instrs.push(movq!(VarArg::Reg(reg), var!(*dst)));
             }
 
             instrs

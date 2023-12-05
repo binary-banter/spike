@@ -114,7 +114,7 @@ fn uniquify_instr<'p>(
     let map = |arg: VarArg<Spanned<&'p str>>| {
         Ok(match arg {
             VarArg::Imm(imm) => VarArg::Imm(imm),
-            VarArg::Reg { reg } => VarArg::Reg { reg },
+            VarArg::Reg(reg) => VarArg::Reg(reg),
             VarArg::Deref { reg, off } => VarArg::Deref { reg, off },
             VarArg::XVar { sym } => VarArg::XVar {
                 sym: try_get(sym, scope)?,

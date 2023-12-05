@@ -64,7 +64,7 @@ pub const MOVQ_INFO: BinaryOpInfo = BinaryOpInfo {
 
 pub fn encode_binary_instr(op_info: BinaryOpInfo, src: &Arg, dst: &Arg) -> Vec<u8> {
     match (src, dst) {
-        (Arg::Reg { reg: src }, Arg::Reg { reg: dst }) => {
+        (Arg::Reg(src), Arg::Reg(dst)) => {
             let (s, sss) = encode_reg(src);
             let (d, ddd) = encode_reg(dst);
             vec![
@@ -73,7 +73,7 @@ pub fn encode_binary_instr(op_info: BinaryOpInfo, src: &Arg, dst: &Arg) -> Vec<u
                 0b11_000_000 | sss << 3 | ddd,
             ]
         }
-        (Arg::Deref { reg: src, off }, Arg::Reg { reg: dst }) => {
+        (Arg::Deref { reg: src, off }, Arg::Reg(dst)) => {
             let (s, sss) = encode_reg(src);
             let (d, ddd) = encode_reg(dst);
             let off = *off as i32;
@@ -89,7 +89,7 @@ pub fn encode_binary_instr(op_info: BinaryOpInfo, src: &Arg, dst: &Arg) -> Vec<u
             v.extend(off.to_le_bytes());
             v
         }
-        (Arg::Reg { reg: src }, Arg::Deref { reg: dst, off }) => {
+        (Arg::Reg(src), Arg::Deref { reg: dst, off }) => {
             let (s, sss) = encode_reg(src);
             let (d, ddd) = encode_reg(dst);
             let off = *off as i32;
@@ -105,7 +105,7 @@ pub fn encode_binary_instr(op_info: BinaryOpInfo, src: &Arg, dst: &Arg) -> Vec<u
             v.extend(off.to_le_bytes());
             v
         }
-        (Arg::Imm(imm), Arg::Reg { reg: dst }) => match imm {
+        (Arg::Imm(imm), Arg::Reg(dst)) => match imm {
             Imm::Imm8(_) => todo!(),
             Imm::Imm16(_) => todo!(),
             Imm::Imm32(imm) => {

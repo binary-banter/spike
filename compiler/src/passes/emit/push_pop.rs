@@ -35,7 +35,7 @@ pub fn encode_push_pop(op_info: PushPopInfo, reg: &Arg) -> Vec<u8> {
             }
             Imm::Imm64(_) => todo!(),
         },
-        Arg::Reg { reg } => {
+        Arg::Reg(reg) => {
             let (r, rrr) = emit::encode_reg(reg);
             if r == 0 {
                 vec![op_info.op_reg | rrr]

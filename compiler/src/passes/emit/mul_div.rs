@@ -8,8 +8,8 @@ pub struct MulDivOpInfo {
 
 pub fn encode_muldiv_instr(op_info: MulDivOpInfo, reg: &Arg) -> Vec<u8> {
     match reg {
-        Arg::Imm { .. } => todo!(),
-        Arg::Reg { reg } => {
+        Arg::Imm(..) => todo!(),
+        Arg::Reg(reg) => {
             let (d, ddd) = encode_reg(reg);
             vec![
                 0b0100_1000 | d,

@@ -101,8 +101,8 @@ pub enum Instr<Arg: Display, IdentVars: Display> {
 pub enum VarArg<IdentVars: Display> {
     #[display(fmt = "${_0}")]
     Imm(Imm),
-    #[display(fmt = "%{reg}")]
-    Reg { reg: Reg },
+    #[display(fmt = "%{_0}")]
+    Reg(Reg),
     #[display(fmt = "[%{reg} + ${off}]")]
     Deref { reg: Reg, off: i64 },
     #[display(fmt = "{sym}")]
