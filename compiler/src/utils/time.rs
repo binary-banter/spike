@@ -30,7 +30,7 @@ static TIME: Lazy<Mutex<Time>> = Lazy::new(|| Mutex::new(Time::new()));
 pub fn time_init() {
     #[cfg(feature = "time")]
     {
-        println!("{:>12}  {:>12} {:>12}", "pass", "since prev", "since init");
+        println!("{:>12} {:>12} {:>12}", "pass", "since prev", "since init");
         Lazy::force(&TIME);
     }
 }
@@ -44,6 +44,6 @@ pub fn time(pass: &str) {
         let since_init = now.duration_since(time.init);
         let since_prev = now.duration_since(time.prev);
         time.prev = now;
-        println!("{pass:>12}: {since_prev:>#12?} {since_init:>#12?}");
+        println!("{pass:>12} {since_prev:>#12?} {since_init:>#12?}");
     }
 }
