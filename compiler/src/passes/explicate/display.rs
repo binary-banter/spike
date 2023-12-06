@@ -47,14 +47,9 @@ impl Display for ExprExplicated<'_> {
             }
             ExprExplicated::Struct { sym, fields } => {
                 writeln!(f, "{sym} {{")?;
-                writeln!(
-                    indented(f),
-                    "{}",
-                    fields
-                        .iter()
-                        .map(|(sym, bnd)| format!("{sym}: {bnd},"))
-                        .format("\n")
-                )?;
+                for (field_sym, field_bnd) in fields {
+                    writeln!(indented(f), "{field_sym}: {field_bnd},")?;
+                }
                 write!(f, "}}")
             }
             ExprExplicated::AccessField { strct, field } => {

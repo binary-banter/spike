@@ -23,14 +23,9 @@ impl<IdentVars: Display, IdentFields: Display, Expr: Display> Display
             Def::TypeDef { sym, def } => match def {
                 TypeDef::Struct { fields } => {
                     writeln!(f, "struct {sym} {{")?;
-                    writeln!(
-                        indented(f),
-                        "{}",
-                        fields
-                            .iter()
-                            .map(|(sym, bnd)| format!("{sym}: {bnd},"))
-                            .format("\n")
-                    )?;
+                    for (field_sym, field_typ) in fields {
+                        writeln!(indented(f), "{field_sym}: {field_typ},")?;
+                    }
                     writeln!(f, "}}")
                 }
                 TypeDef::Enum { .. } => todo!(),
@@ -66,14 +61,13 @@ impl<IdentVars: Display, IdentFields: Display, Lit: Display, M> Display
                 bnd,
                 bdy,
             } => {
-                writeln!(
-                    f,
-                    "let {}{sym}{} = {bnd};",
-                    if *mutable { "mut " } else { "" },
-                    typ.as_ref()
-                        .map(|typ| format!(": {typ}"))
-                        .unwrap_or("".to_string())
-                )?;
+                let mutable = if *mutable { "mut " } else { "" };
+                let typ = typ
+                    .as_ref()
+                    .map(|typ| format!(": {typ}"))
+                    .unwrap_or_default();
+
+                writeln!(f, "let {mutable}{sym}{typ} = {bnd};")?;
                 write!(f, "{bdy}")
             }
             Expr::If { cnd, thn, els } => {
@@ -109,22 +103,23 @@ impl<IdentVars: Display, IdentFields: Display, Lit: Display, M> Display
             }
             Expr::Struct { sym, fields } => {
                 writeln!(f, "{sym} {{")?;
-                writeln!(
-                    indented(f),
-                    "{}",
-                    fields
-                        .iter()
-                        .map(|(sym, bnd)| format!("{sym}: {bnd},"))
-                        .format("\n")
-                )?;
+                for (field_sym, field_bnd) in fields {
+                    writeln!(indented(f), "{field_sym}: {field_bnd},")?;
+                }
                 write!(f, "}}")
             }
             Expr::AccessField { strct, field } => {
                 write!(f, "{strct}.{field}")
             }
+            Expr::Asm { instrs } => {
+                writeln!(f, "asm {{")?;
+                for instr in instrs {
+                    writeln!(indented(f), "{instr}")?;
+                }
+                write!(f, "}}")
+            }
             Expr::Variant { .. } => todo!(),
             Expr::Switch { .. } => todo!(),
-            Expr::Asm { .. } => todo!(),
         }
     }
 }

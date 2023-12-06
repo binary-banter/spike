@@ -31,11 +31,9 @@ impl Display for RExpr<'_> {
                 bnd,
                 bdy,
             } => {
-                writeln!(
-                    f,
-                    "let {}{sym} = {bnd};",
-                    if *mutable { "mut " } else { "" }
-                )?;
+                let mutable = if *mutable { "mut " } else { "" };
+
+                writeln!(f, "let {mutable}{sym} = {bnd};")?;
                 write!(f, "{bdy}")
             }
             RExpr::If { cnd, thn, els } => {
@@ -71,20 +69,21 @@ impl Display for RExpr<'_> {
             }
             RExpr::Struct { sym, fields } => {
                 writeln!(f, "{sym} {{")?;
-                writeln!(
-                    indented(f),
-                    "{}",
-                    fields
-                        .iter()
-                        .map(|(sym, bnd)| format!("{sym}: {bnd},"))
-                        .format("\n")
-                )?;
+                for (field_sym, field_bnd) in fields {
+                    writeln!(indented(f), "{field_sym}: {field_bnd},")?;
+                }
                 write!(f, "}}")
             }
             RExpr::AccessField { strct, field } => {
                 write!(f, "{strct}.{field}")
             }
-            RExpr::Asm { .. } => todo!(),
+            RExpr::Asm { instrs } => {
+                writeln!(f, "asm {{")?;
+                for instr in instrs {
+                    writeln!(indented(f), "{instr}")?;
+                }
+                write!(f, "}}")
+            }
         }
     }
 }
