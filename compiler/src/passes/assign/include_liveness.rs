@@ -85,10 +85,10 @@ fn block_liveness<'p>(
             (VarArg::Reg(reg), ReadWriteOp::Write) => {
                 live.remove(&LArg::Reg { reg: *reg });
             }
-            (VarArg::XVar { sym }, ReadWriteOp::Read | ReadWriteOp::ReadWrite) => {
+            (VarArg::XVar(sym), ReadWriteOp::Read | ReadWriteOp::ReadWrite) => {
                 live.insert(LArg::Var { sym: *sym });
             }
-            (VarArg::XVar { sym }, ReadWriteOp::Write) => {
+            (VarArg::XVar(sym), ReadWriteOp::Write) => {
                 live.remove(&LArg::Var { sym: *sym });
             }
             (VarArg::Deref { reg, .. }, _) => {

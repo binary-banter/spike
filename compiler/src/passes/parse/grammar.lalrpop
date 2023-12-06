@@ -404,7 +404,7 @@ AsmInstr: InstrParsed<'input> = {
 
 AsmArg: VarArg<Spanned<&'input str>> = {
     <reg:AsmReg> => VarArg::Reg(reg),
-    "{" <sym:Ident> "}" => VarArg::XVar { sym },
+    "{" <sym:Ident> "}" => VarArg::XVar(sym),
     "$" <val:Int> => VarArg::Imm(Imm::Imm32(val.parse().expect("Internal compiler error (oh no!): We were too lazy to make a proper error for this"))),
     "[" <reg:AsmReg> "+" <off:Int> "]"  => VarArg::Deref {
         reg,

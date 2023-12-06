@@ -105,8 +105,8 @@ pub enum VarArg<IdentVars: Display> {
     Reg(Reg),
     #[display(fmt = "[%{reg} + ${off}]")]
     Deref { reg: Reg, off: i64 },
-    #[display(fmt = "{sym}")]
-    XVar { sym: IdentVars },
+    #[display(fmt = "{_0}")]
+    XVar(IdentVars),
 }
 
 #[derive(Debug, PartialEq, Clone, Display)]

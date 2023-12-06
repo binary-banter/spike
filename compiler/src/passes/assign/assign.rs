@@ -55,7 +55,7 @@ fn assign_instr<'p>(
             VarArg::Imm(imm) => Arg::Imm(imm),
             VarArg::Reg(reg) => Arg::Reg(reg),
             VarArg::Deref { reg, off } => Arg::Deref { reg, off },
-            VarArg::XVar { sym } => color_map[&sym].clone(),
+            VarArg::XVar(sym) => color_map[&sym].clone(),
         }
     };
     instr.fmap(map)

@@ -201,7 +201,7 @@ macro_rules! reg {
 #[macro_export]
 macro_rules! var {
     ($sym:expr) => {
-        $crate::passes::select::VarArg::XVar { sym: $sym }
+        $crate::passes::select::VarArg::XVar($sym)
     };
 }
 
@@ -212,6 +212,5 @@ macro_rules! deref {
             reg: $crate::passes::select::Reg::$reg,
             off: $off,
         }
-        .into()
     };
 }

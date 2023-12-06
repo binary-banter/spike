@@ -64,7 +64,7 @@ pub enum LArg<'p> {
 impl<'p> From<LArg<'p>> for VarArg<UniqueSym<'p>> {
     fn from(val: LArg<'p>) -> Self {
         match val {
-            LArg::Var { sym } => VarArg::XVar { sym },
+            LArg::Var { sym } => VarArg::XVar(sym),
             LArg::Reg { reg } => VarArg::Reg(reg),
         }
     }

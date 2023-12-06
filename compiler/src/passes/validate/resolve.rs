@@ -311,7 +311,7 @@ pub fn resolve_instr<'p>(
         VarArg::Imm(imm) => VarArg::Imm(imm),
         VarArg::Reg(reg) => VarArg::Reg(reg),
         VarArg::Deref { reg, off } => VarArg::Deref { reg, off },
-        VarArg::XVar { sym } => VarArg::XVar { sym: sym.inner },
+        VarArg::XVar(sym) => VarArg::XVar(sym.inner),
     };
 
     match instr {

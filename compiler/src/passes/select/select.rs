@@ -69,7 +69,7 @@ fn entry_block<'p>(
 
     // Introduce parameters as local variables.
     for (reg, param) in CALLER_SAVED.into_iter().zip(fun.params.iter()) {
-        instrs.push(movq!(VarArg::Reg(reg), VarArg::XVar { sym: param.sym }));
+        instrs.push(movq!(VarArg::Reg(reg), VarArg::XVar(param.sym)));
     }
 
     assert!(

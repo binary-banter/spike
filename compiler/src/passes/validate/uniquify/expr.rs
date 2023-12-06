@@ -116,9 +116,7 @@ fn uniquify_instr<'p>(
             VarArg::Imm(imm) => VarArg::Imm(imm),
             VarArg::Reg(reg) => VarArg::Reg(reg),
             VarArg::Deref { reg, off } => VarArg::Deref { reg, off },
-            VarArg::XVar { sym } => VarArg::XVar {
-                sym: try_get(sym, scope)?,
-            },
+            VarArg::XVar(sym) => VarArg::XVar(try_get(sym, scope)?),
         })
     };
 
