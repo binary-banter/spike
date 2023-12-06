@@ -18,11 +18,14 @@ use crate::passes::emit::special::encode_setcc;
 use crate::passes::emit::unary::{encode_unary_instr, CALLQ_INDIRECT_INFO, NEGQ_INFO};
 use crate::passes::select::{Block, Cnd, Instr, Reg};
 use crate::utils::gen_sym::UniqueSym;
+use crate::utils::time::time;
 use std::collections::HashMap;
 
 impl<'p> X86Concluded<'p> {
     #[must_use]
     pub fn emit(self) -> ElfFile {
+        time("conclude");
+
         let mut machine_code = Vec::new();
 
         let mut rel_jumps = HashMap::new();

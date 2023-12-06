@@ -1,6 +1,6 @@
 #![cfg(unix)]
 
-use compiler::passes::parse::parse::parse_program;
+use compiler::passes::parse::parse::parse;
 use compiler::utils::split_test::{split_test, str_to_int};
 use std::fs::OpenOptions;
 use std::io::{BufRead, Write};
@@ -23,7 +23,7 @@ fn integration([test]: [&str; 1]) {
         .open(input_path)
         .unwrap();
 
-    parse_program(test)
+    parse(test)
         .unwrap()
         .validate()
         .unwrap()

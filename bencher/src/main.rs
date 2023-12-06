@@ -1,6 +1,6 @@
 use clap::Parser;
 use compiler::interpreter::TestIO;
-use compiler::passes::parse::parse::parse_program;
+use compiler::passes::parse::parse::parse;
 use compiler::passes::select::interpreter::IStats;
 use compiler::utils::split_test::split_test;
 use git2::{Commit, Repository};
@@ -270,7 +270,7 @@ impl Stats {
         let tempdir = TempDir::new("cc-bench").unwrap();
         let output = tempdir.path().join("output");
 
-        let prg_concluded = parse_program(program)
+        let prg_concluded = parse(program)
             .unwrap()
             .validate()
             .unwrap()

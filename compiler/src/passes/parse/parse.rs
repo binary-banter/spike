@@ -30,7 +30,7 @@ pub enum PrettyParseError {
     },
 }
 
-pub fn parse_program(src: &str) -> Result<PrgParsed, PrettyParseError> {
+pub fn parse(src: &str) -> Result<PrgParsed, PrettyParseError> {
     //TODO super hacky :(
     let src = String::leak(format!(
         "{src}{}{}{}{}{}",

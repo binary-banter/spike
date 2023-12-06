@@ -1,4 +1,4 @@
-use crate::passes::parse::parse::parse_program;
+use crate::passes::parse::parse::parse;
 use crate::utils::split_test::split_test;
 use derive_name::VariantName;
 use test_each_file::test_each_file;
@@ -6,7 +6,7 @@ use test_each_file::test_each_file;
 fn parse([test]: [&str; 1]) {
     let (_, _, _, expected_error) = split_test(test);
 
-    let result = parse_program(test);
+    let result = parse(test);
 
     match (result, expected_error) {
         (Ok(_), None) => {}

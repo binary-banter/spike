@@ -2,6 +2,7 @@ use crate::passes::atomize::{DefAtomized, PrgAtomized};
 use crate::passes::explicate::explicate_tail::explicate_tail;
 use crate::passes::explicate::{FunExplicated, PrgExplicated, TailExplicated};
 use crate::utils::gen_sym::UniqueSym;
+use crate::utils::time::time;
 use std::collections::HashMap;
 
 pub struct Env<'a, 'p> {
@@ -15,6 +16,8 @@ pub struct Env<'a, 'p> {
 impl<'p> PrgAtomized<'p> {
     #[must_use]
     pub fn explicate(self) -> PrgExplicated<'p> {
+        time("atomize");
+
         let mut fns = HashMap::new();
         let mut defs = HashMap::new();
 

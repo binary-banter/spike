@@ -1,6 +1,6 @@
 #![cfg(unix)]
 
-use compiler::passes::parse::parse::parse_program;
+use compiler::passes::parse::parse::parse;
 use compiler::utils::split_test::split_test;
 use std::fs;
 use std::fs::OpenOptions;

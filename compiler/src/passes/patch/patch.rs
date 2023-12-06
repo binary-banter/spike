@@ -2,12 +2,15 @@ use crate::passes::assign::{Arg, FunAssigned, X86Assigned};
 use crate::passes::patch::X86Patched;
 use crate::passes::select::{Block, Instr};
 use crate::utils::gen_sym::UniqueSym;
+use crate::utils::time::time;
 use crate::{addq, movq, popq, pushq, reg, subq};
 use functor_derive::Functor;
 
 impl<'p> X86Assigned<'p> {
     #[must_use]
     pub fn patch(self) -> X86Patched<'p> {
+        time("assign");
+
         X86Patched {
             fns: self.fns.fmap(patch_fn),
             entry: self.entry,

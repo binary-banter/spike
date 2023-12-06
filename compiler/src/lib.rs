@@ -3,7 +3,8 @@
 pub mod passes;
 pub mod utils;
 
-use crate::passes::parse::parse::parse_program;
+use crate::passes::parse::parse::parse;
+use crate::utils::time::{time, time_init};
 use clap::ValueEnum;
 use miette::{IntoDiagnostic, NamedSource, Report};
 use std::fs::File;
@@ -20,10 +21,12 @@ pub enum Pass {
 }
 
 pub fn compile(program: &str, filename: &str, output: &Path) -> miette::Result<()> {
+    time_init();
+
     let add_source =
         |error| Report::with_source_code(error, NamedSource::new(filename, program.to_string()));
 
-    parse_program(program)
+    parse(program)
         .map_err(Into::into)
         .map_err(add_source)?
         .validate()
@@ -40,6 +43,8 @@ pub fn compile(program: &str, filename: &str, output: &Path) -> miette::Result<(
         .emit()
         .write(&mut File::create(output).into_diagnostic()?);
 
+    time("write");
+
     Ok(())
 }
 
@@ -48,9 +53,7 @@ pub fn display(program: &str, filename: &str, pass: Pass) -> miette::Result<()> 
         |error| Report::with_source_code(error, NamedSource::new(filename, program.to_string()));
 
     let prg_parsed = display!(
-        parse_program(program)
-            .map_err(Into::into)
-            .map_err(add_source)?,
+        parse(program).map_err(Into::into).map_err(add_source)?,
         pass,
         Parse
     );

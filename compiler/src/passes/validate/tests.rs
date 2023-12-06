@@ -1,4 +1,4 @@
-use crate::passes::parse::parse::parse_program;
+use crate::passes::parse::parse::parse;
 use crate::utils::split_test::split_test;
 use derive_name::VariantName;
 use miette::{NamedSource, Report};
@@ -8,7 +8,7 @@ fn validate([test]: [&str; 1], good: bool) {
     let (_input, _expected_output, _expected_return, expected_error) = split_test(test);
     assert_eq!(good, expected_error.is_none());
 
-    let result = parse_program(test).unwrap().validate();
+    let result = parse(test).unwrap().validate();
 
     match (result, expected_error) {
         (Ok(_), None) => {}

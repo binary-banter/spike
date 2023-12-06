@@ -7,6 +7,7 @@ mod section;
 
 use crate::passes::emit::elf::header::ElfHeader;
 use crate::passes::emit::elf::program::ProgramHeader;
+use crate::utils::time::time;
 use std::io::Write;
 use std::mem::size_of;
 use zerocopy::AsBytes;
@@ -31,6 +32,8 @@ impl ElfFile {
     }
 
     pub fn write(self, w: &mut impl Write) {
+        time("emit");
+
         w.write_all(self.header.as_bytes()).unwrap();
         for pheader in self.p_headers {
             w.write_all(pheader.as_bytes()).unwrap();
