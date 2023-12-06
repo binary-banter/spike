@@ -1,10 +1,6 @@
 fn read() -> I64 {
-    let ASCII_NEWLINE = 10;
-    let ASCII_DASH = 45;
-    let ASCII_ZERO = 48;
-
     let mut next = read_char();
-    let negative = next == ASCII_DASH;
+    let negative = next == b'-';
 
     if negative {
         next = read_char();
@@ -13,8 +9,8 @@ fn read() -> I64 {
     let mut total = 0;
 
     // Exhaust all characters until a newline is hit.
-    while next != ASCII_NEWLINE {
-        total = total * 10 + next - ASCII_ZERO;
+    while next != b'\n' {
+        total = total * 10 + next - b'0';
         next = read_char();
     }
 
