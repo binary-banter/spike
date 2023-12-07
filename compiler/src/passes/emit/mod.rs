@@ -5,7 +5,6 @@ mod push_pop;
 mod special;
 mod unary;
 
-use crate::imm32;
 use crate::passes::assign::Arg;
 use crate::passes::conclude::X86Concluded;
 use crate::passes::emit::binary::{
@@ -18,14 +17,12 @@ use crate::passes::emit::special::encode_setcc;
 use crate::passes::emit::unary::{encode_unary_instr, CALLQ_INDIRECT_INFO, NEGQ_INFO};
 use crate::passes::select::{Block, Cnd, Instr, Reg};
 use crate::utils::gen_sym::UniqueSym;
-use crate::utils::time::time;
+use crate::{imm32, time};
 use std::collections::HashMap;
 
 impl<'p> X86Concluded<'p> {
     #[must_use]
     pub fn emit(self) -> ElfFile {
-        time("conclude");
-
         let mut machine_code = Vec::new();
 
         let mut rel_jumps = HashMap::new();
@@ -51,7 +48,11 @@ impl<'p> X86Concluded<'p> {
             machine_code[addr..addr + 4].copy_from_slice(&target.to_le_bytes());
         }
 
-        ElfFile::new(addresses[&self.entry], machine_code)
+        let elf_file = ElfFile::new(addresses[&self.entry], machine_code);
+
+        time!("emit");
+
+        elf_file
     }
 }
 

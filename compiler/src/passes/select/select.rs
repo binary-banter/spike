@@ -8,25 +8,27 @@ use crate::passes::select::{
 };
 use crate::passes::validate::Int;
 use crate::utils::gen_sym::{gen_sym, UniqueSym};
-use crate::utils::time::time;
 use crate::*;
 use std::collections::HashMap;
 
 impl<'p> PrgEliminated<'p> {
     #[must_use]
     pub fn select(self) -> X86Selected<'p> {
-        time("eliminate");
-
         let fns = self
             .fns
             .into_iter()
             .map(|(sym, fun)| (sym, select_fun(fun)))
             .collect();
 
-        X86Selected {
+        let program = X86Selected {
             fns,
             entry: self.entry,
-        }
+        };
+
+        display!(&program, Select);
+        time!("select");
+
+        program
     }
 }
 

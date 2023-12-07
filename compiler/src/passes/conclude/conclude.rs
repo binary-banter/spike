@@ -4,15 +4,11 @@ use crate::passes::patch::X86Patched;
 use crate::passes::select::{Block, Imm, Instr};
 use crate::utils::gen_sym::gen_sym;
 use crate::*;
-
-use crate::utils::time::time;
 use std::collections::HashMap;
 
 impl<'p> X86Patched<'p> {
     #[must_use]
     pub fn conclude(self) -> X86Concluded<'p> {
-        time("patch");
-
         let entries = self
             .fns
             .iter()
@@ -52,7 +48,12 @@ impl<'p> X86Patched<'p> {
             ),
         );
 
-        X86Concluded { blocks, entry }
+        let program = X86Concluded { blocks, entry };
+
+        // display!(&program, Conclude); // todo
+        time!("conclude");
+
+        program
     }
 }
 

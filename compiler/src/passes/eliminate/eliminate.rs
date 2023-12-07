@@ -2,8 +2,8 @@ use crate::passes::eliminate::eliminate_params::eliminate_params;
 use crate::passes::eliminate::eliminate_tail::eliminate_tail;
 use crate::passes::eliminate::{FunEliminated, PrgEliminated};
 use crate::passes::explicate::PrgExplicated;
+use crate::time;
 use crate::utils::gen_sym::UniqueSym;
-use crate::utils::time::time;
 use std::collections::HashMap;
 
 // (Old variable name, field name) -> New variable name
@@ -11,8 +11,6 @@ pub type Ctx<'p> = HashMap<(UniqueSym<'p>, &'p str), UniqueSym<'p>>;
 
 impl<'p> PrgExplicated<'p> {
     pub fn eliminate(self) -> PrgEliminated<'p> {
-        time("explicate");
-
         let fns = self
             .fns
             .into_iter()
@@ -33,10 +31,15 @@ impl<'p> PrgExplicated<'p> {
             })
             .collect();
 
-        PrgEliminated {
+        let program = PrgEliminated {
             fns,
             defs: self.defs,
             entry: self.entry,
-        }
+        };
+
+        // display!(&program, Eliminate); // todo
+        time!("eliminate");
+
+        program
     }
 }

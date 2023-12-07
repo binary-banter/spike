@@ -1,12 +1,16 @@
+#[cfg(unix)]
+mod run;
+
 use clap::Parser;
+use compiler::compile;
+#[cfg(feature = "debug")]
+use compiler::debug::{DebugArgs, Pass};
 use compiler::passes::parse::parse::PrettyParseError;
 use compiler::passes::validate::error::TypeError;
-use compiler::{compile, display, Pass};
 use miette::{Diagnostic, IntoDiagnostic};
 use std::fs;
 use std::io::Read;
 use std::path::Path;
-use std::process::{Command, Stdio};
 use thiserror::Error;
 
 #[derive(Debug, Error, Diagnostic)]
@@ -30,11 +34,20 @@ struct Args {
     #[arg(short, long, value_name = "FILE")]
     output: Option<String>,
 
+    /// Optionally runs and deletes the compiled executable. Only supported on Unix systems.
+    #[cfg(unix)]
+    #[arg(short, long)]
+    run: bool,
+
+    /// Specifies the pass to display. Supported passes are defined by the `Pass` enum.
+    #[cfg(feature = "debug")]
     #[arg(value_enum, short, long, value_name = "PASS")]
     display: Option<Pass>,
 
+    /// Print timing debug information.
+    #[cfg(feature = "debug")]
     #[arg(short, long)]
-    run: bool,
+    time: bool,
 }
 
 fn read_from_stdin() -> Result<String, std::io::Error> {
@@ -46,14 +59,13 @@ fn read_from_stdin() -> Result<String, std::io::Error> {
 fn main() -> miette::Result<()> {
     let args = Args::parse();
 
+    #[cfg(feature = "debug")]
+    DebugArgs::set(args.time, args.display)?;
+
     let (program, filename) = match args.input.as_ref() {
         None => (read_from_stdin().into_diagnostic()?, "stdin"),
         Some(file) => (fs::read_to_string(file).into_diagnostic()?, file.as_str()),
     };
-
-    if let Some(pass) = args.display {
-        return display(&program, filename, pass);
-    }
 
     let output = args.output.as_deref().unwrap_or_else(|| {
         args.input.as_ref().map_or_else(
@@ -64,21 +76,9 @@ fn main() -> miette::Result<()> {
 
     compile(&program, filename, Path::new(&output))?;
 
+    #[cfg(unix)]
     if args.run {
-        Command::new("chmod")
-            .arg("+x")
-            .arg(output)
-            .output()
-            .into_diagnostic()?;
-
-        Command::new(format!("./{output}"))
-            .stdin(Stdio::inherit())
-            .stdout(Stdio::inherit())
-            .stderr(Stdio::inherit())
-            .output()
-            .into_diagnostic()?;
-
-        fs::remove_file(Path::new(output)).into_diagnostic()?;
+        run::run(output)?;
     }
 
     Ok(())

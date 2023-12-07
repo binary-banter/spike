@@ -3,23 +3,26 @@ use crate::passes::reveal::{DefRevealed, PrgRevealed, RExpr};
 use crate::passes::validate::{DefValidated, ExprValidated, PrgValidated};
 use crate::utils::gen_sym::UniqueSym;
 use crate::utils::push_map::PushMap;
-use crate::utils::time::time;
+use crate::{display, time};
 
 impl<'p> PrgValidated<'p> {
     #[must_use]
     pub fn reveal(self) -> PrgRevealed<'p> {
-        time("validate");
-
         let mut scope = PushMap::from_iter(self.defs.keys().map(|s| (*s, ())));
 
-        PrgRevealed {
+        let program = PrgRevealed {
             defs: self
                 .defs
                 .into_iter()
                 .map(|(sym, def)| (sym, reveal_def(def, &mut scope)))
                 .collect(),
             entry: self.entry,
-        }
+        };
+
+        display!(&program, Reveal);
+        time!("reveal");
+
+        program
     }
 }
 

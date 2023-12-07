@@ -1,6 +1,5 @@
+use crate::debug::DEBUG_ARGS;
 use once_cell::sync::Lazy;
-use std::fmt::{Display, Formatter};
-use std::ops::DerefMut;
 use std::sync::Mutex;
 use std::time::Instant;
 
@@ -28,8 +27,7 @@ static TIME: Lazy<Mutex<Time>> = Lazy::new(|| Mutex::new(Time::new()));
 /// Initializes the global time tracking instance.
 /// This function should be called before using the `time` function.
 pub fn time_init() {
-    #[cfg(feature = "time")]
-    {
+    if DEBUG_ARGS.get().unwrap().time {
         println!("{:>12} {:>12} {:>12}", "pass", "since prev", "since init");
         Lazy::force(&TIME);
     }
@@ -37,8 +35,7 @@ pub fn time_init() {
 
 /// Tracks and prints the time elapsed since the last call to `time` or `time_init`.
 pub fn time(pass: &str) {
-    #[cfg(feature = "time")]
-    {
+    if DEBUG_ARGS.get().unwrap().time {
         let now = Instant::now();
         let mut time = TIME.lock().unwrap();
         let since_init = now.duration_since(time.init);

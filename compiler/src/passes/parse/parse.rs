@@ -1,5 +1,6 @@
 use crate::passes::parse::grammar::ProgramParser;
 use crate::passes::parse::PrgParsed;
+use crate::{display, time};
 #[cfg(test)]
 use derive_name::VariantName;
 use itertools::Itertools;
@@ -41,7 +42,14 @@ pub fn parse(src: &str) -> Result<PrgParsed, PrettyParseError> {
         include_str!("../../../std/math.sp"),
     ));
 
-    ProgramParser::new().parse(src).map_err(From::from)
+    let program = ProgramParser::new()
+        .parse(src)
+        .map_err::<PrettyParseError, _>(From::from)?;
+
+    display!(&program, Parse);
+    time!("parse");
+
+    Ok(program)
 }
 
 impl<'p> From<ParseError<usize, Token<'p>, &'p str>> for PrettyParseError {
