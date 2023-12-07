@@ -32,16 +32,6 @@ pub enum PrettyParseError {
 }
 
 pub fn parse(src: &str) -> Result<PrgParsed, PrettyParseError> {
-    //TODO super hacky :(
-    let src = String::leak(format!(
-        "{src}{}{}{}{}{}",
-        include_str!("../../../std/exit.sp"),
-        include_str!("../../../std/read.sp"),
-        include_str!("../../../std/print.sp"),
-        include_str!("../../../std/alloc.sp"),
-        include_str!("../../../std/math.sp"),
-    ));
-
     let program = ProgramParser::new()
         .parse(src)
         .map_err::<PrettyParseError, _>(From::from)?;
