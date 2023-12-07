@@ -52,7 +52,8 @@ pub struct LFun<'p> {
 
 #[derive(PartialEq)]
 pub struct LBlock<'p> {
-    pub instrs: Vec<(InstrSelected<'p>, HashSet<LArg<'p>>)>,
+    pub live_after: Vec<HashSet<LArg<'p>>>,
+    pub instrs: Vec<InstrSelected<'p>>,
 }
 
 #[derive(Hash, Clone, Copy, Eq, Ord, PartialEq, PartialOrd)]
@@ -73,7 +74,7 @@ impl<'p> From<LArg<'p>> for VarArg<UniqueSym<'p>> {
 impl<'p> From<LBlock<'p>> for Block<'p, VarArg<UniqueSym<'p>>> {
     fn from(value: LBlock<'p>) -> Self {
         Block {
-            instrs: value.instrs.into_iter().map(|(instr, _)| instr).collect(),
+            instrs: value.instrs,
         }
     }
 }

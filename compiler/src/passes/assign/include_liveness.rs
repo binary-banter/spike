@@ -2,11 +2,13 @@ use crate::utils::gen_sym::UniqueSym;
 
 use crate::passes::assign::{LArg, LBlock, LFun, LX86VarProgram};
 use crate::passes::select::{
-    Block, FunSelected, Instr, InstrSelected, Reg, VarArg, X86Selected, CALLER_SAVED, SYSCALL_REGS,
+    FunSelected, Instr, InstrSelected, Reg, VarArg, X86Selected, CALLER_SAVED, SYSCALL_REGS,
 };
 use functor_derive::Functor;
+use petgraph::graphmap::DiGraphMap;
+use petgraph::Direction;
 use std::collections::hash_map::Entry;
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeSet, HashMap, HashSet};
 
 impl<'p> X86Selected<'p> {
     #[must_use]
@@ -19,43 +21,34 @@ impl<'p> X86Selected<'p> {
 }
 
 fn fn_liveness(fun: FunSelected) -> LFun {
-    // maps block names to what is live before the block
-    let mut before_map = HashMap::<UniqueSym, HashSet<LArg>>::new();
-    // maps block names to blocks with liveness info added
-    let mut liveness = HashMap::<UniqueSym, LBlock>::new();
+    let graph = DiGraphMap::from_edges(fun.blocks.iter().flat_map(|(block_lbl, block)| {
+        block.instrs.iter().filter_map(|instr| match instr {
+            Instr::Jmp { lbl } | Instr::Jcc { lbl, .. } => Some((*block_lbl, *lbl, ())),
+            _ => None,
+        })
+    }));
 
-    let mut changed = true;
+    let mut queue = BTreeSet::from([fun.exit]);
+    let mut liveness = HashMap::from_iter(fun.blocks.fmap(|block| LBlock {
+        live_after: vec![HashSet::new(); block.instrs.len()],
+        instrs: block.instrs,
+    }));
+    let mut before_map = HashMap::new();
 
-    while changed {
-        changed = false;
+    while let Some(block_lbl) = queue.pop_first() {
+        let prev_liveness = liveness.get_mut(&block_lbl).unwrap();
 
-        for (sym, block) in &fun.blocks {
-            let (new_liveness, before) = block_liveness(block, &before_map);
-
-            match before_map.entry(*sym) {
-                Entry::Occupied(mut e) => {
-                    if e.get() != &before {
-                        changed = true;
-                        e.insert(before);
-                    }
-                }
-                Entry::Vacant(e) => {
-                    changed = true;
+        let before = block_liveness(prev_liveness, &before_map);
+        match before_map.entry(block_lbl) {
+            Entry::Occupied(mut e) => {
+                if e.get() != &before {
+                    queue.extend(graph.neighbors_directed(block_lbl, Direction::Incoming));
                     e.insert(before);
                 }
             }
-
-            match liveness.get(sym) {
-                None => {
-                    liveness.insert(*sym, new_liveness);
-                    changed = true;
-                }
-                Some(old_liveness) => {
-                    if *old_liveness != new_liveness {
-                        liveness.insert(*sym, new_liveness);
-                        changed = true;
-                    }
-                }
+            Entry::Vacant(e) => {
+                queue.extend(graph.neighbors_directed(block_lbl, Direction::Incoming));
+                e.insert(before);
             }
         }
     }
@@ -68,13 +61,12 @@ fn fn_liveness(fun: FunSelected) -> LFun {
 }
 
 fn block_liveness<'p>(
-    block: &Block<'p, VarArg<UniqueSym<'p>>>,
+    block: &mut LBlock<'p>,
     before_map: &HashMap<UniqueSym<'p>, HashSet<LArg<'p>>>,
-) -> (LBlock<'p>, HashSet<LArg<'p>>) {
-    let mut instrs = Vec::new();
+) -> HashSet<LArg<'p>> {
     let mut live = HashSet::new();
 
-    for instr in block.instrs.iter().rev() {
+    for (i, instr) in block.instrs.iter().enumerate().rev() {
         let last_live = live.clone();
 
         handle_instr(instr, before_map, |arg, op| match (arg, op) {
@@ -96,11 +88,10 @@ fn block_liveness<'p>(
             }
         });
 
-        instrs.push((instr.clone(), last_live));
+        block.live_after[i] = last_live;
     }
 
-    instrs.reverse();
-    (LBlock { instrs }, live)
+    live
 }
 
 pub enum ReadWriteOp {

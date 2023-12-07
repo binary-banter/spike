@@ -11,7 +11,7 @@ impl<'p> LFun<'p> {
         let mut graph = GraphMap::<LArg<'p>, (), Undirected>::new();
 
         for block in self.blocks.values() {
-            for (instr, live_after) in &block.instrs {
+            for (instr, live_after) in block.instrs.iter().zip(&block.live_after) {
                 //TODO move optimization: If instruction is a move instruction then for every in w in writes, if w != dst and v != src, add the edge (dst, w).
                 handle_instr(instr, &HashMap::new(), |arg, op| {
                     let w = match (arg, op) {
