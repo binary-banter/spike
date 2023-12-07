@@ -1,15 +1,21 @@
 use crate::passes::assign::{Arg, InterferenceGraph, LArg};
 use crate::passes::select::{Reg, CALLEE_SAVED_NO_STACK};
 use crate::utils::gen_sym::UniqueSym;
-use itertools::Itertools;
+use binary_heap_plus::BinaryHeap;
+use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 
 impl<'p> InterferenceGraph<'p> {
     #[must_use]
     pub fn color(self) -> (HashMap<UniqueSym<'p>, Arg>, usize) {
         let graph = self.0;
-        let mut queue = Vec::new();
-        let mut node_map = HashMap::<LArg, isize>::new();
+        let node_map = RefCell::new(HashMap::<LArg, isize>::new());
+        let mut queue = BinaryHeap::new_by_key(|node| {
+            graph
+                .neighbors(*node)
+                .filter(|nb| node_map.borrow().contains_key(nb))
+                .count()
+        });
 
         for node in graph.nodes() {
             match node {
@@ -35,7 +41,7 @@ impl<'p> InterferenceGraph<'p> {
                         Reg::R11 => -4,
                         Reg::R15 => -5,
                     };
-                    node_map.insert(node, node_weight);
+                    node_map.borrow_mut().insert(node, node_weight);
                 }
             }
         }
@@ -43,25 +49,19 @@ impl<'p> InterferenceGraph<'p> {
         while let Some(node) = queue.pop() {
             let used_colors = graph
                 .neighbors(node)
-                .filter_map(|nb| node_map.get(&nb))
+                .filter(|nb| node_map.borrow().contains_key(nb))
+                .map(|nb| node_map.borrow()[&nb])
                 .collect::<HashSet<_>>();
 
             let chosen_color = (0..)
                 .find(|i| !used_colors.contains(i))
                 .expect("there are infinite numbers, lol");
 
-            node_map.insert(node, chosen_color);
-
-            queue.sort_by_key(|node| {
-                graph
-                    .neighbors(*node)
-                    .filter_map(|nb| node_map.get(&nb))
-                    .unique()
-                    .count()
-            });
+            node_map.borrow_mut().insert(node, chosen_color);
         }
 
         let used_vars = node_map
+            .borrow()
             .values()
             .filter(|&&n| n >= 10)
             .map(|&n| n - 10)
@@ -71,6 +71,7 @@ impl<'p> InterferenceGraph<'p> {
         let stack_space = (8 * used_vars).div_ceil(16) * 16;
 
         let colors = node_map
+            .take()
             .into_iter()
             .filter_map(|(node, color)| match node {
                 LArg::Var { sym } => Some((sym, arg_from_color(color))),

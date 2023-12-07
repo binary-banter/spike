@@ -18,6 +18,7 @@ derive_more = "0.99.17"
 functor_derive = "0.2.3"
 indenter = "0.3.3"
 once_cell = "1.18.0"
+binary-heap-plus = "0.5.0"
 
 [build-dependencies]
 lalrpop = "0.20.0"

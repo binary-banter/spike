@@ -3,7 +3,7 @@ use crate::utils::split_test::split_test;
 use derive_name::VariantName;
 use test_each_file::test_each_file;
 
-fn parse([test]: [&str; 1]) {
+fn parsing([test]: [&str; 1]) {
     let (_, _, _, expected_error) = split_test(test);
 
     let result = parse(test);
@@ -22,5 +22,5 @@ fn parse([test]: [&str; 1]) {
     }
 }
 
-test_each_file! { for ["sp"] in "./programs/good" as parse_succeed => parse }
-test_each_file! { for ["sp"] in "./programs/fail/parse" as parse_fail => parse }
+test_each_file! { for ["sp"] in "./programs/good" as parse_succeed => parsing }
+test_each_file! { for ["sp"] in "./programs/fail/parse" as parse_fail => parsing }
