@@ -24,12 +24,21 @@ fn integration([test]: [&str; 1]) {
         .into_diagnostic()
         .unwrap();
 
-    let mut child = Command::new("./output")
-        .current_dir(&tempdir)
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .spawn()
-        .unwrap();
+    let create_child = || {
+        Command::new("./output")
+            .current_dir(&tempdir)
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()
+    };
+
+    // Wait for output to be executable.
+    let mut child = loop {
+        match create_child() {
+            Ok(child) => break child,
+            _ => {}
+        }
+    };
 
     let mut stdin = child.stdin.take().unwrap();
 
