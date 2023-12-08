@@ -1,8 +1,8 @@
 use crate::passes::parse::{Meta, Typed};
 use crate::passes::reveal::{DefRevealed, PrgRevealed, RExpr};
 use crate::passes::validate::{DefValidated, ExprValidated, PrgValidated};
-use crate::utils::gen_sym::UniqueSym;
 use crate::utils::push_map::PushMap;
+use crate::utils::unique_sym::UniqueSym;
 use crate::{display, time};
 
 impl<'p> PrgValidated<'p> {

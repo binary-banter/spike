@@ -2,7 +2,7 @@ use crate::passes::parse::{Constrained, Span, Spanned};
 use crate::passes::validate::constrain::uncover_globals::{Env, EnvEntry};
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::{ExprConstrained, MetaConstrained};
-use crate::utils::gen_sym::UniqueSym;
+use crate::utils::unique_sym::UniqueSym;
 
 pub fn constrain_var<'p>(
     env: &Env<'_, 'p>,

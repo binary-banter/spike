@@ -3,7 +3,7 @@ use crate::passes::eliminate::eliminate_tail::eliminate_tail;
 use crate::passes::eliminate::{FunEliminated, PrgEliminated};
 use crate::passes::explicate::PrgExplicated;
 use crate::time;
-use crate::utils::gen_sym::UniqueSym;
+use crate::utils::unique_sym::UniqueSym;
 use std::collections::HashMap;
 
 // (Old variable name, field name) -> New variable name

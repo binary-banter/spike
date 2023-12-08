@@ -1,4 +1,4 @@
-use crate::utils::gen_sym::UniqueSym;
+use crate::utils::unique_sym::UniqueSym;
 
 use crate::passes::assign::{LArg, LBlock, LFun, LX86VarProgram};
 use crate::passes::select::{

@@ -7,7 +7,7 @@ use crate::passes::select::{
     CALLER_SAVED,
 };
 use crate::passes::validate::Int;
-use crate::utils::gen_sym::{gen_sym, UniqueSym};
+use crate::utils::unique_sym::{gen_sym, UniqueSym};
 use crate::*;
 use std::collections::HashMap;
 

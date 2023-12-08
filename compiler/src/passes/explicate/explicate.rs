@@ -1,7 +1,7 @@
 use crate::passes::atomize::{DefAtomized, PrgAtomized};
 use crate::passes::explicate::explicate_tail::explicate_tail;
 use crate::passes::explicate::{FunExplicated, PrgExplicated, TailExplicated};
-use crate::utils::gen_sym::UniqueSym;
+use crate::utils::unique_sym::UniqueSym;
 use crate::{display, time};
 use std::collections::HashMap;
 

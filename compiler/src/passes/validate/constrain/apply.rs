@@ -4,7 +4,6 @@ use crate::passes::validate::constrain::uncover_globals::Env;
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::partial_type::PartialType;
 use crate::passes::validate::{ExprConstrained, ExprUniquified, MetaConstrained};
-use crate::utils::expect::expect;
 
 pub fn constrain_apply<'p>(
     env: &mut Env<'_, 'p>,
@@ -26,14 +25,13 @@ pub fn constrain_apply<'p>(
         });
     };
 
-    expect(
-        params.len() == args.len(),
-        TypeError::ArgCountMismatch {
+    if params.len() != args.len() {
+        return Err(TypeError::ArgCountMismatch {
             got: args.len(),
             expected: params.len(),
             span, // todo: maybe highlight only the args and params?
-        },
-    )?;
+        });
+    }
 
     for (arg, param_type) in args.iter().zip(params.iter()) {
         env.uf

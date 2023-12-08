@@ -6,7 +6,7 @@ use crate::passes::eliminate::{ExprEliminated, TailEliminated};
 use crate::passes::explicate::ExprExplicated;
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Meta, TypeDef, Typed};
-use crate::utils::gen_sym::UniqueSym;
+use crate::utils::unique_sym::UniqueSym;
 use std::collections::HashMap;
 
 pub fn eliminate_seq<'p>(

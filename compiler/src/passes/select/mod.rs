@@ -2,7 +2,7 @@ mod display;
 pub mod macros;
 pub mod select;
 
-use crate::utils::gen_sym::UniqueSym;
+use crate::utils::unique_sym::UniqueSym;
 use derive_more::Display;
 use functor_derive::Functor;
 use itertools::Itertools;

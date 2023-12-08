@@ -5,7 +5,7 @@ use crate::passes::parse::types::Type;
 use crate::passes::parse::{BinaryOp, Def, Lit, Typed, UnaryOp};
 use crate::passes::select::InstrSelected;
 use crate::passes::validate::Int;
-use crate::utils::gen_sym::UniqueSym;
+use crate::utils::unique_sym::UniqueSym;
 use derive_more::Display;
 use itertools::Itertools;
 use std::collections::HashMap;

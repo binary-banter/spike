@@ -27,7 +27,7 @@ impl DebugArgs {
 pub static DEBUG_ARGS: OnceCell<DebugArgs> = OnceCell::new();
 
 #[cfg(feature = "debug")]
-#[derive(ValueEnum, Clone, Debug, PartialEq)]
+#[derive(ValueEnum, Clone, Copy, Debug, PartialEq)]
 pub enum Pass {
     Parse,
     Validate,

@@ -2,12 +2,13 @@
 mod run;
 
 use clap::Parser;
-use compiler::passes::parse::parse::PrettyParseError;
-use compiler::passes::validate::error::TypeError;
-use compiler::{compile, debug};
+use compiler::compile;
+#[cfg(feature = "debug")]
+use compiler::debug::{DebugArgs, Pass};
+use compiler::passes::{parse::parse::PrettyParseError, validate::error::TypeError};
 use miette::{Diagnostic, IntoDiagnostic};
 use std::fs;
-use std::io::Read;
+use std::io::{read_to_string, stdin};
 use std::path::Path;
 use thiserror::Error;
 
@@ -40,7 +41,7 @@ struct Args {
     /// Specifies the pass to display. Supported passes are defined by the `Pass` enum.
     #[cfg(feature = "debug")]
     #[arg(value_enum, short, long, value_name = "PASS")]
-    display: Option<debug::Pass>,
+    display: Option<Pass>,
 
     /// Print timing debug information.
     #[cfg(feature = "debug")]
@@ -48,20 +49,14 @@ struct Args {
     time: bool,
 }
 
-fn read_from_stdin() -> Result<String, std::io::Error> {
-    let mut program = String::new();
-    std::io::stdin().read_to_string(&mut program)?;
-    Ok(program)
-}
-
 fn main() -> miette::Result<()> {
     let args = Args::parse();
 
     #[cfg(feature = "debug")]
-    debug::DebugArgs::set(args.time, args.display)?;
+    DebugArgs::set(args.time, args.display)?;
 
     let (program, filename) = match args.input.as_ref() {
-        None => (read_from_stdin().into_diagnostic()?, "stdin"),
+        None => (read_to_string(stdin()).into_diagnostic()?, "stdin"),
         Some(file) => (fs::read_to_string(file).into_diagnostic()?, file.as_str()),
     };
 

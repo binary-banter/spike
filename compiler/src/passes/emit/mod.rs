@@ -16,7 +16,7 @@ use crate::passes::emit::push_pop::{encode_push_pop, POPQ_INFO, PUSHQ_INFO};
 use crate::passes::emit::special::encode_setcc;
 use crate::passes::emit::unary::{encode_unary_instr, CALLQ_INDIRECT_INFO, NEGQ_INFO};
 use crate::passes::select::{Block, Cnd, Instr, Reg};
-use crate::utils::gen_sym::UniqueSym;
+use crate::utils::unique_sym::UniqueSym;
 use crate::{imm32, time};
 use std::collections::HashMap;
 

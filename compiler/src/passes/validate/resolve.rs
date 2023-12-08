@@ -6,8 +6,8 @@ use crate::passes::validate::partial_type::PartialType;
 use crate::passes::validate::{
     DefConstrained, DefValidated, ExprConstrained, ExprValidated, Int, PrgConstrained, PrgValidated,
 };
-use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};
+use crate::utils::unique_sym::UniqueSym;
 use crate::*;
 use functor_derive::Functor;
 use std::num::ParseIntError;

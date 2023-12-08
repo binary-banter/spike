@@ -2,7 +2,7 @@ use crate::passes::assign::{Arg, InstrAssigned};
 use crate::passes::conclude::X86Concluded;
 use crate::passes::patch::X86Patched;
 use crate::passes::select::{Block, Imm, Instr};
-use crate::utils::gen_sym::gen_sym;
+use crate::utils::unique_sym::gen_sym;
 use crate::*;
 use std::collections::HashMap;
 

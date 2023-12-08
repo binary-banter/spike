@@ -3,8 +3,8 @@ use crate::passes::validate::error::TypeError;
 use crate::passes::validate::uniquify::r#type::uniquify_type;
 use crate::passes::validate::uniquify::try_get;
 use crate::passes::validate::DefUniquified;
-use crate::utils::gen_sym::UniqueSym;
 use crate::utils::push_map::PushMap;
+use crate::utils::unique_sym::UniqueSym;
 
 pub fn uniquify_typedef<'p>(
     scope: &mut PushMap<&'p str, UniqueSym<'p>>,

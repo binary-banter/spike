@@ -1,7 +1,7 @@
 use crate::passes::assign::{Arg, FunAssigned, X86Assigned};
 use crate::passes::patch::X86Patched;
 use crate::passes::select::{Block, Instr};
-use crate::utils::gen_sym::UniqueSym;
+use crate::utils::unique_sym::UniqueSym;
 use crate::{addq, movq, popq, pushq, reg, subq, time};
 use functor_derive::Functor;
 

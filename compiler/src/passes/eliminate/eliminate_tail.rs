@@ -6,7 +6,7 @@ use crate::passes::eliminate::eliminate_seq::eliminate_seq;
 use crate::passes::eliminate::TailEliminated;
 use crate::passes::explicate::TailExplicated;
 use crate::passes::parse::TypeDef;
-use crate::utils::gen_sym::UniqueSym;
+use crate::utils::unique_sym::UniqueSym;
 use functor_derive::Functor;
 use std::collections::HashMap;
 

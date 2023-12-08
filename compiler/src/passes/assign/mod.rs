@@ -6,7 +6,7 @@ mod include_liveness;
 use crate::passes::select::{
     Block, FunSelected, Imm, Instr, InstrSelected, Reg, VarArg, X86Selected,
 };
-use crate::utils::gen_sym::UniqueSym;
+use crate::utils::unique_sym::UniqueSym;
 use derive_more::Display;
 use functor_derive::Functor;
 use petgraph::graphmap::GraphMap;

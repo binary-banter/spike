@@ -8,8 +8,9 @@ Arguments:
 
 Options:
   -o, --output <FILE>   Specifies the path to an output file. If None, it uses the input filename. If that's also None, it defaults to "output"
-  -d, --display <PASS>  [possible values: parse, validate, reveal, atomize, explicate, select]
-  -r, --run             
+  -r, --run             Optionally runs and deletes the compiled executable. Only supported on Unix systems
+  -d, --display <PASS>  Specifies the pass to display. Supported passes are defined by the `Pass` enum [possible values: parse, validate, reveal, atomize, explicate, select]
+  -t, --time            Print timing debug information
   -h, --help            Print help
   -V, --version         Print version
 ```
@@ -45,10 +46,10 @@ cargo run -- input.sp -o output
 * Let
 * If
 * Functions
-  * Return
+    * Return
 * Loop
-  * Break
-  * Continue
+    * Break
+    * Continue
 * While
 * Sequences
 * Structs
@@ -67,8 +68,8 @@ cargo run -- input.sp -o output
 * [ ] Add documentation where necessary.
 * [x] Improve error handling for parsing pass.
 * [x] Improve error handling for type checking pass.
-  * [ ] Make errors prettier.
-* [ ] Improve algorithm for colouring the interference graph.
+    * [ ] Make errors prettier.
+* [x] Improve algorithm for colouring the interference graph.
 * [x] Add read and write functionality to the bencher to update locally.
 * [x] Lots, and lots, of refactoring!
 * [x] Write test input in comments.
@@ -78,8 +79,8 @@ cargo run -- input.sp -o output
 * [x] Type inference.
 * [x] Implement comments in code.
 * [ ] Algebraic Data Types.
-  * [x] Structs.
-  * [ ] Enums.
+    * [x] Structs.
+    * [ ] Enums.
 * [ ] First-class functions.
 * [ ] Constants.
 

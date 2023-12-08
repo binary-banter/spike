@@ -2,8 +2,8 @@ use crate::passes::parse::{Meta, PrgParsed, Spanned};
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::error::TypeError::{NoMain, UndeclaredVar};
 use crate::passes::validate::DefUniquified;
-use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use crate::utils::push_map::PushMap;
+use crate::utils::unique_sym::{gen_sym, UniqueSym};
 
 mod def;
 mod expr;

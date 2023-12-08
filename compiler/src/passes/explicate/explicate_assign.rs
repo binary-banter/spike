@@ -3,7 +3,7 @@ use crate::passes::explicate::explicate::Env;
 use crate::passes::explicate::{explicate_pred, ExprExplicated, TailExplicated};
 
 use crate::passes::parse::{Lit, Meta, Typed};
-use crate::utils::gen_sym::{gen_sym, UniqueSym};
+use crate::utils::unique_sym::{gen_sym, UniqueSym};
 
 pub fn explicate_assign<'p>(
     sym: UniqueSym<'p>,

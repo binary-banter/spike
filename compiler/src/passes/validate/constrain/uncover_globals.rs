@@ -4,8 +4,8 @@ use crate::passes::validate::error::TypeError;
 use crate::passes::validate::partial_type::PartialType;
 use crate::passes::validate::uniquify::PrgUniquified;
 use crate::passes::validate::DefUniquified;
-use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};
+use crate::utils::unique_sym::UniqueSym;
 
 use std::collections::HashMap;
 

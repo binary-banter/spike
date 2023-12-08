@@ -2,7 +2,7 @@ pub mod patch;
 
 use crate::passes::assign::FunAssigned;
 use crate::passes::select::X86Selected;
-use crate::utils::gen_sym::UniqueSym;
+use crate::utils::unique_sym::UniqueSym;
 use functor_derive::Functor;
 use std::collections::HashMap;
 

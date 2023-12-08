@@ -10,15 +10,7 @@ use std::path::Path;
 pub fn compile(program: &str, filename: &str, output: &Path) -> miette::Result<()> {
     time_init!();
 
-    // todo: make a module system so we don't have to append the std-library to the source.
-    let program = String::leak(format!(
-        "{program}{}{}{}{}{}",
-        include_str!("../std/exit.sp"),
-        include_str!("../std/read.sp"),
-        include_str!("../std/print.sp"),
-        include_str!("../std/alloc.sp"),
-        include_str!("../std/math.sp"),
-    ));
+    let program = apped_std(program);
 
     let add_source =
         |error| Report::with_source_code(error, NamedSource::new(filename, (*program).to_string()));
@@ -41,4 +33,16 @@ pub fn compile(program: &str, filename: &str, output: &Path) -> miette::Result<(
         .write(&mut File::create(output).into_diagnostic()?);
 
     Ok(())
+}
+
+// todo: make a module system so we don't have to append the std-library to the source.
+fn apped_std(program: &str) -> &str {
+    String::leak(format!(
+        "{program}{}{}{}{}{}",
+        include_str!("../std/exit.sp"),
+        include_str!("../std/read.sp"),
+        include_str!("../std/print.sp"),
+        include_str!("../std/alloc.sp"),
+        include_str!("../std/math.sp"),
+    ))
 }

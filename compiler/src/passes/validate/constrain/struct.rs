@@ -4,8 +4,7 @@ use crate::passes::validate::constrain::uncover_globals::{Env, EnvEntry};
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::partial_type::PartialType;
 use crate::passes::validate::{ExprConstrained, ExprUniquified, MetaConstrained};
-use crate::utils::expect::expect;
-use crate::utils::gen_sym::UniqueSym;
+use crate::utils::unique_sym::UniqueSym;
 use std::collections::{HashMap, HashSet};
 
 pub fn constrain_struct<'p>(
@@ -36,13 +35,12 @@ pub fn constrain_struct<'p>(
         .map(|(field_sym, field_bnd)| {
             let field_bnd = expr::constrain_expr(field_bnd, env)?;
 
-            expect(
-                seen_fields.insert(field_sym.inner),
-                TypeError::ConstructDuplicateField {
+            if !seen_fields.insert(field_sym.inner) {
+                return Err(TypeError::ConstructDuplicateField {
                     sym: field_sym.to_string(),
                     span: field_sym.meta,
-                },
-            )?;
+                });
+            }
 
             let Some((def_span, def_typ)) = def_fields.get(field_sym.inner) else {
                 return Err(TypeError::UnknownStructField {
@@ -68,14 +66,13 @@ pub fn constrain_struct<'p>(
 
     // Verify that all fields from the struct definition are present.
     for (def_sym, (def_span, _)) in def_fields {
-        expect(
-            seen_fields.contains(def_sym),
-            TypeError::ConstructMissingField {
+        if !seen_fields.contains(def_sym) {
+            return Err(TypeError::ConstructMissingField {
                 sym: def_sym.to_string(),
                 struct_span: sym.meta,
                 def_span,
-            },
-        )?;
+            });
+        }
     }
 
     let index = env.uf.add(PartialType::Var { sym: sym.inner });

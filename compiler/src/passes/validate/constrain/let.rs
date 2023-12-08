@@ -4,7 +4,7 @@ use crate::passes::validate::constrain::expr;
 use crate::passes::validate::constrain::uncover_globals::{Env, EnvEntry};
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::{ExprConstrained, ExprUniquified, MetaConstrained};
-use crate::utils::gen_sym::UniqueSym;
+use crate::utils::unique_sym::UniqueSym;
 
 pub fn constrain_let<'p>(
     env: &mut Env<'_, 'p>,

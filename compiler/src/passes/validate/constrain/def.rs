@@ -4,8 +4,8 @@ use crate::passes::validate::constrain::uncover_globals::{Env, EnvEntry};
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::partial_type::PartialType;
 use crate::passes::validate::{DefConstrained, DefUniquified};
-use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::UnionFind;
+use crate::utils::unique_sym::UniqueSym;
 use std::collections::HashMap;
 
 pub fn constrain_def<'p>(

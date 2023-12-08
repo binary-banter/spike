@@ -2,7 +2,7 @@ use crate::passes::parse::types::Type;
 use crate::passes::parse::{Def, TypeDef};
 use crate::passes::validate::error::TypeError;
 use crate::passes::validate::PrgConstrained;
-use crate::utils::gen_sym::UniqueSym;
+use crate::utils::unique_sym::UniqueSym;
 use petgraph::algo::toposort;
 use petgraph::prelude::GraphMap;
 use petgraph::Directed;

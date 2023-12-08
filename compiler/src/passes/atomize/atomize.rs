@@ -2,8 +2,8 @@ use crate::passes::atomize::{AExpr, Atom, DefAtomized, PrgAtomized};
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{Meta, Typed};
 use crate::passes::reveal::{DefRevealed, PrgRevealed, RExpr};
-use crate::utils::gen_sym::{gen_sym, UniqueSym};
 use crate::utils::push_map::PushMap;
+use crate::utils::unique_sym::{gen_sym, UniqueSym};
 use crate::{display, time};
 
 impl<'p> PrgRevealed<'p> {

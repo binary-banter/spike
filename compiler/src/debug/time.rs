@@ -27,7 +27,7 @@ static TIME: Lazy<Mutex<Time>> = Lazy::new(|| Mutex::new(Time::new()));
 /// Initializes the global time tracking instance.
 /// This function should be called before using the `time` function.
 pub fn time_init() {
-    if DEBUG_ARGS.get().unwrap().time {
+    if let Some(true) = DEBUG_ARGS.get().map(|args| args.time) {
         println!("{:>12} {:>12} {:>12}", "pass", "since prev", "since init");
         Lazy::force(&TIME);
     }
@@ -35,7 +35,7 @@ pub fn time_init() {
 
 /// Tracks and prints the time elapsed since the last call to `time` or `time_init`.
 pub fn time(pass: &str) {
-    if DEBUG_ARGS.get().unwrap().time {
+    if let Some(true) = DEBUG_ARGS.get().map(|args| args.time) {
         let now = Instant::now();
         let mut time = TIME.lock().unwrap();
         let since_init = now.duration_since(time.init);

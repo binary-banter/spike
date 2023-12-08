@@ -1,46 +1,29 @@
 #![cfg(unix)]
 
-use compiler::passes::parse::parse::parse;
+use compiler::compile;
 use compiler::utils::split_test::{split_test, str_to_int};
-use std::fs::OpenOptions;
+use miette::IntoDiagnostic;
 use std::io::{BufRead, Write};
-use std::os::unix::prelude::OpenOptionsExt;
 use std::process::{Command, Stdio};
 use tempfile::TempDir;
 use test_each_file::test_each_file;
 
 fn integration([test]: [&str; 1]) {
+    let (input, expected_output, expected_return, _) = split_test(test);
+
     let tempdir = TempDir::with_prefix("rust-compiler-construction-integration").unwrap();
 
-    let (input, expected_output, expected_return, _) = split_test(test);
-    let expected_return: i64 = expected_return.into();
+    compile(test, "<test>", &tempdir.path().join("output")).unwrap();
 
-    let input_path = tempdir.path().join("output");
-    let mut output = OpenOptions::new()
-        .write(true)
-        .create(true)
-        .mode(0o777)
-        .open(input_path)
+    Command::new("chmod")
+        .current_dir(&tempdir)
+        .arg("+x")
+        .arg("./output")
+        .output()
+        .into_diagnostic()
         .unwrap();
 
-    parse(test)
-        .unwrap()
-        .validate()
-        .unwrap()
-        .reveal()
-        .atomize()
-        .explicate()
-        .eliminate()
-        .select()
-        .assign()
-        .patch()
-        .conclude()
-        .emit()
-        .write(&mut output);
-
-    drop(output);
-
-    // Wait for file to be readable
+    // Wait for file to be readable.
     let mut program;
     loop {
         let sub_res = Command::new("./output")

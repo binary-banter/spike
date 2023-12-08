@@ -4,7 +4,7 @@ use crate::passes::explicate::explicate_assign::explicate_assign;
 use crate::passes::explicate::{ExprExplicated, TailExplicated};
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{BinaryOp, Lit, Meta, UnaryOp};
-use crate::utils::gen_sym::gen_sym;
+use crate::utils::unique_sym::gen_sym;
 
 pub fn explicate_pred<'p>(
     cnd: AExpr<'p>,

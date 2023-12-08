@@ -1,6 +1,6 @@
 use crate::passes::parse::types::IntType;
-use crate::utils::gen_sym::UniqueSym;
 use crate::utils::union_find::{UnionFind, UnionIndex};
+use crate::utils::unique_sym::UniqueSym;
 use itertools::Itertools;
 
 #[derive(Debug, Clone)]

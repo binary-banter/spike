@@ -12,7 +12,7 @@ pub mod types;
 
 use crate::passes::select::{Instr, VarArg};
 use crate::passes::validate::MetaConstrained;
-use crate::utils::gen_sym::UniqueSym;
+use crate::utils::unique_sym::UniqueSym;
 use derive_more::Display;
 use functor_derive::Functor;
 use itertools::Itertools;

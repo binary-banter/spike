@@ -5,8 +5,7 @@ use crate::passes::validate::error::TypeError;
 use crate::passes::validate::error::TypeError::MismatchedAssignBinding;
 use crate::passes::validate::partial_type::PartialType;
 use crate::passes::validate::{ExprConstrained, ExprUniquified, MetaConstrained};
-use crate::utils::expect::expect;
-use crate::utils::gen_sym::UniqueSym;
+use crate::utils::unique_sym::UniqueSym;
 
 pub fn constrain_assign<'p>(
     env: &mut Env<'_, 'p>,
@@ -20,7 +19,9 @@ pub fn constrain_assign<'p>(
         return Err(TypeError::SymbolShouldBeVariable { span: sym.meta });
     };
 
-    expect(mutable, TypeError::ModifyImmutable { span: sym.meta })?;
+    if !mutable {
+        return Err(TypeError::ModifyImmutable { span: sym.meta });
+    }
 
     env.uf
         .expect_equal(typ, bnd.meta.index, |sym_typ, bnd_type| {

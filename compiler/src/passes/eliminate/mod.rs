@@ -8,7 +8,7 @@ use crate::passes::atomize::Atom;
 use crate::passes::parse::types::Type;
 use crate::passes::parse::{BinaryOp, Meta, Param, TypeDef, UnaryOp};
 use crate::passes::select::InstrSelected;
-use crate::utils::gen_sym::UniqueSym;
+use crate::utils::unique_sym::UniqueSym;
 use std::collections::HashMap;
 
 pub struct PrgEliminated<'p> {

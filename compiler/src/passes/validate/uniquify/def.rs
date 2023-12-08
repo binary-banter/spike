@@ -3,8 +3,8 @@ use crate::passes::validate::error::TypeError;
 use crate::passes::validate::uniquify::r#fn::uniquify_fn;
 use crate::passes::validate::uniquify::typedef::uniquify_typedef;
 use crate::passes::validate::DefUniquified;
-use crate::utils::gen_sym::UniqueSym;
 use crate::utils::push_map::PushMap;
+use crate::utils::unique_sym::UniqueSym;
 
 pub fn uniquify_def<'p>(
     def: DefParsed<'p>,

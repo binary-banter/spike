@@ -1,6 +1,6 @@
 use crate::passes::assign::{Arg, InterferenceGraph, LArg};
 use crate::passes::select::{Reg, CALLEE_SAVED_NO_STACK};
-use crate::utils::gen_sym::UniqueSym;
+use crate::utils::unique_sym::UniqueSym;
 use binary_heap_plus::BinaryHeap;
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};

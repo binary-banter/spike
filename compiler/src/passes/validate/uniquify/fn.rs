@@ -5,8 +5,8 @@ use crate::passes::validate::uniquify::expr::uniquify_expr;
 use crate::passes::validate::uniquify::gen_spanned_sym;
 use crate::passes::validate::uniquify::r#type::uniquify_type;
 use crate::passes::validate::{uniquify, DefUniquified};
-use crate::utils::gen_sym::UniqueSym;
 use crate::utils::push_map::PushMap;
+use crate::utils::unique_sym::UniqueSym;
 use std::collections::HashMap;
 
 pub fn uniquify_fn<'p>(
