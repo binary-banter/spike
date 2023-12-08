@@ -9,7 +9,7 @@ impl<'p> InterferenceGraph<'p> {
     #[must_use]
     pub fn color(self) -> (HashMap<UniqueSym<'p>, Arg>, usize) {
         let graph = self.0;
-        let node_map = RefCell::new(HashMap::<LArg, isize>::new());
+        let node_map = RefCell::new(HashMap::new());
         let mut queue = BinaryHeap::new_by_key(|node| {
             graph
                 .neighbors(*node)
@@ -49,8 +49,7 @@ impl<'p> InterferenceGraph<'p> {
         while let Some(node) = queue.pop() {
             let used_colors = graph
                 .neighbors(node)
-                .filter(|nb| node_map.borrow().contains_key(nb))
-                .map(|nb| node_map.borrow()[&nb])
+                .filter_map(|nb| node_map.borrow().get(&nb).cloned())
                 .collect::<HashSet<_>>();
 
             let chosen_color = (0..)

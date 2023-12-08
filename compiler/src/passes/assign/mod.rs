@@ -2,6 +2,7 @@ mod assign;
 mod color_interference;
 mod compute_interference;
 mod include_liveness;
+mod display;
 
 use crate::passes::select::{
     Block, FunSelected, Imm, Instr, InstrSelected, Reg, VarArg, X86Selected,
@@ -17,6 +18,7 @@ pub struct X86Assigned<'p> {
     pub fns: HashMap<UniqueSym<'p>, FunAssigned<'p>>,
     pub entry: UniqueSym<'p>,
 }
+
 
 pub struct FunAssigned<'p> {
     pub blocks: HashMap<UniqueSym<'p>, Block<'p, Arg>>,

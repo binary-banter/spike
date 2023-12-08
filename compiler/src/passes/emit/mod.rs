@@ -115,11 +115,12 @@ fn emit_instr<'p>(
             },
             src,
         ),
-        Instr::LoadLbl { lbl: sym, dst } => {
-            // todo: this offset is *only* correct when dst is a register!
-            assert!(matches!(dst, Arg::Reg { .. }));
-            abs_jumps.insert(machine_code.len() + 3, *sym);
-            encode_binary_instr(MOVQ_INFO, &imm32!(0), dst)
+        Instr::LoadLbl { lbl, dst } => {
+            // This instruction creates a 32-bit placeholder and stores the offset so it can be set to `lbl` later.
+            let bytes = encode_binary_instr(MOVQ_INFO, &imm32!(0), dst);
+            // The label should, regardless of the destination variant, always be stored in the last 4 bytes (we hope).
+            abs_jumps.insert(machine_code.len() + bytes.len() - 4, *lbl);
+            bytes
         }
     };
     machine_code.extend(v);

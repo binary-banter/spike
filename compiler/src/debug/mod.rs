@@ -35,4 +35,5 @@ pub enum Pass {
     Atomize,
     Explicate,
     Select,
+    Assign,
 }

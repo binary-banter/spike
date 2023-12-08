@@ -14,18 +14,17 @@ pub fn constrain_lit<'p>(
     let typ = match &val {
         Lit::Int(val) => match val.rfind(&['i', 'u']) {
             Some(suffix) => {
-                let int = match &val[suffix..] {
-                    "i8" => IntType::I64,
-                    "u8" => IntType::U64,
-                    "i16" => IntType::I64,
-                    "u16" => IntType::U64,
-                    "i32" => IntType::I64,
-                    "u32" => IntType::U64,
-                    "i64" => IntType::I64,
-                    "u64" => IntType::U64,
-                    _ => unreachable!(),
-                };
-                PartialType::Int(int)
+                match &val[suffix..] {
+                    "i8" => PartialType::Int(IntType::I8),
+                    "u8" => PartialType::Int(IntType::U8),
+                    "i16" => PartialType::Int(IntType::I16),
+                    "u16" => PartialType::Int(IntType::U16),
+                    "i32" => PartialType::Int(IntType::I32),
+                    "u32" => PartialType::Int(IntType::U32),
+                    "i64" => PartialType::Int(IntType::I64),
+                    "u64" => PartialType::Int(IntType::U64),
+                    _ => PartialType::IntAmbiguous,
+                }
             }
             None => PartialType::IntAmbiguous,
         },

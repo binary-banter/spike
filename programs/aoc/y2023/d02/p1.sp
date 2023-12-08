@@ -5,7 +5,7 @@ fn main() {
 
     while (next = read_char(); next != b'\0') {
         game = game + 1;
-        while (next = read_char(); next != b':') { }
+        while (next = read_char(); next != b':') { unit }
 
         let mut is_possible = true;
 

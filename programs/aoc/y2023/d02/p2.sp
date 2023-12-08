@@ -3,7 +3,7 @@ fn main() {
     let mut next = 0;
 
     while (next = read_char(); next != b'\0') {
-        while (next = read_char(); next != b':') { }
+        while (next = read_char(); next != b':') { unit }
 
         let mut red = 0;
         let mut green = 0;
