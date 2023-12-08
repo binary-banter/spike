@@ -33,7 +33,7 @@ impl<'p> X86Selected<'p> {
         };
 
         // display!(&program, Assign); // todo
-        time!("reveal");
+        time!("assign");
 
         program
     }
