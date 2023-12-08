@@ -50,7 +50,7 @@ macro_rules! idiv {
 #[macro_export]
 macro_rules! mul {
     ($src:expr, $size:expr) => {
-        $crate::passes::select::Instr::Mul{
+        $crate::passes::select::Instr::Mul {
             src: $src,
             size: $size,
         }
@@ -197,7 +197,10 @@ macro_rules! xor {
 #[macro_export]
 macro_rules! not {
     ($dst:expr, $size:expr) => {
-        $crate::passes::select::Instr::Not { dst: $dst, size: $size, }
+        $crate::passes::select::Instr::Not {
+            dst: $dst,
+            size: $size,
+        }
     };
 }
 

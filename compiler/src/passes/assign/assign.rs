@@ -1,7 +1,7 @@
 use crate::passes::assign::{Arg, FunAssigned, X86Assigned};
 use crate::passes::select::{Block, Instr, InstrSelected, VarArg, X86Selected};
-use crate::{display, time};
 use crate::utils::unique_sym::UniqueSym;
+use crate::{display, time};
 use functor_derive::Functor;
 use std::collections::HashMap;
 

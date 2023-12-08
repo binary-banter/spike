@@ -58,13 +58,14 @@ fn patch_args<'p>(
     dst: Arg,
     op: fn(Arg, Arg) -> Instr<Arg, UniqueSym<'p>>,
 ) -> Vec<Instr<Arg, UniqueSym<'p>>> {
-    match (&src, &dst) {
-        (Arg::Deref { .. }, Arg::Deref { .. }) => vec![
-            push!(reg!(R8)),
-            mov!(src, reg!(R8)),
-            op(reg!(R8), dst),
-            pop!(reg!(R8)),
-        ],
-        _ => vec![op(src, dst)],
-    }
+    // match (&src, &dst) {
+    //     (Arg::Deref { .. }, Arg::Deref { .. }) => vec![
+    //         push!(reg!(R8)),
+    //         mov!(src, reg!(R8)),
+    //         op(reg!(R8), dst),
+    //         pop!(reg!(R8)),
+    //     ],
+    //     _ => vec![op(src, dst)],
+    // }
+    todo!()
 }

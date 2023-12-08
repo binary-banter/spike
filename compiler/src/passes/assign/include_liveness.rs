@@ -112,7 +112,7 @@ pub fn handle_instr<'p>(
     match instr {
         Instr::Add { src, dst, .. }
         | Instr::Sub { src, dst, .. }
-        | Instr::And{ src, dst, .. }
+        | Instr::And { src, dst, .. }
         | Instr::Or { src, dst, .. }
         | Instr::Xor { src, dst, .. } => {
             arg(dst, RW);
@@ -129,7 +129,7 @@ pub fn handle_instr<'p>(
         Instr::Push { src, .. } => {
             arg(src, R);
         }
-        Instr::Pop{ dst, .. } => {
+        Instr::Pop { dst, .. } => {
             arg(dst, W);
         }
         Instr::Neg { dst, .. } | Instr::Not { dst, .. } => {
@@ -151,14 +151,14 @@ pub fn handle_instr<'p>(
                 arg(&VarArg::Reg(reg), R);
             }
         }
-        Instr::Ret => {
+        Instr::Ret { .. } => {
             // Because the return value of our function is in RAX, we need to consider it being read at the end of a block.
             arg(&VarArg::Reg(Reg::RAX), R);
         }
         Instr::Setcc { .. } => {
             arg(&VarArg::Reg(Reg::RAX), W);
         }
-        Instr::Mul{ src, .. } => {
+        Instr::Mul { src, .. } => {
             arg(&VarArg::Reg(Reg::RDX), W);
             arg(&VarArg::Reg(Reg::RAX), RW);
             arg(src, R);

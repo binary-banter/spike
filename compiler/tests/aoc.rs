@@ -1,12 +1,12 @@
 #![cfg(unix)]
 
+use compiler::compile;
 use std::fs;
 use std::fs::File;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use tempfile::TempDir;
 use test_each_file::test_each_path;
-use compiler::compile;
 
 fn aoc([program_path, output_path]: [&Path; 2]) {
     let tempdir = TempDir::with_prefix("spike-aoc").unwrap();
@@ -14,7 +14,12 @@ fn aoc([program_path, output_path]: [&Path; 2]) {
     let mut input = PathBuf::from(program_path);
     input.set_file_name("input");
 
-    compile(&program, program_path.file_name().unwrap().to_str().unwrap(), &tempdir.path().join("output")).unwrap();
+    compile(
+        &program,
+        program_path.file_name().unwrap().to_str().unwrap(),
+        &tempdir.path().join("output"),
+    )
+    .unwrap();
 
     // Make output executable.
     Command::new("chmod")
@@ -40,7 +45,10 @@ fn aoc([program_path, output_path]: [&Path; 2]) {
         }
     };
 
-    assert_eq!(child.wait_with_output().unwrap().stdout, fs::read(output_path).unwrap());
+    assert_eq!(
+        child.wait_with_output().unwrap().stdout,
+        fs::read(output_path).unwrap()
+    );
 }
 
 test_each_path! { for ["sp", "out"] in "./programs/aoc/" => aoc }

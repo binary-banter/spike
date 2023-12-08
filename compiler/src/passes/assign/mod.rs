@@ -1,25 +1,22 @@
 mod assign;
 mod color_interference;
 mod compute_interference;
-mod include_liveness;
 mod display;
+mod include_liveness;
 
-use crate::passes::select::{
-    Block, FunSelected, Instr, InstrSelected, Reg, VarArg, X86Selected,
-};
+use crate::passes::select::{Block, FunSelected, Instr, InstrSelected, Reg, VarArg, X86Selected};
+use crate::passes::validate::Int;
 use crate::utils::unique_sym::UniqueSym;
 use derive_more::Display;
 use functor_derive::Functor;
 use petgraph::graphmap::GraphMap;
 use petgraph::Undirected;
 use std::collections::{HashMap, HashSet};
-use crate::passes::validate::Int;
 
 pub struct X86Assigned<'p> {
     pub fns: HashMap<UniqueSym<'p>, FunAssigned<'p>>,
     pub entry: UniqueSym<'p>,
 }
-
 
 pub struct FunAssigned<'p> {
     pub blocks: HashMap<UniqueSym<'p>, Block<'p, Arg>>,

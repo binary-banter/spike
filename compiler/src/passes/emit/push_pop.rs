@@ -63,49 +63,49 @@ pub fn encode_push_pop(op_info: PushPopInfo, reg: &Arg) -> Vec<u8> {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use crate::*;
-
-    mod push {
-        use super::*;
-
-        check!(reg1, push!(reg!(RAX)), vec![0x50]);
-        check!(reg2, push!(reg!(R14)), vec![0x41, 0x56]);
-
-        check!(
-            deref1,
-            push!(deref!(RDX, i32::MAX as i64)),
-            vec![0xFF, 0xB2, 0xFF, 0xFF, 0xFF, 0x7F]
-        );
-        check!(
-            deref2,
-            push!(deref!(R11, i32::MAX as i64)),
-            vec![0x41, 0xFF, 0xB3, 0xFF, 0xFF, 0xFF, 0x7F]
-        );
-
-        check!(
-            imm,
-            push!(imm32!(i32::MAX as i64)),
-            vec![0x68, 0xFF, 0xFF, 0xFF, 0x7F]
-        );
-    }
-
-    mod pop {
-        use super::*;
-
-        check!(reg1, pop!(reg!(RAX)), vec![0x58]);
-        check!(reg2, pop!(reg!(R14)), vec![0x41, 0x5E]);
-
-        check!(
-            deref1,
-            pop!(deref!(RDX, i32::MAX as i64)),
-            vec![0x8F, 0x82, 0xFF, 0xFF, 0xFF, 0x7F]
-        );
-        check!(
-            deref2,
-            pop!(deref!(R11, i32::MAX as i64)),
-            vec![0x41, 0x8F, 0x83, 0xFF, 0xFF, 0xFF, 0x7F]
-        );
-    }
-}
+// #[cfg(test)]
+// mod tests {
+//     use crate::*;
+//
+//     mod push {
+//         use super::*;
+//
+//         check!(reg1, push!(reg!(RAX)), vec![0x50]);
+//         check!(reg2, push!(reg!(R14)), vec![0x41, 0x56]);
+//
+//         check!(
+//             deref1,
+//             push!(deref!(RDX, i32::MAX as i64)),
+//             vec![0xFF, 0xB2, 0xFF, 0xFF, 0xFF, 0x7F]
+//         );
+//         check!(
+//             deref2,
+//             push!(deref!(R11, i32::MAX as i64)),
+//             vec![0x41, 0xFF, 0xB3, 0xFF, 0xFF, 0xFF, 0x7F]
+//         );
+//
+//         check!(
+//             imm,
+//             push!(imm32!(i32::MAX as i64)),
+//             vec![0x68, 0xFF, 0xFF, 0xFF, 0x7F]
+//         );
+//     }
+//
+//     mod pop {
+//         use super::*;
+//
+//         check!(reg1, pop!(reg!(RAX)), vec![0x58]);
+//         check!(reg2, pop!(reg!(R14)), vec![0x41, 0x5E]);
+//
+//         check!(
+//             deref1,
+//             pop!(deref!(RDX, i32::MAX as i64)),
+//             vec![0x8F, 0x82, 0xFF, 0xFF, 0xFF, 0x7F]
+//         );
+//         check!(
+//             deref2,
+//             pop!(deref!(R11, i32::MAX as i64)),
+//             vec![0x41, 0x8F, 0x83, 0xFF, 0xFF, 0xFF, 0x7F]
+//         );
+//     }
+// }

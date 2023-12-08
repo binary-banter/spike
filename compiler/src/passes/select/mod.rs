@@ -2,13 +2,13 @@ mod display;
 pub mod macros;
 pub mod select;
 
+use crate::passes::validate::Int;
 use crate::utils::unique_sym::UniqueSym;
 use derive_more::Display;
 use functor_derive::Functor;
 use itertools::Itertools;
 use std::collections::HashMap;
 use std::fmt::Display;
-use crate::passes::validate::Int;
 
 pub struct X86Selected<'p> {
     pub fns: HashMap<UniqueSym<'p>, FunSelected<'p>>,
@@ -140,8 +140,8 @@ pub enum VarArg<IdentVars: Display> {
     XVar(IdentVars),
 }
 
-#[derive(Debug, Copy, Clone)]
-pub enum Size{
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum Size {
     Bit8,
     Bit16,
     Bit32,

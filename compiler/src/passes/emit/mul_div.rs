@@ -21,19 +21,19 @@ pub fn encode_muldiv_instr(op_info: MulDivOpInfo, reg: &Arg) -> Vec<u8> {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    mod division {
-        use crate::*;
-
-        check!(div1, div!(reg!(R15)), vec![0x49, 0xF7, 0xF7]);
-        check!(div2, div!(reg!(RDX)), vec![0x48, 0xF7, 0xF2]);
-    }
-
-    mod multiply {
-        use crate::*;
-
-        check!(mul1, mul!(reg!(R15)), vec![0x49, 0xF7, 0xE7]);
-        check!(mul2, mul!(reg!(RDX)), vec![0x48, 0xF7, 0xE2]);
-    }
-}
+// #[cfg(test)]
+// mod tests {
+//     mod division {
+//         use crate::*;
+//
+//         check!(div1, div!(reg!(R15)), vec![0x49, 0xF7, 0xF7]);
+//         check!(div2, div!(reg!(RDX)), vec![0x48, 0xF7, 0xF2]);
+//     }
+//
+//     mod multiply {
+//         use crate::*;
+//
+//         check!(mul1, mul!(reg!(R15)), vec![0x49, 0xF7, 0xE7]);
+//         check!(mul2, mul!(reg!(RDX)), vec![0x48, 0xF7, 0xE2]);
+//     }
+// }

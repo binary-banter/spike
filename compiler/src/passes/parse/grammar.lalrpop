@@ -4,6 +4,7 @@ use crate::passes::parse::{
 use crate::passes::select::{VarArg, Reg};
 use functor_derive::Functor;
 use crate::passes::validate::Int;
+use crate::passes::select::Size;
 
 grammar;
 
@@ -398,20 +399,19 @@ Comma<T>: Vec<T> = {
 Spanned<T>: Spanned<T> = <l:@L> <inner:T> <r:@R> => Meta { meta: (l, r - l), inner };
 
 AsmInstr: InstrParsed<'input> = {
-    "addq" <src:AsmArg> <dst:AsmArg> => InstrParsed::Addq { src, dst },
-    "subq" <src:AsmArg> <dst:AsmArg> => InstrParsed::Subq { src, dst },
-    "mulq" <src:AsmArg> => InstrParsed::Mulq { src },
-    "divq" <divisor:AsmArg> => InstrParsed::Divq { divisor },
-    "negq" <dst:AsmArg> => InstrParsed::Negq { dst },
-    "movq" <src:AsmArg> <dst:AsmArg> => InstrParsed::Movq { src, dst },
-    "pushq" <src:AsmArg> => InstrParsed::Pushq { src },
-    "popq" <dst:AsmArg> => InstrParsed::Popq { dst },
-    "retq" => InstrParsed::Retq,
-    "andq" <src:AsmArg> <dst:AsmArg> => InstrParsed::Andq { src, dst },
-    "orq" <src:AsmArg> <dst:AsmArg> => InstrParsed::Orq { src, dst },
-    "xorq" <src:AsmArg> <dst:AsmArg> => InstrParsed::Xorq { src, dst },
-    "notq" <dst:AsmArg> => InstrParsed::Notq { dst },
-    "cmpq" <src:AsmArg> <dst:AsmArg> => InstrParsed::Cmpq { src, dst },
+    "addq" <src:AsmArg> <dst:AsmArg> => InstrParsed::Add { src, dst, size: Size::Bit64 },
+    "subq" <src:AsmArg> <dst:AsmArg> => InstrParsed::Sub { src, dst, size: Size::Bit64 },
+    "mulq" <src:AsmArg> => InstrParsed::Mul { src, size: Size::Bit64 },
+    "divq" <divisor:AsmArg> => InstrParsed::Div { divisor, size: Size::Bit64 },
+    "negq" <dst:AsmArg> => InstrParsed::Neg { dst, size: Size::Bit64 },
+    "movq" <src:AsmArg> <dst:AsmArg> => InstrParsed::Mov { src, dst, size: Size::Bit64 },
+    "pushq" <src:AsmArg> => InstrParsed::Push { src, size: Size::Bit64 },
+    "popq" <dst:AsmArg> => InstrParsed::Pop { dst, size: Size::Bit64 },
+    "andq" <src:AsmArg> <dst:AsmArg> => InstrParsed::And { src, dst, size: Size::Bit64 },
+    "orq" <src:AsmArg> <dst:AsmArg> => InstrParsed::Or { src, dst, size: Size::Bit64 },
+    "xorq" <src:AsmArg> <dst:AsmArg> => InstrParsed::Xor { src, dst, size: Size::Bit64 },
+    "notq" <dst:AsmArg> => InstrParsed::Not { dst, size: Size::Bit64 },
+    "cmpq" <src:AsmArg> <dst:AsmArg> => InstrParsed::Cmp { src, dst, size: Size::Bit64 },
     "syscall" <arity:Int> => InstrParsed::Syscall { arity: arity.parse().expect("internal compiler error :(") },
 }
 

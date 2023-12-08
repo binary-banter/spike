@@ -13,19 +13,17 @@ pub fn constrain_lit<'p>(
     // Get the type of the literal.
     let typ = match &val {
         Lit::Int(val) => match val.rfind(&['i', 'u']) {
-            Some(suffix) => {
-                match &val[suffix..] {
-                    "i8" => PartialType::Int(IntType::I8),
-                    "u8" => PartialType::Int(IntType::U8),
-                    "i16" => PartialType::Int(IntType::I16),
-                    "u16" => PartialType::Int(IntType::U16),
-                    "i32" => PartialType::Int(IntType::I32),
-                    "u32" => PartialType::Int(IntType::U32),
-                    "i64" => PartialType::Int(IntType::I64),
-                    "u64" => PartialType::Int(IntType::U64),
-                    _ => PartialType::IntAmbiguous,
-                }
-            }
+            Some(suffix) => match &val[suffix..] {
+                "i8" => PartialType::Int(IntType::I8),
+                "u8" => PartialType::Int(IntType::U8),
+                "i16" => PartialType::Int(IntType::I16),
+                "u16" => PartialType::Int(IntType::U16),
+                "i32" => PartialType::Int(IntType::I32),
+                "u32" => PartialType::Int(IntType::U32),
+                "i64" => PartialType::Int(IntType::I64),
+                "u64" => PartialType::Int(IntType::U64),
+                _ => PartialType::IntAmbiguous,
+            },
             None => PartialType::IntAmbiguous,
         },
         Lit::Bool { .. } => PartialType::Bool,

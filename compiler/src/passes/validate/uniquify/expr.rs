@@ -121,27 +121,87 @@ fn uniquify_instr<'p>(
     };
 
     let instr = match instr {
-        InstrParsed::Addq { src, dst } => add!(map(src)?, map(dst)?),
-        InstrParsed::Sub { src, dst } => sub!(map(src)?, map(dst)?),
-        InstrParsed::Divq { divisor } => div!(map(divisor)?),
-        InstrParsed::Mulq { src } => mul!(map(src)?),
-        InstrParsed::Negq { dst } => neg!(map(dst)?),
-        InstrParsed::Movq { src, dst } => mov!(map(src)?, map(dst)?),
-        InstrParsed::Pushq { src } => push!(map(src)?),
-        InstrParsed::Popq { dst } => pop!(map(dst)?),
-        InstrParsed::Retq => ret!(),
-        InstrParsed::Syscall { arity } => syscall!(arity),
-        InstrParsed::Cmpq { src, dst } => cmp!(map(src)?, map(dst)?),
-        InstrParsed::Andq { src, dst } => and!(map(src)?, map(dst)?),
-        InstrParsed::Or { src, dst } => or!(map(src)?, map(dst)?),
-        InstrParsed::Xorq { src, dst } => xor!(map(src)?, map(dst)?),
-        InstrParsed::Notq { dst } => not!(map(dst)?),
-        InstrParsed::Setcc { cnd } => setcc!(cnd),
-        InstrParsed::CallDirect { .. } => todo!(),
-        InstrParsed::Jmp { .. } => todo!(),
-        InstrParsed::Jcc { .. } => todo!(),
-        InstrParsed::LoadLbl { .. } => todo!(),
-        InstrParsed::CallIndirect { .. } => todo!(),
+        InstrParsed::Add { src, dst, size } => InstrUniquified::Add {
+            src: map(src)?,
+            dst: map(dst)?,
+            size,
+        },
+        InstrParsed::Sub { src, dst, size } => InstrUniquified::Sub {
+            src: map(src)?,
+            dst: map(dst)?,
+            size,
+        },
+        InstrParsed::Div { divisor, size } => InstrUniquified::Div {
+            divisor: map(divisor)?,
+            size,
+        },
+        InstrParsed::IDiv { divisor, size } => InstrUniquified::IDiv {
+            divisor: map(divisor)?,
+            size,
+        },
+        InstrParsed::Mul { src, size } => InstrUniquified::Mul {
+            src: map(src)?,
+            size,
+        },
+        InstrParsed::IMul { src, size } => InstrUniquified::IMul {
+            src: map(src)?,
+            size,
+        },
+        InstrParsed::Neg { dst, size } => InstrUniquified::Neg {
+            dst: map(dst)?,
+            size,
+        },
+        InstrParsed::Mov { src, dst, size } => InstrUniquified::Mov {
+            src: map(src)?,
+            dst: map(dst)?,
+            size,
+        },
+        InstrParsed::MovSX { src, dst, size } => InstrUniquified::MovSX {
+            src: map(src)?,
+            dst: map(dst)?,
+            size,
+        },
+        InstrParsed::Push { src, size } => InstrUniquified::Push {
+            src: map(src)?,
+            size,
+        },
+        InstrParsed::Pop { dst, size } => InstrUniquified::Pop {
+            dst: map(dst)?,
+            size,
+        },
+
+        InstrParsed::Syscall { arity } => InstrUniquified::Syscall { arity },
+        InstrParsed::Cmp { src, dst, size } => InstrUniquified::Cmp {
+            src: map(src)?,
+            dst: map(dst)?,
+            size,
+        },
+        InstrParsed::And { src, dst, size } => InstrUniquified::And {
+            src: map(src)?,
+            dst: map(dst)?,
+            size,
+        },
+        InstrParsed::Or { src, dst, size } => InstrUniquified::Or {
+            src: map(src)?,
+            dst: map(dst)?,
+            size,
+        },
+        InstrParsed::Xor { src, dst, size } => InstrUniquified::Xor {
+            src: map(src)?,
+            dst: map(dst)?,
+            size,
+        },
+        InstrParsed::Not { dst, size } => InstrUniquified::Not {
+            dst: map(dst)?,
+            size,
+        },
+        InstrParsed::Setcc { .. }
+        | InstrParsed::Ret { .. }
+        | InstrParsed::Jmp { .. }
+        | InstrParsed::Jcc { .. }
+        | InstrParsed::LoadLbl { .. }
+        | InstrParsed::CallDirect { .. }
+        | InstrParsed::CallIndirect {.. } => unreachable!(),
     };
 
     Ok(instr)

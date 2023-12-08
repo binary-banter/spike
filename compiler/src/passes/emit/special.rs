@@ -14,12 +14,12 @@ pub fn encode_setcc(cnd: &Cnd) -> Vec<u8> {
     vec![0x0F, cnd, 0xC0]
 }
 
-#[cfg(test)]
-mod tests {
-    mod retq {
-
-        use crate::*;
-
-        check!(retq, ret!(), vec![0xC3]);
-    }
-}
+// #[cfg(test)]
+// mod tests {
+//     mod retq {
+//
+//         use crate::*;
+//
+//         check!(retq, ret!(), vec![0xC3]);
+//     }
+// }

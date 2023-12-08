@@ -37,7 +37,7 @@ fn select_fun(fun: FunEliminated) -> FunSelected {
 
     // Function entry & exit
     let entry = entry_block(&fun, &mut blocks);
-    let exit = exit_block(&mut blocks);
+    let exit = exit_block(&fun, &mut blocks);
 
     for (block_sym, block) in fun.blocks {
         let mut instrs = Vec::new();
@@ -61,20 +61,21 @@ fn entry_block<'p>(
     let mut instrs = Vec::new();
 
     // Save stack pointers.
-    instrs.push(push!(reg!(RBP)));
-    instrs.push(mov!(reg!(RSP), reg!(RBP)));
+    instrs.push(push!(reg!(RBP), Size::Bit64));
+    instrs.push(mov!(reg!(RSP), reg!(RBP), Size::Bit64));
 
     // Save callee-saved registers (excluding stack pointers).
     for reg in CALLEE_SAVED_NO_STACK {
-        instrs.push(push!(VarArg::Reg(reg)));
+        instrs.push(push!(VarArg::Reg(reg), Size::Bit64));
     }
 
     // Prepare temporary stack space - this will be optimized in later passes.
-    instrs.push(sub!(imm32!(0x1000), reg!(RSP)));
+    instrs.push(sub!(imm32!(0x1000), reg!(RSP), Size::Bit64));
 
     // Introduce parameters as local variables.
     for (reg, param) in CALLER_SAVED.into_iter().zip(fun.params.iter()) {
-        instrs.push(mov!(VarArg::Reg(reg), VarArg::XVar(param.sym)));
+        // Sometimes not the entire register needs to be moved. But we considered this to be negligible.
+        instrs.push(mov!(VarArg::Reg(reg), VarArg::XVar(param.sym), Size::Bit64));
     }
 
     assert!(
@@ -90,21 +91,22 @@ fn entry_block<'p>(
 
 /// Creates an exit block for the function.
 fn exit_block<'p>(
+    fun: &FunEliminated<'p>,
     blocks: &mut HashMap<UniqueSym<'p>, Block<'p, VarArg<UniqueSym<'p>>>>,
 ) -> UniqueSym<'p> {
     let exit = gen_sym("exit");
     let mut instrs = Vec::new();
 
     // Restore temporary stack space.
-    instrs.push(add!(imm32!(0x1000), reg!(RSP)));
+    instrs.push(add!(imm!(0x1000), reg!(RSP), Size::Bit64));
 
     // Restore callee-saved registers (excluding stack pointers).
     for reg in CALLEE_SAVED_NO_STACK.into_iter().rev() {
-        instrs.push(pop!(VarArg::Reg(reg)));
+        instrs.push(pop!(VarArg::Reg(reg), Size::Bit64));
     }
 
     // Restore stack pointers.
-    instrs.push(pop!(reg!(RBP)));
+    instrs.push(pop!(reg!(RBP), Size::Bit64));
     instrs.push(ret!());
 
     blocks.insert(exit, Block { instrs });
@@ -163,10 +165,7 @@ fn select_assign<'p>(
 ) -> Vec<InstrSelected<'p>> {
     let dst = var!(dsts[0]);
     match expr.inner {
-        ExprEliminated::Atom {
-            atm,
-            ..
-        } => vec![mov!(select_atom(atm), dst)],
+        ExprEliminated::Atom { atm, .. } => vec![mov!(select_atom(atm), dst)],
         ExprEliminated::Atom {
             atm: Atom::Var { sym },
             ..
