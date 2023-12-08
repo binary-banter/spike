@@ -15,6 +15,7 @@ fn integration([test]: [&str; 1]) {
 
     compile(test, "<test>", &tempdir.path().join("output")).unwrap();
 
+    // Make output executable.
     Command::new("chmod")
         .current_dir(&tempdir)
         .arg("+x")
@@ -23,36 +24,30 @@ fn integration([test]: [&str; 1]) {
         .into_diagnostic()
         .unwrap();
 
-    // Wait for file to be readable.
-    let mut program;
-    loop {
-        let sub_res = Command::new("./output")
-            .current_dir(&tempdir)
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
-            .spawn();
-        if let Err(e) = &sub_res {
-            if e.kind().to_string() == *"executable file busy" {
-                continue;
-            }
-        }
+    let mut child = Command::new("./output")
+        .current_dir(&tempdir)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .unwrap();
 
-        program = sub_res.unwrap();
-        break;
-    }
+    let mut stdin = child.stdin.take().unwrap();
 
-    let mut stdin = program.stdin.take().unwrap();
+    // Write all inputs to stdin of child process.
     for num in input {
         writeln!(stdin, "{num}").unwrap();
     }
 
-    let out = program.wait_with_output().unwrap();
+    let out = child.wait_with_output().unwrap();
+
+    // Assert the program exits with its return value.
     assert_eq!(
         out.status.code().unwrap() as i64 & 0xFF,
         expected_return & 0xFF
     );
 
-    for (got, expected) in out.stdout.lines().map(|r| r.unwrap()).zip(expected_output) {
+    // Assert all output was as expected.
+    for (got, expected) in out.stdout.lines().map(Result::unwrap).zip(expected_output) {
         assert_eq!(str_to_int(&got), expected);
     }
 }
