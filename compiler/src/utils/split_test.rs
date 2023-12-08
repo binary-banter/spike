@@ -34,8 +34,7 @@ pub fn split_test(test: &str) -> (Vec<i64>, Vec<i64>, i64, Option<&str>) {
 pub fn str_to_int(str: &str) -> i64 {
     match str {
         "true" => 1,
-        "false" => 0,
-        "unit" => 0,
+        "false" | "unit" => 0,
         _ => str.parse().unwrap(),
     }
 }

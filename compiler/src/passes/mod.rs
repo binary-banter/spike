@@ -1,3 +1,5 @@
+#![allow(clippy::module_inception)]
+
 pub mod assign;
 pub mod atomize;
 pub mod conclude;

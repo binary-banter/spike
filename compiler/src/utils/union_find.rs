@@ -16,6 +16,7 @@ impl<T> Default for UnionFind<T> {
 }
 
 impl<T> UnionFind<T> {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             parents: Vec::new(),
@@ -71,7 +72,7 @@ impl<T> UnionFind<T> {
 
         // set parent of each child to root
         for child_index in child_indexes {
-            self.parents[child_index] = child
+            self.parents[child_index] = child;
         }
 
         UnionIndex(parent)

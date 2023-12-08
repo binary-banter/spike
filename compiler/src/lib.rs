@@ -1,5 +1,3 @@
-#![allow(clippy::module_inception)]
-
 #[cfg(feature = "debug")]
 pub mod debug;
 pub mod passes;
@@ -24,7 +22,7 @@ pub fn compile(program: &str, filename: &str, output: &Path) -> miette::Result<(
     ));
 
     let add_source =
-        |error| Report::with_source_code(error, NamedSource::new(filename, program.to_string()));
+        |error| Report::with_source_code(error, NamedSource::new(filename, (*program).to_string()));
 
     parse(program)
         .map_err(Into::into)
