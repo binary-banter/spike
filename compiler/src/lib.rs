@@ -1,4 +1,3 @@
-#[cfg(feature = "debug")]
 pub mod debug;
 pub mod passes;
 pub mod utils;

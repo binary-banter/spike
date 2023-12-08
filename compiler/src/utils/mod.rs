@@ -1,5 +1,4 @@
 #![allow(unused)]
-pub mod debug;
 pub mod expect;
 pub mod gen_sym;
 pub mod push_map;

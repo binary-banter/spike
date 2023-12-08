@@ -1,16 +1,20 @@
+#[cfg(feature = "debug")]
 pub mod display;
+pub mod macros;
+#[cfg(feature = "debug")]
 pub mod time;
 
-use clap::ValueEnum;
-use miette::miette;
-use once_cell::sync::OnceCell;
+#[cfg(feature = "debug")]
+use {clap::ValueEnum, miette::miette, once_cell::sync::OnceCell};
 
+#[cfg(feature = "debug")]
 #[derive(Debug)]
 pub struct DebugArgs {
-    time: bool,
-    display: Option<Pass>,
+    pub time: bool,
+    pub display: Option<Pass>,
 }
 
+#[cfg(feature = "debug")]
 impl DebugArgs {
     pub fn set(time: bool, display: Option<Pass>) -> miette::Result<()> {
         DEBUG_ARGS
@@ -19,8 +23,10 @@ impl DebugArgs {
     }
 }
 
+#[cfg(feature = "debug")]
 pub static DEBUG_ARGS: OnceCell<DebugArgs> = OnceCell::new();
 
+#[cfg(feature = "debug")]
 #[derive(ValueEnum, Clone, Debug, PartialEq)]
 pub enum Pass {
     Parse,

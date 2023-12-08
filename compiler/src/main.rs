@@ -2,11 +2,9 @@
 mod run;
 
 use clap::Parser;
-use compiler::compile;
-#[cfg(feature = "debug")]
-use compiler::debug::{DebugArgs, Pass};
 use compiler::passes::parse::parse::PrettyParseError;
 use compiler::passes::validate::error::TypeError;
+use compiler::{compile, debug};
 use miette::{Diagnostic, IntoDiagnostic};
 use std::fs;
 use std::io::Read;
@@ -42,7 +40,7 @@ struct Args {
     /// Specifies the pass to display. Supported passes are defined by the `Pass` enum.
     #[cfg(feature = "debug")]
     #[arg(value_enum, short, long, value_name = "PASS")]
-    display: Option<Pass>,
+    display: Option<debug::Pass>,
 
     /// Print timing debug information.
     #[cfg(feature = "debug")]
@@ -60,7 +58,7 @@ fn main() -> miette::Result<()> {
     let args = Args::parse();
 
     #[cfg(feature = "debug")]
-    DebugArgs::set(args.time, args.display)?;
+    debug::DebugArgs::set(args.time, args.display)?;
 
     let (program, filename) = match args.input.as_ref() {
         None => (read_from_stdin().into_diagnostic()?, "stdin"),
