@@ -25,10 +25,10 @@ enum MainError {
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
-    /// Specifies the path to an input .sp file. If None, it means stdin is used for input.
+    /// Specifies a path to an input .sp file. If None, it means stdin is used for input.
     input: Option<String>,
 
-    /// Specifies the path to an output file. If None, it uses the input filename.
+    /// Specifies a path to an output file. If None, it uses the input filename.
     /// If that's also None, it defaults to "output".
     #[arg(short, long, value_name = "FILE")]
     output: Option<String>,
@@ -38,7 +38,7 @@ struct Args {
     #[arg(short, long)]
     run: bool,
 
-    /// Specifies the pass to display. Supported passes are defined by the `Pass` enum.
+    /// Specifies a pass to display.
     #[cfg(feature = "debug")]
     #[arg(value_enum, short, long, value_name = "PASS")]
     display: Option<Pass>,

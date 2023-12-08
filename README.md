@@ -4,15 +4,17 @@
 Usage: compiler [OPTIONS] [INPUT]
 
 Arguments:
-  [INPUT]  Specifies the path to an input .sp file. If None, it means stdin is used for input
+  [INPUT]  Specifies a path to an input .sp file. If None, it means stdin is used for input
 
 Options:
-  -o, --output <FILE>   Specifies the path to an output file. If None, it uses the input filename. If that's also None, it defaults to "output"
+  -o, --output <FILE>   Specifies a path to an output file. If None, it uses the input filename. If that's also None, it defaults to "output"
   -r, --run             Optionally runs and deletes the compiled executable. Only supported on Unix systems
-  -d, --display <PASS>  Specifies the pass to display. Supported passes are defined by the `Pass` enum [possible values: parse, validate, reveal, atomize, explicate, select]
-  -t, --time            Print timing debug information
   -h, --help            Print help
   -V, --version         Print version
+
+Debug Options:
+  -d, --display <PASS>  Specifies a pass to display [possible values: parse, validate, reveal, atomize, explicate, select]
+  -t, --time            Print timing debug information
 ```
 
 # Examples
