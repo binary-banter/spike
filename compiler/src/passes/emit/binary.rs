@@ -1,6 +1,6 @@
 use crate::passes::assign::Arg;
 use crate::passes::emit::encode_reg;
-use crate::passes::select::{Imm, Reg};
+use crate::passes::select::{Reg};
 
 pub struct BinaryOpInfo {
     /// Opcode when src = Reg and dst = Reg | Deref.
@@ -158,30 +158,30 @@ mod tests {
     mod add {
         use super::*;
 
-        check!(reg_reg, addq!(reg!(RSP), reg!(RDX)), vec![0x48, 0x01, 0xE2]);
+        check!(reg_reg, add!(reg!(RSP), reg!(RDX)), vec![0x48, 0x01, 0xE2]);
         check!(
             imm_reg,
-            addq!(imm32!(i32::MAX as i64), reg!(RBP)),
+            add!(imm32!(i32::MAX as i64), reg!(RBP)),
             vec![0x48, 0x81, 0xC5, 0xFF, 0xFF, 0xFF, 0x7F]
         );
         check!(
             deref_reg1,
-            addq!(deref!(RBX, i32::MAX as i64), reg!(RDI)),
+            add!(deref!(RBX, i32::MAX as i64), reg!(RDI)),
             vec![0x48, 0x03, 0xBB, 0xFF, 0xFF, 0xFF, 0x7F]
         );
         check!(
             deref_reg2,
-            addq!(deref!(RBX, i32::MAX as i64), reg!(R15)),
+            add!(deref!(RBX, i32::MAX as i64), reg!(R15)),
             vec![0x4C, 0x03, 0xBB, 0xFF, 0xFF, 0xFF, 0x7F]
         );
         check!(
             reg_deref1,
-            addq!(reg!(RCX), deref!(R15, i32::MAX as i64)),
+            add!(reg!(RCX), deref!(R15, i32::MAX as i64)),
             vec![0x49, 0x01, 0x8F, 0xFF, 0xFF, 0xFF, 0x7F]
         );
         check!(
             imm_deref1,
-            addq!(
+            add!(
                 imm32!((i32::MAX - 0xFF) as i64),
                 deref!(R9, i32::MAX as i64)
             ),
@@ -189,7 +189,7 @@ mod tests {
         );
         check!(
             imm_deref2,
-            addq!(
+            add!(
                 imm32!((i32::MAX - 0xFF) as i64),
                 deref!(RDX, i32::MAX as i64)
             ),
@@ -200,30 +200,30 @@ mod tests {
     mod sub {
         use super::*;
 
-        check!(reg_reg, subq!(reg!(RSP), reg!(RDX)), vec![0x48, 0x29, 0xE2]);
+        check!(reg_reg, sub!(reg!(RSP), reg!(RDX)), vec![0x48, 0x29, 0xE2]);
         check!(
             imm_reg,
-            subq!(imm32!(i32::MAX as i64), reg!(RBP)),
+            sub!(imm32!(i32::MAX as i64), reg!(RBP)),
             vec![0x48, 0x81, 0xED, 0xFF, 0xFF, 0xFF, 0x7F]
         );
         check!(
             deref_reg1,
-            subq!(deref!(RBX, i32::MAX as i64), reg!(RDI)),
+            sub!(deref!(RBX, i32::MAX as i64), reg!(RDI)),
             vec![0x48, 0x2B, 0xBB, 0xFF, 0xFF, 0xFF, 0x7F]
         );
         check!(
             deref_reg2,
-            subq!(deref!(RBX, i32::MAX as i64), reg!(R15)),
+            sub!(deref!(RBX, i32::MAX as i64), reg!(R15)),
             vec![0x4C, 0x2B, 0xBB, 0xFF, 0xFF, 0xFF, 0x7F]
         );
         check!(
             reg_deref1,
-            subq!(reg!(RCX), deref!(R15, i32::MAX as i64)),
+            sub!(reg!(RCX), deref!(R15, i32::MAX as i64)),
             vec![0x49, 0x29, 0x8F, 0xFF, 0xFF, 0xFF, 0x7F]
         );
         check!(
             imm_deref1,
-            subq!(
+            sub!(
                 imm32!((i32::MAX - 0xFF) as i64),
                 deref!(R9, i32::MAX as i64)
             ),
@@ -231,7 +231,7 @@ mod tests {
         );
         check!(
             imm_deref2,
-            subq!(
+            sub!(
                 imm32!((i32::MAX - 0xFF) as i64),
                 deref!(RDX, i32::MAX as i64)
             ),
@@ -242,35 +242,35 @@ mod tests {
     mod r#move {
         use super::*;
 
-        check!(reg_reg, movq!(reg!(RSP), reg!(RDX)), vec![0x48, 0x89, 0xE2]);
+        check!(reg_reg, mov!(reg!(RSP), reg!(RDX)), vec![0x48, 0x89, 0xE2]);
         check!(
             imm_reg,
-            movq!(imm32!(i32::MAX as i64), reg!(RBP)),
+            mov!(imm32!(i32::MAX as i64), reg!(RBP)),
             vec![0x48, 0xC7, 0xC5, 0xFF, 0xFF, 0xFF, 0x7F]
         );
         check!(
             deref_reg1,
-            movq!(deref!(RBX, i32::MAX as i64), reg!(RDI)),
+            mov!(deref!(RBX, i32::MAX as i64), reg!(RDI)),
             vec![0x48, 0x8B, 0xBB, 0xFF, 0xFF, 0xFF, 0x7F]
         );
         check!(
             deref_reg2,
-            movq!(deref!(RBX, i32::MAX as i64), reg!(R15)),
+            mov!(deref!(RBX, i32::MAX as i64), reg!(R15)),
             vec![0x4C, 0x8B, 0xBB, 0xFF, 0xFF, 0xFF, 0x7F]
         );
         check!(
             reg_deref1,
-            movq!(reg!(RCX), deref!(R15, i32::MAX as i64)),
+            mov!(reg!(RCX), deref!(R15, i32::MAX as i64)),
             vec![0x49, 0x89, 0x8F, 0xFF, 0xFF, 0xFF, 0x7F]
         );
         check!(
             reg_deref2,
-            movq!(reg!(R12), deref!(RBP, -56)),
+            mov!(reg!(R12), deref!(RBP, -56)),
             vec![0x4C, 0x89, 0xA5, 0xC8, 0xFF, 0xFF, 0xFF]
         );
         check!(
             imm_deref1,
-            movq!(
+            mov!(
                 imm32!((i32::MAX - 0xFF) as i64),
                 deref!(R9, i32::MAX as i64)
             ),
@@ -278,7 +278,7 @@ mod tests {
         );
         check!(
             imm_deref2,
-            movq!(
+            mov!(
                 imm32!((i32::MAX - 0xFF) as i64),
                 deref!(RDX, i32::MAX as i64)
             ),

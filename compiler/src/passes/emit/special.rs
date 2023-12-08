@@ -20,6 +20,6 @@ mod tests {
 
         use crate::*;
 
-        check!(retq, retq!(), vec![0xC3]);
+        check!(retq, ret!(), vec![0xC3]);
     }
 }

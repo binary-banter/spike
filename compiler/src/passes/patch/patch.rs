@@ -2,7 +2,7 @@ use crate::passes::assign::{Arg, FunAssigned, X86Assigned};
 use crate::passes::patch::X86Patched;
 use crate::passes::select::{Block, Instr};
 use crate::utils::unique_sym::UniqueSym;
-use crate::{addq, movq, popq, pushq, reg, subq, time};
+use crate::{add, mov, pop, push, reg, sub, time};
 use functor_derive::Functor;
 
 impl<'p> X86Assigned<'p> {
@@ -44,12 +44,13 @@ fn patch_block(block: Block<'_, Arg>) -> Block<'_, Arg> {
 }
 
 fn patch_instr(instr: Instr<Arg, UniqueSym<'_>>) -> Vec<Instr<Arg, UniqueSym<'_>>> {
-    match instr {
-        Instr::Addq { src, dst } => patch_args(src, dst, |src, dst| addq!(src, dst)),
-        Instr::Subq { src, dst } => patch_args(src, dst, |src, dst| subq!(src, dst)),
-        Instr::Movq { src, dst } => patch_args(src, dst, |src, dst| movq!(src, dst)),
-        _ => vec![instr],
-    }
+    // match instr {
+    //     Instr::Addq { src, dst } => patch_args(src, dst, |src, dst| add!(src, dst)),
+    //     Instr::Sub { src, dst } => patch_args(src, dst, |src, dst| sub!(src, dst)),
+    //     Instr::Movq { src, dst } => patch_args(src, dst, |src, dst| mov!(src, dst)),
+    //     _ => vec![instr],
+    // }
+    todo!()
 }
 
 fn patch_args<'p>(
@@ -59,10 +60,10 @@ fn patch_args<'p>(
 ) -> Vec<Instr<Arg, UniqueSym<'p>>> {
     match (&src, &dst) {
         (Arg::Deref { .. }, Arg::Deref { .. }) => vec![
-            pushq!(reg!(R8)),
-            movq!(src, reg!(R8)),
+            push!(reg!(R8)),
+            mov!(src, reg!(R8)),
             op(reg!(R8), dst),
-            popq!(reg!(R8)),
+            pop!(reg!(R8)),
         ],
         _ => vec![op(src, dst)],
     }

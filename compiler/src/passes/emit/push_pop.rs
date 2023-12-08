@@ -1,6 +1,6 @@
 use crate::passes::assign::Arg;
 use crate::passes::emit;
-use crate::passes::select::Imm;
+use crate::passes::validate::Int;
 
 pub struct PushPopInfo {
     pub op_reg: u8,
@@ -26,14 +26,12 @@ pub const POPQ_INFO: PushPopInfo = PushPopInfo {
 pub fn encode_push_pop(op_info: PushPopInfo, reg: &Arg) -> Vec<u8> {
     match reg {
         Arg::Imm(imm) => match imm {
-            Imm::Imm8(_) => todo!(),
-            Imm::Imm16(_) => todo!(),
-            Imm::Imm32(val) => {
+            Int::I64(val) => {
                 let mut v = vec![op_info.op_imm];
                 v.extend(val.to_le_bytes());
                 v
             }
-            Imm::Imm64(_) => todo!(),
+            _ => todo!(),
         },
         Arg::Reg(reg) => {
             let (r, rrr) = emit::encode_reg(reg);
@@ -72,23 +70,23 @@ mod tests {
     mod push {
         use super::*;
 
-        check!(reg1, pushq!(reg!(RAX)), vec![0x50]);
-        check!(reg2, pushq!(reg!(R14)), vec![0x41, 0x56]);
+        check!(reg1, push!(reg!(RAX)), vec![0x50]);
+        check!(reg2, push!(reg!(R14)), vec![0x41, 0x56]);
 
         check!(
             deref1,
-            pushq!(deref!(RDX, i32::MAX as i64)),
+            push!(deref!(RDX, i32::MAX as i64)),
             vec![0xFF, 0xB2, 0xFF, 0xFF, 0xFF, 0x7F]
         );
         check!(
             deref2,
-            pushq!(deref!(R11, i32::MAX as i64)),
+            push!(deref!(R11, i32::MAX as i64)),
             vec![0x41, 0xFF, 0xB3, 0xFF, 0xFF, 0xFF, 0x7F]
         );
 
         check!(
             imm,
-            pushq!(imm32!(i32::MAX as i64)),
+            push!(imm32!(i32::MAX as i64)),
             vec![0x68, 0xFF, 0xFF, 0xFF, 0x7F]
         );
     }
@@ -96,17 +94,17 @@ mod tests {
     mod pop {
         use super::*;
 
-        check!(reg1, popq!(reg!(RAX)), vec![0x58]);
-        check!(reg2, popq!(reg!(R14)), vec![0x41, 0x5E]);
+        check!(reg1, pop!(reg!(RAX)), vec![0x58]);
+        check!(reg2, pop!(reg!(R14)), vec![0x41, 0x5E]);
 
         check!(
             deref1,
-            popq!(deref!(RDX, i32::MAX as i64)),
+            pop!(deref!(RDX, i32::MAX as i64)),
             vec![0x8F, 0x82, 0xFF, 0xFF, 0xFF, 0x7F]
         );
         check!(
             deref2,
-            popq!(deref!(R11, i32::MAX as i64)),
+            pop!(deref!(R11, i32::MAX as i64)),
             vec![0x41, 0x8F, 0x83, 0xFF, 0xFF, 0xFF, 0x7F]
         );
     }

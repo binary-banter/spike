@@ -49,22 +49,22 @@ mod tests {
     mod neg {
         use crate::*;
 
-        check!(nreg1, negq!(reg!(RSP)), vec![0x48, 0xF7, 0xDC]);
-        check!(reg2, negq!(reg!(R13)), vec![0x49, 0xF7, 0xDD]);
+        check!(nreg1, neg!(reg!(RSP)), vec![0x48, 0xF7, 0xDC]);
+        check!(reg2, neg!(reg!(R13)), vec![0x49, 0xF7, 0xDD]);
         check!(
             deref,
-            negq!(deref!(RSP, i32::MAX as i64)),
+            neg!(deref!(RSP, i32::MAX as i64)),
             vec![0x48, 0xF7, 0x9C, 0x24, 0xFF, 0xFF, 0xFF, 0x7F]
         );
 
         check!(
             callq_indirect1,
-            callq_indirect!(reg!(RBX), 0),
+            call_indirect!(reg!(RBX), 0),
             vec![0x48, 0xFF, 0xD3]
         );
         check!(
             callq_indirect2,
-            callq_indirect!(reg!(R13), 0),
+            call_indirect!(reg!(R13), 0),
             vec![0x49, 0xFF, 0xD5]
         );
     }

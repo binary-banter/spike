@@ -61,20 +61,20 @@ fn entry_block<'p>(
     let mut instrs = Vec::new();
 
     // Save stack pointers.
-    instrs.push(pushq!(reg!(RBP)));
-    instrs.push(movq!(reg!(RSP), reg!(RBP)));
+    instrs.push(push!(reg!(RBP)));
+    instrs.push(mov!(reg!(RSP), reg!(RBP)));
 
     // Save callee-saved registers (excluding stack pointers).
     for reg in CALLEE_SAVED_NO_STACK {
-        instrs.push(pushq!(VarArg::Reg(reg)));
+        instrs.push(push!(VarArg::Reg(reg)));
     }
 
     // Prepare temporary stack space - this will be optimized in later passes.
-    instrs.push(subq!(imm32!(0x1000), reg!(RSP)));
+    instrs.push(sub!(imm32!(0x1000), reg!(RSP)));
 
     // Introduce parameters as local variables.
     for (reg, param) in CALLER_SAVED.into_iter().zip(fun.params.iter()) {
-        instrs.push(movq!(VarArg::Reg(reg), VarArg::XVar(param.sym)));
+        instrs.push(mov!(VarArg::Reg(reg), VarArg::XVar(param.sym)));
     }
 
     assert!(
@@ -96,16 +96,16 @@ fn exit_block<'p>(
     let mut instrs = Vec::new();
 
     // Restore temporary stack space.
-    instrs.push(addq!(imm32!(0x1000), reg!(RSP)));
+    instrs.push(add!(imm32!(0x1000), reg!(RSP)));
 
     // Restore callee-saved registers (excluding stack pointers).
     for reg in CALLEE_SAVED_NO_STACK.into_iter().rev() {
-        instrs.push(popq!(VarArg::Reg(reg)));
+        instrs.push(pop!(VarArg::Reg(reg)));
     }
 
     // Restore stack pointers.
-    instrs.push(popq!(reg!(RBP)));
-    instrs.push(retq!());
+    instrs.push(pop!(reg!(RBP)));
+    instrs.push(ret!());
 
     blocks.insert(exit, Block { instrs });
     exit
@@ -123,7 +123,7 @@ fn select_tail<'p>(
                 "Argument passing to stack is not yet implemented."
             );
             for (reg, arg) in CALLER_SAVED.into_iter().zip(exprs) {
-                instrs.push(movq!(select_atom(arg), VarArg::Reg(reg)));
+                instrs.push(mov!(select_atom(arg), VarArg::Reg(reg)));
             }
             instrs.push(jmp!(exit));
         }
@@ -143,8 +143,8 @@ fn select_tail<'p>(
             } => {
                 let tmp = gen_sym("tmp");
                 instrs.extend(vec![
-                    movq!(select_atom(expr_lhs), var!(tmp)),
-                    cmpq!(select_atom(expr_rhs), var!(tmp)),
+                    mov!(select_atom(expr_lhs), var!(tmp)),
+                    cmp!(select_atom(expr_rhs), var!(tmp)),
                     jcc!(thn, select_cmp(op)),
                     jmp!(els),
                 ]);
@@ -164,56 +164,56 @@ fn select_assign<'p>(
     let dst = var!(dsts[0]);
     match expr.inner {
         ExprEliminated::Atom {
-            atm: Atom::Val { val },
+            atm,
             ..
-        } => vec![movq!(imm32!(u32::from(val)), dst)],
+        } => vec![mov!(select_atom(atm), dst)],
         ExprEliminated::Atom {
             atm: Atom::Var { sym },
             ..
-        } => vec![movq!(var!(sym), dst)],
+        } => vec![mov!(var!(sym), dst)],
         ExprEliminated::BinaryOp {
             op,
             exprs: [a0, a1],
         } => match op {
             BinaryOp::Add => vec![
-                movq!(select_atom(a0), dst.clone()),
-                addq!(select_atom(a1), dst),
+                mov!(select_atom(a0), dst.clone()),
+                add!(select_atom(a1), dst),
             ],
             BinaryOp::Sub => vec![
-                movq!(select_atom(a0), dst.clone()),
-                subq!(select_atom(a1), dst),
+                mov!(select_atom(a0), dst.clone()),
+                sub!(select_atom(a1), dst),
             ],
             BinaryOp::Mul => vec![
-                movq!(select_atom(a1), reg!(RAX)),
-                movq!(select_atom(a0), reg!(RBX)),
-                mulq!(reg!(RBX)),
-                movq!(reg!(RAX), dst),
+                mov!(select_atom(a1), reg!(RAX)),
+                mov!(select_atom(a0), reg!(RBX)),
+                mul!(reg!(RBX)),
+                mov!(reg!(RAX), dst),
             ],
             BinaryOp::Div => vec![
-                movq!(imm32!(0), reg!(RDX)),
-                movq!(select_atom(a0), reg!(RAX)),
-                movq!(select_atom(a1), reg!(RBX)),
-                divq!(reg!(RBX)),
-                movq!(reg!(RAX), dst),
+                mov!(imm32!(0), reg!(RDX)),
+                mov!(select_atom(a0), reg!(RAX)),
+                mov!(select_atom(a1), reg!(RBX)),
+                div!(reg!(RBX)),
+                mov!(reg!(RAX), dst),
             ],
             BinaryOp::Mod => vec![
-                movq!(imm32!(0), reg!(RDX)),
-                movq!(select_atom(a0), reg!(RAX)),
-                movq!(select_atom(a1), reg!(RBX)),
-                divq!(reg!(RBX)),
-                movq!(reg!(RDX), dst),
+                mov!(imm32!(0), reg!(RDX)),
+                mov!(select_atom(a0), reg!(RAX)),
+                mov!(select_atom(a1), reg!(RBX)),
+                div!(reg!(RBX)),
+                mov!(reg!(RDX), dst),
             ],
             BinaryOp::LAnd => vec![
-                movq!(select_atom(a0), dst.clone()),
-                andq!(select_atom(a1), dst),
+                mov!(select_atom(a0), dst.clone()),
+                and!(select_atom(a1), dst),
             ],
             BinaryOp::LOr => vec![
-                movq!(select_atom(a0), dst.clone()),
-                orq!(select_atom(a1), dst),
+                mov!(select_atom(a0), dst.clone()),
+                or!(select_atom(a1), dst),
             ],
             BinaryOp::Xor => vec![
-                movq!(select_atom(a0), dst.clone()),
-                xorq!(select_atom(a1), dst),
+                mov!(select_atom(a0), dst.clone()),
+                xor!(select_atom(a1), dst),
             ],
             op @ (BinaryOp::GT
             | BinaryOp::GE
@@ -223,34 +223,34 @@ fn select_assign<'p>(
             | BinaryOp::NE) => {
                 let tmp = gen_sym("tmp");
                 vec![
-                    movq!(select_atom(a0), var!(tmp)),
-                    cmpq!(select_atom(a1), var!(tmp)),
-                    movq!(imm32!(0), reg!(RAX)), // todo: can be smaller
+                    mov!(select_atom(a0), var!(tmp)),
+                    cmp!(select_atom(a1), var!(tmp)),
+                    mov!(imm32!(0), reg!(RAX)), // todo: can be smaller
                     setcc!(select_cmp(op)),
-                    movq!(reg!(RAX), dst),
+                    mov!(reg!(RAX), dst),
                 ]
             }
         },
         ExprEliminated::UnaryOp { op, expr: a0 } => match op {
-            UnaryOp::Neg => vec![movq!(select_atom(a0), dst.clone()), negq!(dst)],
-            UnaryOp::Not => vec![movq!(select_atom(a0), dst.clone()), xorq!(imm32!(1), dst)], // todo: can be smaller
+            UnaryOp::Neg => vec![mov!(select_atom(a0), dst.clone()), neg!(dst)],
+            UnaryOp::Not => vec![mov!(select_atom(a0), dst.clone()), xor!(imm32!(1), dst)], // todo: can be smaller
         },
         ExprEliminated::FunRef { sym, .. } => vec![load_lbl!(sym, dst)],
         ExprEliminated::Apply { fun, args, .. } => {
             let mut instrs = vec![];
 
             for (arg, reg) in args.iter().zip(CALLER_SAVED.into_iter()) {
-                instrs.push(movq!(select_atom(*arg), VarArg::Reg(reg)));
+                instrs.push(mov!(select_atom(*arg), VarArg::Reg(reg)));
             }
             assert!(
                 args.len() <= 9,
                 "Argument passing to stack is not yet implemented."
             );
 
-            instrs.push(callq_indirect!(select_atom(fun), args.len()));
+            instrs.push(call_indirect!(select_atom(fun), args.len()));
 
             for (reg, dst) in CALLER_SAVED.into_iter().zip(dsts) {
-                instrs.push(movq!(VarArg::Reg(reg), var!(*dst)));
+                instrs.push(mov!(VarArg::Reg(reg), var!(*dst)));
             }
 
             instrs
@@ -271,12 +271,12 @@ fn select_atom(expr: Atom<'_>) -> VarArg<UniqueSym<'_>> {
                         Int::U16(_) => todo!(),
                         Int::I32(_) => todo!(),
                         Int::U32(_) => todo!(),
-                        Int::I64(int) => imm32!(int as i32), // not correct yet
+                        Int::I64(int) => imm!(int as i32), // not correct yet
                         Int::U64(_) => todo!(),
                     }
                 }
-                Lit::Bool(bool) => imm32!(bool as i32), // todo: can be smaller
-                Lit::Unit => imm32!(0),                 // todo: can be smaller
+                Lit::Bool(bool) => imm!(bool as i32), // todo: can be smaller
+                Lit::Unit => imm!(0),                 // todo: can be smaller
             }
         }
         Atom::Var { sym } => var!(sym),
@@ -292,24 +292,5 @@ fn select_cmp(op: BinaryOp) -> Cnd {
         BinaryOp::LT => Cnd::LT,
         BinaryOp::NE => Cnd::NE,
         _ => unreachable!(),
-    }
-}
-
-impl From<Lit<Int>> for u32 {
-    fn from(value: Lit<Int>) -> Self {
-        match value {
-            Lit::Int(int) => match int {
-                Int::I8(int) => int as u32,
-                Int::U8(int) => int as u32,
-                Int::I16(int) => int as u32,
-                Int::U16(int) => int as u32,
-                Int::I32(int) => int as u32,
-                Int::U32(int) => int,
-                Int::I64(int) => int as u32,
-                Int::U64(int) => int as u32,
-            },
-            Lit::Bool(bool) => bool as u32,
-            Lit::Unit => 0,
-        }
     }
 }

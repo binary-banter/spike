@@ -5,7 +5,7 @@ mod include_liveness;
 mod display;
 
 use crate::passes::select::{
-    Block, FunSelected, Imm, Instr, InstrSelected, Reg, VarArg, X86Selected,
+    Block, FunSelected, Instr, InstrSelected, Reg, VarArg, X86Selected,
 };
 use crate::utils::unique_sym::UniqueSym;
 use derive_more::Display;
@@ -13,6 +13,7 @@ use functor_derive::Functor;
 use petgraph::graphmap::GraphMap;
 use petgraph::Undirected;
 use std::collections::{HashMap, HashSet};
+use crate::passes::validate::Int;
 
 pub struct X86Assigned<'p> {
     pub fns: HashMap<UniqueSym<'p>, FunAssigned<'p>>,
@@ -32,7 +33,7 @@ pub type InstrAssigned<'p> = Instr<Arg, UniqueSym<'p>>;
 #[derive(Clone, Display)]
 pub enum Arg {
     #[display(fmt = "${_0}")]
-    Imm(Imm),
+    Imm(Int),
     #[display(fmt = "%{_0}")]
     Reg(Reg),
     #[display(fmt = "[%{reg} + ${off}]")]

@@ -169,11 +169,13 @@ fn resolve_expr<'p>(
                         let int = match typ {
                             Type::Int(int) => match int {
                                 IntType::I8 => todo!(),
-                                IntType::U8 => Int::U8(resolve_int_lit(
-                                    val,
-                                    expr.meta.span,
-                                    u8::from_str_radix,
-                                )?),
+                                IntType::U8 => Int::U8({
+                                    resolve_int_lit(
+                                        val,
+                                        expr.meta.span,
+                                        u8::from_str_radix,
+                                    )?
+                                }),
                                 IntType::I16 => Int::I16(resolve_int_lit(
                                     val,
                                     expr.meta.span,
@@ -315,26 +317,26 @@ pub fn resolve_instr<'p>(
     };
 
     match instr {
-        Instr::Addq { src, dst } => addq!(map(src), map(dst)),
-        Instr::Subq { src, dst } => subq!(map(src), map(dst)),
-        Instr::Divq { divisor } => divq!(map(divisor)),
-        Instr::Mulq { src } => mulq!(map(src)),
-        Instr::Negq { dst } => negq!(map(dst)),
-        Instr::Movq { src, dst } => movq!(map(src), map(dst)),
-        Instr::Pushq { src } => pushq!(map(src)),
-        Instr::Popq { dst } => popq!(map(dst)),
-        Instr::Retq => retq!(),
+        Instr::Addq { src, dst } => add!(map(src), map(dst)),
+        Instr::Sub { src, dst } => sub!(map(src), map(dst)),
+        Instr::Divq { divisor } => div!(map(divisor)),
+        Instr::Mulq { src } => mul!(map(src)),
+        Instr::Negq { dst } => neg!(map(dst)),
+        Instr::Movq { src, dst } => mov!(map(src), map(dst)),
+        Instr::Pushq { src } => push!(map(src)),
+        Instr::Popq { dst } => pop!(map(dst)),
+        Instr::Retq => ret!(),
         Instr::Syscall { arity } => syscall!(arity),
-        Instr::Cmpq { src, dst } => cmpq!(map(src), map(dst)),
-        Instr::Andq { src, dst } => andq!(map(src), map(dst)),
-        Instr::Orq { src, dst } => orq!(map(src), map(dst)),
-        Instr::Xorq { src, dst } => xorq!(map(src), map(dst)),
-        Instr::Notq { dst } => notq!(map(dst)),
+        Instr::Cmpq { src, dst } => cmp!(map(src), map(dst)),
+        Instr::Andq { src, dst } => and!(map(src), map(dst)),
+        Instr::Or { src, dst } => or!(map(src), map(dst)),
+        Instr::Xorq { src, dst } => xor!(map(src), map(dst)),
+        Instr::Notq { dst } => not!(map(dst)),
         Instr::Setcc { cnd } => setcc!(cnd),
-        Instr::CallqDirect { .. } => todo!(),
+        Instr::CallDirect { .. } => todo!(),
         Instr::Jmp { .. } => todo!(),
         Instr::Jcc { .. } => todo!(),
         Instr::LoadLbl { .. } => todo!(),
-        Instr::CallqIndirect { .. } => todo!(),
+        Instr::CallIndirect { .. } => todo!(),
     }
 }

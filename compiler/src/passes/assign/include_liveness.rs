@@ -110,32 +110,32 @@ pub fn handle_instr<'p>(
     use ReadWriteOp::Write as W;
 
     match instr {
-        Instr::Addq { src, dst }
-        | Instr::Subq { src, dst }
-        | Instr::Andq { src, dst }
-        | Instr::Orq { src, dst }
-        | Instr::Xorq { src, dst } => {
+        Instr::Add { src, dst, .. }
+        | Instr::Sub { src, dst, .. }
+        | Instr::And{ src, dst, .. }
+        | Instr::Or { src, dst, .. }
+        | Instr::Xor { src, dst, .. } => {
             arg(dst, RW);
             arg(src, R);
         }
-        Instr::Cmpq { src, dst } => {
+        Instr::Cmp { src, dst, .. } => {
             arg(dst, R);
             arg(src, R);
         }
-        Instr::Movq { src, dst } => {
+        Instr::Mov { src, dst, .. } => {
             arg(dst, W);
             arg(src, R);
         }
-        Instr::Pushq { src } => {
+        Instr::Push { src, .. } => {
             arg(src, R);
         }
-        Instr::Popq { dst } => {
+        Instr::Pop{ dst, .. } => {
             arg(dst, W);
         }
-        Instr::Negq { dst } | Instr::Notq { dst } => {
+        Instr::Neg { dst, .. } | Instr::Not { dst, .. } => {
             arg(dst, RW);
         }
-        Instr::CallqDirect { arity, .. } => {
+        Instr::CallDirect { arity, .. } => {
             for reg in CALLER_SAVED.into_iter().skip(*arity) {
                 arg(&VarArg::Reg(reg), W);
             }
@@ -151,19 +151,19 @@ pub fn handle_instr<'p>(
                 arg(&VarArg::Reg(reg), R);
             }
         }
-        Instr::Retq => {
+        Instr::Ret => {
             // Because the return value of our function is in RAX, we need to consider it being read at the end of a block.
             arg(&VarArg::Reg(Reg::RAX), R);
         }
         Instr::Setcc { .. } => {
             arg(&VarArg::Reg(Reg::RAX), W);
         }
-        Instr::Mulq { src } => {
+        Instr::Mul{ src, .. } => {
             arg(&VarArg::Reg(Reg::RDX), W);
             arg(&VarArg::Reg(Reg::RAX), RW);
             arg(src, R);
         }
-        Instr::Divq { divisor } => {
+        Instr::Div { divisor, .. } => {
             arg(&VarArg::Reg(Reg::RDX), RW);
             arg(&VarArg::Reg(Reg::RAX), RW);
             arg(divisor, R);
@@ -176,7 +176,7 @@ pub fn handle_instr<'p>(
         Instr::LoadLbl { dst, .. } => {
             arg(dst, W);
         }
-        Instr::CallqIndirect { src, arity } => {
+        Instr::CallIndirect { src, arity } => {
             for reg in CALLER_SAVED.into_iter().skip(*arity) {
                 arg(&VarArg::Reg(reg), W);
             }

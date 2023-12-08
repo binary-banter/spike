@@ -1,8 +1,9 @@
 use crate::passes::parse::{
     BinaryOp, DefParsed, ExprParsed, InstrParsed, Lit, Meta, Param, PrgParsed, Spanned, Type, TypeDef, UnaryOp, types::IntType,
 };
-use crate::passes::select::{VarArg, Reg, Imm};
+use crate::passes::select::{VarArg, Reg};
 use functor_derive::Functor;
+use crate::passes::validate::Int;
 
 grammar;
 
@@ -86,6 +87,12 @@ match {
     "%",
 
     // Types
+    "I8",
+    "U8",
+    "I16",
+    "U16",
+    "I32",
+    "U32",
     "I64",
     "U64",
     "Bool",
@@ -159,6 +166,12 @@ Param: Param<Spanned<&'input str>> = {
 }
 
 Type: Type<Spanned<&'input str>> = {
+    "I8" => Type::Int(IntType::I8),
+    "U8" => Type::Int(IntType::U8),
+    "I16" => Type::Int(IntType::I16),
+    "U16" => Type::Int(IntType::U16),
+    "I32" => Type::Int(IntType::I32),
+    "U32" => Type::Int(IntType::U32),
     "I64" => Type::Int(IntType::I64),
     "U64" => Type::Int(IntType::U64),
     "Bool" => Type::Bool,
@@ -405,7 +418,7 @@ AsmInstr: InstrParsed<'input> = {
 AsmArg: VarArg<Spanned<&'input str>> = {
     <reg:AsmReg> => VarArg::Reg(reg),
     "{" <sym:Ident> "}" => VarArg::XVar(sym),
-    "$" <val:Int> => VarArg::Imm(Imm::Imm32(val.parse().expect("Internal compiler error (oh no!): We were too lazy to make a proper error for this"))),
+    "$" <val:Int> => VarArg::Imm(Int::I64(val.parse().expect("Internal compiler error (oh no!): We were too lazy to make a proper error for this"))),
     "[" <reg:AsmReg> "+" <off:Int> "]"  => VarArg::Deref {
         reg,
         off: off.parse().expect("Internal compiler error (oh no!): We were too lazy to make a proper error for this"),

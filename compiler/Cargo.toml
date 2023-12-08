@@ -8,7 +8,7 @@ authors = ["joooooooonaaaaa", "juuuuuuuuuuuuuuuuuuliaaaaaaaaaa"]
 thiserror = "1.0.50"
 bitflags = "2.4.1"
 petgraph = "0.6.4"
-itertools = "0.11.0"
+itertools = "0.12.0"
 serde = { version = "1.0.192", features = ["derive"] }
 clap = { version = "4.4.7", features = ["derive"] }
 miette = { version = "5.10.0", features = ["fancy"] }

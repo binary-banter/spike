@@ -26,14 +26,14 @@ mod tests {
     mod division {
         use crate::*;
 
-        check!(div1, divq!(reg!(R15)), vec![0x49, 0xF7, 0xF7]);
-        check!(div2, divq!(reg!(RDX)), vec![0x48, 0xF7, 0xF2]);
+        check!(div1, div!(reg!(R15)), vec![0x49, 0xF7, 0xF7]);
+        check!(div2, div!(reg!(RDX)), vec![0x48, 0xF7, 0xF2]);
     }
 
     mod multiply {
         use crate::*;
 
-        check!(mul1, mulq!(reg!(R15)), vec![0x49, 0xF7, 0xE7]);
-        check!(mul2, mulq!(reg!(RDX)), vec![0x48, 0xF7, 0xE2]);
+        check!(mul1, mul!(reg!(R15)), vec![0x49, 0xF7, 0xE7]);
+        check!(mul2, mul!(reg!(RDX)), vec![0x48, 0xF7, 0xE2]);
     }
 }

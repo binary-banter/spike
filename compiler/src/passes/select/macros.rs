@@ -6,142 +6,140 @@ macro_rules! block {
     }
 
 #[macro_export]
-macro_rules! addq {
-    ($src:expr, $dst:expr) => {
-        $crate::passes::select::Instr::Addq {
+macro_rules! add {
+    ($src:expr, $dst:expr, $size:expr) => {
+        $crate::passes::select::Instr::Add {
             src: $src,
             dst: $dst,
+            size: $size,
         }
     };
 }
 
 #[macro_export]
-macro_rules! divq {
-    ($divisor:expr) => {
-        $crate::passes::select::Instr::Divq { divisor: $divisor }
-    };
-}
-
-#[macro_export]
-macro_rules! mulq {
-    ($src:expr) => {
-        $crate::passes::select::Instr::Mulq { src: $src }
-    };
-}
-
-#[macro_export]
-macro_rules! subq {
-    ($src:expr, $dst:expr) => {
-        $crate::passes::select::Instr::Subq {
+macro_rules! sub {
+    ($src:expr, $dst:expr, $size:expr) => {
+        $crate::passes::select::Instr::Sub {
             src: $src,
             dst: $dst,
+            size: $size,
         }
     };
 }
 
 #[macro_export]
-macro_rules! cmpq {
-    ($src:expr, $dst:expr) => {
-        $crate::passes::select::Instr::Cmpq {
+macro_rules! div {
+    ($divisor:expr, $size:expr) => {
+        $crate::passes::select::Instr::Div {
+            divisor: $divisor,
+            size: $size,
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! idiv {
+    ($divisor:expr, $size:expr) => {
+        $crate::passes::select::Instr::IDiv {
+            divisor: $divisor,
+            size: $size,
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! mul {
+    ($src:expr, $size:expr) => {
+        $crate::passes::select::Instr::Mul{
+            src: $src,
+            size: $size,
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! imul {
+    ($src:expr, $size:expr) => {
+        $crate::passes::select::Instr::IMul {
+            src: $src,
+            size: $size,
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! neg {
+    ($dst:expr, $size:expr) => {
+        $crate::passes::select::Instr::Neg {
+            dst: $dst,
+            size: $size,
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! mov {
+    ($src:expr, $dst:expr, $size:expr) => {
+        $crate::passes::select::Instr::Mov {
             src: $src,
             dst: $dst,
+            size: $size,
         }
     };
 }
+
 #[macro_export]
-macro_rules! andq {
-    ($src:expr, $dst:expr) => {
-        $crate::passes::select::Instr::Andq {
+macro_rules! movsx {
+    ($src:expr, $dst:expr, $size:expr) => {
+        $crate::passes::select::Instr::MovSX {
             src: $src,
             dst: $dst,
+            size: $size,
         }
     };
 }
 
 #[macro_export]
-macro_rules! orq {
-    ($src:expr, $dst:expr) => {
-        $crate::passes::select::Instr::Orq {
+macro_rules! push {
+    ($src:expr, $size:expr) => {
+        $crate::passes::select::Instr::Push {
+            src: $src,
+            size: $size,
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! pop {
+    ($dst:expr, $size:expr) => {
+        $crate::passes::select::Instr::Pop {
+            dst: $dst,
+            size: $size,
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! ret {
+    ($arity:expr) => {
+        $crate::passes::select::Instr::Ret { arity: $arity }
+    };
+}
+
+#[macro_export]
+macro_rules! syscall {
+    ($arity:expr) => {
+        $crate::passes::select::Instr::Syscall { arity: $arity }
+    };
+}
+
+#[macro_export]
+macro_rules! cmp {
+    ($src:expr, $dst:expr, $size:expr) => {
+        $crate::passes::select::Instr::Cmp {
             src: $src,
             dst: $dst,
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! xorq {
-    ($src:expr, $dst:expr) => {
-        $crate::passes::select::Instr::Xorq {
-            src: $src,
-            dst: $dst,
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! notq {
-    ($dst:expr) => {
-        $crate::passes::select::Instr::Notq { dst: $dst }
-    };
-}
-
-#[macro_export]
-macro_rules! negq {
-    ($dst:expr) => {
-        $crate::passes::select::Instr::Negq { dst: $dst }
-    };
-}
-
-#[macro_export]
-macro_rules! movq {
-    ($src:expr, $dst:expr) => {
-        $crate::passes::select::Instr::Movq {
-            src: $src,
-            dst: $dst,
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! load_lbl {
-    ($lbl:expr, $dst: expr) => {
-        $crate::passes::select::Instr::LoadLbl {
-            lbl: $lbl,
-            dst: $dst,
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! pushq {
-    ($src:expr) => {
-        $crate::passes::select::Instr::Pushq { src: $src }
-    };
-}
-
-#[macro_export]
-macro_rules! popq {
-    ($dst:expr) => {
-        $crate::passes::select::Instr::Popq { dst: $dst }
-    };
-}
-
-#[macro_export]
-macro_rules! callq_direct {
-    ($lbl:expr, $arity:expr) => {
-        $crate::passes::select::Instr::CallqDirect {
-            lbl: $lbl,
-            arity: $arity,
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! callq_indirect {
-    ($src:expr, $arity:expr) => {
-        $crate::passes::select::Instr::CallqIndirect {
-            src: $src,
-            arity: $arity,
+            size: $size,
         }
     };
 }
@@ -150,13 +148,6 @@ macro_rules! callq_indirect {
 macro_rules! jmp {
     ($lbl:expr) => {
         $crate::passes::select::Instr::Jmp { lbl: $lbl }
-    };
-}
-
-#[macro_export]
-macro_rules! setcc {
-    ($cnd:expr) => {
-        $crate::passes::select::Instr::Setcc { cnd: $cnd }
     };
 }
 
@@ -171,23 +162,86 @@ macro_rules! jcc {
 }
 
 #[macro_export]
-macro_rules! retq {
-    () => {
-        $crate::passes::select::Instr::Retq
+macro_rules! and {
+    ($src:expr, $dst:expr, $size:expr) => {
+        $crate::passes::select::Instr::And {
+            src: $src,
+            dst: $dst,
+            size: $size,
+        }
     };
 }
 
 #[macro_export]
-macro_rules! syscall {
-    ($arity:expr) => {
-        $crate::passes::select::Instr::Syscall { arity: $arity }
+macro_rules! or {
+    ($src:expr, $dst:expr, $size:expr) => {
+        $crate::passes::select::Instr::Or {
+            src: $src,
+            dst: $dst,
+            size: $size,
+        }
     };
 }
 
 #[macro_export]
-macro_rules! imm32 {
+macro_rules! xor {
+    ($src:expr, $dst:expr, $size:expr) => {
+        $crate::passes::select::Instr::Xor {
+            src: $src,
+            dst: $dst,
+            size: $size,
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! not {
+    ($dst:expr, $size:expr) => {
+        $crate::passes::select::Instr::Not { dst: $dst, size: $size, }
+    };
+}
+
+#[macro_export]
+macro_rules! setcc {
+    ($cnd:expr) => {
+        $crate::passes::select::Instr::Setcc { cnd: $cnd }
+    };
+}
+
+#[macro_export]
+macro_rules! load_lbl {
+    ($lbl:expr, $dst: expr) => {
+        $crate::passes::select::Instr::LoadLbl {
+            lbl: $lbl,
+            dst: $dst,
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! call_direct {
+    ($lbl:expr, $arity:expr) => {
+        $crate::passes::select::Instr::CallDirect {
+            lbl: $lbl,
+            arity: $arity,
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! call_indirect {
+    ($src:expr, $arity:expr) => {
+        $crate::passes::select::Instr::CallIndirect {
+            src: $src,
+            arity: $arity,
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! imm {
     ($val:expr) => {
-        $crate::passes::assign::Arg::Imm($crate::passes::select::Imm::Imm32($val as u32)).into()
+        $crate::passes::assign::Arg::Imm($crate::passes::validate::Int::I64($val as i64)).into()
     };
 }
 

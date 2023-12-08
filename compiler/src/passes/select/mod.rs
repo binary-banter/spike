@@ -8,6 +8,7 @@ use functor_derive::Functor;
 use itertools::Itertools;
 use std::collections::HashMap;
 use std::fmt::Display;
+use crate::passes::validate::Int;
 
 pub struct X86Selected<'p> {
     pub fns: HashMap<UniqueSym<'p>, FunSelected<'p>>,
@@ -53,54 +54,84 @@ pub enum Cnd {
 
 #[derive(Debug, Clone, PartialEq, Display, Functor)]
 pub enum Instr<Arg: Display, IdentVars: Display> {
-    #[display(fmt = "addq\t{src} {dst}")]
-    Addq { src: Arg, dst: Arg },
-    #[display(fmt = "subq\t{src} {dst}")]
-    Subq { src: Arg, dst: Arg },
-    #[display(fmt = "divq\t{divisor}")]
-    Divq { divisor: Arg },
-    #[display(fmt = "mulq\t{src}")]
-    Mulq { src: Arg },
-    #[display(fmt = "negq\t{dst}")]
-    Negq { dst: Arg },
-    #[display(fmt = "movq\t{src} {dst}")]
-    Movq { src: Arg, dst: Arg },
-    #[display(fmt = "pushq\t{src}")]
-    Pushq { src: Arg },
-    #[display(fmt = "popq\t{dst}")]
-    Popq { dst: Arg },
-    #[display(fmt = "retq")]
-    Retq,
+    /// Add. https://www.felixcloutier.com/x86/add.
+    #[display(fmt = "add\t{src} {dst}")]
+    Add { src: Arg, dst: Arg, size: Size },
+    /// Subtract. https://www.felixcloutier.com/x86/sub.
+    #[display(fmt = "sub\t{src} {dst}")]
+    Sub { src: Arg, dst: Arg, size: Size },
+    /// Unsigned Divide. https://www.felixcloutier.com/x86/div.
+    #[display(fmt = "div\t{divisor}")]
+    Div { divisor: Arg, size: Size },
+    /// Signed Divide. https://www.felixcloutier.com/x86/idiv.
+    #[display(fmt = "div\t{divisor}")]
+    IDiv { divisor: Arg, size: Size },
+    /// Unsigned Multiply. https://www.felixcloutier.com/x86/mul.
+    #[display(fmt = "mul\t{src}")]
+    Mul { src: Arg, size: Size },
+    /// Signed Multiply. https://www.felixcloutier.com/x86/imul.
+    #[display(fmt = "mul\t{src}")]
+    IMul { src: Arg, size: Size },
+    /// Two's Complement Negation. https://www.felixcloutier.com/x86/neg.
+    #[display(fmt = "neg\t{dst}")]
+    Neg { dst: Arg, size: Size },
+    /// Move. https://www.felixcloutier.com/x86/mov.
+    #[display(fmt = "mov\t{src} {dst}")]
+    Mov { src: Arg, dst: Arg, size: Size },
+    /// Move with sign extension. https://www.felixcloutier.com/x86/movsx:movsxd.
+    #[display(fmt = "mov\t{src} {dst}")]
+    MovSX { src: Arg, dst: Arg, size: Size },
+    #[display(fmt = "push\t{src}")]
+    /// Push Word, Doubleword, or Quadword Onto the Stack. https://www.felixcloutier.com/x86/push.
+    Push { src: Arg, size: Size },
+    /// Pop a Value From the Stack. https://www.felixcloutier.com/x86/pop.
+    #[display(fmt = "pop\t{dst}")]
+    Pop { dst: Arg, size: Size },
+    /// Return From Procedure. https://www.felixcloutier.com/x86/ret.
+    #[display(fmt = "ret\t{arity}")]
+    Ret { arity: usize },
+    /// Fast System Call. https://www.felixcloutier.com/x86/syscall.
     #[display(fmt = "syscall\t{arity}")]
     Syscall { arity: usize },
-    #[display(fmt = "cmpq\t{src} {dst}")]
-    Cmpq { src: Arg, dst: Arg },
+    /// Compare Two Operands. https://www.felixcloutier.com/x86/cmp.
+    #[display(fmt = "cmp\t{src} {dst}")]
+    Cmp { src: Arg, dst: Arg, size: Size },
+    /// Jump. https://www.felixcloutier.com/x86/jmp.
     #[display(fmt = "jmp\t{lbl}")]
     Jmp { lbl: IdentVars },
+    /// Jump if Condition Is Met. https://www.felixcloutier.com/x86/jcc.
     #[display(fmt = "jcc\t{cnd} {lbl}")]
     Jcc { lbl: IdentVars, cnd: Cnd },
-    #[display(fmt = "andq {src} {dst}")]
-    Andq { src: Arg, dst: Arg },
+    /// Logical AND. https://www.felixcloutier.com/x86/and.
+    #[display(fmt = "and {src} {dst}")]
+    And { src: Arg, dst: Arg, size: Size },
+    /// Logical Inclusive OR. https://www.felixcloutier.com/x86/or.
     #[display(fmt = "orq {src} {dst}")]
-    Orq { src: Arg, dst: Arg },
-    #[display(fmt = "xorq\t{src} {dst}")]
-    Xorq { src: Arg, dst: Arg },
-    #[display(fmt = "notq\t{dst}")]
-    Notq { dst: Arg },
+    Or { src: Arg, dst: Arg, size: Size },
+    /// Logical Exclusive OR. https://www.felixcloutier.com/x86/xor.
+    #[display(fmt = "xor\t{src} {dst}")]
+    Xor { src: Arg, dst: Arg, size: Size },
+    #[display(fmt = "not\t{dst}")]
+    /// One's Complement Negation. https://www.felixcloutier.com/x86/not.
+    Not { dst: Arg, size: Size },
+    /// Set Byte On Condition. https://www.felixcloutier.com/x86/setcc
     #[display(fmt = "setcc\t{cnd}")]
-    Setcc { cnd: Cnd }, //TODO allow setting other byteregs
+    Setcc { cnd: Cnd },
+    /// Load label as address by using a [`Mov`](Instr::Mov).
     #[display(fmt = "loadlbl\t{lbl} {dst}")]
     LoadLbl { lbl: IdentVars, dst: Arg },
+    /// Call Procedure. https://www.felixcloutier.com/x86/call.
     #[display(fmt = "call_direct\t{lbl} {arity}")]
-    CallqDirect { lbl: IdentVars, arity: usize },
+    CallDirect { lbl: IdentVars, arity: usize },
+    /// Call indirect. https://www.felixcloutier.com/x86/call.
     #[display(fmt = "call_indirect\t{src} {arity}")]
-    CallqIndirect { src: Arg, arity: usize },
+    CallIndirect { src: Arg, arity: usize },
 }
 
 #[derive(Debug, PartialEq, Clone, Display, Functor)]
 pub enum VarArg<IdentVars: Display> {
     #[display(fmt = "${_0}")]
-    Imm(Imm),
+    Imm(Int),
     #[display(fmt = "%{_0}")]
     Reg(Reg),
     #[display(fmt = "[%{reg} + ${off}]")]
@@ -109,16 +140,12 @@ pub enum VarArg<IdentVars: Display> {
     XVar(IdentVars),
 }
 
-#[derive(Debug, PartialEq, Clone, Display)]
-pub enum Imm {
-    #[display(fmt = "{_0}")]
-    Imm8(u8),
-    #[display(fmt = "{_0}")]
-    Imm16(u16),
-    #[display(fmt = "{_0}")]
-    Imm32(u32),
-    #[display(fmt = "{_0}")]
-    Imm64(u64),
+#[derive(Debug, Copy, Clone)]
+pub enum Size{
+    Bit8,
+    Bit16,
+    Bit32,
+    Bit64,
 }
 
 pub const CALLER_SAVED: [Reg; 9] = [
